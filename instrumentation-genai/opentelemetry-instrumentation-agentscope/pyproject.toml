@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opentelemetry-instrumentation-agentscope"
+dynamic = ["version"]
+description = "OpenTelemetry AgentScope Instrumentation"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.8, <3.13"
+authors = [
+    { name = "OpenTelemetry Authors", email = "lurious.lyh@alibaba-inc.com" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+#    "opentelemetry-api~=1.25.0",
+#    "opentelemetry-instrumentation==0.46b0",
+    "wrapt",
+]
+
+[project.optional-dependencies]
+instruments = [
+    "agentscope",
+]
+test = [
+    "langchain_core == 0.1.8",
+    "langchain == 0.1.0",
+    "langchain_openai == 0.0.2",
+    "langchain-community == 0.0.10",
+    "opentelemetry-sdk",
+    "respx",
+]
+type-check = []
+
+
+[tool.hatch.version]
+path = "src/opentelemetry/instrumentation/agentscope/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opentelemetry"]
+
+[project.entry-points.opentelemetry_instrumentor]
+agentscope = "opentelemetry.instrumentation.agengscope:AgentScopeInstrumentor"
