@@ -29,7 +29,7 @@ _LANGFUSE_MODULE = "core.ops.langfuse_trace.langfuse_trace"
 
 class DifyInstrumentor(BaseInstrumentor):  # type: ignore
     """
-    An instrumentor for PromptFlow
+    An instrumentor for Dify, https://github.com/langgenius/dify
     """
 
     def instrumentation_dependencies(self) -> Collection[str]:
