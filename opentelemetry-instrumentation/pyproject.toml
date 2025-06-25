@@ -32,6 +32,11 @@ dependencies = [
   "packaging >= 18.0",
 ]
 
+[project.optional-dependencies]
+instruments = [
+    "mcp >= 0.1.0",
+]
+
 [project.scripts]
 opentelemetry-bootstrap = "opentelemetry.instrumentation.bootstrap:run"
 opentelemetry-instrument = "opentelemetry.instrumentation.auto_instrumentation:run"
