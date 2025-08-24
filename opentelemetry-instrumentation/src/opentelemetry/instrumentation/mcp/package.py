@@ -1,1 +1,0 @@
-_instruments = ("mcp>=1.9.4",)
