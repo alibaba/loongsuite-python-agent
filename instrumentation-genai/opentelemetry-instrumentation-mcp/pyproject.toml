@@ -26,17 +26,25 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "wrapt"
+  "opentelemetry-api <= 1.35.0",
+  "wrapt",
 ]
 
 [project.optional-dependencies]
 instruments = [
-  "mcp >= 1.3.0, <=1.10.4",
+  "mcp >= 1.3.0, <= 1.12.4",
 ]
 test = [
-  "mcp >= 1.3.0, <=1.10.4",
-  "pytest",
   "opentelemetry-sdk",
+  "fastmcp>=2.10.1",
+  "pytest>=8.4.1",
+  "pytest-asyncio>=1.0.0",
+  "websockets",
+  "pytest-cov",
+  "Pillow",
+  "mcp",
+  "starlette",
+  "pydantic",
 ]
 type-check = []
 
@@ -57,3 +65,16 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opentelemetry"]
+
+[tool.black]
+line-length = 120
+
+[tool.pytest.ini_options]
+log_cli = true
+xfail_strict = true
+addopts = """
+    --color=yes
+"""
+filterwarnings = [
+    "ignore:pkg_resources is deprecated as an API:UserWarning::"
+]
