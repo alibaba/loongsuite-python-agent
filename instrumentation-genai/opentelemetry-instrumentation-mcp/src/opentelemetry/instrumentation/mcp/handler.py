@@ -195,7 +195,7 @@ class RequestHandler(ABC):
 
         return None
 
-    def _record_metrics(self, start_time: float, input_attributes, output_attributes):
+    def _record_metrics(self, start_time: float, input_attributes: Dict[str, str], output_attributes: Dict[str, str]):
         metric_attributes = {}
         for key in _metric_attribute_names:
             if key in input_attributes:
