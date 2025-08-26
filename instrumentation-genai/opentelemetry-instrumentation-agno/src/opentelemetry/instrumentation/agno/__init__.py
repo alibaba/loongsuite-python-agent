@@ -7,9 +7,9 @@ from opentelemetry.instrumentation.agno._wrapper import (
     AgnoModelWrapper,
 )
 from opentelemetry import trace as trace_api
-from aliyun.opentelemetry.instrumentation.utils import unwrap
-from aliyun.opentelemetry.instrumentation.instrumentor import BaseInstrumentor
-from aliyun.opentelemetry.instrumentation.version import (
+from opentelemetry.instrumentation.utils import unwrap
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.version import (
     __version__,
 )
 
