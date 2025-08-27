@@ -2,8 +2,8 @@ from typing import Any, Collection
 
 from opentelemetry.instrumentation.mcp.package import _instruments
 from opentelemetry import trace as trace_api
-from opentelemetry.instrumentation.instrumentor import BaseInstrumentor  # type: ignore
-from wrapt import wrap_function_wrapper
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from wrapt import wrap_function_wrapper   # type: ignore
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.metrics import get_meter
 from opentelemetry.instrumentation.mcp.session_handler import (

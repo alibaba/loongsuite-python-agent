@@ -6,6 +6,7 @@ from typing import (
     Dict,
     Mapping,
     Tuple,
+    Union,
 )
 
 from opentelemetry.instrumentation.mcp.metrics import ClientMetrics
@@ -63,7 +64,7 @@ class RequestHandler(ABC):
         ) as span:
             try:
                 if span.is_recording():
-                    span.set_attributes(input_attributes)  # type: ignore
+                    span.set_attributes(input_attributes)
             except Exception as e:
                 logger.debug("Failed to set span attributes", exc_info=True)
 
@@ -94,13 +95,13 @@ class RequestHandler(ABC):
                 else:
                     span.set_status(Status(StatusCode.OK))
                 if span.is_recording():
-                    span.set_attributes(output_attributes)  # type: ignore
+                    span.set_attributes(output_attributes)
                 self._record_metrics(start_time, input_attributes, output_attributes)
             except Exception:
                 logger.debug("Failed to set span attributes and record metrics", exc_info=True)
             return result
 
-    def _get_target_name(self, args, kwargs):
+    def _get_target_name(self, args: Tuple[Any, ...], kwargs: Mapping[str, Any]) -> str:
         if len(args) > 0:
             return str(args[0])
         _, arg_name = _method_names_with_target[self._method_name]
@@ -108,7 +109,7 @@ class RequestHandler(ABC):
             return str(kwargs[arg_name])
         return ""
 
-    def _get_span_name(self, instance, args, kwargs) -> str:
+    def _get_span_name(self, instance: Any, args: Tuple[Any, ...], kwargs: Mapping[str, Any]) -> str:
         try:
             if self._method_name in _method_names_with_target:
                 target_name = self._get_target_name(args, kwargs)
@@ -120,9 +121,9 @@ class RequestHandler(ABC):
 
     def _get_input_attributes(
         self,
-        instance,
-        args,
-        kwargs,
+        instance: Any,
+        args: Tuple[Any, ...],
+        kwargs: Mapping[str, Any],
     ) -> Dict[str, str]:
         try:
             input_attributes = {
@@ -150,18 +151,18 @@ class RequestHandler(ABC):
                 input_attributes.update(session_context._get_session_attributes())
 
             return input_attributes
-        except Exception as e:
+        except Exception:
             logger.debug("Failed to get input attributes", exc_info=True)
             return {}
 
-    def _get_session_context(self, instance) -> _SessionContext | None:
+    def _get_session_context(self, instance: Any) -> Union[_SessionContext, None]:
         if hasattr(instance, "_read_stream") and hasattr(instance._read_stream, "_session_context"):
             return instance._read_stream._session_context
         return None
 
-    def _get_output_attributes(self, response) -> Tuple[Dict[str, str], str | None]:
+    def _get_output_attributes(self, response: Any) -> Tuple[Dict[str, str], Union[str, None]]:
         try:
-            output_attributes = {}
+            output_attributes : Dict[str, str] = {}
             if _is_capture_content_enabled():
                 output_value = _safe_dump_attributes(response)
                 if output_value:
@@ -181,7 +182,7 @@ class RequestHandler(ABC):
             return {}, None
 
     @classmethod
-    def _calculate_response_size(cls, response) -> int | None:
+    def _calculate_response_size(cls, response: Any) -> Union[int, None]:
         if not _has_mcp_types:
             return None
         if isinstance(response, CallToolResult):
@@ -195,13 +196,13 @@ class RequestHandler(ABC):
 
         return None
 
-    def _record_metrics(self, start_time: float, input_attributes: Dict[str, str], output_attributes: Dict[str, str]):
-        metric_attributes = {}
+    def _record_metrics(self, start_time: float, input_attributes: Union[Dict[str, str], None], output_attributes: Union[Dict[str, str], None]):
+        metric_attributes : Dict[str, str] = {}
         for key in _metric_attribute_names:
-            if key in input_attributes:
+            if input_attributes is not None and key in input_attributes:
                 if value := input_attributes[key]:
                     metric_attributes[key] = value
-            elif key in output_attributes:
+            elif output_attributes is not None and key in output_attributes:
                 if value := output_attributes[key]:
                     metric_attributes[key] = value
         self._metrics.operation_duration.record(time.time() - start_time, metric_attributes)

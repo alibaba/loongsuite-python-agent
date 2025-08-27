@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List, Union
 import json
 import logging
 import importlib.metadata
@@ -21,7 +21,7 @@ MAX_SUPPORTED_VERSION = (1, 13, 1)
 MCP_PACKAGE_NAME = "mcp"
 DEFAULT_MAX_ATTRIBUTE_LENGTH = 1024 * 1024
 
-MAX_ATTRIBUTE_LENGTH = None
+_max_attributes_length = None
 
 
 def _parse_max_attribute_length() -> int:
@@ -38,16 +38,16 @@ def _parse_max_attribute_length() -> int:
 
 
 def _get_max_attribute_length() -> int:
-    global MAX_ATTRIBUTE_LENGTH
-    if MAX_ATTRIBUTE_LENGTH is not None:
-        return MAX_ATTRIBUTE_LENGTH
-    MAX_ATTRIBUTE_LENGTH = _parse_max_attribute_length()
-    return MAX_ATTRIBUTE_LENGTH
+    global _max_attributes_length
+    if _max_attributes_length is not None:
+        return _max_attributes_length
+    _max_attributes_length = _parse_max_attribute_length()
+    return _max_attributes_length
 
 
 def _is_ws_installed() -> bool:
     try:
-        import websockets
+        import websockets # pyright: ignore[reportUnusedImport]
 
         return True
     except ImportError:
@@ -63,7 +63,7 @@ def _get_mcp_version():
     return major, minor, patch
 
 
-def _is_version_supported():
+def _is_version_supported() -> bool:
     try:
         current_version = _get_mcp_version()
     except Exception as _:
@@ -83,7 +83,7 @@ def _safe_dump_attributes(obj: Any) -> str:
 
 def _safe_json_dumps(obj: Any, max_length: int = -1) -> str:
     try:
-        chunks = []
+        chunks : List[str] = []
         current_chunks_length = 0
         encoder = json.JSONEncoder()
         for chunk in encoder.iterencode(obj):
@@ -97,7 +97,7 @@ def _safe_json_dumps(obj: Any, max_length: int = -1) -> str:
         return ""
 
 
-def _get_content_size(content) -> int:
+def _get_content_size(content: Any) -> int:
     if not hasattr(content, "type"):
         return 0
     if content.type == "text" and hasattr(content, "text"):
@@ -109,7 +109,7 @@ def _get_content_size(content) -> int:
     return 0
 
 
-def _get_resource_result_size(resource_result) -> int | None:
+def _get_resource_result_size(resource_result: Any) -> Union[int, None]:
     if not _has_mcp_types or not hasattr(resource_result, "contents"):
         return None
     size = 0
@@ -121,7 +121,7 @@ def _get_resource_result_size(resource_result) -> int | None:
     return size
 
 
-def _get_prompt_result_size(prompt_result) -> int | None:
+def _get_prompt_result_size(prompt_result: Any) -> Union[int, None]:
     if not _has_mcp_types or not hasattr(prompt_result, "messages"):
         return None
     size = 0
@@ -131,19 +131,19 @@ def _get_prompt_result_size(prompt_result) -> int | None:
     return size
 
 
-def _get_call_tool_result_size(call_tool_result) -> int | None:
+def _get_call_tool_result_size(call_tool_result: Any) -> Union[int, None]:
     if not _has_mcp_types or not hasattr(call_tool_result, "content"):
         return None
     return sum([_get_content_size(content) for content in call_tool_result.content])
 
 
-def _get_complete_result_size(complete_result) -> int | None:
+def _get_complete_result_size(complete_result: Any) -> Union[int, None]:
     if _has_mcp_types and hasattr(complete_result, "completion") and hasattr(complete_result.completion, "values"):
         return sum([len(value) for value in complete_result.completion.values])
     return None
 
 
-def _is_true_value(value) -> bool:
+def _is_true_value(value: str) -> bool:
     return value.lower() in {"1", "y", "yes", "true"}
 
 

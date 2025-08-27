@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 import time
-from typing import Any, Callable, Dict, Mapping, Tuple
+from typing import Any, Callable, Dict, Mapping, Tuple, Union
 from urllib.parse import urlparse
 from opentelemetry import propagate
 from opentelemetry.instrumentation.mcp.metrics import ServerMetrics
@@ -30,10 +30,10 @@ class _SessionContext:
         self._attributes = session_attributes
         self._session_id_callback = None
 
-    def _set_session_id_callback(self, session_id_callback: Callable[[], str | None]):
+    def _set_session_id_callback(self, session_id_callback: Callable[[], Union[str, None]]):
         self._session_id_callback = session_id_callback
 
-    def _parse_session_id(self) -> str | None:
+    def _parse_session_id(self) -> Union[str, None]:
         if self._session_id_callback is None:
             return None
         if MCPAttributes.MCP_SESSION_ID in self._attributes:
@@ -68,7 +68,7 @@ class _SessionContext:
             logger.debug("Failed to detach session context", exc_info=True)
 
 
-def _parse_url(args: Tuple[Any, ...], kwargs: Mapping[str, Any]) -> Tuple[str | None, str | None]:
+def _parse_url(args: Tuple[Any, ...], kwargs: Mapping[str, Any]) -> Tuple[Union[str, None], Union[str, None]]:
     url = None
     if len(args) > 0:
         url = args[0]
@@ -231,8 +231,8 @@ class ServerHandleRequestWrapper:
             logger.debug("Failed to extract trace context", exc_info=True)
         return None
 
-    def extract_attributes(self, args: Tuple[Any, ...]) -> Tuple[str, str]:
-        attributes = {}
+    def extract_attributes(self, args: Tuple[Any, ...]) -> Tuple[Dict[str, str], Union[str, None]]:
+        attributes : Dict[str, str] = {}
         span_name = None
         if not has_mcp_types:
             return attributes, span_name
@@ -251,10 +251,10 @@ class ServerHandleRequestWrapper:
 
             # span name
             if method in ["tools/call", "prompts/get"]:
-                target_name = message.request.root.params.name
+                target_name : str = message.request.root.params.name # type: ignore
                 span_name = f"{method} {target_name}"
             elif method in ["resources/read", "resources/subscribe", "resources/unsubscribe"]:
-                target_name = str(message.request.root.params.uri)
+                target_name = str(message.request.root.params.uri) # type: ignore
                 span_name = f"{method} {target_name}"
             else:
                 span_name = method
@@ -280,7 +280,7 @@ class ServerHandleRequestWrapper:
 
         with self._tracer.start_as_current_span(
             name=span_name, kind=SpanKind.SERVER, context=parent_context, attributes=attributes
-        ) as span:
+        ):
             try:
                 return await wrapped(*args, **kwargs)
             finally:
