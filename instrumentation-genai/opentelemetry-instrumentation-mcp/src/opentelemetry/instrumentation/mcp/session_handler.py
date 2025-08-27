@@ -251,13 +251,14 @@ class ServerHandleRequestWrapper:
 
             # span name
             if method in ["tools/call", "prompts/get"]:
-                target_name : str = message.request.root.params.name # type: ignore
+                target_name = message.request.root.params.name # type: ignore
                 span_name = f"{method} {target_name}"
             elif method in ["resources/read", "resources/subscribe", "resources/unsubscribe"]:
                 target_name = str(message.request.root.params.uri) # type: ignore
                 span_name = f"{method} {target_name}"
             else:
                 span_name = method
+                target_name = None
 
             if target_name is not None and method in _method_names_with_target:
                 (attr_name, _) = _method_names_with_target[method]
