@@ -10,7 +10,7 @@ readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.8, <=3.13"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "LoongSuite Python Agent Authors"},
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -49,7 +49,7 @@ test = [
 type-check = []
 
 [project.entry-points.opentelemetry_instrumentor]
-mcp = "opentelemetry.instrumentation.mcp:MCPClientInstrumentor"
+mcp = "opentelemetry.instrumentation.mcp:MCPInstrumentor"
 
 [project.urls]
 Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-genai/opentelemetry-instrumentation-mcp"
@@ -78,3 +78,10 @@ addopts = """
 filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:UserWarning::"
 ]
+[tool.basedpyright]
+reportPossiblyUnboundVariable = "none"
+[tool.cursorpyright]
+reportPossiblyUnboundVariable = "none"
+[tool.pyright]
+reportPossiblyUnboundVariable = "none"
+typeCheckingMode = "off"
