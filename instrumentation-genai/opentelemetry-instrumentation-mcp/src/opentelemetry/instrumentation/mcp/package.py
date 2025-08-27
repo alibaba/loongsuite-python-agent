@@ -1,1 +1,2 @@
-_instruments = ("mcp>=1.9.4",)
+_instruments = ("mcp>=1.3.0",)
+_supports_metrics = True
