@@ -1,10 +1,11 @@
-from opentelemetry.instrumentation.agentscope._extractor import (
+from opentelemetry.instrumentation.agentscope.v0._extractor import (
     ModelRequestExtractor,
     ModelResponseExtractor,
     ToolRequestExtractor,
     ToolResponseExtractor,
 )
-from opentelemetry.instrumentation.agentscope._with_span import _WithSpan
+from opentelemetry.instrumentation.agentscope.v0._with_span import _WithSpan
+from opentelemetry.instrumentation.agentscope.utils import is_content_enabled
 from typing import (
     Any,
     Callable,
@@ -27,9 +28,6 @@ from os import environ
 from inspect import signature
 
 logger = getLogger(__name__)
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT = (
-    "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
-)
 def bind_arguments(method: Callable[..., Any], instance: Any, *args: Any, **kwargs: Any) -> Dict[str, Any]:
     method_signature = signature(method)
     bound_arguments = method_signature.bind(instance, *args, **kwargs)
@@ -76,12 +74,6 @@ class AgentscopeRequestWrapper(_WithTracer):
         self._request_attributes_extractor = ModelRequestExtractor()
         self._response_attributes_extractor = ModelResponseExtractor()
 
-    def _enable_genai_capture(self) -> bool:
-        capture_content = environ.get(
-            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, "false"
-        )
-        return capture_content.lower() == "true"
-
     def __call__(
             self,
             wrapped: Callable[..., Any],
@@ -101,7 +93,7 @@ class AgentscopeRequestWrapper(_WithTracer):
             **kwargs: Mapping[str, Any],
         ) -> ModelResponse:
             arguments = bind_arguments(original_call, model_instance, *args, **kwargs)
-            if not self._enable_genai_capture() or instance is None:
+            if not is_content_enabled() or instance is None:
                 return original_call(model_instance, *args, **kwargs)
             with self._start_as_current_span(
                 span_name="ModelCall",
@@ -155,12 +147,6 @@ class AgentscopeToolcallWrapper(_WithTracer):
         )
         return response
 
-    def _enable_genai_capture(self) -> bool:
-        capture_content = environ.get(
-            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, "false"
-        )
-        return capture_content.lower() == "true"
-
     def __call__(
             self,
             wrapped: Callable[..., Any],
@@ -169,7 +155,7 @@ class AgentscopeToolcallWrapper(_WithTracer):
             kwargs: Mapping[str, Any],
     ) -> None:
         tool_use_block = args[0] if args else kwargs.get("tool_call")
-        if not self._enable_genai_capture():
+        if not is_content_enabled():
             return wrapped(*args, **kwargs)
         if instance is None:
             return wrapped(*args, **kwargs)
@@ -199,3 +185,4 @@ class AgentscopeToolcallWrapper(_WithTracer):
                 logger.exception(f"Failed to finalize response of type {type(response)}")
                 with_span.finish_tracing()
         return response
+        

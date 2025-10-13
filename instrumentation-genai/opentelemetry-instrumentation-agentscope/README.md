@@ -24,6 +24,168 @@ pip install ./instrumentation-genai/opentelemetry-instrumentation-agentscope
 
 ## RUN
 
+## AgentScope V1
+
+Follow the official [agentscope example](https://github.com/agentscope-ai/agentscope/tree/main/examples) to instrument a example demo such as `examples/functionality/structured_output/main.py`
+
+## Quick Start
+
+You can automatically instrument your AgentScope application using the `opentelemetry-instrument` command:
+
+```bash
+opentelemetry-instrument \
+    --traces_exporter console \
+    --metrics_exporter console \
+    python examples/functionality/structured_output/main.py 
+```
+If everything is working correctly, you should see logs similar to the following
+```json
+{
+    "name": "invoke_agent Friday",
+    "context": {
+        "trace_id": "0xfe4bc5bb9da01f6c3af93d16628e6f6c",
+        "span_id": "0x5198826f9fc1b744",
+        "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2025-09-18T07:14:07.458406Z",
+    "end_time": "2025-09-18T07:14:09.388674Z",
+    "status": {
+        "status_code": "OK"
+    },
+    "attributes": {
+        "gen_ai.span.kind": "agent",
+        "gen_ai.conversation.id": "cSqkWAVi54oaRU8Msg6uDh",
+        "gen_ai.agent.id": "UzohJ5i8CMueXaQpdp4ReS",
+        "gen_ai.agent.name": "Friday",
+        "gen_ai.agent.description": "A ReAct agent implementation in AgentScope, which supports\n\n- Realtime steering\n- API-based (parallel) tool calling\n- Hooks around reasoning, acting, reply, observe and print functions\n- Structured output generation",
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.system_instructions": "You are a helpful assistant named Friday.",
+        "gen_ai.request.model": "qwen-max",
+        "gen_ai.input.messages": "[{\"role\": \"user\", \"parts\": [{\"type\": \"text\", \"content\": \"Choose one of your favorite fruit\"}], \"name\": \"user\"}]",
+        "gen_ai.output.messages": "{\"role\": \"assistant\", \"parts\": [{\"type\": \"text\", \"content\": \"I choose apple as one of my favorite fruits. It's crisp, sweet, and very refreshing!\"}], \"name\": \"Friday\"}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "telemetry.auto.version": "0.57b0",
+            "service.name": "unknown_service"
+        },
+        "schema_url": ""
+    }
+}
+{
+    "name": "chat qwen-max",
+    "context": {
+        "trace_id": "0xfe4bc5bb9da01f6c3af93d16628e6f6c",
+        "span_id": "0x851e0d4ef1b184e9",
+        "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x5198826f9fc1b744",
+    "start_time": "2025-09-18T07:14:07.459576Z",
+    "end_time": "2025-09-18T07:14:09.387582Z",
+    "status": {
+        "status_code": "OK"
+    },
+    "attributes": {
+        "gen_ai.span.kind": "llm",
+        "gen_ai.conversation.id": "cSqkWAVi54oaRU8Msg6uDh",
+        "gen_ai.provider.name": "dashscope",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.request.model": "qwen-max",
+        "gen_ai.input.messages": "[{\"role\": \"system\", \"parts\": [{\"type\": \"text\", \"content\": \"You are a helpful assistant named Friday.\"}]}, {\"role\": \"user\", \"parts\": [{\"type\": \"text\", \"content\": \"Please introduce Einstein\"}]}, {\"role\": \"assistant\", \"parts\": [{\"type\": \"tool_call\", \"name\": \"generate_response\", \"id\": \"call_cd1858cf64ad402f8f64e6\", \"arguments\": {\"name\": \"Albert Einstein\", \"age\": 76, \"intro\": \"Albert Einstein was a German-born theoretical physicist, widely acknowledged to be one of the greatest and most influential physicists of all time.\", \"honors\": [\"Nobel Prize in Physics (1921)\", \"Copley Medal (1925)\", \"Max Planck Medal (1929)\", \"Time Magazine's Person of the Century (1999)\"], \"response\": \"Albert Einstein, who lived to be 76 years old, was a renowned theoretical physicist. He is best known for developing the theory of relativity, but he also made significant contributions to the development of the philosophy of science. Einstein received numerous honors, including the Nobel Prize in Physics in 1921, the Copley Medal in 1925, the Max Planck Medal in 1929, and he was even named Time Magazine's Person of the Century in 1999.\"}}]}, {\"role\": \"tool\", \"parts\": [{\"type\": \"tool_call_response\", \"response\": \"Successfully generated response.\", \"id\": \"call_cd1858cf64ad402f8f64e6\"}]}, {\"role\": \"assistant\", \"parts\": [{\"type\": \"text\", \"content\": \"Albert Einstein, who lived to be 76 years old, was a renowned theoretical physicist. He is best known for developing the theory of relativity, but he also made significant contributions to the development of the philosophy of science. Einstein received numerous honors, including the Nobel Prize in Physics in 1921, the Copley Medal in 1925, the Max Planck Medal in 1929, and he was even named Time Magazine's Person of the Century in 1999.\"}]}, {\"role\": \"user\", \"parts\": [{\"type\": \"text\", \"content\": \"Choose one of your favorite fruit\"}]}]",
+        "gen_ai.response.id": "2025-09-18 15:14:09.383_3641e0",
+        "gen_ai.output.type": "text",
+        "gen_ai.response.finish_reasons": "[\"stop\"]",
+        "gen_ai.usage.input_tokens": 594,
+        "gen_ai.usage.output_tokens": 45,
+        "gen_ai.output.messages": "[{\"role\": \"assistant\", \"parts\": [{\"type\": \"tool_call\", \"id\": \"call_7f25ce38ce304f4eb20a0a\", \"name\": \"generate_response\", \"arguments\": {\"choice\": \"apple\", \"response\": \"I choose apple as one of my favorite fruits. It's crisp, sweet, and very refreshing!\"}}], \"finish_reason\": \"stop\"}]"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "telemetry.auto.version": "0.57b0",
+            "service.name": "unknown_service"
+        },
+        "schema_url": ""
+    }
+}
+{
+    "name": "execute_tool generate_response",
+    "context": {
+        "trace_id": "0xfe4bc5bb9da01f6c3af93d16628e6f6c",
+        "span_id": "0xa5b483e5de02c128",
+        "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x5198826f9fc1b744",
+    "start_time": "2025-09-18T07:14:09.388282Z",
+    "end_time": "2025-09-18T07:14:09.388612Z",
+    "status": {
+        "status_code": "OK"
+    },
+    "attributes": {
+        "gen_ai.span.kind": "tool",
+        "gen_ai.conversation.id": "cSqkWAVi54oaRU8Msg6uDh",
+        "gen_ai.tool.call.id": "call_7f25ce38ce304f4eb20a0a",
+        "gen_ai.tool.name": "generate_response",
+        "gen_ai.tool.description": "Generate a response. Note only the input argument `response` is\n\nvisible to the others, you should include all the necessary\ninformation in the `response` argument.",
+        "gen_ai.tool.call.arguments": "{\"choice\": \"apple\", \"response\": \"I choose apple as one of my favorite fruits. It's crisp, sweet, and very refreshing!\"}",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.call.result": "[{\"type\": \"text\", \"text\": \"Successfully generated response.\"}]"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+        "attributes": {
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.version": "1.37.0",
+            "telemetry.auto.version": "0.57b0",
+            "service.name": "unknown_service"
+        },
+        "schema_url": ""
+    }
+}
+
+```
+
+## Forwarding OTLP Data to the Backend
+```shell
+export OTEL_SERVICE_NAME=<service_name>
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=<trace_endpoint>
+export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=<metrics_endpoint>
+
+opentelemetry-instrument <your_run_command>
+
+```
+
+### Results
+#### Export to aliyun xtrace
+
+![image.png](_assets/img_v1/Aliyun//agent_description.png)
+![image.png](_assets/img_v1/Aliyun//llm_info.png)
+![image.png](_assets/img_v1/Aliyun//tool_exec.png)
+
+#### Export to agentscope studio
+
+This version supports OTel data ingestion — please use it for integration [agentscope studio](https://github.com/agentscope-ai/agentscope-studio/pull/7)
+![image.png](_assets/img_v1/AgentScopeStudio/dashboard.png)
+![image.png](_assets/img_v1/AgentScopeStudio/detail.png)
+
+## AgentScope V0
+
 ### Build the Example
 
 Follow the official [agentscope documentation](https://doc.agentscope.io/) to create a sample file named `demo.py`
@@ -214,4 +376,4 @@ python demo.py
 
 Access the Jaeger UI to view the collected trace data. You should now see trace information being properly received.
 
-![image.png](_assets/img/results.png)
+![image.png](_assets/img_v0/results.png)
