@@ -271,7 +271,7 @@ async def root():
             "available_tools": [
                 "get_current_time: 获取当前时间",
                 "calculate_math: 数学计算",
-                "roll_dice: 投死子",
+                "roll_dice: 投骰子",
                 "check_prime_numbers: 质数检查",
                 "get_weather_info: 天气信息",
                 "search_web: 网络搜索",
@@ -329,14 +329,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 def main():
     """主函数 - 启动 HTTP 服务"""
-    safe_api_key = api_key or ""
     print("🚀 ADK 工具使用 Agent HTTP 服务")
     print("=" * 50)
-    print(f"🔑 使用 API Key: {safe_api_key[:10]}***{safe_api_key[-4:] if len(safe_api_key) > 14 else '***'}")
+    print(f"🔑 API Key 已设置")
     print("🔧 可用工具:")
     print("   1. get_current_time - 获取当前时间")
     print("   2. calculate_math - 数学计算")
-    print("   3. roll_dice - 投死子")
+    print("   3. roll_dice - 投骰子")
     print("   4. check_prime_numbers - 质数检查")
     print("   5. get_weather_info - 天气信息")
     print("   6. search_web - 网络搜索")
@@ -365,7 +364,7 @@ async def run_test_conversation():
     """运行测试对话"""
     print("🚀 启动工具使用示例")
     print("=" * 50)
-    print(f"🔑 使用 API Key: {api_key[:10]}***{api_key[-4:] if len(api_key) > 14 else '***'}")
+    print(f"🔑 API Key 已设置")
     print(f"🤖 模型: {DASHSCOPE_CONFIG['model']}")
     print("=" * 50)
     
