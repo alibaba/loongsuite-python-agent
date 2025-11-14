@@ -1,0 +1,316 @@
+---
+description: 不同类型框架需要追踪的关键操作定义
+---
+
+# 框架类型与追踪操作定义
+
+## 概述
+
+在为 Python 框架编写 instrumentation 之前，需要首先识别框架的类型，并明确该类型框架需要追踪的关键操作。不同类型的框架/Library 需要追踪的关键操作是不一样的。
+
+本文档定义了各类框架类型及其对应需要追踪的关键操作，作为"找点位"（Locate Instrumentation）任务的前置参考。
+
+相关文档：[找点位指南](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+
+## 框架类型分类与追踪操作
+
+### 1. HTTP Server 框架
+
+**典型框架**: Flask, Django, FastAPI, aiohttp (server), Tornado, Sanic
+
+**需要追踪的关键操作**:
+- ✅ **HTTP 请求接收和处理的过程**
+  - 捕获请求的完整生命周期（从接收到响应）
+  - 记录 HTTP method、path、headers、query parameters
+  - 记录响应状态码、响应时间
+  - 支持中间件和路由处理
+
+**关键点位特征**:
+- 通常在 WSGI/ASGI 应用的请求处理入口
+- 或在框架的核心路由处理方法中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-flask](mdc:instrumentation/opentelemetry-instrumentation-flask) - Flask 框架
+- [opentelemetry-instrumentation-django](mdc:instrumentation/opentelemetry-instrumentation-django) - Django 框架
+- [opentelemetry-instrumentation-fastapi](mdc:instrumentation/opentelemetry-instrumentation-fastapi) - FastAPI 框架
+- [opentelemetry-instrumentation-aiohttp-server](mdc:instrumentation/opentelemetry-instrumentation-aiohttp-server) - aiohttp Server 端
+- [opentelemetry-instrumentation-tornado](mdc:instrumentation/opentelemetry-instrumentation-tornado) - Tornado 框架
+- [opentelemetry-instrumentation-starlette](mdc:instrumentation/opentelemetry-instrumentation-starlette) - Starlette 框架
+- [opentelemetry-instrumentation-pyramid](mdc:instrumentation/opentelemetry-instrumentation-pyramid) - Pyramid 框架
+- [opentelemetry-instrumentation-falcon](mdc:instrumentation/opentelemetry-instrumentation-falcon) - Falcon 框架
+- [opentelemetry-instrumentation-wsgi](mdc:instrumentation/opentelemetry-instrumentation-wsgi) - WSGI 应用通用
+- [opentelemetry-instrumentation-asgi](mdc:instrumentation/opentelemetry-instrumentation-asgi) - ASGI 应用通用
+
+---
+
+### 2. HTTP Client 框架
+
+**典型框架**: requests, httpx, aiohttp (client), urllib3
+
+**需要追踪的关键操作**:
+- ✅ **HTTP 请求发送的过程**
+  - 捕获请求发送到接收响应的完整过程
+  - 记录目标 URL、HTTP method、headers、body
+  - 记录响应状态码、响应时间、响应体大小
+  - 支持同步和异步调用
+
+**关键点位特征**:
+- 通常在 client 的 `request()` 或 `send()` 方法
+- 或在特定的 HTTP method 方法中（`get()`, `post()` 等）
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-requests](mdc:instrumentation/opentelemetry-instrumentation-requests) - requests 库
+- [opentelemetry-instrumentation-httpx](mdc:instrumentation/opentelemetry-instrumentation-httpx) - httpx 库
+- [opentelemetry-instrumentation-aiohttp-client](mdc:instrumentation/opentelemetry-instrumentation-aiohttp-client) - aiohttp Client 端
+- [opentelemetry-instrumentation-urllib3](mdc:instrumentation/opentelemetry-instrumentation-urllib3) - urllib3 库
+- [opentelemetry-instrumentation-urllib](mdc:instrumentation/opentelemetry-instrumentation-urllib) - urllib 库
+- [opentelemetry-instrumentation-botocore](mdc:instrumentation/opentelemetry-instrumentation-botocore) - AWS Botocore (HTTP client 基础)
+- [opentelemetry-instrumentation-boto](mdc:instrumentation/opentelemetry-instrumentation-boto) - AWS Boto
+- [opentelemetry-instrumentation-boto3sqs](mdc:instrumentation/opentelemetry-instrumentation-boto3sqs) - AWS Boto3 SQS
+
+---
+
+### 3. RPC 类型框架
+
+**典型框架**: gRPC, Apache Thrift, Dubbo Python
+
+**需要追踪的关键操作**:
+- ✅ **RPC 请求接收和处理的过程**（Server 端）
+  - 捕获 RPC 服务端接收和处理请求的过程
+  - 记录 service name、method name、request/response 数据
+  - 记录处理时间和状态
+  
+- ✅ **RPC 请求发送的过程**（Client 端）
+  - 捕获 RPC 客户端发送请求和接收响应的过程
+  - 记录目标地址、service name、method name
+  - 记录请求参数、响应数据、调用耗时
+
+**关键点位特征**:
+- Server 端：在 RPC handler 或 interceptor 中
+- Client 端：在 stub 的调用方法或 interceptor 中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-grpc](mdc:instrumentation/opentelemetry-instrumentation-grpc) - gRPC 框架（支持 Server 和 Client）
+
+---
+
+### 4. DB Client 类型框架
+
+**典型框架**: mysql-connector-python, pymysql, psycopg2, SQLAlchemy
+
+**需要追踪的关键操作**:
+- ✅ **数据库增删改查（CRUD）的过程**
+  - 捕获 SQL 查询的执行过程
+  - 记录 SQL 语句、执行时间、影响行数
+  - 记录数据库连接信息（host, port, database）
+  - 支持 prepared statements 和 batch operations
+
+**关键点位特征**:
+- 通常在 `execute()` 或 `executemany()` 方法
+- 或在 ORM 的查询执行方法中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-psycopg2](mdc:instrumentation/opentelemetry-instrumentation-psycopg2) - PostgreSQL (psycopg2)
+- [opentelemetry-instrumentation-psycopg](mdc:instrumentation/opentelemetry-instrumentation-psycopg) - PostgreSQL (psycopg 3.x)
+- [opentelemetry-instrumentation-pymysql](mdc:instrumentation/opentelemetry-instrumentation-pymysql) - MySQL (pymysql)
+- [opentelemetry-instrumentation-mysqlclient](mdc:instrumentation/opentelemetry-instrumentation-mysqlclient) - MySQL (mysqlclient)
+- [opentelemetry-instrumentation-mysql](mdc:instrumentation/opentelemetry-instrumentation-mysql) - MySQL (mysql-connector)
+- [opentelemetry-instrumentation-pymssql](mdc:instrumentation/opentelemetry-instrumentation-pymssql) - Microsoft SQL Server
+- [opentelemetry-instrumentation-sqlite3](mdc:instrumentation/opentelemetry-instrumentation-sqlite3) - SQLite
+- [opentelemetry-instrumentation-asyncpg](mdc:instrumentation/opentelemetry-instrumentation-asyncpg) - PostgreSQL 异步 (asyncpg)
+- [opentelemetry-instrumentation-aiopg](mdc:instrumentation/opentelemetry-instrumentation-aiopg) - PostgreSQL 异步 (aiopg)
+- [opentelemetry-instrumentation-sqlalchemy](mdc:instrumentation/opentelemetry-instrumentation-sqlalchemy) - SQLAlchemy ORM
+- [opentelemetry-instrumentation-tortoiseorm](mdc:instrumentation/opentelemetry-instrumentation-tortoiseorm) - Tortoise ORM
+- [opentelemetry-instrumentation-dbapi](mdc:instrumentation/opentelemetry-instrumentation-dbapi) - DB-API 2.0 通用接口
+
+---
+
+### 5. NoSQL 类型框架
+
+**典型框架**: redis-py, elasticsearch-py, pymongo, cassandra-driver
+
+**需要追踪的关键操作**:
+- ✅ **数据增删改查（CRUD）的过程**
+  - 捕获 NoSQL 操作的执行过程
+  - 记录操作类型（GET, SET, QUERY 等）
+  - 记录 key、索引、查询条件等
+  - 记录执行时间、返回数据大小
+  - 记录连接信息（host, port）
+
+**关键点位特征**:
+- Redis: 在 `execute_command()` 或具体命令方法中
+- Elasticsearch: 在 `perform_request()` 或 transport 层
+- MongoDB: 在 collection 的操作方法中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-redis](mdc:instrumentation/opentelemetry-instrumentation-redis) - Redis
+- [opentelemetry-instrumentation-elasticsearch](mdc:instrumentation/opentelemetry-instrumentation-elasticsearch) - Elasticsearch
+- [opentelemetry-instrumentation-pymongo](mdc:instrumentation/opentelemetry-instrumentation-pymongo) - MongoDB
+- [opentelemetry-instrumentation-cassandra](mdc:instrumentation/opentelemetry-instrumentation-cassandra) - Cassandra
+- [opentelemetry-instrumentation-pymemcache](mdc:instrumentation/opentelemetry-instrumentation-pymemcache) - Memcached
+
+---
+
+### 6. 消息队列类型框架
+
+**典型框架**: kafka-python, pika (RabbitMQ), celery, kombu
+
+**需要追踪的关键操作**:
+- ✅ **消息发送的过程**（Producer）
+  - 捕获消息发送到队列的过程
+  - 记录 topic/queue、消息内容、消息大小
+  - 记录 broker 地址、分区信息
+  
+- ✅ **消息接收的过程**（Consumer）
+  - 捕获从队列接收消息的过程
+  - 记录 topic/queue、消息元数据
+  
+- ✅ **消息处理的过程**（Callback）
+  - 捕获消息处理回调函数的执行
+  - 记录处理时间、处理结果
+  - 支持错误处理和重试逻辑
+
+**关键点位特征**:
+- Producer: 在 `send()` 或 `publish()` 方法
+- Consumer: 在 `consume()` 或 `receive()` 方法
+- Callback: 在消息处理函数的包装器中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-kafka-python](mdc:instrumentation/opentelemetry-instrumentation-kafka-python) - Apache Kafka (kafka-python)
+- [opentelemetry-instrumentation-confluent-kafka](mdc:instrumentation/opentelemetry-instrumentation-confluent-kafka) - Apache Kafka (confluent-kafka)
+- [opentelemetry-instrumentation-aiokafka](mdc:instrumentation/opentelemetry-instrumentation-aiokafka) - Apache Kafka 异步 (aiokafka)
+- [opentelemetry-instrumentation-pika](mdc:instrumentation/opentelemetry-instrumentation-pika) - RabbitMQ (pika)
+- [opentelemetry-instrumentation-aio-pika](mdc:instrumentation/opentelemetry-instrumentation-aio-pika) - RabbitMQ 异步 (aio-pika)
+- [opentelemetry-instrumentation-celery](mdc:instrumentation/opentelemetry-instrumentation-celery) - Celery 分布式任务队列
+- [opentelemetry-instrumentation-remoulade](mdc:instrumentation/opentelemetry-instrumentation-remoulade) - Remoulade 消息处理
+
+---
+
+### 7. LLM Client 类型框架
+
+**典型框架**: openai, anthropic, google-generativeai, dashscope
+
+**需要追踪的关键操作**:
+- ✅ **LLM 各类请求的过程**
+  - **Chat 调用**: 对话补全请求
+  - **Text Generate 调用**: 文本生成请求
+  - **Embedding 调用**: 文本向量化请求
+  - 记录 model、prompt/messages、temperature 等参数
+  - 记录 token 使用量（input tokens, output tokens）
+  - 记录响应内容、finish reason
+  - 支持流式（streaming）和非流式响应
+  - 支持同步和异步调用
+
+**当前范围限制**:
+- ✅ 支持：Chat、Text Generate、Embedding
+- ❌ 暂不支持：多模态调用（语音合成、语音识别、图像生成等）
+
+**关键点位特征**:
+- 通常在 client 的 `create()` 或 `generate()` 方法
+- 需要分别处理 chat、completions、embeddings 等不同的 API
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-openai-v2](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2) - OpenAI SDK
+- [opentelemetry-instrumentation-google-genai](mdc:instrumentation-genai/opentelemetry-instrumentation-google-genai) - Google Generative AI
+- [opentelemetry-instrumentation-vertexai](mdc:instrumentation-genai/opentelemetry-instrumentation-vertexai) - Google Vertex AI
+
+**详细参考**:
+- [OpenAI Instrumentation 代码](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2/src/opentelemetry/instrumentation/openai_v2/__init__.py)
+
+---
+
+### 8. LLM 框架类型
+
+**典型框架**: LangChain, Google ADK, OpenAI Agents SDK, AgentScope, Dify
+
+**需要追踪的关键操作**:
+
+#### 8.1 LLM 请求追踪
+- ✅ **LLM 各类请求的过程**
+  - **Chat 调用**: 对话补全请求
+  - **Text Generate 调用**: 文本生成请求
+  - **Embedding 调用**: 文本向量化请求
+  - 记录方式同 "LLM Client 类型"
+  
+**注意**: 暂不考虑与 LLM Client instrumentation 冲突的情况
+
+#### 8.2 RAG 相关操作追踪
+- ✅ **RAG (Retrieval-Augmented Generation) 相关的过程**
+  - **Retrieve**: 向量检索过程
+    - 记录查询文本、检索源、返回文档数量
+    - 记录相似度得分、检索耗时
+  - **Rerank**: 重排序过程
+    - 记录重排序模型、输入文档、输出排序
+    - 记录重排序耗时
+
+#### 8.3 Agent 相关操作追踪
+- ✅ **Agent 创建和调用相关的过程**
+  - **Agent 创建**: Agent 实例化过程
+    - 记录 Agent 类型、配置参数
+  - **Agent 调用**: Agent 执行任务的过程
+    - 记录输入、输出、执行时间
+    - 记录 Agent 内部的决策链路
+  - **Tool 调用**: Agent 调用工具的过程
+    - 记录工具名称、输入参数、返回结果
+  - **多 Agent 协作**: Agent 之间的交互过程
+    - 记录 Agent 之间的消息传递
+
+**当前范围限制**:
+- ✅ 支持：Chat、Text Generate、Embedding
+- ❌ 暂不支持：多模态调用（语音合成、语音识别、图像生成等）
+
+**关键点位特征**:
+- LLM 调用: 在框架封装的 LLM client wrapper 中
+- RAG: 在 retriever 或 vector store 的查询方法中
+- Agent: 在 Agent 的 `run()` 或 `execute()` 方法中
+
+**项目中的 Instrumentation 示例**:
+- [opentelemetry-instrumentation-langchain](mdc:instrumentation-genai/opentelemetry-instrumentation-langchain) - LangChain 框架
+- [opentelemetry-instrumentation-openai-agents-v2](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-agents-v2) - OpenAI Agents SDK
+- [opentelemetry-instrumentation-weaviate](mdc:instrumentation-genai/opentelemetry-instrumentation-weaviate) - Weaviate 向量数据库（RAG 场景）
+
+---
+
+## 使用指南
+
+### 如何使用本文档
+
+1. **识别框架类型**
+   - 确定要编写 instrumentation 的框架属于哪个类型
+   - 一个框架可能同时属于多个类型（如 aiohttp 既是 Server 也是 Client）
+
+2. **明确追踪目标**
+   - 根据框架类型，确定需要追踪的关键操作
+   - 确认操作的优先级（某些操作可能是可选的）
+
+3. **结合找点位指南**
+   - 参考 [找点位指南](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+   - 在框架源码中定位能够捕获这些关键操作的方法
+
+4. **验证覆盖度**
+   - 确保选择的点位能够覆盖所有需要追踪的关键操作
+   - 评估是否有遗漏的场景
+
+### 特殊情况处理
+
+- **混合类型框架**: 如果框架同时属于多个类型，需要分别为每种类型找到对应的点位
+- **新兴框架**: 如果框架类型不在上述分类中，参考最相似的类型，或提出新的分类
+- **范围限制**: 明确当前不支持的操作类型，并在文档中说明
+
+---
+
+## 语义规范参考
+
+不同类型的操作需要遵循 OpenTelemetry 的语义规范：
+
+- **HTTP**: [HTTP Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/http/)
+- **Database**: [Database Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/database/)
+- **Messaging**: [Messaging Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/messaging/)
+- **RPC**: [RPC Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/rpc/)
+- **GenAI**: [GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/gen-ai/README.md)
+
+---
+
+## 更新记录
+
+本文档会随着项目支持的框架类型增加而持续更新。如有新的框架类型或追踪需求，请及时补充到本文档中。
