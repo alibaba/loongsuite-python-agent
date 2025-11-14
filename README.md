@@ -220,6 +220,7 @@ python demo.py
 Access the Jaeger UI to view the collected trace data. You should now see trace information being properly received.
 
 ![image.png](docs/_assets/img/quickstart-results.png)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falibaba%2Floongsuite-python-agent.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Falibaba%2Floongsuite-python-agent?ref=badge_shield)
 
 ## Community
 
@@ -237,3 +238,6 @@ our [DingTalk group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI
 ## Resources
 * AgentScope: https://github.com/modelscope/agentscope
 * Observability Community: https://observability.cn
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falibaba%2Floongsuite-python-agent.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Falibaba%2Floongsuite-python-agent?ref=badge_large)
