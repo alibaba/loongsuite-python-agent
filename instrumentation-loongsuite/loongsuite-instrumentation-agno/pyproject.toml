@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+    "opentelemetry-instrumentation>=0.57b0",
     "wrapt",
 ]
 
@@ -35,8 +36,10 @@ instruments = [
 ]
 test = [
     "agno",
+    "openai",
     "pytest",
     "opentelemetry-sdk",
+    "yfinance",
 ]
 type-check = []
 

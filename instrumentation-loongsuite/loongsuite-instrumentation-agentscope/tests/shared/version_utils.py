@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 """版本检测和测试跳过工具"""
 
-import os
-import sys
+import importlib.util
 
 import pytest
 
-# 添加src目录到Python路径
-src_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "src"
-)
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
-
-# FIXME: ruff failed
-from opentelemetry.instrumentation.agentscope.utils import (  # noqa: E402
+from opentelemetry.instrumentation.agentscope.utils import (
     _AGENTSCOPE_VERSION,
     is_agentscope_v1,
 )
@@ -43,16 +34,6 @@ def skip_if_not_v1():
 
 def skip_if_no_agentscope():
     """如果没有安装agentscope则跳过测试"""
-    try:
-        # test the import of agentscope, skip the warning
-        import agentscope  # noqa: F401
-
-        return pytest.mark.skipif(False, reason="")
-    except ImportError:
+    if importlib.util.find_spec("agentscope") is None:
         return pytest.mark.skipif(True, reason="需要安装 agentscope")
-
-
-# pytest markers
-pytestmark = [
-    pytest.mark.agentscope,  # 标记所有agentscope相关测试
-]
+    return pytest.mark.skipif(False, reason="")
