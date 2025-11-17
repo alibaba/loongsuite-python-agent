@@ -1,0 +1,1059 @@
+---
+description: 如何以 TDD 方式实现 instrumentation 的基础框架（写埋点）
+---
+
+# 实现 Instrumentation 框架指南（写埋点）
+
+## 概述
+
+本指南用于在完成"找点位"调研后，以 TDD（测试驱动开发）方式实现 instrumentation 的基础框架。目标是搭建完整的项目结构，编写测试用例，实现基本的 wrapper/decorator，并验证埋点能够正确触发。
+
+**前置条件**：
+- 已完成点位调研，生成了 `.cursor/memory/instrumentation-locations-[框架名称]-[日期].md`
+- 已有框架源码或可通过 pip 安装
+- （可选）已有 API_KEY 或测试环境（对于需要实际调用的框架）
+
+**核心原则**：
+- ✅ **测试驱动**：先写测试，再写实现
+- ✅ **参照同类型**：找到同类型的已有 instrumentation 作为模板
+- ✅ **最小可用**：只实现基础框架，不实现数据提取逻辑
+- ✅ **验证触达**：通过日志验证埋点被正确触发
+
+---
+
+## 完整工作流程
+
+### 阶段 1: 项目初始化
+
+**目标**：创建完整的项目目录结构和配置文件
+
+#### 1.1 确定项目位置和命名
+
+**命名规范**：
+- **所有新插件**：统一放在 `instrumentation-loongsuite/` 目录下
+- **项目命名**：必须遵循 `loongsuite-instrumentation-[框架名称]` 格式
+
+**示例**：
+- `instrumentation-loongsuite/loongsuite-instrumentation-dashscope`
+- `instrumentation-loongsuite/loongsuite-instrumentation-langchain`
+- `instrumentation-loongsuite/loongsuite-instrumentation-redis`
+
+**注意事项**：
+- ⚠️ 不要在 `instrumentation-genai/` 或 `instrumentation/` 目录下创建新插件
+- ⚠️ 项目名称必须以 `loongsuite-instrumentation-` 开头
+- ✅ 框架名称使用小写，用连字符分隔（如 `dash-scope` 或 `dashscope`）
+
+#### 1.2 创建目录结构
+
+```
+loongsuite-instrumentation-[框架名称]/
+├── pyproject.toml           # 项目配置和依赖
+├── CHANGELOG.md             # 变更日志
+├── README.rst               # 项目说明
+├── LICENSE                  # 许可证
+├── src/
+│   └── loongsuite/
+│       └── instrumentation/
+│           └── [框架名称]/
+│               ├── __init__.py      # Instrumentor 主类
+│               ├── package.py       # 版本信息
+│               ├── patch.py         # Wrapper 实现
+│               └── version.py       # 版本号
+├── tests/
+│   ├── conftest.py          # pytest 配置和 fixtures
+│   ├── requirements.txt     # 测试依赖（使用 -e 安装内部依赖）
+│   ├── test_[功能].py       # 测试用例
+│   └── cassettes/           # VCR 录制文件（如需要）
+└── examples/
+    └── basic_example.py     # 基本使用示例
+```
+
+**注意**：
+- 命名空间使用 `loongsuite.instrumentation.[框架名称]`（不是 `opentelemetry.instrumentation`）
+- 这样可以与上游 OpenTelemetry 项目区分，避免命名冲突
+
+#### 1.3 参考同类型已有插件
+
+**查找参考项目**：
+1. 优先参考 `instrumentation-loongsuite/` 目录下已有的插件
+   - 例如：`loongsuite-instrumentation-agentscope`
+   - 例如：`loongsuite-instrumentation-dify`
+   - 例如：`loongsuite-instrumentation-langchain`
+
+2. 如果没有同类型的 loongsuite 插件，参考上游项目：
+   - LLM Client → `instrumentation-genai/opentelemetry-instrumentation-openai-v2`
+   - HTTP Server → `instrumentation/opentelemetry-instrumentation-flask`
+   - HTTP Client → `instrumentation/opentelemetry-instrumentation-requests`
+   - Database → `instrumentation/opentelemetry-instrumentation-psycopg2`
+   - NoSQL → `instrumentation/opentelemetry-instrumentation-redis`
+
+3. 复制参考项目的基本结构到 `instrumentation-loongsuite/` 目录：
+   ```bash
+   # 如果参考 loongsuite 已有插件
+   cp -r instrumentation-loongsuite/loongsuite-instrumentation-agentscope/ \
+         instrumentation-loongsuite/loongsuite-instrumentation-dashscope/
+   
+   # 如果参考上游项目（需要注意命名空间的调整）
+   cp -r instrumentation-genai/opentelemetry-instrumentation-openai-v2/ \
+         instrumentation-loongsuite/loongsuite-instrumentation-dashscope/
+   ```
+
+4. 批量替换项目名称和命名空间：
+   - 将 `opentelemetry` 替换为 `loongsuite`
+   - 将项目名称替换为新框架名称
+
+#### 1.4 编写 pyproject.toml
+
+**关键配置项**：
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "loongsuite-instrumentation-[框架名称]"
+dynamic = ["version"]
+description = "LoongSuite [框架名称] instrumentation"
+readme = "README.rst"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "opentelemetry-api ~= 1.37",
+  "opentelemetry-instrumentation ~= 0.58b0",
+  "opentelemetry-semantic-conventions ~= 0.58b0",
+]
+
+[project.optional-dependencies]
+instruments = [
+  "[框架包名] >= [最低版本]",
+]
+
+[project.entry-points.opentelemetry_instrumentor]
+[框架名称] = "loongsuite.instrumentation.[框架名称]:[框架名称]Instrumentor"
+
+[project.urls]
+Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+
+[tool.hatch.version]
+path = "src/loongsuite/instrumentation/[框架名称]/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/loongsuite"]
+```
+
+**注意事项**：
+- **Python 版本**：仅支持生命周期内的版本，与上游项目保持一致
+- **缩进规范**：使用 2 空格缩进（不是 4 空格或 Tab）
+- **项目命名**：必须以 `loongsuite-instrumentation-` 开头
+- **依赖版本**：OpenTelemetry 相关依赖版本必须与 `instrumentation-genai/` 和 `instrumentation/` 目录下其他插件对齐
+- **Homepage**：统一使用 `https://github.com/alibaba/loongsuite-python-agent`
+- **instruments 字段**：定义被插桩的目标框架及其最低版本
+- **test 依赖**：不要写在 pyproject.toml 中，应在 requirements 文件中维护
+
+---
+
+### 阶段 2: 编写测试用例（TDD）
+
+**目标**：基于点位调研文档，编写测试用例验证基本流程
+
+#### 2.1 创建 conftest.py
+
+**必需的 fixtures**：
+```python
+import pytest
+from loongsuite.instrumentation.[框架名称] import [框架名称]Instrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+@pytest.fixture(scope="function")
+def span_exporter():
+    """In-memory span exporter for testing"""
+    return InMemorySpanExporter()
+
+@pytest.fixture(scope="function")
+def tracer_provider(span_exporter):
+    """Tracer provider with in-memory exporter"""
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
+    return provider
+
+@pytest.fixture(scope="function")
+def instrument(tracer_provider):
+    """Instrument the framework"""
+    instrumentor = [框架名称]Instrumentor()
+    instrumentor.instrument(tracer_provider=tracer_provider)
+    yield instrumentor
+    instrumentor.uninstrument()
+```
+
+**注意**：import 路径使用 `loongsuite.instrumentation.[框架名称]`
+
+**环境变量处理**（对于需要 API_KEY 的框架）：
+```python
+@pytest.fixture(autouse=True)
+def environment():
+    """Set up environment variables"""
+    import os
+    if not os.getenv("[框架名称]_API_KEY"):
+        os.environ["[框架名称]_API_KEY"] = "test_api_key"
+```
+
+**VCR 配置**（对于 HTTP 类框架）：
+```python
+@pytest.fixture(scope="module")
+def vcr_config():
+    """VCR configuration for recording HTTP interactions"""
+    return {
+        "filter_headers": [
+            ("authorization", "Bearer test_api_key"),
+            ("api-key", "test_api_key"),
+        ],
+        "decode_compressed_response": True,
+        "before_record_response": scrub_response_headers,
+    }
+
+def scrub_response_headers(response):
+    """Scrub sensitive response headers"""
+    response["headers"]["set-cookie"] = "test_cookie"
+    return response
+```
+
+#### 2.2 编写基本测试用例
+
+**测试结构**：
+1. 为每个点位创建测试函数
+2. 测试同步和异步版本（如果都有）
+3. 测试流式和非流式（如果都有）
+4. 初期不需要断言 span 内容，只需验证能够调用成功
+
+**示例 - 测试基本调用**：
+```python
+import pytest
+
+class TestBasicInstrumentation:
+    """Test basic instrumentation without assertions"""
+    
+    def test_sync_call_basic(self, instrument):
+        """Test synchronous call can be instrumented"""
+        from [framework] import Client
+        
+        client = Client()
+        # 执行基本调用
+        response = client.call(
+            model="test-model",
+            input="test input"
+        )
+        
+        # 初期只验证调用成功，不断言 span
+        assert response is not None
+        print("✓ Sync call completed")
+    
+    @pytest.mark.asyncio
+    async def test_async_call_basic(self, instrument):
+        """Test asynchronous call can be instrumented"""
+        from [framework] import AsyncClient
+        
+        client = AsyncClient()
+        response = await client.call(
+            model="test-model",
+            input="test input"
+        )
+        
+        assert response is not None
+        print("✓ Async call completed")
+```
+
+**使用 VCR 录制（对于 LLM/HTTP 类）**：
+```python
+@pytest.mark.vcr()
+def test_with_real_api(self, instrument):
+    """Test with real API (recorded with VCR)"""
+    from [framework] import Client
+    
+    client = Client(api_key=os.getenv("[框架名称]_API_KEY"))
+    response = client.call(
+        model="test-model",
+        input="test input"
+    )
+    
+    assert response is not None
+```
+
+**首次录制时**：
+```bash
+# 设置真实的 API_KEY
+export [框架名称]_API_KEY="your_real_api_key"
+
+# 删除旧的录制文件
+rm -rf tests/cassettes/
+
+# 运行测试进行录制
+pytest tests/test_basic.py -v
+```
+
+#### 2.3 创建测试依赖文件
+
+**必须创建两个版本的 requirements 文件**：
+
+1. **tests/requirements.latest.txt** - 测试最新版本依赖
+2. **tests/requirements.oldest.txt** - 测试最旧支持版本依赖
+
+**requirements.latest.txt 示例**：
+```txt
+# Copyright The OpenTelemetry Authors
+# ... license header ...
+
+# ********************************
+# WARNING: NOT HERMETIC !!!!!!!!!!
+# ********************************
+#
+# This "requirements.txt" is installed in conjunction
+# with multiple other dependencies in the top-level "tox-loongsuite.ini"
+# file. In particular, please see:
+#
+#   [框架名称]-latest: {[testenv]test_deps}
+#   [框架名称]-latest: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]/tests/requirements.latest.txt
+#
+# This provides additional dependencies, namely:
+#
+#   opentelemetry-api
+#   opentelemetry-sdk
+#   opentelemetry-semantic-conventions
+#
+# ... with a "dev" version based on the latest distribution.
+
+# This variant aims to test with the newest supported version of external dependencies.
+
+[框架包名]>=1.0.0
+pytest==7.4.4
+pytest-asyncio==0.21.0  # 如果有异步测试
+pytest-vcr==1.0.2  # 如果需要录制 HTTP
+vcrpy>=4.2.0  # 如果需要录制 HTTP
+pyyaml>=6.0  # VCR 需要
+wrapt==1.16.0
+
+-e opentelemetry-instrumentation
+-e instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]
+```
+
+**requirements.oldest.txt 示例**：
+```txt
+# Copyright The OpenTelemetry Authors
+# ... license header ...
+
+# This variant aims to test with the oldest supported version of external dependencies.
+
+[框架包名]>=1.0.0
+pytest==7.4.4
+pytest-asyncio==0.21.0  # 如果有异步测试
+pytest-vcr==1.0.2  # 如果需要录制 HTTP
+vcrpy>=4.2.0  # 如果需要录制 HTTP
+pyyaml>=6.0  # VCR 需要
+wrapt==1.16.0
+opentelemetry-exporter-otlp-proto-http~=1.30
+opentelemetry-api==1.37
+opentelemetry-sdk==1.37
+opentelemetry-semantic-conventions==0.58b0
+
+-e instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]
+```
+
+**关键区别**：
+- `latest` 版本：
+  - **不指定** OpenTelemetry 依赖版本，由 tox 配置的 `{[testenv]test_deps}` 注入最新版本
+  - 必须包含 "WARNING: NOT HERMETIC" 注释块，说明依赖来源
+- `oldest` 版本：
+  - **明确指定** OpenTelemetry 依赖的最旧支持版本
+  - 包含简洁的说明注释
+
+**注意事项**：
+- ✅ 使用 `-e` 安装当前插件（可编辑模式）
+- ✅ `latest` 文件必须包含 "NOT HERMETIC" 警告注释
+- ✅ 注释中的路径要正确（避免复制粘贴错误）
+- ✅ 版本号与 pyproject.toml 中声明的最低版本保持一致
+- ✅ 遵循 Apache 2.0 License header 格式
+
+---
+
+### 阶段 3: 实现 Instrumentor 框架
+
+**目标**：实现基本的 Instrumentor，能够正确 patch 目标方法
+
+#### 3.1 实现 __init__.py
+
+**参考**：
+- LongSuite 已有插件：[@loongsuite-instrumentation-agentscope](mdc:instrumentation-loongsuite/loongsuite-instrumentation-agentscope)
+- 上游参考：[@opentelemetry-instrumentation-openai-v2/__init__.py](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2/src/opentelemetry/instrumentation/openai_v2/__init__.py)
+
+**基本结构**：
+```python
+"""LongSuite [框架名称] instrumentation"""
+
+from typing import Collection
+from wrapt import wrap_function_wrapper
+
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.utils import unwrap
+from loongsuite.instrumentation.[框架名称].package import _instruments
+from loongsuite.instrumentation.[框架名称].version import __version__
+
+# 导入 wrapper 函数
+from loongsuite.instrumentation.[框架名称].patch import (
+    wrap_[方法名称],
+)
+
+
+class [框架名称]Instrumentor(BaseInstrumentor):
+    """An instrumentor for [框架名称]"""
+
+    def instrumentation_dependencies(self) -> Collection[str]:
+        return _instruments
+
+    def _instrument(self, **kwargs):
+        """Instrument the [框架名称] library"""
+        tracer_provider = kwargs.get("tracer_provider")
+        
+        # Patch 点位 1: 同步方法
+        wrap_function_wrapper(
+            "[框架包名].[模块]",
+            "[类名].[方法名]",
+            wrap_[方法名称](tracer_provider),
+        )
+        
+        # Patch 点位 2: 异步方法（如果有）
+        wrap_function_wrapper(
+            "[框架包名].[模块]",
+            "[异步类名].[方法名]",
+            wrap_[方法名称](tracer_provider, is_async=True),
+        )
+
+    def _uninstrument(self, **kwargs):
+        """Uninstrument the [框架名称] library"""
+        # pylint: disable=import-outside-toplevel
+        import [框架包名].[模块]
+        
+        # 使用 OpenTelemetry 提供的 unwrap 工具函数
+        from opentelemetry.instrumentation.utils import unwrap
+        
+        # 为每个被 patch 的点位调用 unwrap
+        unwrap([框架包名].[模块].[类名], "[方法名]")
+        unwrap([框架包名].[模块].[异步类名], "[方法名]")
+```
+
+**注意**：
+- 命名空间使用 `loongsuite.instrumentation.[框架名称]`
+- docstring 中使用 "LongSuite" 而不是 "OpenTelemetry"
+- **必须使用** `opentelemetry.instrumentation.utils.unwrap` 来解除 patch
+- **不要依赖** wrapt 的自动恢复，必须显式调用 unwrap
+- import 使用 `# pylint: disable=import-outside-toplevel` 避免循环依赖
+
+#### 3.2 实现 patch.py
+
+**关键点**：
+- 初期只打印日志，不提取数据
+- 处理同步和异步
+- 处理流式和非流式（如需要）
+
+**同步方法的 wrapper**：
+```python
+"""Patch functions for [框架名称] instrumentation"""
+
+from wrapt import wrap_function_wrapper
+import functools
+
+
+def wrap_[方法名称](tracer_provider, is_async=False):
+    """Wrap the [方法名称] method"""
+    
+    def wrapper(wrapped, instance, args, kwargs):
+        """Wrapper function for sync calls"""
+        print(f"[INSTRUMENTATION] Entering {wrapped.__module__}.{wrapped.__qualname__}")
+        print(f"[INSTRUMENTATION] Args: {args[:2] if len(args) > 2 else args}")  # 只打印前几个参数
+        print(f"[INSTRUMENTATION] Kwargs keys: {list(kwargs.keys())}")
+        
+        try:
+            result = wrapped(*args, **kwargs)
+            print(f"[INSTRUMENTATION] Call successful, result type: {type(result)}")
+            return result
+        except Exception as e:
+            print(f"[INSTRUMENTATION] Call failed: {e}")
+            raise
+        finally:
+            print(f"[INSTRUMENTATION] Exiting {wrapped.__module__}.{wrapped.__qualname__}")
+    
+    async def async_wrapper(wrapped, instance, args, kwargs):
+        """Wrapper function for async calls"""
+        print(f"[INSTRUMENTATION] [ASYNC] Entering {wrapped.__module__}.{wrapped.__qualname__}")
+        print(f"[INSTRUMENTATION] [ASYNC] Args: {args[:2] if len(args) > 2 else args}")
+        print(f"[INSTRUMENTATION] [ASYNC] Kwargs keys: {list(kwargs.keys())}")
+        
+        try:
+            result = await wrapped(*args, **kwargs)
+            print(f"[INSTRUMENTATION] [ASYNC] Call successful, result type: {type(result)}")
+            return result
+        except Exception as e:
+            print(f"[INSTRUMENTATION] [ASYNC] Call failed: {e}")
+            raise
+        finally:
+            print(f"[INSTRUMENTATION] [ASYNC] Exiting {wrapped.__module__}.{wrapped.__qualname__}")
+    
+    return async_wrapper if is_async else wrapper
+```
+
+**处理生成器/流式响应**：
+```python
+def wrapper(wrapped, instance, args, kwargs):
+    """Wrapper with generator handling"""
+    print(f"[INSTRUMENTATION] Entering {wrapped.__module__}.{wrapped.__qualname__}")
+    
+    result = wrapped(*args, **kwargs)
+    
+    # 检查是否是生成器
+    import inspect
+    if inspect.isgenerator(result):
+        print(f"[INSTRUMENTATION] Detected generator response")
+        return _wrap_generator(result, wrapped)
+    else:
+        print(f"[INSTRUMENTATION] Non-streaming response")
+        return result
+
+
+def _wrap_generator(generator, wrapped):
+    """Wrap a generator to log events"""
+    try:
+        for chunk in generator:
+            print(f"[INSTRUMENTATION] Generator yielded chunk: {type(chunk)}")
+            yield chunk
+    finally:
+        print(f"[INSTRUMENTATION] Generator completed")
+```
+
+#### 3.3 实现 package.py 和 version.py
+
+**package.py**：
+```python
+"""Package information for [框架名称] instrumentation"""
+
+_instruments = (
+    "[框架包名] >= [最低版本]",
+)
+```
+
+**version.py**：
+```python
+"""Version information"""
+
+__version__ = "0.1.0.dev0"
+```
+
+---
+
+### 阶段 4: 验证和测试
+
+**目标**：验证埋点能够正确触发
+
+#### 4.1 创建测试环境
+
+**前置要求**：
+- 必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化开发环境
+
+```bash
+# 在项目根目录
+cd instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]
+
+# 创建虚拟环境（可选）
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# 或 venv\Scripts\activate  # Windows
+
+# 安装依赖（注意 -e 参数）
+pip install -e .
+pip install -r tests/requirements.txt
+```
+
+#### 4.2 运行测试
+
+```bash
+# 运行所有测试
+pytest tests/ -v -s
+
+# -v: verbose 模式
+# -s: 显示 stdout（可以看到日志）
+
+# 运行特定测试
+pytest tests/test_basic.py::TestBasicInstrumentation::test_sync_call_basic -v -s
+```
+
+#### 4.3 验证清单
+
+检查以下输出：
+- ✅ 所有测试通过（PASSED）
+- ✅ 能够看到 `[INSTRUMENTATION]` 日志
+- ✅ 日志显示进入和退出点位
+- ✅ 日志显示参数和返回值类型
+- ✅ 异步和同步都能正常工作
+- ✅ 流式和非流式都能正常工作（如适用）
+
+**期望的输出示例**：
+```
+tests/test_basic.py::TestBasicInstrumentation::test_sync_call_basic 
+[INSTRUMENTATION] Entering dashscope.aigc.generation.Generation.call
+[INSTRUMENTATION] Args: ()
+[INSTRUMENTATION] Kwargs keys: ['model', 'prompt', 'stream']
+[INSTRUMENTATION] Call successful, result type: <class 'GenerationResponse'>
+[INSTRUMENTATION] Exiting dashscope.aigc.generation.Generation.call
+✓ Sync call completed
+PASSED
+```
+
+#### 4.4 配置 tox-loongsuite.ini
+
+**重要**：完成测试后，必须将新插件添加到项目的 tox 配置中。
+
+**在 `tox-loongsuite.ini` 中添加以下配置**：
+
+1. **在 `envlist` 中添加测试环境（包含 oldest 和 latest）**：
+```ini
+; loongsuite-instrumentation-[框架名称]
+py3{9,10,11,12,13}-test-loongsuite-instrumentation-[框架名称]-{oldest,latest}
+lint-loongsuite-instrumentation-[框架名称]
+```
+
+2. **在 `[testenv]` 的 `deps` 中添加依赖**：
+```ini
+[框架名称]-oldest: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]/tests/requirements.oldest.txt
+[框架名称]-latest: {[testenv]test_deps}
+[框架名称]-latest: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]/tests/requirements.latest.txt
+lint-loongsuite-instrumentation-[框架名称]: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]/tests/requirements.oldest.txt
+```
+
+3. **在 `commands` 中添加测试和 lint 命令**：
+```ini
+test-loongsuite-instrumentation-[框架名称]: pytest {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]/tests {posargs}
+lint-loongsuite-instrumentation-[框架名称]: python -m ruff check {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-[框架名称]
+```
+
+**完整示例**（以 dashscope 为例）：
+```ini
+[tox]
+envlist =
+    ; loongsuite-instrumentation-dashscope
+    py3{9,10,11,12,13}-test-loongsuite-instrumentation-dashscope-{oldest,latest}
+    lint-loongsuite-instrumentation-dashscope
+
+[testenv]
+deps =
+  dashscope-oldest: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-dashscope/tests/requirements.oldest.txt
+  dashscope-latest: {[testenv]test_deps}
+  dashscope-latest: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-dashscope/tests/requirements.latest.txt
+  lint-loongsuite-instrumentation-dashscope: -r {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-dashscope/tests/requirements.oldest.txt
+
+commands =
+  test-loongsuite-instrumentation-dashscope: pytest {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-dashscope/tests {posargs}
+  lint-loongsuite-instrumentation-dashscope: python -m ruff check {toxinidir}/instrumentation-loongsuite/loongsuite-instrumentation-dashscope
+```
+
+**注意事项**：
+- ✅ envlist 必须包含 `{oldest,latest}` 变体，用于测试多个依赖版本
+- ✅ deps 中使用短名称（如 `dashscope-oldest`，不是 `loongsuite-dashscope-oldest`）
+- ✅ lint 环境使用 `requirements.oldest.txt` 以确保最低版本兼容性
+- ✅ `latest` 环境需要先注入 `{[testenv]test_deps}`，再加载 requirements 文件
+
+**验证 tox 配置**：
+```bash
+# 运行新插件的测试（oldest 版本）
+tox -e py39-test-loongsuite-instrumentation-[框架名称]-oldest
+
+# 运行新插件的测试（latest 版本）
+tox -e py39-test-loongsuite-instrumentation-[框架名称]-latest
+
+# 运行 lint 检查
+tox -e lint-loongsuite-instrumentation-[框架名称]
+```
+
+#### 4.5 代码质量检查（必须）
+
+**重要**：完成所有代码编写和测试后，**必须**运行代码质量检查。
+
+**前置要求**：
+- 必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化开发环境
+
+**执行检查**：
+
+1. **Pre-commit 检查**（代码风格和质量）：
+```bash
+cd /path/to/project
+tox -e precommit
+```
+
+2. **Spellcheck 检查**（拼写检查）：
+```bash
+tox -e spellcheck
+```
+
+**必须修复所有问题**：
+- ✅ 修复所有 linting 错误（ruff 会自动修复大部分）
+- ✅ 修复所有拼写错误
+- ❌ **禁止使用 `# noqa` 绕过检查**（除非有充分理由）
+
+**常见问题**：
+- `W293`: 空行包含空白字符（自动修复）
+- `F401`: 导入但未使用（添加到 `__all__` 或删除）
+- `F541`: f-string 缺少占位符（改为普通字符串）
+- `I001`: 导入未排序（自动修复）
+
+**期望输出**：
+```
+ruff.....................................................................[42mPassed[m
+ruff-format..............................................................[42mPassed[m
+uv-lock..................................................................[42mPassed[m
+rstcheck.................................................................[42mPassed[m
+  precommit: OK (26.17=setup[0.17]+cmd[26.01] seconds)
+```
+
+详细规范参见：[@code-quality-check.mdc](mdc:.cursor/rules/code-quality-check.mdc)
+
+#### 4.6 清理测试环境（可选）
+
+```bash
+# 退出虚拟环境
+deactivate
+
+# 删除虚拟环境
+rm -rf venv
+```
+
+---
+
+## 特殊场景处理
+
+### 场景 1: LLM 类框架（需要 API_KEY）
+
+**API_KEY 管理**：
+```python
+# conftest.py
+@pytest.fixture(autouse=True)
+def environment():
+    import os
+    # 优先使用真实的 API_KEY（用于录制）
+    # 如果没有，使用测试占位符
+    if not os.getenv("DASHSCOPE_API_KEY"):
+        os.environ["DASHSCOPE_API_KEY"] = "test_api_key"
+```
+
+**首次录制流程**：
+```bash
+# 1. 设置真实 API_KEY
+export DASHSCOPE_API_KEY="your_real_api_key"
+
+# 2. 删除旧录制
+rm -rf tests/cassettes/
+
+# 3. 运行测试（自动录制）
+pytest tests/ -v
+
+# 4. 检查录制文件
+ls tests/cassettes/
+
+# 5. 验证敏感信息已脱敏
+grep -r "your_real_api_key" tests/cassettes/  # 应该找不到
+```
+
+**后续测试**（使用录制）：
+```bash
+# 不需要真实 API_KEY
+unset DASHSCOPE_API_KEY
+
+# 使用录制的数据测试
+pytest tests/ -v
+```
+
+---
+
+### 场景 2: 数据库/中间件类框架
+
+**需要 Docker 容器**：
+```python
+# conftest.py
+import pytest
+import subprocess
+
+@pytest.fixture(scope="session")
+def redis_server():
+    """Start a Redis container for testing"""
+    container_name = "test_redis_instrumentation"
+    
+    # 启动容器
+    subprocess.run([
+        "docker", "run", "-d",
+        "--name", container_name,
+        "-p", "6379:6379",
+        "redis:latest"
+    ], check=True)
+    
+    # 等待容器就绪
+    import time
+    time.sleep(2)
+    
+    yield "localhost:6379"
+    
+    # 清理容器
+    subprocess.run(["docker", "stop", container_name], check=True)
+    subprocess.run(["docker", "rm", container_name], check=True)
+```
+
+**测试使用**：
+```python
+def test_redis_operation(instrument, redis_server):
+    import redis
+    
+    client = redis.Redis.from_url(f"redis://{redis_server}")
+    client.set("test_key", "test_value")
+    value = client.get("test_key")
+    
+    assert value == b"test_value"
+```
+
+---
+
+### 场景 3: 异步框架
+
+**pytest 配置**：
+```python
+# conftest.py
+import pytest
+
+# 启用 asyncio 模式
+pytest_plugins = ('pytest_asyncio',)
+```
+
+**测试用例**：
+```python
+import pytest
+
+class TestAsyncInstrumentation:
+    @pytest.mark.asyncio
+    async def test_async_call(self, instrument):
+        from [framework] import AsyncClient
+        
+        client = AsyncClient()
+        response = await client.call(...)
+        
+        assert response is not None
+```
+
+---
+
+### 场景 4: 流式响应
+
+**wrapper 实现**：
+```python
+import inspect
+from typing import AsyncIterator, Iterator
+
+def wrapper(wrapped, instance, args, kwargs):
+    result = wrapped(*args, **kwargs)
+    
+    # 检测同步生成器
+    if inspect.isgenerator(result):
+        return _wrap_sync_generator(result)
+    
+    # 检测异步生成器
+    if inspect.isasyncgen(result):
+        return _wrap_async_generator(result)
+    
+    return result
+
+
+def _wrap_sync_generator(generator: Iterator):
+    """Wrap synchronous generator"""
+    try:
+        for chunk in generator:
+            print(f"[INSTRUMENTATION] Stream chunk: {type(chunk)}")
+            yield chunk
+    finally:
+        print(f"[INSTRUMENTATION] Stream completed")
+
+
+async def _wrap_async_generator(generator: AsyncIterator):
+    """Wrap asynchronous generator"""
+    try:
+        async for chunk in generator:
+            print(f"[INSTRUMENTATION] Async stream chunk: {type(chunk)}")
+            yield chunk
+    finally:
+        print(f"[INSTRUMENTATION] Async stream completed")
+```
+
+---
+
+## 常见问题
+
+### Q1: 如何找到同类型的参考项目？
+
+**A**: 优先参考 `instrumentation-loongsuite/` 目录下已有的插件，如果没有，再参考上游项目。
+
+参考 [@framework-types-and-operations.mdc](mdc:.cursor/rules/framework-types-and-operations.mdc) 中的分类：
+
+| 框架类型 | LongSuite 参考 | 上游参考 |
+|---------|---------------|---------|
+| LLM Framework | `loongsuite-instrumentation-agentscope` | `opentelemetry-instrumentation-langchain` |
+| LLM Client | - | `opentelemetry-instrumentation-openai-v2` |
+| HTTP Server | - | `opentelemetry-instrumentation-flask` |
+| HTTP Client | - | `opentelemetry-instrumentation-requests` |
+| Database | - | `opentelemetry-instrumentation-psycopg2` |
+| NoSQL | - | `opentelemetry-instrumentation-redis` |
+| Message Queue | - | `opentelemetry-instrumentation-kafka-python` |
+
+**注意**：从上游参考时，需要将命名空间从 `opentelemetry` 改为 `loongsuite`
+
+### Q2: 为什么要使用 `-e` 安装内部依赖？
+
+**A**: `-e` (editable) 模式允许：
+- 修改依赖代码后立即生效，无需重新安装
+- 调试时可以直接修改依赖的源码
+- 保持与项目其他部分的开发同步
+
+### Q3: wrapper 中应该打印什么信息？
+
+**A**: 初期阶段，打印以下信息即可：
+- ✅ 方法的完整路径（模块 + 类 + 方法名）
+- ✅ 参数的数量和类型（不要打印完整内容）
+- ✅ 返回值的类型
+- ✅ 是否发生异常
+- ❌ 不要打印敏感信息（API_KEY、密码等）
+- ❌ 不要打印大量数据（如完整的响应体）
+
+### Q4: 测试失败了怎么办？
+
+**A**: 按以下步骤排查：
+1. 检查是否正确安装了所有依赖（特别是 `-e` 安装）
+2. 检查 import 路径是否正确
+3. 检查点位路径是否与实际框架匹配
+4. 检查 wrapper 函数的签名是否正确
+5. 查看完整的错误堆栈，定位具体问题
+
+### Q5: VCR 录制的文件太大怎么办？
+
+**A**: 可以在 `conftest.py` 中过滤不必要的内容：
+```python
+def scrub_response_body(response):
+    """Reduce response body size for testing"""
+    body = response['body']['string']
+    if len(body) > 1000:  # 只保留前 1000 字符
+        response['body']['string'] = body[:1000] + '...[truncated]'
+    return response
+
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "before_record_response": scrub_response_body,
+        # ... 其他配置
+    }
+```
+
+### Q6: 如何正确实现 _uninstrument 方法？
+
+**A**: 必须使用 OpenTelemetry 提供的 `unwrap` 工具函数，不能依赖 wrapt 的自动恢复：
+
+**错误做法** ❌：
+```python
+def _uninstrument(self, **kwargs):
+    """Uninstrument the library"""
+    # wrapt 会自动恢复原始方法
+    pass  # 这是错误的！
+```
+
+**正确做法** ✅：
+```python
+from opentelemetry.instrumentation.utils import unwrap
+
+def _uninstrument(self, **kwargs):
+    """Uninstrument the library"""
+    # pylint: disable=import-outside-toplevel
+    import [框架包名].[模块]
+    
+    # 为每个被 patch 的点位显式调用 unwrap
+    unwrap([框架包名].[模块].[类名], "[方法名]")
+    unwrap([框架包名].[模块].[异步类名], "[方法名]")
+```
+
+**关键要点**：
+- ✅ 必须导入 `opentelemetry.instrumentation.utils.unwrap`
+- ✅ 在 `_uninstrument` 方法内部导入目标模块（避免循环依赖）
+- ✅ 为每个被 patch 的点位调用 `unwrap(类对象, "方法名")`
+- ✅ 使用 `# pylint: disable=import-outside-toplevel` 避免 lint 警告
+- ❌ 不要依赖 wrapt 的自动恢复机制
+- ❌ 不要使用 `pass` 或空实现
+
+**参考实现**：
+- OpenAI instrumentation: [@opentelemetry-instrumentation-openai-v2/__init__.py](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2/src/opentelemetry/instrumentation/openai_v2/__init__.py)
+- DashScope instrumentation: [@loongsuite-instrumentation-dashscope/__init__.py](mdc:instrumentation-loongsuite/loongsuite-instrumentation-dashscope/src/loongsuite/instrumentation/dashscope/__init__.py)
+
+---
+
+## 验收标准
+
+完成"写埋点"阶段后，需要满足以下标准：
+
+### 必须满足
+1. ✅ 项目结构完整（pyproject.toml, tests, src, examples）
+2. ✅ 所有测试用例都能通过
+3. ✅ 能够看到 `[INSTRUMENTATION]` 日志输出
+4. ✅ 日志证明所有点位都被正确触发
+5. ✅ 同步和异步方法都能正常工作（如适用）
+6. ✅ 流式和非流式都能正常工作（如适用）
+7. ✅ 创建了 `requirements.latest.txt` 和 `requirements.oldest.txt`
+8. ✅ 在 `tox-loongsuite.ini` 中添加了测试配置
+9. ✅ **通过 pre-commit 检查**（无 linting 错误）
+10. ✅ **通过 spellcheck 检查**（无拼写错误）
+
+### 可选但推荐
+11. ✅ 使用 VCR 录制了真实 API 调用（对于 LLM/HTTP 类）
+12. ✅ 敏感信息（API_KEY）已正确脱敏
+13. ✅ 代码风格与参考项目一致
+14. ✅ 添加了基本的代码注释
+
+---
+
+## 下一步
+
+完成"写埋点"后，下一步是"提数据"：
+1. 实现 span 的创建和配置
+2. 从参数和返回值中提取数据
+3. 按照 GenAI Semantic Conventions 设置 attributes
+4. 添加 span assertions 到测试用例
+5. 处理错误和异常情况
+
+详细步骤参见：（待创建）`extract-telemetry-data.mdc`
+
+---
+
+## 参考资料
+
+- **框架类型定义**: [@framework-types-and-operations.mdc](mdc:.cursor/rules/framework-types-and-operations.mdc)
+- **找点位方法**: [@locate-instrumentation-points.mdc](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+- **OpenAI 参考实现**: [@opentelemetry-instrumentation-openai-v2](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2)
+- **测试配置参考**: [@conftest.py](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2/tests/conftest.py)

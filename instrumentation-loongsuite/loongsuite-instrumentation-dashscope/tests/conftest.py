@@ -1,0 +1,132 @@
+"""Unit tests configuration module."""
+
+import json
+import os
+
+import pytest
+import yaml
+from loongsuite.instrumentation.dashscope import DashScopeInstrumentor
+
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
+
+
+@pytest.fixture(scope="function", name="span_exporter")
+def fixture_span_exporter():
+    """Create an in-memory span exporter for testing."""
+    exporter = InMemorySpanExporter()
+    yield exporter
+
+
+@pytest.fixture(scope="function", name="tracer_provider")
+def fixture_tracer_provider(span_exporter):
+    """Create a tracer provider with in-memory exporter."""
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
+    return provider
+
+
+@pytest.fixture(autouse=True)
+def environment():
+    """Set up environment variables for testing."""
+    if not os.getenv("DASHSCOPE_API_KEY"):
+        # Use the provided API key from environment or set a test value
+        os.environ["DASHSCOPE_API_KEY"] = os.getenv(
+            "DASHSCOPE_API_KEY", "test_dashscope_api_key"
+        )
+
+
+@pytest.fixture(scope="function")
+def instrument(tracer_provider):
+    """Instrument DashScope SDK for testing."""
+    instrumentor = DashScopeInstrumentor()
+    instrumentor.instrument(tracer_provider=tracer_provider)
+
+    yield instrumentor
+
+    instrumentor.uninstrument()
+
+
+@pytest.fixture(scope="module")
+def vcr_config():
+    """Configure VCR for recording/replaying HTTP interactions."""
+    return {
+        "filter_headers": [
+            ("authorization", "Bearer test_dashscope_api_key"),
+            ("x-dashscope-api-key", "test_dashscope_api_key"),
+        ],
+        "decode_compressed_response": True,
+        "before_record_response": scrub_response_headers,
+    }
+
+
+class LiteralBlockScalar(str):
+    """Formats the string as a literal block scalar."""
+
+
+def literal_block_scalar_presenter(dumper, data):
+    """Represents a scalar string as a literal block."""
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+
+
+yaml.add_representer(LiteralBlockScalar, literal_block_scalar_presenter)
+
+
+def process_string_value(string_value):
+    """Pretty-prints JSON or returns long strings as a LiteralBlockScalar."""
+    try:
+        json_data = json.loads(string_value)
+        return LiteralBlockScalar(json.dumps(json_data, indent=2))
+    except (ValueError, TypeError):
+        if len(string_value) > 80:
+            return LiteralBlockScalar(string_value)
+    return string_value
+
+
+def convert_body_to_literal(data):
+    """Searches the data for body strings, attempting to pretty-print JSON."""
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if key == "body" and isinstance(value, dict) and "string" in value:
+                value["string"] = process_string_value(value["string"])
+            elif key == "body" and isinstance(value, str):
+                data[key] = process_string_value(value)
+            else:
+                convert_body_to_literal(value)
+    elif isinstance(data, list):
+        for idx, choice in enumerate(data):
+            data[idx] = convert_body_to_literal(choice)
+    return data
+
+
+class PrettyPrintJSONBody:
+    """Makes request and response body recordings more readable."""
+
+    @staticmethod
+    def serialize(cassette_dict):
+        cassette_dict = convert_body_to_literal(cassette_dict)
+        return yaml.dump(
+            cassette_dict, default_flow_style=False, allow_unicode=True
+        )
+
+    @staticmethod
+    def deserialize(cassette_string):
+        return yaml.load(cassette_string, Loader=yaml.Loader)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def fixture_vcr(vcr):
+    """Register custom VCR serializer."""
+    vcr.register_serializer("yaml", PrettyPrintJSONBody)
+    return vcr
+
+
+def scrub_response_headers(response):
+    """Scrubs sensitive response headers."""
+    # Add any sensitive headers to scrub from responses
+    if "x-dashscope-request-id" in response.get("headers", {}):
+        response["headers"]["x-dashscope-request-id"] = "test_request_id"
+    return response
