@@ -1,0 +1,95 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "gte-rerank",
+        "parameters": {
+          "return_documents": true
+        },
+        "input": {
+          "query": "What is machine learning?",
+          "documents": [
+            "Machine learning is a subset of AI.",
+            "Python is a programming language."
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '205'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "results": [
+              {
+                "document": {
+                  "text": "Machine learning is a subset of AI."
+                },
+                "index": 0,
+                "relevance_score": 0.716894992759484
+              },
+              {
+                "document": {
+                  "text": "Python is a programming language."
+                },
+                "index": 1,
+                "relevance_score": 0.021986675780920666
+              }
+            ]
+          },
+          "usage": {
+            "total_tokens": 34
+          },
+          "request_id": "da989af2-d815-483d-a9f7-c56f1de234aa"
+        }
+    headers:
+      content-length:
+      - '317'
+      content-type:
+      - application/json
+      date:
+      - Mon, 17 Nov 2025 08:31:29 GMT
+      req-arrive-time:
+      - '1763368289400'
+      req-cost-time:
+      - '80'
+      resp-start-time:
+      - '1763368289480'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=da989af2-d815-483d-a9f7-c56f1de234aa5dd08dd94c3ca6f8ac8611868cc4af73;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '74'
+      x-request-id:
+      - da989af2-d815-483d-a9f7-c56f1de234aa
+    status:
+      code: 200
+      message: OK
+version: 1

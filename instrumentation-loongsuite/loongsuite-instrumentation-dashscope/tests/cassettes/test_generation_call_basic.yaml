@@ -1,0 +1,81 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "Hello!"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '72'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Hello! How can I assist you today? \ud83d\ude0a"
+          },
+          "usage": {
+            "input_tokens": 14,
+            "output_tokens": 11,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 25
+          },
+          "request_id": "49323c4e-a33e-42be-a301-9abb5dd9e20a"
+        }
+    headers:
+      content-length:
+      - '245'
+      content-type:
+      - application/json
+      date:
+      - Mon, 17 Nov 2025 08:31:25 GMT
+      req-arrive-time:
+      - '1763368285426'
+      req-cost-time:
+      - '412'
+      resp-start-time:
+      - '1763368285839'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=49323c4e-a33e-42be-a301-9abb5dd9e20aa0d6517c3c9c70a156508fab80186b21;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '405'
+      x-request-id:
+      - 49323c4e-a33e-42be-a301-9abb5dd9e20a
+    status:
+      code: 200
+      message: OK
+version: 1
