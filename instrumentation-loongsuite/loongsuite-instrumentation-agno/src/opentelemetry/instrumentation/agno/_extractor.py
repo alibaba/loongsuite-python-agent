@@ -178,13 +178,12 @@ class ModelResponseExtractor(object):
                     f"{GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS}.image",
                     json.dumps(response.image.to_dict(), indent=2),
                 )
-            # FIXME: ruff failed
-            for idx, exec in enumerate(  # noqa: A001
+            for idx, tool_execution in enumerate(
                 getattr(response, "tool_executions", []) or []
             ):
                 yield (
                     f"{GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS}.tool_executions.{idx}",
-                    json.dumps(exec.to_dict(), indent=2),
+                    json.dumps(tool_execution.to_dict(), indent=2),
                 )
             # other metadata
             if getattr(response, "event", None):

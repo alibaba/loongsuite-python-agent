@@ -529,8 +529,8 @@ def test_environment_control_comprehensive(
     )
     llm = ChatOpenAI(model_name="gpt-3.5-turbo")
     chain = prompt | llm
-    # FIXME: ruff failed
-    result = chain.invoke({"question": "test?"})  # noqa: F841
+
+    _ = chain.invoke({"question": "test?"})
     spans = in_memory_span_exporter.get_finished_spans()
     assert len(spans) > 0
 

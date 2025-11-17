@@ -65,9 +65,8 @@ class ToolCallResponsePart(MessagePart):
 class GenericPart(MessagePart):
     """通用部件，支持任意属性"""
 
-    # FIXME: ruff failed
-    def __init__(self, type: str, **kwargs: Any):  # noqa: A002
-        super().__init__(type)
+    def __init__(self, part_type: str, **kwargs: Any):
+        super().__init__(type=part_type)
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -101,24 +100,22 @@ class PartFactory:
     @staticmethod
     def create_tool_call_part(
         name: str,
-        # FIXME: ruff failed
-        id: Optional[str] = None,  # noqa: A002
+        call_id: Optional[str] = None,
         arguments: Optional[Dict[str, Any]] = None,
     ) -> ToolCallRequestPart:
         """创建工具调用部件"""
         return ToolCallRequestPart(
-            type="tool_call", name=name, id=id, arguments=arguments
+            type="tool_call", name=name, id=call_id, arguments=arguments
         )
 
     @staticmethod
     def create_tool_response_part(
         response: Any,
-        # FIXME: ruff failed
-        id: Optional[str] = None,  # noqa: A002
+        call_id: Optional[str] = None,
     ) -> ToolCallResponsePart:
         """创建工具响应部件"""
         return ToolCallResponsePart(
-            type="tool_call_response", response=response, id=id
+            type="tool_call_response", response=response, id=call_id
         )
 
     @staticmethod
@@ -184,7 +181,8 @@ class OpenAIMessageParser(BaseMessageParser):
         # 处理tool消息
         if role == "tool":
             part = PartFactory.create_tool_response_part(
-                response=msg.get("content", ""), id=msg.get("tool_call_id", "")
+                response=msg.get("content", ""),
+                call_id=msg.get("tool_call_id", ""),
             )
             parts.append(part)
         else:
@@ -198,7 +196,7 @@ class OpenAIMessageParser(BaseMessageParser):
 
                     part = PartFactory.create_tool_call_part(
                         name=function_info.get("name", "unknown_tool"),
-                        id=tool_call.get("id", "unknown_id"),
+                        call_id=tool_call.get("id", "unknown_id"),
                         arguments=arguments,
                     )
                     parts.append(part)
@@ -295,7 +293,7 @@ class AnthropicMessageParser(BaseMessageParser):
                     parts.append(
                         PartFactory.create_tool_call_part(
                             name=item.get("name", ""),
-                            id=item.get("id", ""),
+                            call_id=item.get("id", ""),
                             arguments=item.get("input", {}),
                         )
                     )
@@ -306,7 +304,7 @@ class AnthropicMessageParser(BaseMessageParser):
                     parts.append(
                         PartFactory.create_tool_response_part(
                             response=result_text,
-                            id=item.get("tool_use_id", ""),
+                            call_id=item.get("tool_use_id", ""),
                         )
                     )
                 elif content_type == "image":
@@ -377,7 +375,7 @@ class GeminiMessageParser(BaseMessageParser):
                     parts.append(
                         PartFactory.create_tool_call_part(
                             name=func_call.get("name", ""),
-                            id=func_call.get("id", ""),
+                            call_id=func_call.get("id", ""),
                             arguments=func_call.get("args", {}),
                         )
                     )
@@ -391,7 +389,8 @@ class GeminiMessageParser(BaseMessageParser):
                     )
                     parts.append(
                         PartFactory.create_tool_response_part(
-                            response=result_text, id=func_resp.get("id", "")
+                            response=result_text,
+                            call_id=func_resp.get("id", ""),
                         )
                     )
                 elif "inline_data" in item:
@@ -439,7 +438,7 @@ class DashScopeMessageParser(BaseMessageParser):
             parts.append(
                 PartFactory.create_tool_response_part(
                     response=msg.get("content", ""),
-                    id=msg.get("tool_call_id", ""),
+                    call_id=msg.get("tool_call_id", ""),
                 )
             )
         else:
@@ -454,7 +453,7 @@ class DashScopeMessageParser(BaseMessageParser):
                     parts.append(
                         PartFactory.create_tool_call_part(
                             name=function_info.get("name", ""),
-                            id=tool_call.get("id", ""),
+                            call_id=tool_call.get("id", ""),
                             arguments=arguments,
                         )
                     )
@@ -519,7 +518,7 @@ class OllamaMessageParser(BaseMessageParser):
             parts.append(
                 PartFactory.create_tool_response_part(
                     response=msg.get("content", ""),
-                    id=msg.get("tool_call_id", ""),
+                    call_id=msg.get("tool_call_id", ""),
                 )
             )
         else:
@@ -577,7 +576,7 @@ class DeepSeekMessageParser(BaseMessageParser):
             parts.append(
                 PartFactory.create_tool_response_part(
                     response=msg.get("content", ""),
-                    id=msg.get("tool_call_id", ""),
+                    call_id=msg.get("tool_call_id", ""),
                 )
             )
         else:
@@ -592,7 +591,7 @@ class DeepSeekMessageParser(BaseMessageParser):
                     parts.append(
                         PartFactory.create_tool_call_part(
                             name=function_info.get("name", ""),
-                            id=tool_call.get("id", ""),
+                            call_id=tool_call.get("id", ""),
                             arguments=arguments,
                         )
                     )

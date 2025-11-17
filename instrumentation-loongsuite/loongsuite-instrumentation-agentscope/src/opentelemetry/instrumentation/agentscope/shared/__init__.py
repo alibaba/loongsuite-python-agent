@@ -20,6 +20,7 @@ from .constants import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT_MAX_LENGTH,
     OTEL_INSTRUMENTATION_GENAI_MESSAGE_STRATEGY,
+    AgentScopeGenAiProviderName,
 )
 from .telemetry_options import (
     GenAITelemetryOptions,
@@ -44,6 +45,7 @@ __all__ = [
     "ToolRequestAttributes",
     # Enums
     "GenAiSpanKind",
+    "AgentScopeGenAiProviderName",
     # Attribute constants
     "CommonAttributes",
 ]
