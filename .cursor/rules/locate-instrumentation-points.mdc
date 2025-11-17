@@ -18,7 +18,7 @@ description: 如何为 Python 框架找到合适的 instrumentation 点位（埋
 1. 搜索开源社区实现 (使用 DeepWiki)
    ↓
 2. 有找到开源实现？
-   ├─ 是 → 分析并写入调研报告到 memory/
+   ├─ 是 → 分析并写入调研报告到 .cursor/memory/
    └─ 否 → 继续下一步
    ↓
 3. 理解框架核心功能
@@ -31,13 +31,13 @@ description: 如何为 Python 框架找到合适的 instrumentation 点位（埋
    ↓
 7. 输出结果
    ├─ 控制台：点位列表 + 理由说明 + 开源对比
-   └─ Memory：写入点位选择报告到 memory/
+   └─ Memory：写入点位选择报告到 .cursor/memory/
 ```
 
 ### 关键输出物
 
-1. **开源调研报告** (如有)：`memory/instrumentation-research-[框架名称]-[日期].md`
-2. **点位选择报告**：`memory/instrumentation-locations-[框架名称]-[日期].md`
+1. **开源调研报告** (如有)：`.cursor/memory/instrumentation-research-[框架名称]-[日期].md`
+2. **点位选择报告**：`.cursor/memory/instrumentation-locations-[框架名称]-[日期].md`
 3. **控制台输出**：包含点位列表、理由说明、风险提示和开源对比
 
 ## 核心概念
@@ -96,8 +96,8 @@ description: 如何为 Python 框架找到合适的 instrumentation 点位（埋
    - 分析各个项目的点位选择
    - 理解为什么选择这些点位
    - 对比不同项目的实现差异
-   - 将调研结果总结并写入 `memory/` 目录
-   - 文件命名：`memory/instrumentation-research-[框架名称]-[日期].md`
+   - 将调研结果总结并写入 `.cursor/memory/` 目录
+   - 文件命名：`.cursor/memory/instrumentation-research-[框架名称]-[日期].md`
 
 4. **如果没有找到已有实现**：
    - 记录搜索结果（未找到）
@@ -236,7 +236,7 @@ openai.resources.embeddings.AsyncEmbeddings.create
 
 #### 第五步：写入调研报告
 
-将调研结果写入 `memory/instrumentation-research-[框架名称]-[日期].md`，内容包括：
+将调研结果写入 `.cursor/memory/instrumentation-research-[框架名称]-[日期].md`，内容包括：
 - 搜索的项目列表
 - 找到的实现详情
 - 点位选择对比
@@ -287,7 +287,7 @@ openai.resources.embeddings.AsyncEmbeddings.create
 1. **优先搜索开源实现**: 在分析框架源码之前，先使用 DeepWiki 搜索三个推荐的开源项目
 2. **批判性参考**: 开源实现不一定是最优方案，需要结合实际需求判断
 3. **记录调研过程**: 无论是否找到开源实现，都要记录搜索过程和结果
-4. **写入 memory**: 如果找到开源实现，必须将调研结果写入 `memory/instrumentation-research-[框架名称]-[日期].md`
+4. **写入 memory**: 如果找到开源实现，必须将调研结果写入 `.cursor/memory/instrumentation-research-[框架名称]-[日期].md`
 
 ### 关于框架分析
 
@@ -320,7 +320,7 @@ openai.resources.embeddings.AsyncEmbeddings.create
   - 共同的点位选择
   - 不同的实现策略
   - 值得借鉴的做法
-- **参考链接**: 指向 `memory/instrumentation-research-[框架名称]-[日期].md` 的详细调研报告
+- **参考链接**: 指向 `.cursor/memory/instrumentation-research-[框架名称]-[日期].md` 的详细调研报告
 
 #### 1.2 推荐的点位列表
 - **模块路径**: 完整的 Python 模块路径
@@ -353,10 +353,10 @@ openai.resources.embeddings.AsyncEmbeddings.create
 
 ### 2. Memory 目录输出
 
-将找点位的结果写入 `memory/` 目录，便于后续参考和迭代。
+将找点位的结果写入 `.cursor/memory/` 目录，便于后续参考和迭代。
 
 #### 2.1 开源调研报告（如有找到开源实现）
-**文件路径**: `memory/instrumentation-research-[框架名称]-[日期].md`
+**文件路径**: `.cursor/memory/instrumentation-research-[框架名称]-[日期].md`
 
 **内容结构**:
 ```markdown
@@ -393,7 +393,7 @@ YYYY-MM-DD
 ```
 
 #### 2.2 点位选择报告
-**文件路径**: `memory/instrumentation-locations-[框架名称]-[日期].md`
+**文件路径**: `.cursor/memory/instrumentation-locations-[框架名称]-[日期].md`
 
 **内容结构**:
 ```markdown
