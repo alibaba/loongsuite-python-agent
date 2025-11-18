@@ -90,4 +90,3 @@ class RerankInvocation:
     span: Optional[Span] = None
     provider: Optional[str] = None
     attributes: Dict[str, Any] = field(default_factory=_new_str_any_dict)
-

@@ -33,6 +33,8 @@ from opentelemetry.semconv._incubating.attributes import (
 )
 from opentelemetry.semconv.attributes import (
     error_attributes as ErrorAttributes,
+)
+from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace import (
@@ -42,12 +44,12 @@ from opentelemetry.trace import (
     TracerProvider,
     set_span_in_context,
 )
-from opentelemetry.util.genai.handler import TelemetryHandler
-from opentelemetry.util.genai.types import Error
 from opentelemetry.util.genai.extended_types import (
     EmbeddingInvocation,
     RerankInvocation,
 )
+from opentelemetry.util.genai.handler import TelemetryHandler
+from opentelemetry.util.genai.types import Error
 
 
 class ExtendedTelemetryHandler(TelemetryHandler):
@@ -109,9 +111,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):
 
         # Set required attributes following GenAI semantic conventions
         # Operation name should be "embeddings" (plural) per semantic conventions
-        span.set_attribute(
-            GenAI.GEN_AI_OPERATION_NAME, "embeddings"
-        )
+        span.set_attribute(GenAI.GEN_AI_OPERATION_NAME, "embeddings")
         if invocation.provider is not None:
             span.set_attribute(GenAI.GEN_AI_PROVIDER_NAME, invocation.provider)
 
@@ -130,7 +130,8 @@ class ExtendedTelemetryHandler(TelemetryHandler):
             )
         if invocation.encoding_formats is not None:
             span.set_attribute(
-                GenAI.GEN_AI_REQUEST_ENCODING_FORMATS, invocation.encoding_formats
+                GenAI.GEN_AI_REQUEST_ENCODING_FORMATS,
+                invocation.encoding_formats,
             )
         if invocation.input_tokens is not None:
             span.set_attribute(
@@ -164,7 +165,9 @@ class ExtendedTelemetryHandler(TelemetryHandler):
         span = invocation.span
         span.set_status(Status(StatusCode.ERROR, error.message))
         if span.is_recording():
-            span.set_attribute(ErrorAttributes.ERROR_TYPE, error.type.__qualname__)
+            span.set_attribute(
+                ErrorAttributes.ERROR_TYPE, error.type.__qualname__
+            )
 
         otel_context.detach(invocation.context_token)
         span.end()
@@ -186,7 +189,9 @@ class ExtendedTelemetryHandler(TelemetryHandler):
         try:
             yield invocation
         except Exception as exc:
-            self.fail_embedding(invocation, Error(message=str(exc), type=type(exc)))
+            self.fail_embedding(
+                invocation, Error(message=str(exc), type=type(exc))
+            )
             raise
         self.stop_embedding(invocation)
 
@@ -207,9 +212,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):
         )
         return invocation
 
-    def stop_rerank(
-        self, invocation: RerankInvocation
-    ) -> RerankInvocation:
+    def stop_rerank(self, invocation: RerankInvocation) -> RerankInvocation:
         """Finalize a rerank operation successfully and end its span."""
         if invocation.context_token is None or invocation.span is None:
             return invocation
@@ -247,7 +250,9 @@ class ExtendedTelemetryHandler(TelemetryHandler):
         span = invocation.span
         span.set_status(Status(StatusCode.ERROR, error.message))
         if span.is_recording():
-            span.set_attribute(ErrorAttributes.ERROR_TYPE, error.type.__qualname__)
+            span.set_attribute(
+                ErrorAttributes.ERROR_TYPE, error.type.__qualname__
+            )
 
         otel_context.detach(invocation.context_token)
         span.end()
@@ -269,7 +274,9 @@ class ExtendedTelemetryHandler(TelemetryHandler):
         try:
             yield invocation
         except Exception as exc:
-            self.fail_rerank(invocation, Error(message=str(exc), type=type(exc)))
+            self.fail_rerank(
+                invocation, Error(message=str(exc), type=type(exc))
+            )
             raise
         self.stop_rerank(invocation)
 
@@ -290,4 +297,3 @@ def get_extended_telemetry_handler(
         handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
         setattr(get_extended_telemetry_handler, "_default_handler", handler)
     return handler
-

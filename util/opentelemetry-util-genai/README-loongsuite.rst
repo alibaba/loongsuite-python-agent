@@ -71,7 +71,7 @@ Embedding（新增）
        raise
 
 Rerank（新增）
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -120,7 +120,7 @@ Context Manager 支持
 
    # Rerank (新增)
    with handler.rerank(rerank) as rerank:
-       # span 自动结束
+       pass  # span 自动结束
 
 数据结构
 --------
@@ -265,5 +265,5 @@ Rerank 操作
 - ``ExtendedTelemetryHandler`` 是 ``TelemetryHandler`` 的子类，完全兼容原有 API
 - 可以安全地替换 ``get_telemetry_handler()`` 为 ``get_extended_telemetry_handler()``
 - 所有原有功能保持不变，只是增加了新的操作类型支持
-- Embedding 操作的 ``gen_ai.operation.name`` 应该是 ``"embeddings"``（复数形式），符合语义规范
+- Embedding 操作的 ``gen_ai.operation.name`` 应该是 ``"embeddings"`` （复数形式），符合语义规范
 
