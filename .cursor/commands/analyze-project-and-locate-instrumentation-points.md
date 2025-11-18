@@ -165,11 +165,6 @@
    - 了解不同类型框架需要追踪的关键操作
    - 确定框架类型
 
-2. **[@locate-instrumentation-points.mdc](mdc:.cursor/rules/locate-instrumentation-points.mdc)**
-   - 完整的找点位方法论
-   - 评估标准的详细说明
-   - 输出格式的完整定义
-
 ---
 
 ## 输出质量标准
@@ -228,7 +223,7 @@
 
 1. **按顺序执行**：先开源调研 → 框架分析 → 点位评估 → 结果输出
 2. **使用 DeepWiki**：充分利用 DeepWiki 工具搜索开源实现
-3. **参考 Rules**：严格遵循 framework-types-and-operations 和 locate-instrumentation-points 的规范
+3. **参考 Rules**：严格遵循 framework-types-and-operations 的规范
 4. **生成 Memory 文件**：必须生成至少一份点位选择报告
 5. **结构化输出**：使用规范的 Markdown 格式和章节结构
 6. **实事求是**：如果无法找到合适点位，如实说明并提出建议
