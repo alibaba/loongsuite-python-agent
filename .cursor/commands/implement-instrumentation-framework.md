@@ -378,9 +378,10 @@ API_KEY: [提供或使用占位符]
 
 ## 参考资料
 
-- **详细指南**: [@implement-instrumentation-framework.mdc](mdc:.cursor/rules/implement-instrumentation-framework.mdc)
+- **找点位命令**: [@analyze-project-and-locate-instrumentation-points.md](mdc:.cursor/commands/analyze-project-and-locate-instrumentation-points.md)
+- **提数据命令**: [@extract-telemetry-data.md](mdc:.cursor/commands/extract-telemetry-data.md)
 - **框架类型**: [@framework-types-and-operations.mdc](mdc:.cursor/rules/framework-types-and-operations.mdc)
-- **点位分析**: [@locate-instrumentation-points.mdc](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+- **代码质量检查**: [@code-quality-check.mdc](mdc:.cursor/rules/code-quality-check.mdc)
 - **LongSuite 参考**: [@loongsuite-instrumentation-agentscope](mdc:instrumentation-loongsuite/loongsuite-instrumentation-agentscope)
 - **上游参考**: [@opentelemetry-instrumentation-openai-v2](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2)
 - **测试配置**: [@conftest.py](mdc:instrumentation-genai/opentelemetry-instrumentation-openai-v2/tests/conftest.py)

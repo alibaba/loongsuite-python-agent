@@ -28,4 +28,5 @@ opentelemetry-sdk==1.37
 opentelemetry-semantic-conventions==0.58b0
 
 -e instrumentation-loongsuite/loongsuite-instrumentation-dashscope
+-e util/opentelemetry-util-genai
 

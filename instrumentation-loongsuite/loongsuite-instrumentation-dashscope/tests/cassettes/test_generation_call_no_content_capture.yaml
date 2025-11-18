@@ -1,0 +1,86 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {},
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "Say this is a test"
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Hello! How can I assist you today?"
+          },
+          "usage": {
+            "input_tokens": 17,
+            "output_tokens": 9,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 26
+          },
+          "request_id": "3b17f776-ca07-4079-b01f-b2bfa81edf56"
+        }
+    headers:
+      content-length:
+      - '239'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 08:05:43 GMT
+      req-arrive-time:
+      - '1763453143340'
+      req-cost-time:
+      - '268'
+      resp-start-time:
+      - '1763453143609'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=3b17f776-ca07-4079-b01f-b2bfa81edf56433a2080c41a41abfbdf20b3f3de4d6d;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '259'
+      x-request-id:
+      - 3b17f776-ca07-4079-b01f-b2bfa81edf56
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -7,10 +7,17 @@ import pytest
 import yaml
 from loongsuite.instrumentation.dashscope import DashScopeInstrumentor
 
+from opentelemetry.instrumentation._semconv import (
+    OTEL_SEMCONV_STABILITY_OPT_IN,
+    _OpenTelemetrySemanticConventionStability,
+)
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
+)
+from opentelemetry.util.genai.environment_variables import (
+    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
 )
 
 
@@ -48,6 +55,56 @@ def instrument(tracer_provider):
     yield instrumentor
 
     instrumentor.uninstrument()
+
+
+@pytest.fixture(scope="function")
+def instrument_no_content(tracer_provider):
+    """Instrument DashScope SDK with message content capture disabled."""
+    # Reset global state to allow environment variable changes to take effect
+    _OpenTelemetrySemanticConventionStability._initialized = False
+
+    os.environ.update(
+        {
+            OTEL_SEMCONV_STABILITY_OPT_IN: "gen_ai_latest_experimental",
+            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "NO_CONTENT",
+        }
+    )
+
+    instrumentor = DashScopeInstrumentor()
+    instrumentor.instrument(tracer_provider=tracer_provider)
+
+    yield instrumentor
+
+    os.environ.pop(OTEL_SEMCONV_STABILITY_OPT_IN, None)
+    os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)
+    instrumentor.uninstrument()
+    # Reset global state after test
+    _OpenTelemetrySemanticConventionStability._initialized = False
+
+
+@pytest.fixture(scope="function")
+def instrument_with_content(tracer_provider):
+    """Instrument DashScope SDK with message content capture enabled."""
+    # Reset global state to allow environment variable changes to take effect
+    _OpenTelemetrySemanticConventionStability._initialized = False
+
+    os.environ.update(
+        {
+            OTEL_SEMCONV_STABILITY_OPT_IN: "gen_ai_latest_experimental",
+            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "SPAN_ONLY",
+        }
+    )
+
+    instrumentor = DashScopeInstrumentor()
+    instrumentor.instrument(tracer_provider=tracer_provider)
+
+    yield instrumentor
+
+    os.environ.pop(OTEL_SEMCONV_STABILITY_OPT_IN, None)
+    os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)
+    instrumentor.uninstrument()
+    # Reset global state after test
+    _OpenTelemetrySemanticConventionStability._initialized = False
 
 
 @pytest.fixture(scope="module")

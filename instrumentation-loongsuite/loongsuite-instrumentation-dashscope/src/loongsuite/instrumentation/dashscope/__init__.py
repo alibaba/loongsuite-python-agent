@@ -53,6 +53,10 @@ from wrapt import wrap_function_wrapper
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
+from opentelemetry.util.genai.extended_handler import (
+    ExtendedTelemetryHandler,
+    get_extended_telemetry_handler,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +92,50 @@ class DashScopeInstrumentor(BaseInstrumentor):
         """
         logger.info("Instrumenting DashScope SDK")
 
+        # Get tracer_provider from kwargs and create handler instance
+        tracer_provider = kwargs.get("tracer_provider")
+        if tracer_provider is not None:
+            # Create handler instance with provided tracer_provider
+            handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
+        else:
+            # Use singleton handler
+            handler = get_extended_telemetry_handler()
+
+        # Create wrapper functions with handler closure
+        def wrap_generation_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_generation_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_aio_generation_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_aio_generation_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_text_embedding_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_text_embedding_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_text_rerank_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_text_rerank_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
         # Instrument Generation.call (sync)
         try:
             wrap_function_wrapper(
                 module=_MODULE_GENERATION,
                 name="Generation.call",
-                wrapper=wrap_generation_call,
+                wrapper=wrap_generation_call_with_provider,
             )
             logger.debug("Instrumented Generation.call")
         except Exception as e:
@@ -104,7 +146,7 @@ class DashScopeInstrumentor(BaseInstrumentor):
             wrap_function_wrapper(
                 module=_MODULE_GENERATION,
                 name="AioGeneration.call",
-                wrapper=wrap_aio_generation_call,
+                wrapper=wrap_aio_generation_call_with_provider,
             )
             logger.debug("Instrumented AioGeneration.call")
         except Exception as e:
@@ -115,7 +157,7 @@ class DashScopeInstrumentor(BaseInstrumentor):
             wrap_function_wrapper(
                 module=_MODULE_TEXT_EMBEDDING,
                 name="TextEmbedding.call",
-                wrapper=wrap_text_embedding_call,
+                wrapper=wrap_text_embedding_call_with_provider,
             )
             logger.debug("Instrumented TextEmbedding.call")
         except Exception as e:
@@ -126,7 +168,7 @@ class DashScopeInstrumentor(BaseInstrumentor):
             wrap_function_wrapper(
                 module=_MODULE_TEXT_RERANK,
                 name="TextReRank.call",
-                wrapper=wrap_text_rerank_call,
+                wrapper=wrap_text_rerank_call_with_provider,
             )
             logger.debug("Instrumented TextReRank.call")
         except Exception as e:

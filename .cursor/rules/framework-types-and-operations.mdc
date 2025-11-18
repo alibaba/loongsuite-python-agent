@@ -10,7 +10,7 @@ description: 不同类型框架需要追踪的关键操作定义
 
 本文档定义了各类框架类型及其对应需要追踪的关键操作，作为"找点位"（Locate Instrumentation）任务的前置参考。
 
-相关文档：[找点位指南](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+相关文档：[找点位命令](mdc:.cursor/commands/analyze-project-and-locate-instrumentation-points.md)
 
 ## 框架类型分类与追踪操作
 
@@ -284,7 +284,7 @@ description: 不同类型框架需要追踪的关键操作定义
    - 确认操作的优先级（某些操作可能是可选的）
 
 3. **结合找点位指南**
-   - 参考 [找点位指南](mdc:.cursor/rules/locate-instrumentation-points.mdc)
+   - 参考 [找点位命令](mdc:.cursor/commands/analyze-project-and-locate-instrumentation-points.md)
    - 在框架源码中定位能够捕获这些关键操作的方法
 
 4. **验证覆盖度**

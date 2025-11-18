@@ -1,0 +1,100 @@
+interactions:
+- request:
+    body:
+      input:
+        prompt: Count from 1 to 5
+      model: qwen-turbo
+      parameters:
+        incremental_output: true
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":"1"},"usage":{"total_tokens":20,"output_tokens":1,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":","},"usage":{"total_tokens":21,"output_tokens":2,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":" "},"usage":{"total_tokens":22,"output_tokens":3,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":"2"},"usage":{"total_tokens":23,"output_tokens":4,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":", 3,"},"usage":{"total_tokens":27,"output_tokens":8,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":" 4, "},"usage":{"total_tokens":31,"output_tokens":12,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"null","text":"5."},"usage":{"total_tokens":33,"output_tokens":14,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"finish_reason":"stop","text":""},"usage":{"total_tokens":33,"output_tokens":14,"input_tokens":19,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4d60a29b-8806-4b60-a642-1a16323ba17e"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Tue, 18 Nov 2025 10:39:21 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - acw_tc=4d60a29b-8806-4b60-a642-1a16323ba17e08ba3d35df5f9a879c08a4007107554c;path=/;HttpOnly;Max-Age=1800
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1763462361402'
+      req-cost-time:
+      - '182'
+      resp-start-time:
+      - '1763462361585'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '175'
+      x-request-id:
+      - 4d60a29b-8806-4b60-a642-1a16323ba17e
+    status:
+      code: 200
+      message: OK
+version: 1
