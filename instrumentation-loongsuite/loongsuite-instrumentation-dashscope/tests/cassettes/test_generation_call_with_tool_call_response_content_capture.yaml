@@ -1,0 +1,262 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {
+          "tools": [
+            {
+              "type": "function",
+              "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "type": "string",
+                      "description": "The city and state, e.g. San Francisco, CA"
+                    }
+                  },
+                  "required": [
+                    "location"
+                  ]
+                }
+              }
+            }
+          ],
+          "result_format": "message"
+        },
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "What's the weather in Beijing?"
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '464'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "tool_calls",
+                "index": 0,
+                "message": {
+                  "content": "",
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"location\": \"Beijing\"}",
+                        "name": "get_current_weather"
+                      },
+                      "id": "call_9c0097983c9244429df063",
+                      "index": 0,
+                      "type": "function"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 177,
+            "output_tokens": 21,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 198
+          },
+          "request_id": "13a7f6ef-bdb2-452a-b226-31be1d4f5b1a"
+        }
+    headers:
+      content-length:
+      - '436'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 11:35:47 GMT
+      req-arrive-time:
+      - '1763465747220'
+      req-cost-time:
+      - '411'
+      resp-start-time:
+      - '1763465747631'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=13a7f6ef-bdb2-452a-b226-31be1d4f5b1abfad552d3727aa20424cb967cf16c8d7;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '405'
+      x-request-id:
+      - 13a7f6ef-bdb2-452a-b226-31be1d4f5b1a
+    status:
+      code: 200
+      message: OK
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {
+          "tools": [
+            {
+              "type": "function",
+              "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "type": "string",
+                      "description": "The city and state, e.g. San Francisco, CA"
+                    }
+                  },
+                  "required": [
+                    "location"
+                  ]
+                }
+              }
+            }
+          ],
+          "result_format": "message"
+        },
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "What's the weather in Beijing?"
+            },
+            {
+              "role": "assistant",
+              "content": "",
+              "tool_calls": [
+                {
+                  "id": "call_9c0097983c9244429df063",
+                  "type": "function",
+                  "function": {
+                    "name": "get_current_weather",
+                    "arguments": "{\"location\": \"Beijing\"}"
+                  }
+                }
+              ]
+            },
+            {
+              "role": "tool",
+              "content": "{\"temperature\": 20, \"condition\": \"sunny\"}",
+              "tool_call_id": "call_9c0097983c9244429df063"
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '793'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "content": "The current weather in Beijing is sunny with a temperature of 20 degrees.",
+                  "role": "assistant"
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 225,
+            "output_tokens": 16,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 241
+          },
+          "request_id": "b450e3b6-6e33-4d56-b5f2-263e8ed8515e"
+        }
+    headers:
+      content-length:
+      - '339'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 11:35:47 GMT
+      req-arrive-time:
+      - '1763465747967'
+      req-cost-time:
+      - '372'
+      resp-start-time:
+      - '1763465748339'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=b450e3b6-6e33-4d56-b5f2-263e8ed8515edfe1327d2241b3458eb0283aa914e11d;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '365'
+      x-request-id:
+      - b450e3b6-6e33-4d56-b5f2-263e8ed8515e
+    status:
+      code: 200
+      message: OK
+version: 1

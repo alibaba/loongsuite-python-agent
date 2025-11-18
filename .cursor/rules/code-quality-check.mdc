@@ -1,0 +1,441 @@
+---
+description: 代码质量检查规范 - 每次编写代码后必须运行的检查流程
+---
+
+# 代码质量检查规范
+
+## 概述
+
+在完成任何代码编写后，**必须**运行以下检查并修复所有问题。这是强制性的开发流程，不可跳过。
+
+**重要前提**：执行代码质量检查前，必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 中定义的流程初始化开发环境。
+
+## 必须执行的检查
+
+### 1. Pre-commit 检查（代码风格和质量）
+
+**目的**：确保代码符合项目的代码风格和质量标准
+
+**前置要求**：
+- 必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化开发环境
+
+**执行命令**：
+```bash
+# 检查所有文件
+tox -e precommit
+
+# 检查特定文件（使用 posargs）
+tox -e precommit -- --files <文件路径>/**/*.py
+```
+
+**检查内容**：
+- **ruff**: Python 代码 linting（检查代码错误、风格问题）
+- **ruff-format**: 代码格式化
+- **uv-lock**: 依赖锁文件检查
+- **rstcheck**: RST 文档格式检查
+
+**常见问题和修复**：
+
+1. **W293: Blank line contains whitespace**
+   - 问题：空行包含空白字符（空格或制表符）
+   - 修复：删除空行中的所有空白字符
+   - 自动修复：ruff 会自动修复
+
+2. **F401: Imported but unused**
+   - 问题：导入了但未使用的模块
+   - 修复方案：
+     - 如果确实不需要：删除导入
+     - 如果需要导出：添加到 `__all__` 列表
+   - ❌ **禁止**：使用 `# noqa: F401` 绕过检查（除非有充分理由）
+
+3. **F541: f-string missing placeholders**
+   - 问题：f-string 中没有占位符
+   - 修复：改为普通字符串
+   ```python
+   # 错误
+   print(f"[INSTRUMENTATION] Call successful")
+   
+   # 正确
+   print("[INSTRUMENTATION] Call successful")
+   ```
+
+4. **I001: Unsorted imports**
+   - 问题：导入语句未按规范排序
+   - 修复：ruff 会自动按标准顺序排序导入
+   - 标准顺序：
+     1. 标准库
+     2. 第三方库
+     3. 本地导入
+
+5. **其他常见问题**：
+   - 行尾空白字符
+   - 缺少文件末尾换行
+   - 缩进不一致
+
+### 2. Spellcheck 检查（拼写检查）
+
+**目的**：确保代码注释和文档中没有拼写错误
+
+**前置要求**：
+- 必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化开发环境
+
+**执行命令**：
+```bash
+# 检查所有文件
+tox -e spellcheck
+```
+
+**注意事项**：
+- 检查覆盖代码注释、文档字符串、README 等
+- 技术术语和项目特定词汇可能被误报（需要配置例外）
+- 拼写错误会影响文档可读性和专业性
+
+---
+
+## 检查流程
+
+### 标准流程
+
+1. **初始化开发环境**（必须）：
+   - 按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 中的要求初始化环境
+   - 这是执行后续所有操作的前提
+
+2. **编写代码** → 完成新功能或修复
+
+3. **运行 pre-commit**：
+   ```bash
+   cd /path/to/project
+   tox -e precommit
+   ```
+
+4. **修复所有问题**：
+   - 大部分问题会被自动修复
+   - 手动修复剩余问题
+   - **禁止使用 `# noqa` 绕过**（除非有充分理由并在代码审查中说明）
+
+5. **运行 spellcheck**：
+   ```bash
+   tox -e spellcheck
+   ```
+
+6. **修复拼写错误**（如有）
+
+7. **重新运行检查**：确保所有问题已修复
+
+8. **提交代码**：所有检查通过后才能提交
+
+### 快速检查脚本示例
+
+```bash
+#!/bin/bash
+# 快速检查脚本
+
+# 1. 按照 local-dev-guides 初始化环境
+# 注意：具体初始化步骤参见 .cursor/rules/local-dev-guides.mdc
+# 示例：对于 conda 环境
+# source $(conda info --base)/etc/profile.d/conda.sh
+# conda activate loongsuite
+
+# 2. 进入项目目录
+cd /path/to/loongsuite-python-agent
+
+echo "Running pre-commit checks..."
+tox -e precommit
+
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit checks failed. Please fix the issues."
+  exit 1
+fi
+
+echo "Running spellcheck..."
+tox -e spellcheck
+
+if [ $? -ne 0 ]; then
+  echo "❌ Spellcheck failed. Please fix the issues."
+  exit 1
+fi
+
+echo "✅ All checks passed!"
+```
+
+**注意**：
+- 执行前必须先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化环境
+- `tox -e precommit` 默认检查所有文件
+- 如需检查特定文件，使用：`tox -e precommit -- --files <文件路径>`
+- `tox -e spellcheck` 默认检查整个项目
+
+---
+
+## 规则和原则
+
+### 必须遵守 ✅
+
+1. **每次编写代码后必须运行检查**
+   - 新增文件
+   - 修改现有文件
+   - 重构代码
+
+2. **必须修复所有检查发现的问题**
+   - 不允许提交有 linting 错误的代码
+   - 不允许提交有拼写错误的代码
+
+3. **优先使用自动修复**
+   - pre-commit 会自动修复大部分问题
+   - 利用工具能力，减少手动工作
+
+4. **保持代码风格一致**
+   - 遵循项目的代码风格规范
+   - 不要引入个人风格偏好
+
+### 严格禁止 ❌
+
+1. **禁止使用 `# noqa` 绕过检查**（除非有充分理由）
+   - 不能因为懒惰而绕过检查
+   - 如果确实需要，必须：
+     - 添加详细注释说明原因
+     - 在代码审查中说明
+     - 考虑是否有更好的解决方案
+
+2. **禁止提交未检查的代码**
+   - 即使是"小改动"也要检查
+   - 即使是"临时代码"也要检查
+
+3. **禁止忽略 spellcheck 错误**
+   - 拼写错误影响专业性
+   - 文档和注释的质量很重要
+
+---
+
+## 示例：完整的开发流程
+
+### 场景：为 DashScope 插件添加新功能
+
+```bash
+# 1. 初始化开发环境（按照 local-dev-guides.mdc）
+# 示例：对于 conda 环境
+# conda activate loongsuite
+
+# 2. 编写代码
+vim instrumentation-loongsuite/loongsuite-instrumentation-dashscope/src/loongsuite/instrumentation/dashscope/patch.py
+
+# 3. 运行 pre-commit 检查
+cd /Users/minghuizhang/Projects/opensource/loongsuite-python-agent
+tox -e precommit
+
+# 4. 查看输出，修复问题（如有）
+# 示例输出：
+# [1;31mF401[0m `module` imported but unused
+# 修复：删除未使用的导入或添加到 __all__
+
+# 5. 重新运行检查，确保通过
+tox -e precommit
+# 期望输出：
+# ruff.....................................................................[42mPassed[m
+# ruff-format..............................................................[42mPassed[m
+# uv-lock..................................................................[42mPassed[m
+# rstcheck.................................................................[42mPassed[m
+
+# 6. 运行拼写检查
+tox -e spellcheck
+
+# 7. 所有检查通过后，提交代码
+git add .
+git commit -m "feat: add new feature to DashScope instrumentation"
+```
+
+---
+
+## 工具配置
+
+### Tox 环境配置
+
+项目使用 tox 管理不同的检查环境，配置位于 `tox.ini`
+
+**precommit 环境**（`[testenv:{precommit,ruff}]`）：
+```ini
+[testenv:{precommit,ruff}]
+basepython: python3
+deps =
+  -c {toxinidir}/dev-requirements.txt
+  pre-commit
+commands =
+  pre-commit run --color=always --all-files {posargs}
+```
+
+**spellcheck 环境**（`[testenv:spellcheck]`）：
+```ini
+[testenv:spellcheck]
+basepython: python3
+recreate = True
+deps =
+  codespell==2.2.6
+commands =
+  codespell
+```
+
+### Pre-commit 配置
+
+项目的 pre-commit 配置位于 `.pre-commit-config.yaml`
+
+**包含的检查工具**：
+- **ruff**: 快速的 Python linter
+- **ruff-format**: 代码格式化
+- **uv-lock**: UV 依赖锁文件检查
+- **rstcheck**: RST 文档检查
+
+### Ruff 配置
+
+项目的 ruff 配置位于 `pyproject.toml` 或 `ruff.toml`
+
+**检查的主要规则**：
+- `F`: Pyflakes 错误检测
+- `E`, `W`: PEP 8 风格
+- `I`: Import 排序
+- `N`: 命名规范
+- 其他项目特定规则
+
+### Codespell 配置
+
+拼写检查配置（如有）位于 `.codespellrc` 或 `pyproject.toml`
+
+### 开发环境配置
+
+开发环境的初始化和配置要求，详见 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc)
+
+---
+
+## 常见问题 (FAQ)
+
+### Q1: 为什么不能使用 `# noqa`？
+
+**A**: `# noqa` 注释会绕过 linter 检查，这可能掩盖真正的问题：
+- **代码质量下降**：允许不规范的代码存在
+- **技术债务积累**：问题会越积越多
+- **维护困难**：其他人不知道为什么要绕过检查
+
+**例外情况**（需充分理由）：
+- 第三方库 API 限制
+- 向后兼容性要求
+- 框架特定的 pattern
+
+**正确做法**：
+```python
+# ❌ 错误：直接绕过
+import unused_module  # noqa: F401
+
+# ✅ 正确：如果确实需要导出
+import unused_module
+
+__all__ = ["unused_module"]
+
+# ✅ 或者：删除不需要的导入
+# import unused_module  # 已删除，不需要
+```
+
+### Q2: pre-commit 自动修复后还需要重新运行吗？
+
+**A**: 是的，建议重新运行一次确认：
+- 自动修复可能引入新问题
+- 确保所有问题都已解决
+- 养成良好的开发习惯
+
+运行 `tox -e precommit` 即可重新检查。
+
+### Q3: 我的代码已经很好了，为什么还要检查？
+
+**A**: 
+- **统一标准**：项目有统一的代码风格标准
+- **发现隐藏问题**：即使经验丰富也可能有疏漏
+- **自动化质量保证**：工具比人眼更可靠
+- **团队协作**：统一的代码风格让协作更顺畅
+
+### Q4: 检查失败了怎么办？
+
+**A**: 按以下步骤排查：
+
+1. **阅读错误信息**：了解具体是什么问题
+2. **查看文件和行号**：定位到具体位置
+3. **理解错误含义**：参考本文档的"常见问题和修复"
+4. **修复问题**：根据提示修改代码
+5. **重新运行**：确保修复有效
+6. **寻求帮助**：如果不确定如何修复，询问团队成员
+
+### Q5: 为什么必须使用 tox 而不是直接运行工具？
+
+**A**: 使用 tox 有以下优势：
+- **环境隔离**：tox 创建独立的虚拟环境，确保依赖版本一致
+- **配置统一**：所有开发者使用相同的配置和工具版本
+- **CI 一致性**：本地和 CI 使用相同的命令和环境
+- **依赖管理**：自动安装正确版本的工具（如 `codespell==2.2.6`）
+- **项目标准**：这是项目规定的标准开发流程
+
+### Q6: 忘记初始化开发环境会怎样？
+
+**A**: 可能会遇到以下问题：
+- tox 命令找不到
+- Python 版本不匹配
+- 依赖安装失败
+- 环境配置不正确
+
+**解决方案**：始终先按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化开发环境
+
+### Q7: 可以在 CI/CD 中自动运行这些检查吗？
+
+**A**: 是的，项目应该在 CI/CD 流程中自动运行这些检查：
+- 在 GitHub Actions/GitLab CI 中配置
+- PR/MR 提交时自动检查
+- 检查失败则阻止合并
+- 本地检查是第一道防线，CI 是最后保障
+- CI 中也使用 `tox -e precommit` 和 `tox -e spellcheck`
+
+---
+
+## 总结
+
+### 记住这四条
+
+1. **先初始化开发环境** → 按照 [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) 初始化
+2. **编写代码后必须检查** → `tox -e precommit` + `tox -e spellcheck`
+3. **必须修复所有问题** → 不能有任何 linting 或拼写错误
+4. **禁止使用 noqa 绕过** → 除非有充分理由
+
+### 工作流程图
+
+```
+初始化开发环境（参照 local-dev-guides.mdc）
+   ↓
+编写代码
+   ↓
+运行 tox -e precommit
+   ↓
+有问题？ → 是 → 修复问题 → 重新检查
+   ↓ 否
+运行 tox -e spellcheck
+   ↓
+有问题？ → 是 → 修复拼写 → 重新检查
+   ↓ 否
+提交代码 ✅
+```
+
+### 快速命令
+
+```bash
+# 完整检查流程
+# 1. 初始化环境（参照 local-dev-guides.mdc）
+cd /path/to/loongsuite-python-agent
+tox -e precommit
+tox -e spellcheck
+```
+
+---
+
+## 参考资料
+
+- **本地开发指南**: [@local-dev-guides.mdc](mdc:.cursor/rules/local-dev-guides.mdc) - **必读**，包含开发环境初始化要求
+- **Tox**: https://tox.wiki/
+- **Pre-commit**: https://pre-commit.com/
+- **Ruff**: https://docs.astral.sh/ruff/
+- **Codespell**: https://github.com/codespell-project/codespell
+- **PEP 8**: https://pep8.org/
+- **项目的 tox.ini**: [@tox.ini](mdc:tox.ini)
+- **项目的 .pre-commit-config.yaml**: [@.pre-commit-config.yaml](mdc:.pre-commit-config.yaml)
