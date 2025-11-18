@@ -63,7 +63,72 @@ class Text:
     type: Literal["text"] = "text"
 
 
-MessagePart = Union[Text, ToolCall, ToolCallResponse, Any]
+# LoongSuite Extension
+
+
+@dataclass()
+class Reasoning:
+    content: str
+    type: Literal["reasoning"] = "reasoning"
+
+
+Modality = Literal["image", "video", "audio"]
+
+
+@dataclass()
+class BlobPart:
+    mime_type: Optional[str]
+    modality: Union[Modality, str]
+    content: bytes
+    type: Literal["blob"] = "blob"
+
+
+@dataclass()
+class FilePart:
+    mime_type: Optional[str]
+    modality: Union[Modality, str]
+    file_id: str
+    type: Literal["file"] = "file"
+
+
+@dataclass()
+class UriPart:
+    mime_type: Optional[str]
+    modality: Union[Modality, str]
+    uri: str
+    type: Literal["uri"] = "uri"
+
+
+MessagePart = Union[
+    Text,
+    ToolCall,
+    ToolCallResponse,
+    Reasoning,
+    BlobPart,
+    FilePart,
+    UriPart,
+    Any,
+]
+
+
+@dataclass()
+class GenericToolDefinition:
+    name: str
+    type: str
+
+
+@dataclass()
+class FunctionToolDefinition:
+    name: str
+    description: Optional[str]
+    parameters: Optional[Any]
+    response: Optional[Any]
+    type: Literal["function"] = "function"
+
+
+ToolDefinitions = List[
+    Union[FunctionToolDefinition, GenericToolDefinition, Any]
+]
 
 
 @dataclass()
@@ -91,6 +156,13 @@ def _new_str_any_dict() -> Dict[str, Any]:
     return {}
 
 
+# LoongSuite Extension
+
+
+def _new_tool_definitions() -> ToolDefinitions:
+    return []
+
+
 @dataclass
 class LLMInvocation:
     """
@@ -107,6 +179,9 @@ class LLMInvocation:
     )
     output_messages: List[OutputMessage] = field(
         default_factory=_new_output_messages
+    )
+    tool_definitions: ToolDefinitions = field(  # LoongSuite Extension
+        default_factory=_new_tool_definitions
     )
     provider: Optional[str] = None
     response_model_name: Optional[str] = None

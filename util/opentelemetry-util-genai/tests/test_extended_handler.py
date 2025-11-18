@@ -21,7 +21,6 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
-
 from opentelemetry.util.genai.extended_handler import (
     ExtendedTelemetryHandler,
     get_extended_telemetry_handler,
@@ -89,9 +88,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):
         self.assertEqual(
             span.attributes["gen_ai.operation.name"], "embeddings"
         )
-        self.assertEqual(
-            span.attributes["gen_ai.provider.name"], "dashscope"
-        )
+        self.assertEqual(span.attributes["gen_ai.provider.name"], "dashscope")
         self.assertEqual(
             span.attributes["gen_ai.request.model"], "text-embedding-v1"
         )
@@ -116,12 +113,8 @@ class TestExtendedTelemetryHandler(unittest.TestCase):
         span = spans[0]
         self.assertEqual(span.name, "rerank gte-rerank")
         self.assertEqual(span.attributes["gen_ai.operation.name"], "rerank")
-        self.assertEqual(
-            span.attributes["gen_ai.provider.name"], "dashscope"
-        )
-        self.assertEqual(
-            span.attributes["gen_ai.request.model"], "gte-rerank"
-        )
+        self.assertEqual(span.attributes["gen_ai.provider.name"], "dashscope")
+        self.assertEqual(span.attributes["gen_ai.request.model"], "gte-rerank")
 
     def test_embedding_context_manager(self):
         """Test embedding context manager."""
@@ -161,4 +154,3 @@ class TestExtendedTelemetryHandler(unittest.TestCase):
         handler1 = get_extended_telemetry_handler()
         handler2 = get_extended_telemetry_handler()
         self.assertIs(handler1, handler2)
-
