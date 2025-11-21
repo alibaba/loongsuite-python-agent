@@ -1,0 +1,108 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:50 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - GET, OPTIONS
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"memories":[{"memory_id":"252712fd-ef31-4856-a7f1-1edb8679170c","text":"User
+      likes reading science fiction novels, mystery novels, and romance novels","metadata":{"updated":true,"batch":true}},{"memory_id":"30bc8557-8609-4738-b77e-4f0b3d6c041c","text":"User
+      name is John","metadata":{"updated":true,"batch":true}}]}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '316'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: PUT
+    uri: https://api.mem0.ai/v1/batch/
+  response:
+    body:
+      string: '{"message":"Successfully updated 2 memories"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '45'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:51 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - PUT, DELETE, OPTIONS
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1

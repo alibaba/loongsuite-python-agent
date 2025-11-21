@@ -1,0 +1,103 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:42 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/memories/252712fd-ef31-4856-a7f1-1edb8679170c/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"id":"252712fd-ef31-4856-a7f1-1edb8679170c","memory":"User likes reading
+        science fiction novels, mystery novels, and romance novels","user_id":"test1","metadata":null,"categories":["user_preferences"],"created_at":"2025-11-18T19:45:03.321684-08:00","updated_at":"2025-11-19T01:01:30.298722-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":3,"year":2025,"month":11,"minute":45,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '493'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:42 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, PUT, GET, DELETE
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1

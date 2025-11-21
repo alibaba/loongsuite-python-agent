@@ -1,0 +1,167 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:52 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"filters":{"AND":[{"user_id":"test-delete1"}]},"top_k":10,"org_id":"org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO","project_id":"proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '176'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://api.mem0.ai/v2/memories/
+  response:
+    body:
+      string: '[{"id":"f770f5fb-c4d6-4231-9621-23ee55f3c925","memory":"John has a
+        friend named Lily","user_id":"test-delete1","metadata":null,"categories":["personal_details"],"created_at":"2025-11-19T00:43:33.973177-08:00","updated_at":"2025-11-19T00:43:33.975680-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":8,"year":2025,"month":11,"minute":43,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"a69e7c5f-ca4b-4aac-861d-5568da64dcfb","memory":"John
+        likes swimming","user_id":"test-delete1","metadata":null,"categories":["sports"],"created_at":"2025-11-19T00:43:27.577094-08:00","updated_at":"2025-11-19T00:43:27.579785-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":8,"year":2025,"month":11,"minute":43,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"0d123a6a-0d5d-4bad-831b-f0da555ed455","memory":"User
+        likes eating","user_id":"test-delete1","metadata":null,"categories":["user_preferences"],"created_at":"2025-11-19T00:34:15.424593-08:00","updated_at":"2025-11-19T00:34:15.427888-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":8,"year":2025,"month":11,"minute":34,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"e23f45fd-041c-4d05-8a94-32430e17c5d6","memory":"John
+        likes running","user_id":"test-delete1","metadata":null,"categories":["sports","user_preferences"],"created_at":"2025-11-19T00:34:07.777252-08:00","updated_at":"2025-11-19T00:34:07.780350-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":8,"year":2025,"month":11,"minute":34,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"37dadba9-729c-49fc-99d0-4cf7f244e7cd","memory":"User
+        loves eating ice cream","user_id":"test-delete1","metadata":null,"categories":["food"],"created_at":"2025-11-18T23:05:14.231052-08:00","updated_at":"2025-11-18T23:05:14.234122-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":7,"year":2025,"month":11,"minute":5,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"c0585e56-e820-435f-864f-3518b4874d11","memory":"User
+        loves reading science fiction books","user_id":"test-delete1","metadata":null,"categories":["user_preferences"],"created_at":"2025-11-18T22:58:34.998579-08:00","updated_at":"2025-11-18T22:58:35.005511-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":6,"year":2025,"month":11,"minute":58,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}},{"id":"0152f7f8-b582-40b9-ac9f-23a514a6c8c8","memory":"User
+        name is John","user_id":"test-delete1","metadata":null,"categories":["personal_details"],"created_at":"2025-11-18T22:58:34.723082-08:00","updated_at":"2025-11-18T22:58:34.727330-08:00","expiration_date":null,"structured_attributes":{"day":19,"hour":6,"year":2025,"month":11,"minute":58,"quarter":4,"is_weekend":false,"day_of_week":"wednesday","day_of_year":323,"week_of_year":47}}]'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3121'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:52 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - POST, OPTIONS
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"memories":[{"memory_id":"a69e7c5f-ca4b-4aac-861d-5568da64dcfb"},{"memory_id":"0d123a6a-0d5d-4bad-831b-f0da555ed455"}]}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '120'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: DELETE
+    uri: https://api.mem0.ai/v1/batch/
+  response:
+    body:
+      string: '{"message":"Successfully deleted 2 memories"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '45'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:53 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - PUT, DELETE, OPTIONS
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1
