@@ -1,0 +1,91 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "gte-rerank",
+        "parameters": {
+          "top_n": 2
+        },
+        "input": {
+          "query": "What is machine learning?",
+          "documents": [
+            "Machine learning is a subset of AI.",
+            "Python is a programming language.",
+            "Deep learning uses neural networks.",
+            "Data science involves statistics."
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '267'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "results": [
+              {
+                "index": 0,
+                "relevance_score": 0.716894992759484
+              },
+              {
+                "index": 2,
+                "relevance_score": 0.13988489287145767
+              }
+            ]
+          },
+          "usage": {
+            "total_tokens": 68
+          },
+          "request_id": "70658564-7725-4701-958f-d9f4dda431fe"
+        }
+    headers:
+      content-length:
+      - '202'
+      content-type:
+      - application/json
+      date:
+      - Mon, 17 Nov 2025 08:31:28 GMT
+      req-arrive-time:
+      - '1763368289072'
+      req-cost-time:
+      - '110'
+      resp-start-time:
+      - '1763368289182'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=70658564-7725-4701-958f-d9f4dda431fe58c484735d41b587a2cc39c10c1179a1;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '102'
+      x-request-id:
+      - 70658564-7725-4701-958f-d9f4dda431fe
+    status:
+      code: 200
+      message: OK
+version: 1

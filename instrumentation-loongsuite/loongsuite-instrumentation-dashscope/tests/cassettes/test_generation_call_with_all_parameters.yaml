@@ -1,0 +1,93 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "top_k": 50,
+          "max_tokens": 200,
+          "frequency_penalty": 0.5,
+          "presence_penalty": 0.5,
+          "stop": [
+            "stop1",
+            "stop2"
+          ],
+          "seed": 42
+        },
+        "input": {
+          "prompt": "Test prompt"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '232'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Sure! Please provide the prompt you'd like me to test, and let me know what specific aspects you'd like me to focus on (e.g., clarity, creativity, adherence to instructions, etc.). I'll do my best to analyze and respond accordingly."
+          },
+          "usage": {
+            "input_tokens": 14,
+            "output_tokens": 52,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 66
+          },
+          "request_id": "261dbe28-018c-488b-a068-c712f1317418"
+        }
+    headers:
+      content-length:
+      - '438'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 08:05:44 GMT
+      req-arrive-time:
+      - '1763453144255'
+      req-cost-time:
+      - '740'
+      resp-start-time:
+      - '1763453144996'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=261dbe28-018c-488b-a068-c712f1317418282eacdd84000de08c32b21198737dd0;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '732'
+      x-request-id:
+      - 261dbe28-018c-488b-a068-c712f1317418
+    status:
+      code: 200
+      message: OK
+version: 1

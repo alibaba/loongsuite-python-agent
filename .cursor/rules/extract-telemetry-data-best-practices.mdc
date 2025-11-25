@@ -1,0 +1,208 @@
+---
+description: 提数据过程的最佳实践 - 按插件类型分类的最佳实践指南
+---
+
+# 提数据最佳实践指南
+
+本文档记录了在"提数据"（Extract Telemetry Data）过程中积累的最佳实践，按插件类型分类整理。
+
+---
+
+## 核心原则：数据来源限制
+
+**数据一般从以下三个来源提取**：
+1. **被 wrap 的类对象本身的属性**（如果是一个对象）
+2. **方法的入参**（`args` 和 `kwargs`，包括 `kwargs["parameters"]` 等嵌套字典）
+3. **方法的返回值**（`response` 对象及其属性）
+
+**禁止的行为**：
+- ❌ **禁止猜测性提取**：不要假设某个参数存在，必须根据点位调研文档确认参数是否实际存在
+- ❌ **禁止从测试用例推断参数**：测试用例可能使用了不存在的参数，必须根据点位调研文档和实际 API 文档确认
+- ❌ **禁止硬编码参数名**：必须根据点位调研文档中列出的实际参数名提取
+
+**正确做法**：
+- ✅ **根据点位调研文档确认参数**：读取 `.cursor/memory/instrumentation-locations-[框架名称]-[日期].md`，确认每个点位实际支持的参数列表
+- ✅ **明确标注数据来源**：在代码注释和语义规范分析文档中，明确标注每个属性的数据来源
+- ✅ **统一参数提取逻辑**：使用辅助函数（如 `_get_parameter`）统一处理从 `kwargs` 或 `kwargs["parameters"]` 提取参数的逻辑
+
+**示例**：
+```python
+def _get_parameter(kwargs: dict, param_name: str, parameters: Optional[dict] = None):
+    """Get parameter from kwargs or parameters dict.
+    
+    Data sources: method arguments (kwargs) or nested parameters dict.
+    """
+    # Check kwargs first
+    if param_name in kwargs:
+        return kwargs[param_name]
+    
+    # Check parameters dict if provided
+    if parameters is None:
+        parameters = kwargs.get("parameters", {})
+    if isinstance(parameters, dict) and param_name in parameters:
+        return parameters[param_name]
+    
+    return None
+```
+
+---
+
+## GenAI 类型插件
+
+### `gen_ai.embeddings.dimension.count` 的采集
+
+**必须从请求参数中提取，不能从响应中推断。**
+
+**原因**：
+- 语义规范定义这是"请求的"维度数量（"The number of dimensions the resulting output embeddings **should have**"）
+- 从响应中推断结果不一定正确，可能会误导用户
+
+---
+
+### 使用 `getattr` 安全访问属性
+
+**对于使用 `__getattr__` 的响应对象，必须使用 `getattr` 安全访问。**
+
+**原因**：某些框架（如 DashScope）的响应对象使用 `__getattr__`，直接访问不存在的属性会抛出 `KeyError`。
+
+**实现**：
+
+```python
+def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
+    try:
+        usage = getattr(response, "usage", None)
+        if not usage:
+            return None, None
+        input_tokens = getattr(usage, "input_tokens", None) or getattr(
+            usage, "prompt_tokens", None
+        )
+        output_tokens = getattr(usage, "output_tokens", None) or getattr(
+            usage, "completion_tokens", None
+        )
+        return input_tokens, output_tokens
+    except (KeyError, AttributeError):
+        return None, None
+```
+
+---
+
+### 整个函数使用单一 try-except 包裹
+
+**将整个数据提取函数包裹在一个 try-except 块中，减少嵌套。**
+
+**实现**：
+
+```python
+def _extract_output_messages(response: Any) -> List[OutputMessage]:
+    output_messages = []
+    if not response:
+        return output_messages
+    try:
+        output = getattr(response, "output", None)
+        text = getattr(output, "text", None) or getattr(output, "content", None)
+        if text:
+            output_messages.append(OutputMessage(...))
+    except (KeyError, AttributeError):
+        return output_messages
+    return output_messages
+```
+
+---
+
+### Handler/Tracer 实例管理
+
+**在初始化时创建 handler/tracer 实例，通过闭包传递给 wrapper 函数，避免每次调用都创建新实例。**
+
+**原因**：
+- 每次调用都创建新实例会消耗不必要的资源
+- Handler/tracer 实例通常是线程安全的，可以共享使用
+- 通过闭包传递可以确保所有调用使用同一个实例
+
+**实现**：
+
+```python
+# 在 __init__.py 的 _instrument 方法中
+def _instrument(self, **kwargs):
+    tracer_provider = kwargs.get("tracer_provider")
+    if tracer_provider is not None:
+        # 创建 handler 实例（如果提供了 tracer_provider）
+        handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
+    else:
+        # 使用单例 handler（如果没有提供 tracer_provider）
+        handler = get_extended_telemetry_handler()
+    
+    # 通过闭包传递 handler
+    def wrap_call_with_handler(wrapped, instance, args, kwargs):
+        return wrap_call(wrapped, instance, args, kwargs, handler=handler)
+    
+    wrap_function_wrapper(module="...", name="...", wrapper=wrap_call_with_handler)
+
+# 在 patch.py 中
+def wrap_call(wrapped, instance, args, kwargs, handler=None):
+    if handler is None:
+        logger.warning("Handler not provided, skipping instrumentation")
+        return wrapped(*args, **kwargs)
+    
+    # 直接使用传入的 handler，不再创建新实例
+    invocation = create_invocation(kwargs)
+    handler.start_llm(invocation)
+    # ...
+```
+
+**错误做法**：
+```python
+# ❌ 每次调用都创建新实例
+def wrap_call(wrapped, instance, args, kwargs, tracer_provider=None):
+    if tracer_provider is not None:
+        handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
+    else:
+        handler = get_extended_telemetry_handler()
+    # ...
+```
+
+## 通用最佳实践
+
+### 数据采集原则
+
+**采集工具应该尽可能采集数据，只要不产生误解。**
+
+- ✅ 尽可能从请求和响应中提取所有可用的属性
+- ✅ 如果属性可以从响应中可靠提取，应该采集
+- ❌ 如果从响应中推断会误导用户（如 `dimension.count`），则只从请求中提取
+- ❌ 避免采集敏感信息（如 API keys、密码）
+
+---
+
+### 错误处理
+
+**数据提取失败时，不应该影响原始调用的执行。**
+
+**实现**：
+
+```python
+def wrapper(wrapped, instance, args, kwargs):
+    try:
+        invocation = create_invocation(kwargs)
+        handler.start_llm(invocation)
+        try:
+            result = wrapped(*args, **kwargs)
+            try:
+                update_invocation_from_response(invocation, result)
+            except Exception as e:
+                logger.warning("Failed to extract response data: %s", e)
+            handler.stop_llm(invocation)
+            return result
+        except Exception as e:
+            handler.fail_llm(invocation, Error(message=str(e), type=type(e)))
+            raise
+    except Exception as e:
+        logger.exception("Error in instrumentation wrapper: %s", e)
+        return wrapped(*args, **kwargs)
+```
+
+---
+
+## 参考资源
+
+- **OpenTelemetry Semantic Conventions**: https://github.com/open-telemetry/semantic-conventions
+- **参考实现**: `instrumentation-genai/opentelemetry-instrumentation-openai-v2/`
