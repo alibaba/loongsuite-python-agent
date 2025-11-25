@@ -278,7 +278,7 @@ def generate_extension_test_workflow(
     _generate_workflow_with_template(
         get_test_job_datas(loongsuite_envs, list(operating_systems)),
         "loongsuite_test",
-        "test",
+        "loongsuite_test",
         workflow_directory_path,
     )
 
@@ -295,7 +295,7 @@ def generate_extension_lint_workflow(
     _generate_workflow_with_template(
         get_lint_job_datas(loongsuite_envs),
         "loongsuite_lint",
-        "lint",
+        "loongsuite_lint",
         workflow_directory_path,
     )
 
@@ -312,7 +312,7 @@ def generate_extension_misc_workflow(
     _generate_workflow_with_template(
         get_misc_job_datas(loongsuite_envs),
         "loongsuite_misc",
-        "misc",
+        "loongsuite_misc",
         workflow_directory_path,
     )
 
