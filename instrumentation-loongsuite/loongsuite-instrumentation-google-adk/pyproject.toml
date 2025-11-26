@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "opentelemetry-instrumentation-google-adk"
-version = "0.1.0"
+name = "loongsuite-instrumentation-google-adk"
+dynamic = ["version"]
 description = "OpenTelemetry instrumentation for Google Agent Development Kit (ADK)"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.8"
 authors = [
-    { name = "OpenTelemetry Contributors" },
+    { name = "LoongSuite Python Agent Authors" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -45,15 +45,18 @@ instruments = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-google-adk"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [project.entry-points.opentelemetry_instrumentor]
 google-adk = "opentelemetry.instrumentation.google_adk:GoogleAdkInstrumentor"
 
+[tool.hatch.version]
+path = "src/opentelemetry/instrumentation/google_adk/version.py"
+
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
-    "/tests",
+    "src",
 ]
 
 [tool.hatch.build.targets.wheel]
