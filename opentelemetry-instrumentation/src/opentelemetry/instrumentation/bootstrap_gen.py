@@ -17,10 +17,6 @@
 
 libraries = [
     {
-        "library": "google-adk >= 0.1.0",
-        "instrumentation": "opentelemetry-instrumentation-google-adk==0.1.0",
-    },
-    {
         "library": "openai >= 1.26.0",
         "instrumentation": "opentelemetry-instrumentation-openai-v2",
     },
