@@ -45,7 +45,7 @@ instruments = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent"
 
 [project.entry-points.opentelemetry_instrumentor]
 google-adk = "opentelemetry.instrumentation.google_adk:GoogleAdkInstrumentor"
