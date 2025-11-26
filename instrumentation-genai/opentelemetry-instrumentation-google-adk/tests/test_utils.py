@@ -234,7 +234,6 @@ class TestErrorUtils:
         attrs = get_error_attributes(error)
         
         assert attrs["error.type"] == "ValueError"
-        assert "ValueError" in attrs["error.type"]
     
     def test_get_error_attributes_timeout(self):
         """Test getting error attributes for timeout."""
