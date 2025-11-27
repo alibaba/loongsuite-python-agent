@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `loongsuite-instrumentation-google-adk`: Add initial support for Google Agent Development Kit (ADK) ([#71](https://github.com/alibaba/loongsuite-python-agent/pull/71))
+
 - `loongsuite-instrumentation-mem0`: use memory handler
   ([#89](https://github.com/alibaba/loongsuite-python-agent/pull/89))
 
