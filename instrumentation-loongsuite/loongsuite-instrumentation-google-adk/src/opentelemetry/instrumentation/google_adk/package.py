@@ -18,4 +18,3 @@ _instruments = ("google-adk >= 0.1.0",)
 _supports_metrics = True
 
 _semconv_status = "experimental"
-
