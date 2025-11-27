@@ -10,3 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > Use [this search for a list of all CHANGELOG.md files in this repo](https://github.com/search?q=repo%3Aalibaba%2Floongsuite-python-agent+path%3A**%2FCHANGELOG.md&type=code).
 
 ## Unreleased
+
+### Added
+
+- **loongsuite-instrumentation-google-adk**: Add initial support for Google Agent Development Kit (ADK) #35
