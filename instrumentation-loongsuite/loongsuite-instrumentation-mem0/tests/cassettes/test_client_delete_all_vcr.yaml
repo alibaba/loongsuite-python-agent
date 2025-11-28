@@ -1,0 +1,157 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:54 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: "{\"messages\":[{\"role\":\"user\",\"content\":\"\u7528\u6237C \u559C\u6B22\u9605\u8BFB\"},{\"role\":\"assistant\",\"content\":\"\u8BB0\u5F55\uFF1A\u559C\u6B22\u9605\u8BFB\"}],\"user_id\":\"test_user_client_full\",\"agent_id\":\"test_agent_client_full\",\"async_mode\":false,\"org_id\":\"org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO\",\"project_id\":\"proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz\",\"output_format\":\"v1.1\"}"
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '347'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://api.mem0.ai/v1/memories/
+  response:
+    body:
+      string: "{\"results\":[{\"id\":\"e442742d-4a4b-4864-9599-707ea7191397\",\"event\":\"ADD\",\"memory\":\"\u7528\u6237C
+        \u559C\u6B22\u9605\u8BFB\",\"structured_attributes\":{\"day\":19,\"hour\":9,\"year\":2025,\"month\":11,\"minute\":1,\"quarter\":4,\"is_weekend\":false,\"day_of_week\":\"wednesday\",\"day_of_year\":323,\"week_of_year\":47}},{\"id\":\"f472e4f1-beb9-4eda-82bf-ebb034e3c4cf\",\"event\":\"ADD\",\"memory\":\"\u8BB0\u5F55\uFF1A\u559C\u6B22\u9605\u8BFB\",\"structured_attributes\":{\"day\":19,\"hour\":9,\"year\":2025,\"month\":11,\"minute\":2,\"quarter\":4,\"is_weekend\":false,\"day_of_week\":\"wednesday\",\"day_of_year\":323,\"week_of_year\":47}}]}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '540'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:02:10 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - POST, OPTIONS, GET, DELETE
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: DELETE
+    uri: https://api.mem0.ai/v1/memories/?user_id=test_user_client_full&agent_id=test_agent_client_full&org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"message":"Memories deleted successfully!"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '44'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:02:11 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - GET, OPTIONS, DELETE, POST
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1

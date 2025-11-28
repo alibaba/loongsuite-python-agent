@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "loongsuite-instrumentation-mem0"
+dynamic = ["version"]
+description = "LoongSuite Mem0 Instrumentation"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    { name = "LoongSuite Python Agent Authors", email = "loongsuite-dev@example.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "wrapt",
+    "opentelemetry-api",
+    "opentelemetry-instrumentation",
+    "opentelemetry-semantic-conventions",
+]
+
+[project.optional-dependencies]
+instruments = [
+    "mem0ai >= 1.0.0",
+]
+
+[tool.hatch.version]
+path = "src/opentelemetry/instrumentation/mem0/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src",
+    "tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opentelemetry"]
+
+[project.entry-points.opentelemetry_instrumentor]
+mem0 = "opentelemetry.instrumentation.mem0:Mem0Instrumentor"

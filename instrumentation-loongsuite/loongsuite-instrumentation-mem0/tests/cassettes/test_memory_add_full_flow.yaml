@@ -1,0 +1,88 @@
+interactions:
+- request:
+    body: |-
+      {
+        "batch": [
+          {
+            "properties": {
+              "client_source": "python",
+              "client_version": "1.0.0",
+              "python_version": "3.10.19 | packaged by conda-forge | (main, Oct 22 2025, 22:29:10) [GCC 14.3.0]",
+              "os": "linux",
+              "os_version": "#1 SMP Wed Sep 15 17:27:09 CST 2021",
+              "os_release": "4.19.91-012.ali4000.alios7.x86_64",
+              "processor": "x86_64",
+              "machine": "x86_64",
+              "collection": "mem0",
+              "vector_size": 128,
+              "history_store": "sqlite",
+              "graph_store": null,
+              "vector_store": "tests.test_memory_operations_vcr._FakeVectorStore",
+              "llm": "mem0.llms.openai.OpenAILLM",
+              "embedding_model": "tests.test_memory_operations_vcr._FakeEmbedder",
+              "function": "mem0.memory.main.Memory.v1.1",
+              "sync_type": "sync",
+              "$python_runtime": "CPython",
+              "$python_version": "3.10.19",
+              "$os": "Linux",
+              "$os_version": "7.2",
+              "$lib": "posthog-python",
+              "$lib_version": "6.9.1",
+              "$geoip_disable": true
+            },
+            "timestamp": "2025-11-10T11:38:45.123475+00:00",
+            "distinct_id": "0e0b1777-0e2d-4d5a-bc47-8b975da09e0e",
+            "event": "mem0.init",
+            "uuid": "1be8a14c-f801-445e-97c3-c20e45f09c00"
+          }
+        ],
+        "historical_migration": false,
+        "sentAt": "2025-11-10T11:38:45.538912+00:00",
+        "api_key": "phc_hgJkUVJFYtmaJqrvf6CYN67TIQ8yhXAkWzUn9AMU4yX"
+      }
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1162'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - posthog-python/6.9.1
+    method: POST
+    uri: https://us.i.posthog.com/batch/
+  response:
+    body:
+      string: |-
+        {
+          "status": "Ok"
+        }
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 10 Nov 2025 11:38:46 GMT
+      Set-Cookie: test_set_cookie
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      access-control-allow-credentials:
+      - 'true'
+      server:
+      - envoy
+      vary:
+      - origin, access-control-request-method, access-control-request-headers
+      x-envoy-upstream-service-time:
+      - '69'
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1

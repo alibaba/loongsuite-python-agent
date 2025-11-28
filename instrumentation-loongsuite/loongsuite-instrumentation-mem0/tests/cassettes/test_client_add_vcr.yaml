@@ -1,0 +1,218 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:10 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"My name is John and I love reading
+      science fiction books."},{"role":"assistant","content":"Nice to meet you John!
+      I''ve noted your interest in science fiction."}],"user_id":"test_user_client_full","agent_id":"test_agent_client_full","run_id":"test_run_client_full_group_1","metadata":{"source":"test_memoryclient","scenario":"client_full_1","group":1},"async_mode":false,"infer":false,"org_id":"org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO","project_id":"proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz","output_format":"v1.1"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '563'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://api.mem0.ai/v1/memories/
+  response:
+    body:
+      string: '{"results":[{"id":"6eca3038-ce0a-4b96-864c-7600d54df895","event":"ADD","memory":"My
+        name is John and I love reading science fiction books."},{"id":"5f47407d-8d10-43aa-8b45-d12de4fe274e","event":"ADD","memory":"Nice
+        to meet you John! I''ve noted your interest in science fiction."}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '281'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:11 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - GET, OPTIONS, DELETE, POST
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.mem0.ai/v1/ping/?org_id=org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO&project_id=proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz
+  response:
+    body:
+      string: '{"status":"ok"}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '15'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:39 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"My name is John and I love reading
+      science fiction books."},{"role":"assistant","content":"Nice to meet you John!
+      I''ve noted your interest in science fiction."}],"user_id":"test_user_client_full","agent_id":"test_agent_client_full","run_id":"test_run_client_full_group_1","metadata":{"source":"test_memoryclient","scenario":"client_full_1","group":1},"async_mode":false,"infer":false,"org_id":"org_TYLzC5IhE3P60cQCUl7CIo1dUUgoE8TEeiWvBlNO","project_id":"proj_DlCemE8JjiUbx7odgCJiW3Rx2BuaK8waIkswkmGz","output_format":"v1.1"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer test_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '563'
+      content-type:
+      - application/json
+      host:
+      - api.mem0.ai
+      mem0-user-id:
+      - test_user_id
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://api.mem0.ai/v1/memories/
+  response:
+    body:
+      string: '{"results":[{"id":"6eca3038-ce0a-4b96-864c-7600d54df895","event":"ADD","memory":"My
+        name is John and I love reading science fiction books."},{"id":"5f47407d-8d10-43aa-8b45-d12de4fe274e","event":"ADD","memory":"Nice
+        to meet you John! I''ve noted your interest in science fiction."}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '281'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 19 Nov 2025 09:01:39 GMT
+      Set-Cookie: test_set_cookie
+      allow:
+      - DELETE, POST, OPTIONS, GET
+      cross-origin-opener-policy:
+      - same-origin
+      referrer-policy:
+      - same-origin
+      server:
+      - uvicorn
+      vary:
+      - Accept, origin, Authorization, Cookie
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - DENY
+      x-request-id: test_request_id
+    status:
+      code: 200
+      message: OK
+version: 1
