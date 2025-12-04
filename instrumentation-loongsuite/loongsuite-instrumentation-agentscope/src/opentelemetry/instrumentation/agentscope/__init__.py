@@ -1,47 +1,237 @@
-# -*- coding: utf-8 -*-
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+AgentScope instrumentation supporting `agentscope >= 1.0.0`.
+
+Usage
+-----
+.. code:: python
+    from opentelemetry.instrumentation.agentscope import AgentScopeInstrumentor
+    from agentscope.models import DashScopeChatModel
+    import agentscope
+
+    AgentScopeInstrumentor().instrument()
+    agentscope.init(project="my_project")
+    model = DashScopeChatModel(model_name="qwen-max")
+    result = await model(messages)
+    AgentScopeInstrumentor().uninstrument()
+
+API
+---
+"""
+
+import logging
 from typing import Any, Collection
 
+from wrapt import wrap_function_wrapper
+
+from opentelemetry import trace as trace_api
+from opentelemetry._events import get_event_logger
 from opentelemetry.instrumentation.agentscope.package import _instruments
-from opentelemetry.instrumentation.agentscope.utils import is_agentscope_v1
+from opentelemetry.instrumentation.agentscope.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.utils import unwrap
+from opentelemetry.metrics import get_meter
+from opentelemetry.semconv.schemas import Schemas
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
+
+from ._wrapper import AgentScopeAgentWrapper, AgentScopeChatModelWrapper
+from .instruments import Instruments
+from .patch import wrap_formatter_format, wrap_tool_call
+
+logger = logging.getLogger(__name__)
+
+_MODEL_MODULE = "agentscope.model"
+_AGENT_MODULE = "agentscope.agent"
+_TOOL_MODULE = "agentscope.tool"
+_FORMATTER_MODULE = "agentscope.formatter"
 
 __all__ = ["AgentScopeInstrumentor"]
 
 
-class AgentScopeInstrumentor(BaseInstrumentor):  # type: ignore
-    def __init__(
-        self,
-    ):
+class AgentScopeInstrumentor(BaseInstrumentor):
+    """OpenTelemetry instrumentor for AgentScope framework."""
+
+    def __init__(self):
+        super().__init__()
         self._meter = None
+        self._instruments = None
+        self._tracer = None
+        self._event_logger = None
+        self._handler = None
 
     def instrumentation_dependencies(self) -> Collection[str]:
         return _instruments
 
+    def _setup_tracing_patch(self, wrapped, instance, args, kwargs):
+        """Replace setup_tracing with no-op to use OTEL instead."""
+        pass
+
     def _instrument(self, **kwargs: Any) -> None:
         """Enable AgentScope instrumentation."""
-        if is_agentscope_v1():
-            from opentelemetry.instrumentation.agentscope.v1 import (  # noqa: PLC0415
-                AgentScopeV1Instrumentor,
-            )
+        tracer_provider = kwargs.get("tracer_provider")
+        if not tracer_provider:
+            tracer_provider = trace_api.get_tracer_provider()
 
-            AgentScopeV1Instrumentor().instrument(**kwargs)
-        else:
-            from opentelemetry.instrumentation.agentscope.v0 import (  # noqa: PLC0415
-                AgentScopeV0Instrumentor,
-            )
+        self._tracer = trace_api.get_tracer(
+            __name__,
+            __version__,
+            tracer_provider,
+            schema_url=Schemas.V1_28_0.value,
+        )
 
-            AgentScopeV0Instrumentor().instrument(**kwargs)
+        event_logger_provider = kwargs.get("event_logger_provider")
+        self._event_logger = get_event_logger(
+            __name__,
+            __version__,
+            schema_url=Schemas.V1_28_0.value,
+            event_logger_provider=event_logger_provider,
+        )
+
+        meter_provider = kwargs.get("meter_provider")
+        self._meter = get_meter(
+            __name__,
+            __version__,
+            meter_provider,
+            schema_url=Schemas.V1_28_0.value,
+        )
+        self._instruments = Instruments(self._meter)
+
+        self._handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
+
+        # Instrument ChatModelBase
+        try:
+            chat_wrapper = AgentScopeChatModelWrapper(handler=self._handler)
+            wrap_function_wrapper(
+                module=_MODEL_MODULE,
+                name="ChatModelBase.__init__",
+                wrapper=chat_wrapper,
+            )
+            logger.debug("Instrumented ChatModelBase")
+        except Exception as e:
+            logger.warning(f"Failed to instrument ChatModelBase: {e}")
+
+        # Instrument AgentBase
+        try:
+            agent_wrapper = AgentScopeAgentWrapper(handler=self._handler)
+            wrap_function_wrapper(
+                module=_AGENT_MODULE,
+                name="AgentBase.__init__",
+                wrapper=agent_wrapper,
+            )
+            logger.debug("Instrumented AgentBase")
+        except Exception as e:
+            logger.warning(f"Failed to instrument AgentBase: {e}")
+
+        # Instrument Toolkit
+        try:
+            # wrap_tool_call is an async generator function, so we need to
+            # create an async generator wrapper
+            def wrap_tool_with_handler(wrapped, instance, args, kwargs):
+                # Return the async generator directly
+                return wrap_tool_call(
+                    wrapped, instance, args, kwargs, handler=self._handler
+                )
+
+            wrap_function_wrapper(
+                module=_TOOL_MODULE,
+                name="Toolkit.call_tool_function",
+                wrapper=wrap_tool_with_handler,
+            )
+            logger.debug("Instrumented Toolkit")
+        except Exception as e:
+            logger.warning(f"Failed to instrument Toolkit: {e}")
+
+        # Instrument Formatter
+        try:
+
+            def wrap_formatter_with_tracer(wrapped, instance, args, kwargs):
+                return wrap_formatter_format(
+                    wrapped, instance, args, kwargs, tracer=self._tracer
+                )
+
+            wrap_function_wrapper(
+                module=_FORMATTER_MODULE,
+                name="TruncatedFormatterBase.format",
+                wrapper=wrap_formatter_with_tracer,
+            )
+            logger.debug("Instrumented TruncatedFormatterBase")
+        except Exception as e:
+            logger.warning(f"Failed to instrument TruncatedFormatterBase: {e}")
+
+        # Patch setup_tracing to be a no-op
+        try:
+            wrap_function_wrapper(
+                module="agentscope.tracing",
+                name="setup_tracing",
+                wrapper=self._setup_tracing_patch,
+            )
+            logger.debug("Patched setup_tracing")
+        except Exception as e:
+            logger.warning(f"Failed to patch setup_tracing: {e}")
 
     def _uninstrument(self, **kwargs: Any) -> None:
-        if is_agentscope_v1():
-            from opentelemetry.instrumentation.agentscope.v1 import (  # noqa: PLC0415
-                AgentScopeV1Instrumentor,
-            )
+        """Disable AgentScope instrumentation."""
+        try:
+            AgentScopeChatModelWrapper.restore_original_methods()
+            logger.debug("Restored ChatModelBase methods")
+        except Exception as e:
+            logger.warning(f"Failed to restore ChatModelBase: {e}")
 
-            AgentScopeV1Instrumentor().uninstrument(**kwargs)
-        else:
-            from opentelemetry.instrumentation.agentscope.v0 import (  # noqa: PLC0415
-                AgentScopeV0Instrumentor,
-            )
+        try:
+            AgentScopeAgentWrapper.restore_original_methods()
+            logger.debug("Restored AgentBase methods")
+        except Exception as e:
+            logger.warning(f"Failed to restore AgentBase: {e}")
 
-            AgentScopeV0Instrumentor().uninstrument(**kwargs)
+        try:
+            import agentscope.model
+
+            unwrap(agentscope.model.ChatModelBase, "__init__")
+            logger.debug("Uninstrumented ChatModelBase")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument ChatModelBase: {e}")
+
+        try:
+            import agentscope.agent
+
+            unwrap(agentscope.agent.AgentBase, "__init__")
+            logger.debug("Uninstrumented AgentBase")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument AgentBase: {e}")
+
+        try:
+            import agentscope.tool
+
+            unwrap(agentscope.tool.Toolkit, "call_tool_function")
+            logger.debug("Uninstrumented Toolkit")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument Toolkit: {e}")
+
+        try:
+            import agentscope.formatter
+
+            unwrap(agentscope.formatter.TruncatedFormatterBase, "format")
+            logger.debug("Uninstrumented TruncatedFormatterBase")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument TruncatedFormatterBase: {e}")
+
+        try:
+            import agentscope.tracing
+
+            unwrap(agentscope.tracing, "setup_tracing")
+            logger.debug("Uninstrumented setup_tracing")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument setup_tracing: {e}")

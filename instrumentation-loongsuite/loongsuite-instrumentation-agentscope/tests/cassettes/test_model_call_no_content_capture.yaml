@@ -1,0 +1,82 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: Say this is a test
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"This","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":14,"output_tokens":1,"input_tokens":13,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5be955ab-c3c0-4a3f-8b0f-123b64064524"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" is a test","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":17,"output_tokens":4,"input_tokens":13,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5be955ab-c3c0-4a3f-8b0f-123b64064524"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":".","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":18,"output_tokens":5,"input_tokens":13,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5be955ab-c3c0-4a3f-8b0f-123b64064524"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":18,"output_tokens":5,"input_tokens":13,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5be955ab-c3c0-4a3f-8b0f-123b64064524"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Tue, 02 Dec 2025 14:14:42 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764684882973'
+      req-cost-time:
+      - '261'
+      resp-start-time:
+      - '1764684883235'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '254'
+      x-request-id:
+      - 5be955ab-c3c0-4a3f-8b0f-123b64064524
+    status:
+      code: 200
+      message: OK
+version: 1

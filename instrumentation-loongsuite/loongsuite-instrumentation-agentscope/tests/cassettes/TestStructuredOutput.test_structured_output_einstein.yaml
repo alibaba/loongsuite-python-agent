@@ -1,0 +1,1529 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_c4278c044efd4774b11c3d","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"E"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":330,"output_tokens":16,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":"instein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":336,"output_tokens":22,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":342,"output_tokens":28,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a renowned"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":348,"output_tokens":34,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who developed the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":354,"output_tokens":40,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity and is considered one"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":360,"output_tokens":46,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" of the most influential scientists of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":366,"output_tokens":52,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" the 20th century"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":372,"output_tokens":58,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":".\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":374,"output_tokens":60,"input_tokens":314,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:50:52 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229851550'
+      req-cost-time:
+      - '796'
+      resp-start-time:
+      - '1764229852346'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '788'
+      x-request-id:
+      - ae87543b-2fb3-43d3-9ac2-4aa2a9163fe7
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_dbc33c6cc3f94506a3280c","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a renowned"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" theoretical physicist who developed"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" the theory of relativity,"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" one of the two pillars of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":398,"output_tokens":50,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" modern physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"28eace25-9af4-4530-bb11-936de870eff5"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:50:54 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229853889'
+      req-cost-time:
+      - '544'
+      resp-start-time:
+      - '1764229854434'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '536'
+      x-request-id:
+      - 28eace25-9af4-4530-bb11-936de870eff5
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_f13e189711094fc29d16b8","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a renowned"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" theoretical physicist who developed"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" the theory of relativity,"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" one of the two pillars of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":398,"output_tokens":50,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" modern physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cfeea047-5ef6-43f2-99a5-48a81de4b01c"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:00 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229859654'
+      req-cost-time:
+      - '753'
+      resp-start-time:
+      - '1764229860408'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '748'
+      x-request-id:
+      - cfeea047-5ef6-43f2-99a5-48a81de4b01c
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_8ae8792bd0ef4d3aab43ca","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a renowned"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who developed the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":388,"output_tokens":40,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity, one"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" of the two pillars of modern"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":398,"output_tokens":50,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":401,"output_tokens":53,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"0d0eb2b4-0996-48fc-92ba-0e47f6c138dc"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:03 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229861782'
+      req-cost-time:
+      - '2030'
+      resp-start-time:
+      - '1764229863812'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '2025'
+      x-request-id:
+      - 0d0eb2b4-0996-48fc-92ba-0e47f6c138dc
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_9d00b96f158e46819fbff2","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a theoretical"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who is best"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" known for developing the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity, one"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":396,"output_tokens":48,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" of the two pillars of modern"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":405,"output_tokens":57,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"cb57c5a8-d4a3-4050-b0c6-4c910b8b1923"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:05 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229865390'
+      req-cost-time:
+      - '742'
+      resp-start-time:
+      - '1764229866133'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '735'
+      x-request-id:
+      - cb57c5a8-d4a3-4050-b0c6-4c910b8b1923
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_2da49fdeb6364c0bb23ea2","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a theoretical"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who is most"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" famous for developing the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":396,"output_tokens":48,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"eebec4d5-0050-413d-9532-abcc19b2eb46"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:07 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229867527'
+      req-cost-time:
+      - '658'
+      resp-start-time:
+      - '1764229868185'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '650'
+      x-request-id:
+      - eebec4d5-0050-413d-9532-abcc19b2eb46
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_355f3fd8f43942069f9cc9","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a renowned"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" theoretical physicist who developed"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" the theory of relativity,"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" one of the two pillars of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":398,"output_tokens":50,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" modern physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"046a1692-e458-416f-b644-7b3460294978"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:11 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229869251'
+      req-cost-time:
+      - '1974'
+      resp-start-time:
+      - '1764229871225'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '1968'
+      x-request-id:
+      - 046a1692-e458-416f-b644-7b3460294978
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d4a4a533eff34ca39581a2","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a theoretical"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who is best"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" known for developing the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity, one"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":396,"output_tokens":48,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" of the two pillars of modern"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":405,"output_tokens":57,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"dfd13004-9c52-4a43-9b92-aa22c4a3871c"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:15 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229875247'
+      req-cost-time:
+      - '571'
+      resp-start-time:
+      - '1764229875819'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '565'
+      x-request-id:
+      - dfd13004-9c52-4a43-9b92-aa22c4a3871c
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_939670eafc8244eb822d9a","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a theoretical"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who is most"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" famous for developing the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":396,"output_tokens":48,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":256}},"request_id":"cc933561-3116-484b-a7c5-c989d27001f0"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:16 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229876623'
+      req-cost-time:
+      - '661'
+      resp-start-time:
+      - '1764229877285'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '656'
+      x-request-id:
+      - cc933561-3116-484b-a7c5-c989d27001f0
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: <system-hint>Structured output is required, go on to finish your
+            task or call 'generate_response' to generate the required structured output.</system-hint>
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tool_choice: auto
+        tools:
+        - function:
+            description: Generate required structured output by this function and
+              return it
+            name: generate_response
+            parameters:
+              properties:
+                age:
+                  description: The age of the person
+                  maximum: 120
+                  minimum: 0
+                  type: integer
+                intro:
+                  description: A one-sentence introduction of the person
+                  type: string
+                name:
+                  description: The name of the person
+                  type: string
+              required:
+              - name
+              - age
+              - intro
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_07b24fab6a29465cbaf67d","type":"function","function":{"name":"generate_response","arguments":"{\"name\": \"Albert"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":364,"output_tokens":16,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" Einstein\", \"age\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":370,"output_tokens":22,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" 76, \"intro\":"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":376,"output_tokens":28,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" \"Albert Einstein was a theoretical"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":382,"output_tokens":34,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physicist who is best"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":386,"output_tokens":38,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" known for developing the theory of"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":392,"output_tokens":44,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" relativity, one"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":396,"output_tokens":48,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" of the two pillars of modern"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":402,"output_tokens":54,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":" physics.\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":405,"output_tokens":57,"input_tokens":348,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"43409f5d-6738-41ba-998c-729ba308b14a"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:18 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229878369'
+      req-cost-time:
+      - '719'
+      resp-start-time:
+      - '1764229879089'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '712'
+      x-request-id:
+      - 43409f5d-6738-41ba-998c-729ba308b14a
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Please introduce Einstein briefly
+          role: user
+        - content: You have failed to generate response within the maximum iterations.
+            Now respond directly by summarizing the current situation.
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"It","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":48,"output_tokens":1,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" seems there was","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":51,"output_tokens":4,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" an unexpected","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":53,"output_tokens":6,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" issue in","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":55,"output_tokens":8,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" generating a response about","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":59,"output_tokens":12,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" Einstein. To summarize, you","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":65,"output_tokens":18,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" requested a brief introduction to","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":70,"output_tokens":23,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" Albert Einstein, but I","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":75,"output_tokens":28,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" encountered a problem in form","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":80,"output_tokens":33,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:10
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"ulating the reply,","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":84,"output_tokens":37,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:11
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" which led to this","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":88,"output_tokens":41,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:12
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" message explaining the situation instead","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":93,"output_tokens":46,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:13
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" of providing the information","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":97,"output_tokens":50,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:14
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" on Einstein as requested. Let","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":103,"output_tokens":56,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:15
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" me correct that for","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":107,"output_tokens":60,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:16
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" you now: Albert Einstein was","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":113,"output_tokens":66,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:17
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" a renowned theoretical physicist who","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":118,"output_tokens":71,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:18
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" developed the theory of","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":122,"output_tokens":75,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:19
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" relativity, one","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":126,"output_tokens":79,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:20
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" of the two pillars of modern","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":132,"output_tokens":85,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:21
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" physics. He is best","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":137,"output_tokens":90,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:22
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" known for his mass–","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":142,"output_tokens":95,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:23
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"energy equivalence formula E","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":146,"output_tokens":99,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:24
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"=mc².","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":150,"output_tokens":103,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:25
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" Einstein received the ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":154,"output_tokens":107,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:26
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"1921 Nobel Prize","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":160,"output_tokens":113,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:27
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" in Physics and is often regarded","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":166,"output_tokens":119,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:28
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" as the most influential scientist of","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":172,"output_tokens":125,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:29
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" the 20th century","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":178,"output_tokens":131,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:30
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":".","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":179,"output_tokens":132,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+        id:31
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":179,"output_tokens":132,"input_tokens":47,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"560c8a39-3980-426c-9919-585988841449"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:20 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229880100'
+      req-cost-time:
+      - '258'
+      resp-start-time:
+      - '1764229880359'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '251'
+      x-request-id:
+      - 560c8a39-3980-426c-9919-585988841449
+    status:
+      code: 200
+      message: OK
+version: 1
