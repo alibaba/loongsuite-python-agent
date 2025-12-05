@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Add `from __future__ import annotations` to fix Python 3.9 compatibility for union type syntax (`X | Y`)
+  ([#80](https://github.com/alibaba/loongsuite-python-agent/pull/80))
+
 # Added
 
 - `loongsuite-instrumentation-mem0`: add support for mem0

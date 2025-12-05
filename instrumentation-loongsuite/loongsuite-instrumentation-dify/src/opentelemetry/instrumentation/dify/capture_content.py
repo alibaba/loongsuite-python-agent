@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from opentelemetry import trace as trace_api
 from opentelemetry.instrumentation.dify.env_utils import (
     is_capture_content_enabled,
