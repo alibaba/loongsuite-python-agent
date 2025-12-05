@@ -24,167 +24,30 @@ import logging
 from typing import Any
 
 from opentelemetry.trace import StatusCode, Tracer
-from opentelemetry.semconv._incubating.attributes import (
-    gen_ai_attributes as GenAIAttributes,
-)
-
-from .utils import (
-    _create_tool_invocation,
-    _serialize_to_str,
-    _update_tool_invocation_from_response,
-)
 
 logger = logging.getLogger(__name__)
-
-
-async def wrap_chat_model_call(wrapped, instance, args, kwargs, handler=None, instruments=None):
-    """
-    Async wrapper for ChatModelBase.__call__.
-
-    Uses ExtendedTelemetryHandler to manage span lifecycle.
-
-    Args:
-        wrapped: The original async function being wrapped
-        instance: The ChatModelBase instance
-        args: Positional arguments
-        kwargs: Keyword arguments
-        handler: ExtendedTelemetryHandler instance (created during instrumentation)
-        instruments: Instruments instance for metrics recording
-    """
-    if handler is None:
-        logger.warning("Handler not provided, skipping instrumentation")
-        return await wrapped(*args, **kwargs)
-
-    try:
-        # Record start time for duration metric
-        import time
-        start_time = time.time()
-        
-        # Create invocation object
-        invocation = _create_chat_invocation(instance, args, kwargs)
-
-        # Start LLM invocation (creates span)
-        handler.start_llm(invocation)
-
-        try:
-            # Execute the wrapped async call - MUST AWAIT!
-            result = await wrapped(*args, **kwargs)
-
-            # Update invocation with response data
-            try:
-                _update_chat_invocation_from_response(invocation, result)
-            except Exception as e:
-                logger.warning("Failed to extract response data: %s", e)
-
-            # Record metrics if instruments available
-            if instruments and invocation.span:
-                # Record duration
-                duration = time.time() - start_time
-                from opentelemetry.semconv._incubating.attributes import gen_ai_attributes as GenAI
-                metric_attributes = {
-                    GenAI.GEN_AI_OPERATION_NAME: "chat",
-                    GenAI.GEN_AI_PROVIDER_NAME: invocation.provider or "agentscope",
-                    GenAI.GEN_AI_REQUEST_MODEL: invocation.request_model or "unknown",
-                }
-                instruments.operation_duration_histogram.record(duration, attributes=metric_attributes)
-                
-                # Record token usage
-                if invocation.input_tokens is not None:
-                    token_attributes = dict(metric_attributes)
-                    token_attributes[GenAI.GEN_AI_TOKEN_TYPE] = "input"
-                    instruments.token_usage_histogram.record(invocation.input_tokens, attributes=token_attributes)
-                
-                if invocation.output_tokens is not None:
-                    token_attributes = dict(metric_attributes)
-                    token_attributes[GenAI.GEN_AI_TOKEN_TYPE] = "output"
-                    instruments.token_usage_histogram.record(invocation.output_tokens, attributes=token_attributes)
-
-            # Finalize span
-            handler.stop_llm(invocation)
-            return result
-
-        except Exception as e:
-            # Handle errors
-            error = Error(message=str(e), type=type(e))
-            handler.fail_llm(invocation, error)
-            raise
-
-    except Exception as e:
-        logger.exception("Error in chat model instrumentation: %s", e)
-        return await wrapped(*args, **kwargs)
-
-
-async def wrap_agent_call(wrapped, instance, args, kwargs, handler=None):
-    """
-    Async wrapper for AgentBase.__call__.
-
-    Uses ExtendedTelemetryHandler to manage agent span lifecycle.
-
-    Args:
-        wrapped: The original async function being wrapped
-        instance: The AgentBase instance
-        args: Positional arguments
-        kwargs: Keyword arguments
-        handler: ExtendedTelemetryHandler instance (created during instrumentation)
-    """
-    if handler is None:
-        logger.warning("Handler not provided, skipping instrumentation")
-        return await wrapped(*args, **kwargs)
-
-    try:
-        # Create agent invocation object
-        invocation = _create_agent_invocation(instance, args, kwargs)
-
-        # Start invoke_agent invocation (creates span)
-        handler.start_invoke_agent(invocation)
-
-        try:
-            # Execute the wrapped async call - MUST AWAIT!
-            result = await wrapped(*args, **kwargs)
-
-            # Update invocation with response data
-            try:
-                _update_agent_invocation_from_response(invocation, result)
-            except Exception as e:
-                logger.warning("Failed to extract agent response data: %s", e)
-
-            # Finalize span
-            handler.stop_invoke_agent(invocation)
-            return result
-
-        except Exception as e:
-            # Handle errors
-            error = Error(message=str(e), type=type(e))
-            handler.fail_invoke_agent(invocation, error)
-            raise
-
-    except Exception as e:
-        logger.exception("Error in agent instrumentation: %s", e)
-        return await wrapped(*args, **kwargs)
 
 
 async def wrap_tool_call(wrapped, instance, args, kwargs, handler=None, tracer=None):
     """
     Async wrapper for Toolkit.call_tool_function.
 
-    Uses tracer.start_as_current_span with end_on_exit=False to ensure:
-    1. Context is detached when we return the generator (not when generator finishes)
-    2. Span is ended later in the generator's finally block
-    
-    This follows the v1 pattern for proper context management with async generators.
+    Uses ExtendedTelemetryHandler to manage tool execution span lifecycle.
+    Since tool calls return async generators, we need special handling:
+    1. Start invocation with handler
+    2. Detach context when returning generator
+    3. End invocation when generator completes
 
     Args:
         wrapped: The original async generator function being wrapped (wrapped by wrapt)
         instance: The Toolkit instance
         args: Positional arguments (tool_call dict, ...)
         kwargs: Keyword arguments
-        handler: ExtendedTelemetryHandler instance (for tracer access)
-        tracer: Optional tracer instance
+        handler: ExtendedTelemetryHandler instance
+        tracer: Optional tracer instance (deprecated, use handler)
     """
-    from opentelemetry.trace import SpanKind, StatusCode
-    from opentelemetry.semconv._incubating.attributes import (
-        gen_ai_attributes as GenAIAttributes,
-    )
+    from opentelemetry.util.genai.extended_types import ExecuteToolInvocation
+    from opentelemetry.util.genai.types import Error
     
     logger.debug("wrap_tool_call called, handler=%s", handler)
     
@@ -213,69 +76,80 @@ async def wrap_tool_call(wrapped, instance, args, kwargs, handler=None, tracer=N
                 if not tool_description:
                     tool_description = getattr(tool_obj, "description", None)
         
-        # Prepare span attributes
-        span_attrs = {
-            GenAIAttributes.GEN_AI_OPERATION_NAME: GenAIAttributes.GenAiOperationNameValues.EXECUTE_TOOL.value,
-            GenAIAttributes.GEN_AI_TOOL_NAME: tool_name,
-        }
-        if tool_id:
-            span_attrs[GenAIAttributes.GEN_AI_TOOL_CALL_ID] = tool_id
-        if tool_description:
-            span_attrs["gen_ai.tool.description"] = tool_description
-        
         # Extract tool call arguments
         tool_args = tool_call.get("input", {}) if isinstance(tool_call, dict) else {}
+        
+        # Create invocation object
+        invocation = ExecuteToolInvocation(tool_name=tool_name)
+        if tool_id:
+            invocation.tool_call_id = tool_id
+        if tool_description:
+            invocation.tool_description = tool_description
         if tool_args:
             import json
             try:
                 if isinstance(tool_args, str):
-                    span_attrs["gen_ai.tool.call.arguments"] = tool_args
+                    invocation.tool_call_arguments = tool_args
                 else:
-                    span_attrs["gen_ai.tool.call.arguments"] = json.dumps(tool_args, ensure_ascii=False)
+                    invocation.tool_call_arguments = json.dumps(tool_args, ensure_ascii=False)
             except Exception:
                 pass
         
-        # Use tracer.start_as_current_span with end_on_exit=False
-        # This ensures context is detached when we return, but span stays open
-        _tracer = handler._tracer if hasattr(handler, '_tracer') else tracer
+        # Start tool execution (creates span and attaches context)
+        handler.start_execute_tool(invocation)
         
-        with _tracer.start_as_current_span(
-            name=f"execute_tool {tool_name}",
-            kind=SpanKind.INTERNAL,
-            attributes=span_attrs,
-            end_on_exit=False,  # Key: don't end span when context exits
-        ) as span:
-            try:
-                result_generator = await wrapped(*args, **kwargs)
-                # Context will be detached when we exit this with block
-                # but span remains open until generator finishes
-                return _trace_tool_async_generator_v2(
-                    result_generator, span, tool_name
-                )
-            except Exception as e:
-                span.set_status(StatusCode.ERROR, str(e))
-                span.record_exception(e)
-                span.end()
-                raise
+        # Detach context immediately so it doesn't propagate to generator
+        # The span will remain open until we call stop_execute_tool
+        # Store the token and detach it, then set to None so handler won't try to detach again
+        context_token = invocation.context_token
+        if context_token is not None:
+            from opentelemetry import context as otel_context
+            otel_context.detach(context_token)
+            invocation.context_token = None  # Prevent handler from trying to detach again
+        
+        try:
+            result_generator = await wrapped(*args, **kwargs)
+            # Return wrapped generator that will end the invocation when done
+            return _trace_tool_async_generator_with_handler(
+                result_generator, invocation, handler, tool_name
+            )
+        except Exception as e:
+            # Handle errors - manually handle since context was already detached
+            if invocation.span is not None:
+                try:
+                    from opentelemetry.util.genai.extended_span_utils import (
+                        _apply_execute_tool_finish_attributes,
+                        _apply_error_attributes,
+                    )
+                    _apply_execute_tool_finish_attributes(invocation.span, invocation)
+                    _apply_error_attributes(invocation.span, Error(message=str(e), type=type(e)))
+                except ImportError:
+                    # Fallback if extended_span_utils is not available
+                    invocation.span.set_status(StatusCode.ERROR, str(e))
+                    invocation.span.record_exception(e)
+                invocation.span.end()
+            raise
 
     except Exception as e:
         logger.exception("Error in tool instrumentation: %s", e)
         return await wrapped(*args, **kwargs)
 
 
-async def _trace_tool_async_generator_v2(result_generator, span, tool_name):
+async def _trace_tool_async_generator_with_handler(
+    result_generator, invocation, handler, tool_name
+):
     """
-    Async generator wrapper that traces tool execution.
+    Async generator wrapper that traces tool execution using handler.
     
-    Context has already been detached by the caller (start_as_current_span with end_on_exit=False).
-    This generator only needs to:
-    1. Yield chunks from the original generator
-    2. Set result attributes and end span in finally block
+    Context has already been detached by the caller.
+    This generator:
+    1. Yields chunks from the original generator
+    2. Updates invocation with result and ends it in finally block
     """
-    from opentelemetry.trace import StatusCode
+    from opentelemetry.util.genai.types import Error
     import json
     
-    logger.debug("_trace_tool_async_generator_v2 started for: %s", tool_name)
+    logger.debug("_trace_tool_async_generator_with_handler started for: %s", tool_name)
     
     has_error = False
     last_chunk = None
@@ -293,14 +167,26 @@ async def _trace_tool_async_generator_v2(result_generator, span, tool_name):
     except Exception as e:
         has_error = True
         logger.exception("Error in tool generator: %s", e)
-        span.set_status(StatusCode.ERROR, str(e))
-        span.record_exception(e)
+        # For errors, we need to manually handle since context was already detached
+        if invocation.span is not None:
+            try:
+                from opentelemetry.util.genai.extended_span_utils import (
+                    _apply_execute_tool_finish_attributes,
+                    _apply_error_attributes,
+                )
+                _apply_execute_tool_finish_attributes(invocation.span, invocation)
+                _apply_error_attributes(invocation.span, Error(message=str(e), type=type(e)))
+            except ImportError:
+                # Fallback if extended_span_utils is not available
+                invocation.span.set_status(StatusCode.ERROR, str(e))
+                invocation.span.record_exception(e)
+            invocation.span.end()
         raise
         
     finally:
         if not has_error:
-            logger.debug("Finalizing tool span for: %s", tool_name)
-            # Set tool result attribute
+            logger.debug("Finalizing tool invocation for: %s", tool_name)
+            # Set tool result
             if last_chunk:
                 try:
                     if hasattr(last_chunk, "content"):
@@ -310,17 +196,25 @@ async def _trace_tool_async_generator_v2(result_generator, span, tool_name):
                     
                     if result_content:
                         if isinstance(result_content, str):
-                            span.set_attribute("gen_ai.tool.call.result", result_content)
+                            invocation.tool_call_result = result_content
                         else:
-                            span.set_attribute("gen_ai.tool.call.result", json.dumps(result_content, ensure_ascii=False, default=str))
+                            invocation.tool_call_result = json.dumps(
+                                result_content, ensure_ascii=False, default=str
+                            )
                 except Exception as ex:
                     logger.debug("Failed to set tool result: %s", ex)
             
-            span.set_status(StatusCode.OK)
-        
-        # End span (context was already detached by start_as_current_span)
-        span.end()
-        logger.debug("Tool span ended for: %s", tool_name)
+            # Since we detached context earlier, we need to manually end the span
+            # instead of calling stop_execute_tool which would try to detach again
+            if invocation.span is not None:
+                try:
+                    from opentelemetry.util.genai.extended_span_utils import _apply_execute_tool_finish_attributes
+                    _apply_execute_tool_finish_attributes(invocation.span, invocation)
+                except ImportError:
+                    # Fallback if extended_span_utils is not available
+                    pass
+                invocation.span.end()
+            logger.debug("Tool invocation ended for: %s", tool_name)
 
 
 async def wrap_formatter_format(wrapped, instance, args, kwargs, tracer=None):

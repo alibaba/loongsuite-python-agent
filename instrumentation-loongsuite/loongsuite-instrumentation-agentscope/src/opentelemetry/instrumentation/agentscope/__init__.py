@@ -47,7 +47,11 @@ from opentelemetry.metrics import get_meter
 from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
-from ._wrapper import AgentScopeAgentWrapper, AgentScopeChatModelWrapper
+from ._wrapper import (
+    AgentScopeAgentWrapper,
+    AgentScopeChatModelWrapper,
+    AgentScopeEmbeddingModelWrapper,
+)
 from .instruments import Instruments
 from .patch import wrap_formatter_format, wrap_tool_call
 
@@ -55,6 +59,7 @@ logger = logging.getLogger(__name__)
 
 _MODEL_MODULE = "agentscope.model"
 _AGENT_MODULE = "agentscope.agent"
+_EMBEDDING_MODULE = "agentscope.embedding"
 _TOOL_MODULE = "agentscope.tool"
 _FORMATTER_MODULE = "agentscope.formatter"
 
@@ -135,6 +140,18 @@ class AgentScopeInstrumentor(BaseInstrumentor):
         except Exception as e:
             logger.warning(f"Failed to instrument AgentBase: {e}")
 
+        # Instrument EmbeddingModelBase
+        try:
+            embedding_wrapper = AgentScopeEmbeddingModelWrapper(handler=self._handler)
+            wrap_function_wrapper(
+                module=_EMBEDDING_MODULE,
+                name="EmbeddingModelBase.__init__",
+                wrapper=embedding_wrapper,
+            )
+            logger.debug("Instrumented EmbeddingModelBase")
+        except Exception as e:
+            logger.warning(f"Failed to instrument EmbeddingModelBase: {e}")
+
         # Instrument Toolkit
         try:
             # wrap_tool_call is an async generator function, so we need to
@@ -197,6 +214,12 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.warning(f"Failed to restore AgentBase: {e}")
 
         try:
+            AgentScopeEmbeddingModelWrapper.restore_original_methods()
+            logger.debug("Restored EmbeddingModelBase methods")
+        except Exception as e:
+            logger.warning(f"Failed to restore EmbeddingModelBase: {e}")
+
+        try:
             import agentscope.model
 
             unwrap(agentscope.model.ChatModelBase, "__init__")
@@ -211,6 +234,14 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Uninstrumented AgentBase")
         except Exception as e:
             logger.warning(f"Failed to uninstrument AgentBase: {e}")
+
+        try:
+            import agentscope.embedding
+
+            unwrap(agentscope.embedding.EmbeddingModelBase, "__init__")
+            logger.debug("Uninstrumented EmbeddingModelBase")
+        except Exception as e:
+            logger.warning(f"Failed to uninstrument EmbeddingModelBase: {e}")
 
         try:
             import agentscope.tool

@@ -9,9 +9,8 @@ import logging
 import os
 from dataclasses import is_dataclass
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import aioitertools
 from agentscope import _config
 from agentscope.agent import AgentBase
 from agentscope.embedding import EmbeddingModelBase
@@ -24,28 +23,19 @@ from agentscope.model import (
     OllamaChatModel,
     OpenAIChatModel,
 )
-from agentscope.tool import Toolkit, ToolResponse
+from agentscope.tool import ToolResponse
 from pydantic import BaseModel
 
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
-from opentelemetry.trace import Span, StatusCode
-from opentelemetry.util.genai.handler import TelemetryHandler
 from opentelemetry.util.genai.types import (
-    Error,
     InputMessage,
-    LLMInvocation,
     OutputMessage,
     Text,
     ToolCall,
     ToolCallResponse,
 )
-from opentelemetry.instrumentation.agentscope.message_converter import (
-    get_message_converter,
-)
-
-T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -102,22 +92,6 @@ def get_capture_mode() -> str:
 
 
 # ==================== Constant Definitions ====================
-
-class CommonAttributes:
-    """Common GenAI attributes shared across all span types"""
-    GEN_AI_SPAN_KIND = "gen_ai.span.kind"
-    GEN_AI_TOOL_CALL_ARGUMENTS = "gen_ai.tool.call.arguments"
-    GEN_AI_TOOL_CALL_RESULT = "gen_ai.tool.call.result"
-
-
-class GenAiSpanKind(str, Enum):
-    """GenAI span kinds"""
-    LLM = "LLM"
-    EMBEDDING = "EMBEDDING"
-    AGENT = "AGENT"
-    TOOL = "TOOL"
-    FORMATTER = "FORMATTER"
-
 
 class AgentScopeGenAiProviderName(str, Enum):
     """Extended provider names not in standard OpenTelemetry semantic conventions."""
@@ -220,14 +194,43 @@ def extract_llm_attributes(
         logger.debug("No messages provided for LLM call")
         input_messages = {"args": call_args, "kwargs": call_kwargs}
     
-    # Extract tool definitions
+    # Extract tool definitions using the official implementation
     tools = call_kwargs.get("tools")
     tool_choice = call_kwargs.get("tool_choice")
     structured_model = call_kwargs.get("structured_model", False)
     
     tool_definitions = None
-    if not structured_model and tools and tool_choice and tool_choice != "none":
-        tool_definitions = _serialize_to_str(tools)
+    if not structured_model:
+        tool_definitions = _get_tool_definitions(tools, tool_choice)
+    
+    # Extract system instructions from messages
+    system_instructions = None
+    if isinstance(input_messages, list):
+        system_messages = []
+        for msg in input_messages:
+            if isinstance(msg, dict):
+                role = msg.get("role")
+                if role == "system":
+                    # Extract system message content
+                    parts = msg.get("parts", [])
+                    if parts:
+                        for part in parts:
+                            if isinstance(part, dict) and part.get("type") == "text":
+                                content = part.get("content", "")
+                                if content:
+                                    system_messages.append(content)
+                            elif isinstance(part, str):
+                                system_messages.append(part)
+                    elif "content" in msg:
+                        content = msg.get("content")
+                        if isinstance(content, str):
+                            system_messages.append(content)
+                        elif isinstance(content, list):
+                            for item in content:
+                                if isinstance(item, dict) and item.get("type") == "text":
+                                    system_messages.append(item.get("text", ""))
+        if system_messages:
+            system_instructions = system_messages
     
     return {
         "operation_name": GenAIAttributes.GenAiOperationNameValues.CHAT.value,
@@ -239,8 +242,68 @@ def extract_llm_attributes(
         "request_top_k": call_kwargs.get("top_k"),
         "request_stop_sequences": call_kwargs.get("stop_sequences"),
         "request_tool_definitions": tool_definitions,
+        "system_instructions": system_instructions,
         "input_messages": _serialize_to_str(input_messages),
     }
+
+
+def _get_tool_definitions(
+    tools: list[dict[str, Any]] | None,
+    tool_choice: str | None,
+) -> str | None:
+    """Extract and serialize tool definitions for tracing.
+    
+    Converts AgentScope/OpenAI nested tool format to OpenTelemetry GenAI
+    flat format for tracing.
+    
+    Args:
+        tools: List of tool definitions in OpenAI format with nested
+            structure: [{"type": "function", "function": {...}}]
+        tool_choice: Tool choice mode. Can be "auto", "none", "any", "required",
+            or a specific tool name. If "none", returns None to indicate
+            tools should not be traced.
+    
+    Returns:
+        Serialized tool definitions in flat format:
+        [{"type": "function", "name": ..., "parameters": ...}]
+        or None if tools should not be traced (e.g., tools is None/empty
+        or tool_choice is "none").
+    """
+    # No tools provided
+    if tools is None or not isinstance(tools, list) or len(tools) == 0:
+        return None
+    
+    # Tool choice is explicitly "none" (model should not use tools)
+    if tool_choice == "none":
+        return None
+    
+    try:
+        # Convert nested format to flat format for OpenTelemetry GenAI
+        # TODO: Currently only supports "function" type tools. If other tool
+        # types are added in the future (e.g., "retrieval", "code_interpreter",
+        # "browser"), this conversion logic needs to be updated to handle them.
+        flat_tools = []
+        for tool in tools:
+            if not isinstance(tool, dict) or "function" not in tool:
+                continue
+            
+            func_def = tool["function"]
+            flat_tool = {
+                "type": tool.get("type", "function"),
+                "name": func_def.get("name"),
+                "description": func_def.get("description"),
+                "parameters": func_def.get("parameters"),
+            }
+            # Remove None values
+            flat_tool = {k: v for k, v in flat_tool.items() if v is not None}
+            flat_tools.append(flat_tool)
+        
+        if flat_tools:
+            return _serialize_to_str(flat_tools)
+        return None
+    
+    except Exception:
+        return None
 
 
 def extract_embedding_attributes(
@@ -327,10 +390,15 @@ def extract_agent_attributes(
         logger.debug("No msg provided for agent reply")
         input_messages = {"args": reply_args, "kwargs": reply_kwargs}
     
-    # Extract request_model
+    # Extract request_model and provider_name from agent's model
     request_model = None
+    provider_name = None
     if hasattr(reply_instance, "model") and reply_instance.model:
-        request_model = getattr(reply_instance.model, "model_name", "unknown_model")
+        model = reply_instance.model
+        request_model = getattr(model, "model_name", "unknown_model")
+        # Extract provider name from the model (should be LLM provider, not framework name)
+        if isinstance(model, ChatModelBase):
+            provider_name = get_provider_name(model)
     
     return {
         "operation_name": GenAIAttributes.GenAiOperationNameValues.INVOKE_AGENT.value,
@@ -339,43 +407,10 @@ def extract_agent_attributes(
         "agent_description": inspect.getdoc(reply_instance.__class__) or "No description available",
         "system_instructions": reply_instance.sys_prompt if hasattr(reply_instance, "sys_prompt") else None,
         "request_model": request_model,
+        "provider_name": provider_name,
         "conversation_id": _config.run_id,
-        "input_messages": _serialize_to_str(input_messages),
-    }
-
-
-def extract_tool_attributes(
-    tool_call: Dict[str, Any],
-    toolkit_instance: Optional[Toolkit] = None,
-) -> Dict[str, Any]:
-    """Extract Tool call attributes
-    
-    Args:
-        tool_call: Tool call dictionary
-        toolkit_instance: Toolkit instance（Optional）
-        
-    Returns:
-        Dictionary containing extracted attributes
-    """
-    tool_name = tool_call.get("name") if isinstance(tool_call, dict) else None
-    tool_description = None
-    
-    # Try to get tool description
-    if toolkit_instance and tool_name:
-        try:
-            if registered_tool_function := getattr(toolkit_instance, "tools", {}).get(tool_name):
-                if isinstance(func_dict := getattr(registered_tool_function, "json_schema", {}).get("function"), dict):
-                    tool_description = func_dict.get("description")
-        except Exception:
-            logger.debug(f"Error getting tool description for tool {tool_name}")
-    
-    return {
-        "operation_name": GenAIAttributes.GenAiOperationNameValues.EXECUTE_TOOL.value,
-        "tool_call_id": tool_call.get("id") if isinstance(tool_call, dict) else None,
-        "tool_name": tool_name or "unknown_tool",
-        "tool_description": tool_description,
-        "tool_call_arguments": _serialize_to_str(tool_call.get("input")) if isinstance(tool_call, dict) else None,
-        "conversation_id": _config.run_id,
+        "input_messages": input_messages,  # Return raw list/dict, not serialized string
+        "input_msg_raw": msg,  # Also return raw Msg object for direct conversion
     }
 
 
@@ -448,21 +483,6 @@ def get_chatmodel_output_messages(chat_response: Any) -> List[Dict[str, Any]]:
         return []
 
 
-# ==================== Span Name Generation ====================
-
-def generate_agent_span_name(attrs: Dict[str, Any]) -> str:
-    """Generate Agent span name, format: {gen_ai.operation.name} {gen_ai.agent.name}"""
-    operation_name = attrs.get("operation_name", "unknown_operation")
-    agent_name = attrs.get("agent_name", "unknown_agent")
-    return f"{operation_name} {agent_name}"
-
-
-def generate_tool_span_name(attrs: Dict[str, Any]) -> str:
-    """Generate Tool span name, format: execute_tool {gen_ai.tool.name}"""
-    tool_name = attrs.get("tool_name", "unknown_tool")
-    return f"execute_tool {tool_name}"
-
-
 def _to_serializable(
     obj: Any,
 ) -> Any:
@@ -527,129 +547,6 @@ def _serialize_to_str(value: Any) -> str:
             _to_serializable(value),
             ensure_ascii=False,
         )
-
-
-async def _trace_async_generator_wrapper(
-    res: AsyncGenerator[T, None],
-    span: Span,
-) -> AsyncGenerator[T, None]:
-    """Trace the async generator output with OpenTelemetry.
-
-    Args:
-        res: The async generator to be traced.
-        span: The OpenTelemetry span to be used for tracing.
-
-    Yields:
-        The output of the async generator.
-    """
-    has_error = False
-
-    try:
-        last_chunk = None
-        async for chunk in aioitertools.iter(res):
-            last_chunk = chunk
-            yield chunk
-
-    except Exception as e:
-        has_error = True
-        span.set_status(StatusCode.ERROR, str(e))
-        span.record_exception(e)
-        raise e from None
-
-    finally:
-        if not has_error:
-            # Determine if this is a Tool span or LLM span based on operation name
-            span_attrs = getattr(span, "attributes", {})
-            operation_name = span_attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME, "")
-            is_tool_span = operation_name == "execute_tool"
-            
-            if is_tool_span:
-                # Handle Tool result
-                if last_chunk:
-                    span.set_attributes(
-                        {
-                            CommonAttributes.GEN_AI_TOOL_CALL_RESULT: _get_tool_result(
-                                last_chunk
-                            ),
-                        },
-                    )
-            else:
-                # Handle LLM streaming response
-                if last_chunk:
-                    # Import here to avoid circular dependency
-                    from ._response_attributes_extractor import _get_chatmodel_output_messages
-                    
-                    # Set response attributes
-                    span.set_attribute(
-                        GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS,
-                        '["stop"]'
-                    )
-                    
-                    # Extract and set token usage
-                    if hasattr(last_chunk, "usage") and last_chunk.usage:
-                        if hasattr(last_chunk.usage, "input_tokens"):
-                            span.set_attribute(
-                                GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS,
-                                last_chunk.usage.input_tokens
-                            )
-                        if hasattr(last_chunk.usage, "output_tokens"):
-                            span.set_attribute(
-                                GenAIAttributes.GEN_AI_USAGE_OUTPUT_TOKENS,
-                                last_chunk.usage.output_tokens
-                            )
-                    
-                    # Extract and set output messages
-                    output_messages = _get_chatmodel_output_messages(last_chunk)
-                    if output_messages:
-                        span.set_attribute(
-                            GenAIAttributes.GEN_AI_OUTPUT_MESSAGES,
-                            _serialize_to_str(output_messages)
-                        )
-            
-            span.set_status(StatusCode.OK)
-        span.end()
-
-
-async def _trace_async_generator_wrapper_with_invocation(
-    res: AsyncGenerator[T, None],
-    invocation: LLMInvocation,
-    handler: TelemetryHandler,
-) -> AsyncGenerator[T, None]:
-    """Track LLM async generator output using TelemetryHandler。
-    
-    Args:
-        res: Async generator
-        invocation: LLMInvocation object
-        handler: TelemetryHandler instance
-        
-    Yields:
-        Async generator output
-    """
-    try:
-        last_chunk = None
-        async for chunk in aioitertools.iter(res):
-            last_chunk = chunk
-            yield chunk
-        
-        # Process last chunk
-        if last_chunk:
-            invocation.output_messages = convert_chatresponse_to_output_messages(last_chunk)
-            invocation.response_id = getattr(last_chunk, "id", None)
-            
-            if hasattr(last_chunk, "usage") and last_chunk.usage:
-                invocation.input_tokens = last_chunk.usage.input_tokens
-                invocation.output_tokens = last_chunk.usage.output_tokens
-        
-        # Set status to OK
-        if invocation.span:
-            invocation.span.set_status(StatusCode.OK)
-        # Completed successfully
-        handler.stop_llm(invocation)
-        
-    except Exception as e:
-        # Record error on failure
-        handler.fail_llm(invocation, Error(message=str(e), type=type(e)))
-        raise e from None
 
 
 def _format_msg_to_parts(msg: Msg) -> dict[str, Any]:
@@ -760,11 +657,6 @@ def _format_msg_to_parts(msg: Msg) -> dict[str, Any]:
         }
 
 
-
-
-def _get_tool_result(tool_result: ToolResponse):
-    """Get tool call result"""
-    return _serialize_to_str(tool_result.content)
 
 
 def convert_agentscope_messages_to_genai_format(
@@ -891,348 +783,3 @@ def convert_chatresponse_to_output_messages(
     
     return output_messages
 
-
-# =============================================================================
-# New utility functions for handler-based instrumentation pattern
-# =============================================================================
-
-
-def _create_chat_invocation(instance: Any, args: tuple, kwargs: dict) -> LLMInvocation:
-    """
-    Create LLMInvocation from ChatModelBase.__call__ arguments.
-    
-    Args:
-        instance: The ChatModelBase instance
-        args: Positional arguments
-        kwargs: Keyword arguments
-        
-    Returns:
-        LLMInvocation object
-    """
-    # Extract model name
-    model_name = getattr(instance, "model_name", "unknown")
-    if not model_name or model_name == "unknown":
-        model_name = instance.__class__.__name__
-    
-    invocation = LLMInvocation(request_model=model_name)
-    invocation.provider = "agentscope"
-    
-    # Extract messages from args/kwargs
-    messages = None
-    if args and len(args) > 0:
-        messages = args[0]
-    elif "messages" in kwargs:
-        messages = kwargs["messages"]
-    elif "x" in kwargs:
-        # Some AgentScope models use 'x' parameter
-        messages = kwargs["x"]
-    
-    # Convert messages to GenAI format
-    if messages is not None:
-        try:
-            invocation.input_messages = convert_agentscope_messages_to_genai_format(messages)
-        except Exception as e:
-            logger.warning(f"Failed to convert messages: {e}")
-            invocation.input_messages = []
-    
-    # Extract model parameters
-    _extract_model_parameters(instance, invocation)
-    
-    # Add conversation ID if available
-    try:
-        from agentscope.manager import _config
-        if hasattr(_config, "run_id"):
-            invocation.attributes["gen_ai.conversation.id"] = _config.run_id
-    except Exception:
-        pass
-    
-    return invocation
-
-
-def _extract_model_parameters(instance: Any, invocation: LLMInvocation) -> None:
-    """Extract model parameters from instance and add to invocation."""
-    # Temperature
-    if hasattr(instance, "temperature"):
-        temp = getattr(instance, "temperature")
-        if temp is not None:
-            invocation.attributes["gen_ai.request.temperature"] = temp
-    
-    # Top-p
-    if hasattr(instance, "top_p"):
-        top_p = getattr(instance, "top_p")
-        if top_p is not None:
-            invocation.attributes["gen_ai.request.top_p"] = top_p
-    
-    # Top-k
-    if hasattr(instance, "top_k"):
-        top_k = getattr(instance, "top_k")
-        if top_k is not None:
-            invocation.attributes["gen_ai.request.top_k"] = top_k
-    
-    # Max tokens
-    if hasattr(instance, "max_length"):
-        max_tokens = getattr(instance, "max_length")
-        if max_tokens is not None:
-            invocation.attributes["gen_ai.request.max_tokens"] = max_tokens
-
-
-def _update_chat_invocation_from_response(invocation: LLMInvocation, response: Any) -> None:
-    """
-    Update LLMInvocation with response data.
-    
-    Args:
-        invocation: LLMInvocation to update
-        response: ChatResponse from AgentScope
-    """
-    if not response:
-        return
-    
-    try:
-        # Convert response to output messages
-        invocation.output_messages = convert_chatresponse_to_output_messages(response)
-        
-        # Extract token usage from response.usage (not response.raw.usage!)
-        if hasattr(response, "usage") and response.usage:
-            usage = response.usage
-            # Try different attribute names (different LLM providers use different names)
-            if hasattr(usage, "input_tokens"):
-                invocation.input_tokens = getattr(usage, "input_tokens")
-            elif hasattr(usage, "prompt_tokens"):
-                invocation.input_tokens = getattr(usage, "prompt_tokens")
-            
-            if hasattr(usage, "output_tokens"):
-                invocation.output_tokens = getattr(usage, "output_tokens")
-            elif hasattr(usage, "completion_tokens"):
-                invocation.output_tokens = getattr(usage, "completion_tokens")
-        
-    except Exception as e:
-        logger.warning(f"Failed to extract response data: {e}")
-
-
-def _create_agent_invocation(instance: Any, args: tuple, kwargs: dict) -> "InvokeAgentInvocation":
-    """
-    Create InvokeAgentInvocation from AgentBase.__call__ arguments.
-    
-    Args:
-        instance: The AgentBase instance
-        args: Positional arguments
-        kwargs: Keyword arguments
-        
-    Returns:
-        InvokeAgentInvocation object
-    """
-    from opentelemetry.util.genai.extended_types import InvokeAgentInvocation
-    
-    # Extract agent information
-    agent_name = getattr(instance, "name", "unknown_agent")
-    agent_id = getattr(instance, "id", None)
-    
-    invocation = InvokeAgentInvocation(provider="agentscope", agent_name=agent_name)
-    invocation.agent_id = agent_id
-    
-    # Extract agent description
-    import inspect
-    agent_description = inspect.getdoc(instance.__class__) or "No description available"
-    invocation.agent_description = agent_description
-    
-    # Extract system instructions
-    if hasattr(instance, "sys_prompt"):
-        sys_prompt = getattr(instance, "sys_prompt")
-        if sys_prompt:
-            from opentelemetry.util.genai.types import Text
-            invocation.system_instruction = [Text(content=str(sys_prompt))]
-    
-    # Extract model if agent uses one
-    if hasattr(instance, "model"):
-        model = getattr(instance, "model", None)
-        if model and hasattr(model, "model_name"):
-            invocation.request_model = getattr(model, "model_name")
-    
-    # Extract input message
-    msg = None
-    if args and len(args) > 0:
-        msg = args[0]
-    elif "msg" in kwargs:
-        msg = kwargs["msg"]
-    elif "x" in kwargs:
-        msg = kwargs["x"]
-    
-    # Format input messages
-    if msg is not None:
-        try:
-            from agentscope.message import Msg
-            
-            if isinstance(msg, Msg):
-                invocation.input_messages = convert_agentscope_messages_to_genai_format([msg])
-            elif isinstance(msg, list):
-                invocation.input_messages = convert_agentscope_messages_to_genai_format(msg)
-            else:
-                from opentelemetry.util.genai.types import InputMessage, Text
-                invocation.input_messages = [InputMessage(role="user", parts=[Text(content=str(msg))])]
-        except Exception as e:
-            logger.warning(f"Failed to format agent input: {e}")
-            from opentelemetry.util.genai.types import InputMessage, Text
-            invocation.input_messages = [InputMessage(role="user", parts=[Text(content=str(msg))])]
-    
-    # Add conversation ID
-    try:
-        from agentscope.manager import _config
-        if hasattr(_config, "run_id"):
-            invocation.conversation_id = _config.run_id
-    except Exception:
-        pass
-    
-    return invocation
-
-
-def _update_agent_invocation_from_response(invocation: "InvokeAgentInvocation", response: Any) -> None:
-    """
-    Update InvokeAgentInvocation with response data.
-    
-    Args:
-        invocation: InvokeAgentInvocation to update
-        response: Agent response (Msg object)
-    """
-    if not response:
-        return
-    
-    try:
-        from agentscope.message import Msg
-        from opentelemetry.util.genai.types import OutputMessage, Text
-        
-        if isinstance(response, Msg):
-            # Convert Msg to OutputMessage format
-            formatted = _format_msg_to_parts(response)
-            parts = []
-            for part in formatted.get("parts", []):
-                if part.get("type") == "text":
-                    parts.append(Text(content=part.get("content", "")))
-                else:
-                    # Keep other types as-is
-                    parts.append(part)
-            invocation.output_messages = [
-                OutputMessage(
-                    role=formatted.get("role", "assistant"),
-                    parts=parts,
-                    finish_reason="stop"
-                )
-            ]
-        else:
-            invocation.output_messages = [
-                OutputMessage(
-                    role="assistant",
-                    parts=[Text(content=str(response))],
-                    finish_reason="stop"
-                )
-            ]
-    except Exception as e:
-        logger.warning(f"Failed to format agent output: {e}")
-        from opentelemetry.util.genai.types import OutputMessage, Text
-        invocation.output_messages = [
-            OutputMessage(
-                role="assistant",
-                parts=[Text(content=str(response))],
-                finish_reason="stop"
-            )
-        ]
-
-
-def _create_tool_invocation(instance: Any, args: tuple, kwargs: dict) -> "ExecuteToolInvocation":
-    """
-    Create ExecuteToolInvocation from Toolkit.call_tool_function arguments.
-    
-    Args:
-        instance: The Toolkit instance
-        args: Positional arguments (tool_call dict)
-        kwargs: Keyword arguments
-        
-    Returns:
-        ExecuteToolInvocation object
-    """
-    from opentelemetry.util.genai.extended_types import ExecuteToolInvocation
-    import json
-    
-    # Extract tool call information
-    tool_call = args[0] if args else kwargs.get("tool_call", {})
-    
-    tool_name = tool_call.get("name", "unknown_tool")
-    tool_id = tool_call.get("id")
-    
-    invocation = ExecuteToolInvocation(tool_name=tool_name)
-    invocation.provider = "agentscope"
-    invocation.tool_call_id = tool_id
-    
-    # Extract tool description and set tool type
-    if hasattr(instance, "tools") and isinstance(instance.tools, dict):
-        tool_obj = instance.tools.get(tool_name)
-        if tool_obj:
-            # First try to get from json_schema (the correct way for AgentScope tools)
-            tool_description = None
-            json_schema = getattr(tool_obj, "json_schema", None)
-            if isinstance(json_schema, dict):
-                func_dict = json_schema.get("function", {})
-                if isinstance(func_dict, dict):
-                    tool_description = func_dict.get("description")
-            # Fallback to direct description attribute
-            if not tool_description:
-                tool_description = getattr(tool_obj, "description", None)
-            invocation.tool_description = tool_description
-            # Set tool type - default to "function" for AgentScope tools
-            # AgentScope tools are typically functions executed on the client side
-            invocation.tool_type = "function"
-    
-    # Extract tool call arguments
-    arguments = tool_call.get("arguments", {})
-    if arguments:
-        try:
-            if isinstance(arguments, str):
-                invocation.tool_call_arguments = json.loads(arguments)
-            else:
-                invocation.tool_call_arguments = arguments
-        except (TypeError, ValueError, json.JSONDecodeError):
-            invocation.tool_call_arguments = {"raw": str(arguments)}
-    
-    # Add conversation ID to attributes
-    try:
-        from agentscope.manager import _config
-        if hasattr(_config, "run_id"):
-            invocation.attributes["gen_ai.conversation.id"] = _config.run_id
-    except Exception:
-        pass
-    
-    return invocation
-
-
-def _update_tool_invocation_from_response(invocation: "ExecuteToolInvocation", response: Any) -> None:
-    """
-    Update ExecuteToolInvocation with response data.
-    
-    Args:
-        invocation: ExecuteToolInvocation to update
-        response: Tool response (ToolResponse object or async generator)
-    """
-    if not response:
-        return
-    
-    try:
-        # Check if response is an async generator (not yet consumed)
-        import inspect
-        if inspect.isasyncgen(response):
-            # Don't try to extract from async generator
-            # It will be consumed by the caller
-            invocation.tool_call_result = "<streaming response>"
-            return
-        
-        # Extract tool result from ToolResponse
-        if hasattr(response, "content"):
-            content = getattr(response, "content")
-            # Handle nested async generators in content
-            if inspect.isasyncgen(content):
-                invocation.tool_call_result = "<streaming response>"
-            else:
-                invocation.tool_call_result = content
-        else:
-            invocation.tool_call_result = str(response)
-    except Exception as e:
-        logger.warning(f"Failed to extract tool result: {e}")
-        invocation.tool_call_result = str(response)
