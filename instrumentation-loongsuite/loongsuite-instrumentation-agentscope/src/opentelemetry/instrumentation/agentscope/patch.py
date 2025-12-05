@@ -20,6 +20,8 @@ for unified span lifecycle management. This follows the same pattern as
 loongsuite-instrumentation-dashscope.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

@@ -18,6 +18,8 @@ This module provides utilities to convert messages from different AI model provi
 into a unified format for OpenTelemetry instrumentation and frontend display.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from abc import ABC, abstractmethod

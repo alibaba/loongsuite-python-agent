@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Attributes processor for span attributes."""
 
+from __future__ import annotations
+
 import datetime
 import enum
 import inspect
