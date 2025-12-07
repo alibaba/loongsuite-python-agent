@@ -17,8 +17,6 @@
 from opentelemetry.metrics import Histogram, Meter
 from opentelemetry.semconv._incubating.metrics import gen_ai_metrics
 
-# Bucket boundaries for operation duration (in seconds)
-# Based on openai-v2 implementation
 _GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS = [
     0.01,
     0.02,
@@ -36,8 +34,6 @@ _GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS = [
     81.92,
 ]
 
-# Bucket boundaries for token usage
-# Based on openai-v2 implementation
 _GEN_AI_CLIENT_TOKEN_USAGE_BUCKETS = [
     1,
     4,
@@ -57,11 +53,7 @@ _GEN_AI_CLIENT_TOKEN_USAGE_BUCKETS = [
 
 
 class Instruments:
-    """Contains all metrics instances used by AgentScope instrumentation.
-
-    Uses Histogram type to comply with OpenTelemetry official semantic conventions.
-    Reference: google-genai and openai-v2 implementations.
-    """
+    """Contains all metrics instances used by AgentScope instrumentation. """
 
     def __init__(self, meter: Meter):
         """Initialize metrics instruments.
@@ -69,16 +61,12 @@ class Instruments:
         Args:
             meter: OpenTelemetry Meter instance
         """
-        # Operation duration Histogram (Required)
-        # Per gen-ai-metrics.md: Metric: gen_ai.client.operation.duration
-        # Use official helper function (reference: google-genai)
+        # Operation duration Histogram
         self.operation_duration_histogram: Histogram = (
             gen_ai_metrics.create_gen_ai_client_operation_duration(meter)
         )
 
-        # Token usage Histogram (Recommended)
-        # Per gen-ai-metrics.md: Metric: gen_ai.client.token.usage
-        # Use official helper function (reference: google-genai)
+        # Token usage Histogram
         self.token_usage_histogram: Histogram = (
             gen_ai_metrics.create_gen_ai_client_token_usage(meter)
         )

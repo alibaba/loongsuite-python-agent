@@ -23,7 +23,6 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
 from opentelemetry.semconv._incubating.attributes import (
@@ -32,132 +31,59 @@ from opentelemetry.semconv._incubating.attributes import (
 
 logger = logging.getLogger(__name__)
 
-
-# ==================== Standard Message Part Definitions ====================
-
-
-@dataclass
-class MessagePart:
-    """Base class for message parts"""
-
-    type: str
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format"""
-        result = {"type": self.type}
-        for key, value in self.__dict__.items():
-            if key != "type" and value is not None:
-                result[key] = value
-        return result
+def _create_text_part_dict(content: str) -> Dict[str, Any]:
+    """Create text part as dict"""
+    return {"type": "text", "content": content}
 
 
-@dataclass
-class TextPart(MessagePart):
-    """Text content part"""
-
-    content: str
-
-
-@dataclass
-class ToolCallRequestPart(MessagePart):
-    """Tool call request part"""
-
-    name: str
-    id: Optional[str] = None
-    arguments: Optional[Dict[str, Any]] = None
+def _create_tool_call_part_dict(
+    name: str,
+    call_id: Optional[str] = None,
+    arguments: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Create tool call part as dict"""
+    part = {"type": "tool_call", "name": name}
+    if call_id is not None:
+        part["id"] = call_id
+    if arguments is not None:
+        part["arguments"] = arguments
+    return part
 
 
-@dataclass
-class ToolCallResponsePart(MessagePart):
-    """Tool call response part"""
-
-    response: Any
-    id: Optional[str] = None
-
-
-class GenericPart(MessagePart):
-    """Generic part supporting arbitrary attributes"""
-
-    def __init__(self, part_type: str, **kwargs: Any):
-        super().__init__(type=part_type)
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+def _create_tool_response_part_dict(
+    response: Any,
+    call_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Create tool response part as dict"""
+    part = {"type": "tool_call_response", "response": response}
+    if call_id is not None:
+        part["id"] = call_id
+    return part
 
 
-@dataclass
-class ChatMessage:
-    """Chat message"""
-
-    role: str
-    parts: List[MessagePart]
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format"""
-        return {
-            "role": self.role,
-            "parts": [part.to_dict() for part in self.parts],
-        }
-
-
-# ==================== Message Part Factory Functions ====================
-
-
-class PartFactory:
-    """Message part factory class"""
-
-    @staticmethod
-    def create_text_part(content: str) -> TextPart:
-        """Create text part"""
-        return TextPart(type="text", content=content)
-
-    @staticmethod
-    def create_tool_call_part(
-        name: str,
-        call_id: Optional[str] = None,
-        arguments: Optional[Dict[str, Any]] = None,
-    ) -> ToolCallRequestPart:
-        """Create tool call part"""
-        return ToolCallRequestPart(
-            type="tool_call", name=name, id=call_id, arguments=arguments
-        )
-
-    @staticmethod
-    def create_tool_response_part(
-        response: Any,
-        call_id: Optional[str] = None,
-    ) -> ToolCallResponsePart:
-        """Create tool response part"""
-        return ToolCallResponsePart(
-            type="tool_call_response", response=response, id=call_id
-        )
-
-    @staticmethod
-    def create_generic_part(part_type: str, **kwargs: Any) -> GenericPart:
-        """Create generic part"""
-        return GenericPart(part_type, **kwargs)
-
-
-# ==================== Base Parser ====================
-
-
+def _create_generic_part_dict(part_type: str, **kwargs: Any) -> Dict[str, Any]:
+    """Create generic part as dict"""
+    part = {"type": part_type}
+    part.update(kwargs)
+    return part
 class BaseMessageParser(ABC):
     """Base class for message parsers"""
 
     @abstractmethod
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
-        """Parse single message"""
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse single message to unified dict format with role and parts"""
         pass
 
     def parse_messages(
         self, messages: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Parse message list"""
+        """Parse message list to unified dict format"""
         parsed_messages = []
         for msg in messages:
             try:
                 parsed_msg = self.parse_message(msg)
-                if parsed_msg.parts:  # Only add messages with content
-                    parsed_messages.append(parsed_msg.to_dict())
+                if parsed_msg.get("parts"):  # Only add messages with content
+                    parsed_messages.append(parsed_msg)
             except Exception as e:
                 logger.warning(f"Failed to parse message: {e}, message: {msg}")
                 continue
@@ -179,21 +105,16 @@ class BaseMessageParser(ABC):
             return json.loads(text) if isinstance(text, str) else {}
         except json.JSONDecodeError:
             return {}
-
-
-# ==================== Provider-specific Parsers ====================
-
-
 class OpenAIMessageParser(BaseMessageParser):
     """OpenAIformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         # Handle tool messages
         if role == "tool":
-            part = PartFactory.create_tool_response_part(
+            part = _create_tool_response_part_dict(
                 response=msg.get("content", ""),
                 call_id=msg.get("tool_call_id", ""),
             )
@@ -207,7 +128,7 @@ class OpenAIMessageParser(BaseMessageParser):
                         function_info.get("arguments", "{}")
                     )
 
-                    part = PartFactory.create_tool_call_part(
+                    part = _create_tool_call_part_dict(
                         name=function_info.get("name", "unknown_tool"),
                         call_id=tool_call.get("id", "unknown_id"),
                         arguments=arguments,
@@ -218,19 +139,19 @@ class OpenAIMessageParser(BaseMessageParser):
             content = msg.get("content")
             if isinstance(content, str):
                 if content.strip():
-                    parts.append(PartFactory.create_text_part(content))
+                    parts.append(_create_text_part_dict(content))
             elif isinstance(content, list):
                 parts.extend(self._parse_content_list(content))
 
         # Add empty text part if no parts and no tool_calls
         if not parts and not msg.get("tool_calls"):
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
     def _parse_content_list(
         self, content_list: List[Any]
-    ) -> List[MessagePart]:
+    ) -> List[Dict[str, Any]]:
         """Parse content list"""
         parts = []
         for item in content_list:
@@ -239,14 +160,12 @@ class OpenAIMessageParser(BaseMessageParser):
                 if content_type == "text":
                     text_content = item.get("text", "")
                     if text_content:
-                        parts.append(
-                            PartFactory.create_text_part(text_content)
-                        )
+                        parts.append(_create_text_part_dict(text_content))
                 elif content_type == "image_url":
                     image_url = item.get("image_url", {}).get("url", "")
                     if image_url:
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "image", content=image_url
                             )
                         )
@@ -254,44 +173,44 @@ class OpenAIMessageParser(BaseMessageParser):
                     audio_data = item.get("input_audio", {}).get("data", "")
                     if audio_data:
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "audio", content=audio_data
                             )
                         )
                 else:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             content_type,
                             content=str(item),
                             hint="unsupported content type",
                         )
                     )
             elif isinstance(item, str):
-                parts.append(PartFactory.create_text_part(item))
+                parts.append(_create_text_part_dict(item))
         return parts
 
 
 class AnthropicMessageParser(BaseMessageParser):
     """Anthropicformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         content = msg.get("content", [])
         if isinstance(content, str):
-            parts.append(PartFactory.create_text_part(content))
+            parts.append(_create_text_part_dict(content))
         elif isinstance(content, list):
             parts.extend(self._parse_content_list(content))
 
         if not parts:
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
     def _parse_content_list(
         self, content_list: List[Any]
-    ) -> List[MessagePart]:
+    ) -> List[Dict[str, Any]]:
         """Parse Anthropic content list"""
         parts = []
         for item in content_list:
@@ -301,10 +220,10 @@ class AnthropicMessageParser(BaseMessageParser):
                     text_content = item.get("text")
                     if not text_content:
                         continue
-                    parts.append(PartFactory.create_text_part(text_content))
+                    parts.append(_create_text_part_dict(text_content))
                 elif content_type == "tool_use":
                     parts.append(
-                        PartFactory.create_tool_call_part(
+                        _create_tool_call_part_dict(
                             name=item.get("name", ""),
                             call_id=item.get("id", ""),
                             arguments=item.get("input", {}),
@@ -315,7 +234,7 @@ class AnthropicMessageParser(BaseMessageParser):
                         item.get("content", [])
                     )
                     parts.append(
-                        PartFactory.create_tool_response_part(
+                        _create_tool_response_part_dict(
                             response=result_text,
                             call_id=item.get("tool_use_id", ""),
                         )
@@ -324,27 +243,27 @@ class AnthropicMessageParser(BaseMessageParser):
                     source = item.get("source", {})
                     if source.get("type") == "url":
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "image", content=source.get("url", "")
                             )
                         )
                     elif source.get("type") == "base64":
                         content_url = f"data:{source.get('media_type', 'image/png')};base64,{source.get('data', '')}"
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "image", content=content_url
                             )
                         )
                 else:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             content_type,
                             content=str(item),
                             hint="unsupported content type",
                         )
                     )
             elif isinstance(item, str):
-                parts.append(PartFactory.create_text_part(item))
+                parts.append(_create_text_part_dict(item))
         return parts
 
     def _extract_tool_result(self, content_blocks: List[Any]) -> str:
@@ -361,7 +280,7 @@ class AnthropicMessageParser(BaseMessageParser):
 class GeminiMessageParser(BaseMessageParser):
     """Geminiformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
@@ -370,11 +289,11 @@ class GeminiMessageParser(BaseMessageParser):
             parts.extend(self._parse_parts_list(parts_list))
 
         if not parts:
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
-    def _parse_parts_list(self, parts_list: List[Any]) -> List[MessagePart]:
+    def _parse_parts_list(self, parts_list: List[Any]) -> List[Dict[str, Any]]:
         """Parse Gemini parts list"""
         parts = []
         for item in parts_list:
@@ -382,11 +301,11 @@ class GeminiMessageParser(BaseMessageParser):
                 if "text" in item:
                     if not item["text"]:
                         continue
-                    parts.append(PartFactory.create_text_part(item["text"]))
+                    parts.append(_create_text_part_dict(item["text"]))
                 elif "function_call" in item:
                     func_call = item["function_call"]
                     parts.append(
-                        PartFactory.create_tool_call_part(
+                        _create_tool_call_part_dict(
                             name=func_call.get("name", ""),
                             call_id=func_call.get("id", ""),
                             arguments=func_call.get("args", {}),
@@ -401,7 +320,7 @@ class GeminiMessageParser(BaseMessageParser):
                         else str(response_content)
                     )
                     parts.append(
-                        PartFactory.create_tool_response_part(
+                        _create_tool_response_part_dict(
                             response=result_text,
                             call_id=func_resp.get("id", ""),
                         )
@@ -410,29 +329,29 @@ class GeminiMessageParser(BaseMessageParser):
                     parts.append(self._parse_inline_data(item["inline_data"]))
                 else:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             "unknown",
                             content=str(item),
                             hint="unsupported part type",
                         )
                     )
             elif isinstance(item, str):
-                parts.append(PartFactory.create_text_part(item))
+                parts.append(_create_text_part_dict(item))
         return parts
 
-    def _parse_inline_data(self, inline_data: Dict[str, Any]) -> MessagePart:
+    def _parse_inline_data(self, inline_data: Dict[str, Any]) -> Dict[str, Any]:
         """Parse inline data"""
         mime_type = inline_data.get("mime_type", "")
         data = inline_data.get("data", "")
 
         if mime_type.startswith("image/"):
-            return PartFactory.create_generic_part(
+            return _create_generic_part_dict(
                 "image", content=f"data:{mime_type};base64,{data}"
             )
         elif mime_type.startswith("audio/"):
-            return PartFactory.create_generic_part("audio", content=data)
+            return _create_generic_part_dict("audio", content=data)
         else:
-            return PartFactory.create_generic_part(
+            return _create_generic_part_dict(
                 "unknown",
                 content=str(inline_data),
                 hint="unsupported inline_data type",
@@ -442,14 +361,14 @@ class GeminiMessageParser(BaseMessageParser):
 class DashScopeMessageParser(BaseMessageParser):
     """DashScopeformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         # Handle tool messages
         if role == "tool":
             parts.append(
-                PartFactory.create_tool_response_part(
+                _create_tool_response_part_dict(
                     response=msg.get("content", ""),
                     call_id=msg.get("tool_call_id", ""),
                 )
@@ -464,7 +383,7 @@ class DashScopeMessageParser(BaseMessageParser):
                     )
 
                     parts.append(
-                        PartFactory.create_tool_call_part(
+                        _create_tool_call_part_dict(
                             name=function_info.get("name", ""),
                             call_id=tool_call.get("id", ""),
                             arguments=arguments,
@@ -474,18 +393,18 @@ class DashScopeMessageParser(BaseMessageParser):
             # Handle content
             content = msg.get("content")
             if isinstance(content, str) and content.strip():
-                parts.append(PartFactory.create_text_part(content))
+                parts.append(_create_text_part_dict(content))
             elif isinstance(content, list):
                 parts.extend(self._parse_content_list(content))
 
         if not parts and not msg.get("tool_calls"):
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
     def _parse_content_list(
         self, content_list: List[Any]
-    ) -> List[MessagePart]:
+    ) -> List[Dict[str, Any]]:
         """Parse DashScope content list"""
         parts = []
         for item in content_list:
@@ -493,43 +412,43 @@ class DashScopeMessageParser(BaseMessageParser):
                 if "text" in item:
                     if not item["text"]:
                         continue
-                    parts.append(PartFactory.create_text_part(item["text"]))
+                    parts.append(_create_text_part_dict(item["text"]))
                 elif "image" in item:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             "image", content=item["image"]
                         )
                     )
                 elif "audio" in item:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             "audio", content=item["audio"]
                         )
                     )
                 else:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             "unknown",
                             content=str(item),
                             hint="unsupported content type",
                         )
                     )
             elif isinstance(item, str):
-                parts.append(PartFactory.create_text_part(item))
+                parts.append(_create_text_part_dict(item))
         return parts
 
 
 class OllamaMessageParser(BaseMessageParser):
     """Ollamaformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         # Handle tool messages
         if role == "tool":
             parts.append(
-                PartFactory.create_tool_response_part(
+                _create_tool_response_part_dict(
                     response=msg.get("content", ""),
                     call_id=msg.get("tool_call_id", ""),
                 )
@@ -540,9 +459,9 @@ class OllamaMessageParser(BaseMessageParser):
                 for tool_call in msg["tool_calls"]:
                     function_info = tool_call.get("function", {})
                     parts.append(
-                        PartFactory.create_tool_call_part(
+                        _create_tool_call_part_dict(
                             name=function_info.get("name", ""),
-                            id=tool_call.get("id", ""),
+                            call_id=tool_call.get("id", ""),
                             arguments=function_info.get("arguments", {}),
                         )
                     )
@@ -550,44 +469,44 @@ class OllamaMessageParser(BaseMessageParser):
             # Handle text content
             content = msg.get("content")
             if isinstance(content, str) and content.strip():
-                parts.append(PartFactory.create_text_part(content))
+                parts.append(_create_text_part_dict(content))
             elif content is None and not msg.get("tool_calls"):
-                parts.append(PartFactory.create_text_part(""))
+                parts.append(_create_text_part_dict(""))
 
             # Handle images (Ollama-specific images field)
             if "images" in msg and msg["images"]:
                 for image_data in msg["images"]:
                     if isinstance(image_data, str):
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "image",
                                 content=f"data:image/png;base64,{image_data}",
                             )
                         )
                     else:
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "image", content=str(image_data)
                             )
                         )
 
         if not parts and not msg.get("tool_calls"):
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
 
 class DeepSeekMessageParser(BaseMessageParser):
     """DeepSeekformat message parser"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         # Handle tool messages
         if role == "tool":
             parts.append(
-                PartFactory.create_tool_response_part(
+                _create_tool_response_part_dict(
                     response=msg.get("content", ""),
                     call_id=msg.get("tool_call_id", ""),
                 )
@@ -602,7 +521,7 @@ class DeepSeekMessageParser(BaseMessageParser):
                     )
 
                     parts.append(
-                        PartFactory.create_tool_call_part(
+                        _create_tool_call_part_dict(
                             name=function_info.get("name", ""),
                             call_id=tool_call.get("id", ""),
                             arguments=arguments,
@@ -612,7 +531,7 @@ class DeepSeekMessageParser(BaseMessageParser):
             # Handle content
             content = msg.get("content")
             if isinstance(content, str) and content and content.strip():
-                parts.append(PartFactory.create_text_part(content))
+                parts.append(_create_text_part_dict(content))
             elif content is None and msg.get("tool_calls"):
                 # DeepSeekcontent may be None when tool_calls present
                 pass  # No need to add empty text
@@ -620,13 +539,13 @@ class DeepSeekMessageParser(BaseMessageParser):
                 parts.extend(self._parse_content_list(content))
 
         if not parts and not msg.get("tool_calls"):
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
+        return {"role": role, "parts": parts}
 
     def _parse_content_list(
         self, content_list: List[Any]
-    ) -> List[MessagePart]:
+    ) -> List[Dict[str, Any]]:
         """Parse DeepSeek content list"""
         parts = []
         for item in content_list:
@@ -636,31 +555,31 @@ class DeepSeekMessageParser(BaseMessageParser):
                     text_content = item.get("text")
                     if not text_content:
                         continue
-                    parts.append(PartFactory.create_text_part(text_content))
+                    parts.append(_create_text_part_dict(text_content))
                 else:
                     parts.append(
-                        PartFactory.create_generic_part(
+                        _create_generic_part_dict(
                             content_type,
                             content=str(item),
                             hint="unsupported content type",
                         )
                     )
             elif isinstance(item, str):
-                parts.append(PartFactory.create_text_part(item))
+                parts.append(_create_text_part_dict(item))
         return parts
 
 
 class DefaultMessageParser(BaseMessageParser):
     """Default message parser for unknown formats"""
 
-    def parse_message(self, msg: Dict[str, Any]) -> ChatMessage:
+    def parse_message(self, msg: Dict[str, Any]) -> Dict[str, Any]:
         role = self._get_role(msg)
         parts = []
 
         # Try to extract text from content field
         content = msg.get("content", "")
         if isinstance(content, str) and content.strip():
-            parts.append(PartFactory.create_text_part(content))
+            parts.append(_create_text_part_dict(content))
         elif isinstance(content, list):
             # Try to parse list format content
             for item in content:
@@ -668,30 +587,24 @@ class DefaultMessageParser(BaseMessageParser):
                     if "text" in item:
                         if not item["text"]:
                             continue
-                        parts.append(
-                            PartFactory.create_text_part(str(item["text"]))
-                        )
+                        parts.append(_create_text_part_dict(str(item["text"])))
                     else:
                         parts.append(
-                            PartFactory.create_generic_part(
+                            _create_generic_part_dict(
                                 "unknown",
                                 content=str(item),
                                 hint="unknown format",
                             )
                         )
                 else:
-                    parts.append(PartFactory.create_text_part(str(item)))
+                    parts.append(_create_text_part_dict(str(item)))
         else:
-            # Convert entire message to text
-            parts.append(PartFactory.create_text_part(str(msg)))
+            parts.append(_create_text_part_dict(str(msg)))
 
         if not parts:
-            parts.append(PartFactory.create_text_part(""))
+            parts.append(_create_text_part_dict(""))
 
-        return ChatMessage(role=role, parts=parts)
-
-
-# ==================== Message Converter Factory ====================
+        return {"role": role, "parts": parts}
 
 
 def get_message_converter(

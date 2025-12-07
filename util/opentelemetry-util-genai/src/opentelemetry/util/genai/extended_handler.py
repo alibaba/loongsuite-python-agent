@@ -63,9 +63,10 @@ Usage:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator, Optional
+from typing import Any, Iterator, Optional
 
 from opentelemetry import context as otel_context
+from opentelemetry import trace as trace_api
 from opentelemetry._logs import LoggerProvider
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,

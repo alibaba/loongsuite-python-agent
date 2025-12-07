@@ -18,14 +18,28 @@ AgentScope instrumentation supporting `agentscope >= 1.0.0`.
 Usage
 -----
 .. code:: python
+    import asyncio
     from opentelemetry.instrumentation.agentscope import AgentScopeInstrumentor
-    from agentscope.models import DashScopeChatModel
+    from agentscope.model import DashScopeChatModel
     import agentscope
 
     AgentScopeInstrumentor().instrument()
-    agentscope.init(project="my_project")
+    
     model = DashScopeChatModel(model_name="qwen-max")
-    result = await model(messages)
+
+    messages = [{"role": "user", "content": "Hello, how are you?"}]
+
+    async def call_model():
+        response = await model(messages)
+        if hasattr(response, "__aiter__"):
+            result = []
+            async for chunk in response:
+                result.append(chunk)
+            return result[-1] if result else response
+        return response
+    
+    result = asyncio.run(call_model())
+
     AgentScopeInstrumentor().uninstrument()
 
 API
@@ -116,7 +130,15 @@ class AgentScopeInstrumentor(BaseInstrumentor):
         )
         self._instruments = Instruments(self._meter)
 
-        self._handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
+        logger_provider = kwargs.get("logger_provider")
+        if not logger_provider:
+            from opentelemetry._logs import get_logger_provider
+            logger_provider = get_logger_provider()
+
+        self._handler = ExtendedTelemetryHandler(
+            tracer_provider=tracer_provider,
+            logger_provider=logger_provider,
+        )
 
         # Instrument ChatModelBase
         try:
@@ -156,8 +178,6 @@ class AgentScopeInstrumentor(BaseInstrumentor):
 
         # Instrument Toolkit
         try:
-            # wrap_tool_call is an async generator function, so we need to
-            # create an async generator wrapper
             def wrap_tool_with_handler(wrapped, instance, args, kwargs):
                 # Return the async generator directly
                 return wrap_tool_call(
@@ -175,7 +195,6 @@ class AgentScopeInstrumentor(BaseInstrumentor):
 
         # Instrument Formatter
         try:
-
             def wrap_formatter_with_tracer(wrapped, instance, args, kwargs):
                 return wrap_formatter_format(
                     wrapped, instance, args, kwargs, tracer=self._tracer

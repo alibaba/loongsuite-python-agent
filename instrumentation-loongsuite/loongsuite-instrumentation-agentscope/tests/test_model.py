@@ -148,7 +148,7 @@ def _assert_chat_span_attributes(
 
 
 @pytest.mark.vcr()
-def test_model_call_basic(instrument, span_exporter, request):
+def test_model_call_basic(instrument_no_content, span_exporter, request):
     """Test basic model call"""
     # Initialize agentscope
     agentscope.init(project="test_basic")
@@ -198,7 +198,7 @@ def test_model_call_basic(instrument, span_exporter, request):
 
 
 @pytest.mark.vcr()
-def test_model_call_with_messages(instrument, span_exporter, request):
+def test_model_call_with_messages(instrument_no_content, span_exporter, request):
     """Test model call with multiple messages"""
     agentscope.init(project="test_messages")
 
@@ -241,7 +241,7 @@ def test_model_call_with_messages(instrument, span_exporter, request):
 
 
 @pytest.mark.vcr()
-async def test_model_call_async(instrument, span_exporter, request):
+async def test_model_call_async(instrument_no_content, span_exporter, request):
     """Test async model call"""
     agentscope.init(project="test_async")
 

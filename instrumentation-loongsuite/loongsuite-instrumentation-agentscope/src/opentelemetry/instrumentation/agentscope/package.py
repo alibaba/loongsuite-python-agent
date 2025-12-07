@@ -13,4 +13,4 @@
 # limitations under the License.
 
 _instruments = ("agentscope >= 1.0.0",)
-_supports_metrics = False
+_supports_metrics = True

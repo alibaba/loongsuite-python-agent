@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from opentelemetry.instrumentation.agentscope import AgentScopeInstrumentor
-from opentelemetry.instrumentation.agentscope.utils import (
+from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
 )
 from opentelemetry.sdk._logs import LoggerProvider
@@ -130,7 +130,7 @@ def instrument(tracer_provider, logger_provider, meter_provider):
 def instrument_no_content(tracer_provider, logger_provider, meter_provider):
     """Instrument without capturing message content"""
     os.environ.update(
-        {OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "false"}
+        {OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "NO_CONTENT"}
     )
 
     instrumentor = AgentScopeInstrumentor()
