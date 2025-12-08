@@ -68,6 +68,7 @@ from typing import Any, Iterator, Optional
 from opentelemetry import context as otel_context
 from opentelemetry import trace as trace_api
 from opentelemetry._logs import LoggerProvider
+from opentelemetry.metrics import Meter, MeterProvider, get_meter
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
@@ -75,6 +76,9 @@ from opentelemetry.trace import (
     SpanKind,
     TracerProvider,
     set_span_in_context,
+)
+from opentelemetry.util.genai.extended_metrics import (
+    ExtendedInvocationMetricsRecorder,
 )
 from opentelemetry.util.genai.extended_span_utils import (
     _apply_create_agent_finish_attributes,
@@ -111,6 +115,19 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
     - All operations supported by the base TelemetryHandler (LLM/chat)
     """
 
+    def __init__(
+        self,
+        tracer_provider: TracerProvider | None = None,
+        meter_provider: MeterProvider | None = None,
+        logger_provider: LoggerProvider | None = None,
+    ):
+        """Initialize the extended telemetry handler with metrics support."""
+        super().__init__(tracer_provider, meter_provider, logger_provider)
+        
+        # Replace the base metrics recorder with extended one
+        meter = get_meter(__name__, meter_provider=meter_provider)
+        self._metrics_recorder = ExtendedInvocationMetricsRecorder(meter)
+
     # ==================== Create Agent Operations ====================
 
     def start_create_agent(
@@ -141,6 +158,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -154,6 +176,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                invocation.span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -199,6 +228,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_embedding_finish_attributes(invocation.span, invocation)
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -212,6 +246,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
 
         _apply_embedding_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                invocation.span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -257,6 +298,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -270,6 +316,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                invocation.span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -325,6 +378,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
         _maybe_emit_invoke_agent_event(
             self._logger, invocation.span, invocation
         )
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -340,6 +398,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
         _apply_invoke_agent_finish_attributes(span, invocation)
         _apply_error_attributes(span, error)
         _maybe_emit_invoke_agent_event(self._logger, span, invocation, error)  # pylint: disable=too-many-function-args
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         span.end()
         return invocation
@@ -385,6 +450,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -398,6 +468,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                invocation.span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -439,6 +516,11 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_rerank_finish_attributes(invocation.span, invocation)
+        
+        # Record metrics
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(invocation.span, invocation)
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation
@@ -452,6 +534,13 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
 
         _apply_rerank_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
+        
+        # Record metrics with error type
+        if self._metrics_recorder is not None:
+            self._metrics_recorder.record(
+                invocation.span, invocation, error_type=error.type.__qualname__
+            )
+        
         otel_context.detach(invocation.context_token)
         invocation.span.end()
         return invocation

@@ -54,12 +54,10 @@ from typing import Any, Collection
 from wrapt import wrap_function_wrapper
 
 from opentelemetry import trace as trace_api
-from opentelemetry._events import get_event_logger
 from opentelemetry.instrumentation.agentscope.package import _instruments
 from opentelemetry.instrumentation.agentscope.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
-from opentelemetry.metrics import get_meter
 from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
@@ -68,7 +66,6 @@ from ._wrapper import (
     AgentScopeChatModelWrapper,
     AgentScopeEmbeddingModelWrapper,
 )
-from .instruments import Instruments
 from .patch import wrap_formatter_format, wrap_tool_call
 
 logger = logging.getLogger(__name__)
@@ -87,11 +84,8 @@ class AgentScopeInstrumentor(BaseInstrumentor):
 
     def __init__(self):
         super().__init__()
-        self._meter = None
-        self._instruments = None
-        self._tracer = None
-        self._event_logger = None
-        self._handler = None
+        self._tracer = None  # 仅用于 Formatter instrumentation
+        self._handler = None  # ExtendedTelemetryHandler 处理所有其他操作
 
     def instrumentation_dependencies(self) -> Collection[str]:
         return _instruments
@@ -103,41 +97,22 @@ class AgentScopeInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs: Any) -> None:
         """Enable AgentScope instrumentation."""
         tracer_provider = kwargs.get("tracer_provider")
-        if not tracer_provider:
-            tracer_provider = trace_api.get_tracer_provider()
+        meter_provider = kwargs.get("meter_provider")
+        logger_provider = kwargs.get("logger_provider")
 
+        # ExtendedTelemetryHandler 内部会创建 tracer/meter/logger，使用正确的 schema (V1_37_0)
+        self._handler = ExtendedTelemetryHandler(
+            tracer_provider=tracer_provider,
+            meter_provider=meter_provider,
+            logger_provider=logger_provider,
+        )
+
+        # 为 Formatter instrumentation 创建单独的 tracer（它不使用 handler）
         self._tracer = trace_api.get_tracer(
             __name__,
             __version__,
             tracer_provider,
-            schema_url=Schemas.V1_28_0.value,
-        )
-
-        event_logger_provider = kwargs.get("event_logger_provider")
-        self._event_logger = get_event_logger(
-            __name__,
-            __version__,
-            schema_url=Schemas.V1_28_0.value,
-            event_logger_provider=event_logger_provider,
-        )
-
-        meter_provider = kwargs.get("meter_provider")
-        self._meter = get_meter(
-            __name__,
-            __version__,
-            meter_provider,
-            schema_url=Schemas.V1_28_0.value,
-        )
-        self._instruments = Instruments(self._meter)
-
-        logger_provider = kwargs.get("logger_provider")
-        if not logger_provider:
-            from opentelemetry._logs import get_logger_provider
-            logger_provider = get_logger_provider()
-
-        self._handler = ExtendedTelemetryHandler(
-            tracer_provider=tracer_provider,
-            logger_provider=logger_provider,
+            schema_url=Schemas.V1_37_0.value,  # ✅ 更新为 V1_37_0
         )
 
         # Instrument ChatModelBase
