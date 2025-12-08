@@ -74,6 +74,8 @@ from opentelemetry.semconv._incubating.attributes import (
 )
 from opentelemetry.trace import (
     SpanKind,
+    Status,
+    StatusCode,
     TracerProvider,
     set_span_in_context,
 )
@@ -158,6 +160,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:
@@ -228,6 +231,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_embedding_finish_attributes(invocation.span, invocation)
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:
@@ -298,6 +302,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:
@@ -378,6 +383,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
         _maybe_emit_invoke_agent_event(
             self._logger, invocation.span, invocation
         )
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:
@@ -450,6 +456,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:
@@ -516,6 +523,7 @@ class ExtendedTelemetryHandler(TelemetryHandler):  # pylint: disable=too-many-pu
             return invocation
 
         _apply_rerank_finish_attributes(invocation.span, invocation)
+        invocation.span.set_status(Status(StatusCode.OK))
         
         # Record metrics
         if self._metrics_recorder is not None:

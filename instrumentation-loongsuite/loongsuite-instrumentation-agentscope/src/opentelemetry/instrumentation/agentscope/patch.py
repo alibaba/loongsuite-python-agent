@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Patch functions for AgentScope instrumentation.
-
-Uses the ExtendedTelemetryHandler from opentelemetry-util-genai
-for unified span lifecycle management. This follows the same pattern as
-loongsuite-instrumentation-dashscope.
-"""
+"""Patch functions for AgentScope instrumentation."""
 
 from __future__ import annotations
 
@@ -74,58 +68,55 @@ def _get_tool_result(chunk):
     return chunk
 
 
-async def _trace_async_generator_wrapper(result_generator, span, invocation):
+async def _trace_async_generator_wrapper(result_generator, span):
     """
     Async generator wrapper that traces tool execution.
     
-    Args:
-        result_generator: The async generator to wrap
-        span: The OpenTelemetry span
-        invocation: ExecuteToolInvocation object for collecting result
-    """
-    import json
+    This function wraps the async generator returned by call_tool_function,
+    collects the last chunk, and sets response attributes before ending the span.
     
+    Args:
+        result_generator: The async generator to wrap (yields ToolResponse objects)
+        span: The OpenTelemetry span to update with response attributes
+    """
+    has_error = False
     last_chunk = None
     
     try:
         async for chunk in result_generator:
             last_chunk = chunk
             yield chunk
+    except Exception as e:
+        has_error = True
+        span.set_status(StatusCode.ERROR, str(e))
+        span.record_exception(e)
+        raise e from None
+    
     finally:
+        if not has_error:
         if last_chunk:
             try:
                 result_content = _get_tool_result(last_chunk)
                 if result_content:
-                    if isinstance(result_content, str):
-                        invocation.tool_call_result = result_content
-                    else:
-                        invocation.tool_call_result = json.dumps(
-                            result_content, ensure_ascii=False, default=str
-                        )
+                        span.set_attribute("gen_ai.tool.call.result", _serialize_to_str(result_content))
             except Exception:
                 pass
+            span.set_status(StatusCode.OK)
+        span.end()
 
 
 async def wrap_tool_call(wrapped, instance, args, kwargs, handler=None, tracer=None):
     """
     Async wrapper for Toolkit.call_tool_function.
     
-    Uses tracer for span lifecycle management and handler for attribute formatting.
-    
     Args:
         wrapped: The original async generator function being wrapped
         instance: The Toolkit instance
         args: Positional arguments (tool_call dict, ...)
         kwargs: Keyword arguments
-        handler: ExtendedTelemetryHandler instance (for attribute formatting)
-        tracer: OpenTelemetry tracer (for span lifecycle)
+        handler: ExtendedTelemetryHandler instance (not used, kept for compatibility)
+        tracer: OpenTelemetry tracer (required for span creation)
     """
-    from opentelemetry.util.genai.extended_types import ExecuteToolInvocation
-    from opentelemetry.util.genai.extended_span_utils import (
-        _apply_execute_tool_finish_attributes,
-    )
-    from opentelemetry.util.genai.span_utils import _apply_error_attributes
-    from opentelemetry.util.genai.types import Error
     from opentelemetry.semconv._incubating.attributes import (
         gen_ai_attributes as GenAIAttributes,
     )
@@ -138,39 +129,39 @@ async def wrap_tool_call(wrapped, instance, args, kwargs, handler=None, tracer=N
     tool_id = tool_call.get("id") if isinstance(tool_call, dict) else None
     tool_args = tool_call.get("input", {}) if isinstance(tool_call, dict) else {}
     
-    invocation = ExecuteToolInvocation(tool_name=tool_name)
-    invocation.tool_call_id = tool_id
-    invocation.tool_description = _get_tool_description(instance, tool_name)
-    invocation.tool_call_arguments = _serialize_to_str(tool_args)
+    span_attributes = {
+        GenAIAttributes.GEN_AI_OPERATION_NAME: GenAIAttributes.GenAiOperationNameValues.EXECUTE_TOOL.value,
+        "rpc": f"{tool_name}",
+    }
     
-    span_name = f"{GenAIAttributes.GenAiOperationNameValues.EXECUTE_TOOL.value} {tool_name}"
-    with tracer.start_as_current_span(span_name, end_on_exit=False) as span:
-        invocation.span = span
+    if tool_id:
+        span_attributes[GenAIAttributes.GEN_AI_TOOL_CALL_ID] = tool_id
+    if tool_name:
+        span_attributes[GenAIAttributes.GEN_AI_TOOL_NAME] = tool_name
+    
+    tool_description = _get_tool_description(instance, tool_name)
+    if tool_description:
+        span_attributes[GenAIAttributes.GEN_AI_TOOL_DESCRIPTION] = tool_description
+    
+    tool_call_arguments = _serialize_to_str(tool_args)
+    if tool_call_arguments:
+        span_attributes["gen_ai.tool.call.arguments"] = tool_call_arguments
+    
+    span_name = f"execute_tool {tool_name}"
+    with tracer.start_as_current_span(
+        name=span_name,
+        attributes=span_attributes,
+        end_on_exit=False,
+    ) as span:
         try:
             result_generator = await wrapped(*args, **kwargs)
-            return _trace_async_generator_wrapper(result_generator, span, invocation)
+            # Wrap the async generator to collect results and end span when done
+            return _trace_async_generator_wrapper(result_generator, span)
         except Exception as error:
-            if handler:
-                try:
-                    _apply_execute_tool_finish_attributes(span, invocation)
-                    _apply_error_attributes(span, Error(message=str(error), type=type(error)))
-                except Exception:
-                    span.set_status(StatusCode.ERROR, str(error))
-                    span.record_exception(error)
-            else:
                 span.set_status(StatusCode.ERROR, str(error))
                 span.record_exception(error)
             span.end()
             raise error from None
-        finally:
-            if span.is_recording():
-                if handler:
-                    try:
-                        _apply_execute_tool_finish_attributes(span, invocation)
-                        span.set_status(StatusCode.OK)
-                    except Exception:
-                        pass
-                span.end()
 
 
 async def wrap_formatter_format(wrapped, instance, args, kwargs, tracer=None):

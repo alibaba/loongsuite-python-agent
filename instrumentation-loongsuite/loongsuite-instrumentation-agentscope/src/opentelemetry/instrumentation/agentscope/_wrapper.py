@@ -162,6 +162,9 @@ class AgentScopeChatModelWrapper:
 
             self._handler.start_llm(invocation)
 
+            function_name = f"{call_self.__class__.__name__}.__call__"
+            invocation.attributes["rpc"] = function_name
+
             try:
                 result = await original_call(call_self, *call_args, **call_kwargs)
 
@@ -309,6 +312,9 @@ class AgentScopeAgentWrapper:
                         invocation.system_instruction = sys_prompt
 
                 self._handler.start_invoke_agent(invocation)
+                
+                function_name = f"{call_self.__class__.__name__}.__call__"
+                invocation.attributes["rpc"] = function_name
 
                 try:
                     result = await original_call(call_self, *call_args, **call_kwargs)

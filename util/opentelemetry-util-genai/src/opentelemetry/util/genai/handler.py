@@ -77,6 +77,8 @@ from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.trace import (
     Span,
     SpanKind,
+    Status, # LoongSuite Extension
+    StatusCode, # LoongSuite Extension
     TracerProvider,
     get_tracer,
     set_span_in_context,
@@ -161,6 +163,10 @@ class TelemetryHandler:
 
         span = invocation.span
         _apply_llm_finish_attributes(span, invocation)
+        
+        # LoongSuite Extension
+        span.set_status(Status(StatusCode.OK))
+        
         self._record_llm_metrics(invocation, span)
         _maybe_emit_llm_event(self._logger, span, invocation)
         # Detach context and end span

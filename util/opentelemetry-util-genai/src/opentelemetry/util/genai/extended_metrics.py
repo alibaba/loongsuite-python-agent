@@ -15,10 +15,11 @@
 """
 Extended metrics recorder for GenAI invocations.
 
-This module extends the base `InvocationMetricsRecorder` to support additional GenAI
-invocation types such as embedding, execute_tool, invoke_agent, create_agent, retrieve,
-and rerank.
+This module provides LoongSuite GenAI metrics recording following ARMS semantic conventions.
+It supports multiple GenAI invocation types: LLM, embedding, execute_tool, invoke_agent,
+create_agent, retrieve, and rerank.
 
+All metrics use LoongSuite naming conventions and attributes.
 """
 
 from __future__ import annotations
@@ -26,16 +27,10 @@ from __future__ import annotations
 import logging
 import timeit
 from numbers import Number
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from opentelemetry.metrics import Meter
-from opentelemetry.semconv._incubating.attributes import (
-    gen_ai_attributes as GenAI,
-)
-from opentelemetry.trace import Span, set_span_in_context
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributs import (
-    GenAiExtendedOperationNameValues,
-)
+from opentelemetry.trace import Span, StatusCode, set_span_in_context
 from opentelemetry.util.genai.extended_types import (
     CreateAgentInvocation,
     EmbeddingInvocation,
@@ -46,7 +41,6 @@ from opentelemetry.util.genai.extended_types import (
 )
 from opentelemetry.util.genai.metrics import InvocationMetricsRecorder
 from opentelemetry.util.genai.types import LLMInvocation
-from opentelemetry.util.types import AttributeValue
 
 _logger = logging.getLogger(__name__)
 
@@ -55,8 +49,9 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
     """
     Extended metrics recorder that supports multiple GenAI invocation types.
     
-    This class extends the base InvocationMetricsRecorder to support:
-    - LLM/Chat operations (via parent class)
+    This class provides LoongSuite GenAI metrics recording following ARMS semantic conventions.
+    It supports:
+    - LLM/Chat operations
     - Embedding operations
     - Execute tool operations
     - Invoke agent operations
@@ -64,15 +59,55 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
     - Retrieve documents operations
     - Rerank documents operations
     
-    All metrics follow OpenTelemetry GenAI semantic conventions.
+    All metrics use LoongSuite naming conventions (genai_calls_count, genai_calls_duration_seconds, etc.)
+    and attributes (modelName, spanKind, usageType, etc.).
     """
 
     def __init__(self, meter: Meter):
-        """Initialize extended metrics recorder with OpenTelemetry meter."""
-        super().__init__(meter)
-        _logger.debug(
-            "Initialized ExtendedInvocationMetricsRecorder with GenAI semantic conventions"
+        """Initialize extended metrics recorder with LoongSuite GenAI metrics."""
+        
+        # LoongSuite Metrics - Counter
+        self._calls_count = meter.create_counter(
+            name="genai_calls_count",
+            description="Total number of GenAI-related calls",
+            unit="1"
         )
+        
+        self._calls_error_count = meter.create_counter(
+            name="genai_calls_error_count",
+            description="Total number of GenAI-related call errors",
+            unit="1"
+        )
+        
+        self._calls_slow_count = meter.create_counter(
+            name="genai_calls_slow_count",
+            description="Total number of slow GenAI-related calls",
+            unit="1"
+        )
+        
+        self._llm_usage_tokens = meter.create_counter(
+            name="genai_llm_usage_tokens",
+            description="Token usage statistics",
+            unit="1"
+        )
+        
+        # LoongSuite Metrics - Histogram
+        self._calls_duration = meter.create_histogram(
+            name="genai_calls_duration_seconds",
+            description="Response duration of GenAI-related calls",
+            unit="s"
+        )
+        
+        self._llm_first_token = meter.create_histogram(
+            name="genai_llm_first_token_seconds",
+            description="Time to first token for LLM calls",
+            unit="s"
+        )
+        
+        # Slow call threshold (3 seconds)
+        self._slow_threshold = 3.0
+        
+        _logger.debug("Initialized ExtendedInvocationMetricsRecorder with LoongSuite metrics")
 
     def record(
         self,
@@ -93,8 +128,8 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         Record duration and token metrics for any GenAI invocation type.
         
         This method automatically routes to the appropriate handler based on
-        the invocation type. All metrics use standard OpenTelemetry GenAI
-        semantic conventions.
+        the invocation type. All metrics use LoongSuite naming conventions
+        following ARMS semantic conventions.
         
         Args:
             span: The span associated with this invocation
@@ -119,14 +154,75 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
             elif isinstance(invocation, RerankInvocation):
                 self._record_rerank(span, invocation, error_type=error_type)
             elif isinstance(invocation, LLMInvocation):
-                # Use parent class implementation for LLM invocations
-                super().record(span, invocation, error_type=error_type)
+                self._record_llm(span, invocation, error_type=error_type)
             else:
                 _logger.warning(
                     f"Unknown invocation type: {type(invocation).__name__}"
                 )
         except Exception as e:
             _logger.exception(f"Error recording metrics: {e}")
+
+    def _record_llm(
+        self,
+        span: Span,
+        invocation: LLMInvocation,
+        *,
+        error_type: Optional[str] = None,
+    ) -> None:
+        """Record LoongSuite metrics for LLM invocations."""
+        try:
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
+            }
+
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
+            duration_seconds = self._calculate_duration(invocation)
+            span_context = None
+            if duration_seconds is not None:
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
+                    duration_seconds,
+                    attributes=attributes,
+                    context=span_context,
+                )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
+
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+            
+            # 5. Record token usage (LLM supports tokens)
+            if invocation.input_tokens is not None and invocation.input_tokens > 0:
+                token_attrs = {**attributes, "usageType": "input"}
+                self._llm_usage_tokens.add(invocation.input_tokens, attributes=token_attrs)
+            
+            if invocation.output_tokens is not None and invocation.output_tokens > 0:
+                token_attrs = {**attributes, "usageType": "output"}
+                self._llm_usage_tokens.add(invocation.output_tokens, attributes=token_attrs)
+            
+            # 6. Record first token latency (LLM supports first_token)
+            if hasattr(invocation, 'first_token_time') and invocation.first_token_time is not None:
+                if span_context is None:
+                    span_context = set_span_in_context(span)
+                self._llm_first_token.record(
+                    invocation.first_token_time,
+                    attributes=attributes,
+                    context=span_context,
+                )
+
+            _logger.debug(f"Recorded LLM LoongSuite metrics for {invocation.request_model}")
+
+        except Exception as e:
+            _logger.exception(f"Error recording LLM metrics: {e}")
 
     def _record_embedding(
         self,
@@ -135,45 +231,47 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for embedding invocations."""
+        """Record LoongSuite metrics for embedding invocations."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAI.GenAiOperationNameValues.EMBEDDINGS.value
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
             }
-
-            # Required and recommended attributes
-            if invocation.request_model:
-                attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
-            if invocation.provider:
-                attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-            if invocation.response_model_name:
-                attributes[GenAI.GEN_AI_RESPONSE_MODEL] = (
-                    invocation.response_model_name
-                )
-
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
-
-            # Record token usage if available
-            self._record_token_usage(
-                span_context, attributes, invocation.input_tokens, invocation.output_tokens
-            )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
+            
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+            
+            # 5. Record token usage (Embedding supports tokens)
+            if invocation.input_tokens is not None and invocation.input_tokens > 0:
+                token_attrs = {**attributes, "usageType": "input"}
+                self._llm_usage_tokens.add(invocation.input_tokens, attributes=token_attrs)
+            
+            if invocation.output_tokens is not None and invocation.output_tokens > 0:
+                token_attrs = {**attributes, "usageType": "output"}
+                self._llm_usage_tokens.add(invocation.output_tokens, attributes=token_attrs)
 
             _logger.debug(
-                f"Recorded embedding metrics for model {invocation.request_model}"
+                f"Recorded embedding LoongSuite metrics for model {invocation.request_model}"
             )
 
         except Exception as e:
@@ -186,35 +284,38 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for tool execution invocations."""
+        """Record LoongSuite metrics for tool execution invocations."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAI.GenAiOperationNameValues.EXECUTE_TOOL.value
+            # Build LoongSuite attributes (Tool special: add rpc)
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
+                "rpc": invocation.tool_name,  # Tool special: rpc = tool_name
             }
 
-            # Tool-specific attributes
-            if invocation.tool_name:
-                attributes[GenAI.GEN_AI_TOOL_NAME] = invocation.tool_name
-            if invocation.provider:
-                attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
 
-            _logger.debug(f"Recorded tool metrics for {invocation.tool_name}")
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+
+            _logger.debug(f"Recorded tool LoongSuite metrics for {invocation.tool_name}")
 
         except Exception as e:
             _logger.exception(f"Error recording tool metrics: {e}")
@@ -226,46 +327,57 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for agent invocation."""
+        """Record LoongSuite metrics for agent invocation."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAI.GenAiOperationNameValues.INVOKE_AGENT.value
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
             }
 
-            # Agent-specific attributes
-            if invocation.agent_name:
-                attributes[GenAI.GEN_AI_AGENT_NAME] = invocation.agent_name
-            if invocation.provider:
-                attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-            if invocation.request_model:
-                attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
-            if invocation.response_model_name:
-                attributes[GenAI.GEN_AI_RESPONSE_MODEL] = (
-                    invocation.response_model_name
-                )
-
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
+            span_context = None
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
 
-            # Record token usage if available
-            self._record_token_usage(
-                span_context, attributes, invocation.input_tokens, invocation.output_tokens
-            )
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+            
+            # 5. Record token usage (Agent supports tokens)
+            if invocation.input_tokens is not None and invocation.input_tokens > 0:
+                token_attrs = {**attributes, "usageType": "input"}
+                self._llm_usage_tokens.add(invocation.input_tokens, attributes=token_attrs)
+            
+            if invocation.output_tokens is not None and invocation.output_tokens > 0:
+                token_attrs = {**attributes, "usageType": "output"}
+                self._llm_usage_tokens.add(invocation.output_tokens, attributes=token_attrs)
+            
+            # 6. Record first token latency (Agent supports first_token)
+            if hasattr(invocation, 'first_token_time') and invocation.first_token_time is not None:
+                if span_context is None:
+                    span_context = set_span_in_context(span)
+                self._llm_first_token.record(
+                    invocation.first_token_time,
+                    attributes=attributes,
+                    context=span_context,
+                )
 
-            _logger.debug(f"Recorded agent metrics for {invocation.agent_name}")
+            _logger.debug(f"Recorded agent LoongSuite metrics for {invocation.agent_name}")
 
         except Exception as e:
             _logger.exception(f"Error recording agent metrics: {e}")
@@ -277,37 +389,37 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for agent creation."""
+        """Record LoongSuite metrics for agent creation."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAI.GenAiOperationNameValues.CREATE_AGENT.value
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
             }
 
-            # Agent-specific attributes
-            if invocation.agent_name:
-                attributes[GenAI.GEN_AI_AGENT_NAME] = invocation.agent_name
-            if invocation.provider:
-                attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-            if invocation.request_model:
-                attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
-
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
 
-            _logger.debug(f"Recorded create agent metrics for {invocation.agent_name}")
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+
+            _logger.debug(f"Recorded create agent LoongSuite metrics for {invocation.agent_name}")
 
         except Exception as e:
             _logger.exception(f"Error recording create agent metrics: {e}")
@@ -319,29 +431,37 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for document retrieval."""
+        """Record LoongSuite metrics for document retrieval."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAiExtendedOperationNameValues.RETRIEVE_DOCUMENTS.value
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
             }
 
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            # 1. Record call count
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. Record duration
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
+                
+                # 3. Check and record slow calls
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
 
-            _logger.debug("Recorded retrieve documents metrics")
+            # 4. Record error count if error occurred
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+
+            _logger.debug("Recorded retrieve documents ARMS metrics")
 
         except Exception as e:
             _logger.exception(f"Error recording retrieve metrics: {e}")
@@ -353,38 +473,106 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         *,
         error_type: Optional[str] = None,
     ) -> None:
-        """Record metrics for document reranking."""
+        """Record LoongSuite metrics for document reranking."""
         try:
-            # Build attributes following GenAI semantic conventions
-            attributes: Dict[str, AttributeValue] = {
-                GenAI.GEN_AI_OPERATION_NAME: GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value
+            # Build LoongSuite attributes
+            attributes = {
+                "modelName": self._get_model_name(invocation),
+                "spanKind": self._get_span_kind(invocation),
+                "statusCode": self._get_span_status_code(span),
             }
 
-            # Rerank-specific attributes
-            if invocation.provider:
-                attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-            if invocation.request_model:
-                attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
-
-            # Add error type if present
-            if error_type:
-                attributes["error.type"] = error_type
-
-            # Record duration
+            # 1. 记录调用次数
+            self._calls_count.add(1, attributes=attributes)
+            
+            # 2. 记录时延
             duration_seconds = self._calculate_duration(invocation)
-            span_context = set_span_in_context(span)
-
             if duration_seconds is not None:
-                self._duration_histogram.record(
+                span_context = set_span_in_context(span)
+                self._calls_duration.record(
                     duration_seconds,
                     attributes=attributes,
                     context=span_context,
                 )
+                
+                # 3. 判断并记录慢调用
+                if duration_seconds > self._slow_threshold:
+                    self._calls_slow_count.add(1, attributes=attributes)
 
-            _logger.debug("Recorded rerank documents metrics")
+            # 4. 如果有错误，记录错误次数
+            if error_type:
+                self._calls_error_count.add(1, attributes=attributes)
+
+            _logger.debug("Recorded rerank documents LoongSuite metrics")
 
         except Exception as e:
             _logger.exception(f"Error recording rerank metrics: {e}")
+
+    def _get_span_status_code(self, span: Span) -> str:
+        """
+        Extract status code from span for LoongSuite metrics.
+        
+        Returns:
+            Status code string (OK, ERROR, UNSET)
+        """
+        if span is None:
+            return "UNSET"
+        try:
+            if hasattr(span, "status") and span.status is not None:
+                status_code = span.status.status_code
+                if status_code == StatusCode.OK:
+                    return "OK"
+                elif status_code == StatusCode.ERROR:
+                    return "ERROR"
+                else:
+                    return "UNSET"
+        except Exception as e:
+            _logger.debug(f"Error extracting status code from span: {e}")
+        return "UNSET"
+
+    def _get_span_kind(self, invocation: any) -> str:
+        """
+        Map invocation type to spanKind for LoongSuite metrics.
+        
+        Returns:
+            spanKind string (LLM, AGENT, TOOL, EMBEDDING, RETRIEVE, RERANK)
+        """
+        if isinstance(invocation, LLMInvocation):
+            return "LLM"
+        elif isinstance(invocation, (InvokeAgentInvocation, CreateAgentInvocation)):
+            return "AGENT"
+        elif isinstance(invocation, ExecuteToolInvocation):
+            return "TOOL"
+        elif isinstance(invocation, EmbeddingInvocation):
+            return "EMBEDDING"
+        elif isinstance(invocation, RetrieveInvocation):
+            return "RETRIEVE"
+        elif isinstance(invocation, RerankInvocation):
+            return "RERANK"
+        else:
+            return "UNKNOWN"
+
+    def _get_model_name(self, invocation: any) -> str:
+        """
+        Extract model name from invocation for LoongSuite metrics.
+        
+        Returns:
+            Model name string, or "UNKNOWN" if not available
+        """
+        # LLM and Embedding - use request_model
+        if hasattr(invocation, "request_model") and invocation.request_model:
+            return invocation.request_model
+        # Agent - use agent_name
+        elif hasattr(invocation, "agent_name") and invocation.agent_name:
+            return invocation.agent_name
+        # Tool - use tool_name
+        elif hasattr(invocation, "tool_name") and invocation.tool_name:
+            return invocation.tool_name
+        # Response model as fallback
+        elif hasattr(invocation, "response_model_name") and invocation.response_model_name:
+            return invocation.response_model_name
+        else:
+            return "UNKNOWN"
 
     def _calculate_duration(self, invocation: any) -> Optional[float]:
         """
@@ -392,7 +580,7 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
         
         Returns duration in seconds, or None if not available.
         """
-        # Check if invocation has monotonic_start_s attribute (from LLMInvocation)
+        # Check if invocation has monotonic_start_s attribute
         if hasattr(invocation, "monotonic_start_s") and invocation.monotonic_start_s is not None:
             duration_seconds = max(
                 timeit.default_timer() - invocation.monotonic_start_s, 0.0
@@ -401,48 +589,6 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
                 return duration_seconds
         return None
 
-    def _record_token_usage(
-        self,
-        span_context: any,
-        base_attributes: Dict[str, AttributeValue],
-        input_tokens: Optional[int],
-        output_tokens: Optional[int],
-    ) -> None:
-        """
-        Record token usage metrics for invocations that have token counts.
-        
-        Args:
-            span_context: The span context for recording metrics
-            base_attributes: Base attributes to include in metrics
-            input_tokens: Number of input tokens, if available
-            output_tokens: Number of output tokens, if available
-        """
-        try:
-            # Record input tokens
-            if input_tokens is not None and input_tokens > 0:
-                input_attributes = base_attributes.copy()
-                input_attributes[GenAI.GEN_AI_TOKEN_TYPE] = (
-                    GenAI.GenAiTokenTypeValues.INPUT.value
-                )
-                self._token_histogram.record(
-                    input_tokens,
-                    attributes=input_attributes,
-                    context=span_context,
-                )
-
-            # Record output tokens
-            if output_tokens is not None and output_tokens > 0:
-                output_attributes = base_attributes.copy()
-                output_attributes[GenAI.GEN_AI_TOKEN_TYPE] = (
-                    GenAI.GenAiTokenTypeValues.OUTPUT.value
-                )
-                self._token_histogram.record(
-                    output_tokens,
-                    attributes=output_attributes,
-                    context=span_context,
-                )
-        except Exception as e:
-            _logger.debug(f"Error recording token usage: {e}")
 
 
 __all__ = ["ExtendedInvocationMetricsRecorder"]
