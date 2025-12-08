@@ -84,8 +84,8 @@ class AgentScopeInstrumentor(BaseInstrumentor):
 
     def __init__(self):
         super().__init__()
-        self._tracer = None  # 仅用于 Formatter instrumentation
-        self._handler = None  # ExtendedTelemetryHandler 处理所有其他操作
+        self._tracer = None  # Only used for Formatter instrumentation
+        self._handler = None  # ExtendedTelemetryHandler handles all other operations
 
     def instrumentation_dependencies(self) -> Collection[str]:
         return _instruments
@@ -100,19 +100,19 @@ class AgentScopeInstrumentor(BaseInstrumentor):
         meter_provider = kwargs.get("meter_provider")
         logger_provider = kwargs.get("logger_provider")
 
-        # ExtendedTelemetryHandler 内部会创建 tracer/meter/logger，使用正确的 schema (V1_37_0)
+        # ExtendedTelemetryHandler internally creates tracer/meter/logger with correct schema (V1_37_0)
         self._handler = ExtendedTelemetryHandler(
             tracer_provider=tracer_provider,
             meter_provider=meter_provider,
             logger_provider=logger_provider,
         )
 
-        # 为 Formatter instrumentation 创建单独的 tracer（它不使用 handler）
+        # Create a separate tracer for Formatter instrumentation (it doesn't use handler)
         self._tracer = trace_api.get_tracer(
             __name__,
             __version__,
             tracer_provider,
-            schema_url=Schemas.V1_37_0.value,  # ✅ 更新为 V1_37_0
+            schema_url=Schemas.V1_37_0.value,
         )
 
         # Instrument ChatModelBase

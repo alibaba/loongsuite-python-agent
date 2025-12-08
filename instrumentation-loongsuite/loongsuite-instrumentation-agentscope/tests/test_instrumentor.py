@@ -45,8 +45,8 @@ class TestAgentScopeInstrumentor(unittest.TestCase):
     def test_init(self):
         """Tests instrumentor initialization."""
         self.assertIsNotNone(self.instrumentor)
-        # 新实现使用 ExtendedTelemetryHandler，不再直接暴露 _meter 和 _event_logger
-        # 这些属性由 handler 内部管理
+        # New implementation uses ExtendedTelemetryHandler, _meter and _event_logger
+        # are no longer directly exposed, they are managed internally by the handler
         self.assertIsNone(self.instrumentor._tracer)
         self.assertIsNone(self.instrumentor._handler)
 
@@ -63,10 +63,11 @@ class TestAgentScopeInstrumentor(unittest.TestCase):
         self.instrumentor.instrument(tracer_provider=self.tracer_provider)
 
         # Verify instrumentor state
-        # 新实现使用 ExtendedTelemetryHandler，meter 和 event_logger 由 handler 内部管理
+        # New implementation uses ExtendedTelemetryHandler, meter and event_logger
+        # are managed internally by the handler
         self.assertIsNotNone(self.instrumentor._tracer)
         self.assertIsNotNone(self.instrumentor._handler)
-        # 验证 handler 内部有 meter（通过 _metrics_recorder）
+        # Verify handler has meter internally (via _metrics_recorder)
         self.assertIsNotNone(self.instrumentor._handler._metrics_recorder)
 
     def test_instrument_with_meter_provider(self):
@@ -79,8 +80,8 @@ class TestAgentScopeInstrumentor(unittest.TestCase):
             meter_provider=mock_meter_provider,
         )
 
-        # 新实现使用 ExtendedTelemetryHandler，meter 由 handler 内部管理
-        # 验证 handler 存在且使用了 meter_provider
+        # New implementation uses ExtendedTelemetryHandler, meter is managed internally by the handler
+        # Verify handler exists and uses meter_provider
         self.assertIsNotNone(self.instrumentor._handler)
         self.assertIsNotNone(self.instrumentor._handler._metrics_recorder)
 
@@ -94,8 +95,8 @@ class TestAgentScopeInstrumentor(unittest.TestCase):
             event_logger_provider=mock_event_logger_provider,
         )
 
-        # 新实现使用 ExtendedTelemetryHandler，event_logger 由 handler 内部管理
-        # 验证 handler 存在（event_logger 在 handler 内部使用）
+        # New implementation uses ExtendedTelemetryHandler, event_logger is managed internally by the handler
+        # Verify handler exists (event_logger is used internally by the handler)
         self.assertIsNotNone(self.instrumentor._handler)
 
     def test_uninstrument(self):
