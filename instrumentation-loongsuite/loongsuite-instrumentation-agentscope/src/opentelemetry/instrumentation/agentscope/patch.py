@@ -94,13 +94,13 @@ async def _trace_async_generator_wrapper(result_generator, span):
     
     finally:
         if not has_error:
-        if last_chunk:
-            try:
-                result_content = _get_tool_result(last_chunk)
-                if result_content:
+            if last_chunk:
+                try:
+                    result_content = _get_tool_result(last_chunk)
+                    if result_content:
                         span.set_attribute("gen_ai.tool.call.result", _serialize_to_str(result_content))
-            except Exception:
-                pass
+                except Exception:
+                    pass
             span.set_status(StatusCode.OK)
         span.end()
 
@@ -158,8 +158,8 @@ async def wrap_tool_call(wrapped, instance, args, kwargs, handler=None, tracer=N
             # Wrap the async generator to collect results and end span when done
             return _trace_async_generator_wrapper(result_generator, span)
         except Exception as error:
-                span.set_status(StatusCode.ERROR, str(error))
-                span.record_exception(error)
+            span.set_status(StatusCode.ERROR, str(error))
+            span.record_exception(error)
             span.end()
             raise error from None
 
