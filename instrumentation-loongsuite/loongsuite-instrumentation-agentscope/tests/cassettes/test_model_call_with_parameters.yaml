@@ -1,0 +1,155 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: Write a short poem
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        max_tokens: 100
+        result_format: message
+        temperature: 0.8
+        top_p: 0.9
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"B","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":13,"output_tokens":1,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"eneath the","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":16,"output_tokens":4,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" moon's soft","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":19,"output_tokens":7,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" silver","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":20,"output_tokens":8,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" glow,\nA whisper","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":24,"output_tokens":12,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"ing wind begins to blow.\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":30,"output_tokens":18,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"It dances through the silent","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":35,"output_tokens":23,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" trees,\nAnd r","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":39,"output_tokens":27,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"ipples over quiet seas","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":43,"output_tokens":31,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:10
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":".\n\nThe stars,","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":47,"output_tokens":35,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:11
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" like tiny lanterns hung","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":52,"output_tokens":40,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:12
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":",\nAbove the earth in","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":57,"output_tokens":45,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:13
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" darkness strung.\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":61,"output_tokens":49,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:14
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"They twinkle with","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":65,"output_tokens":53,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:15
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" a gentle light,\nGuid","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":70,"output_tokens":58,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:16
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"ing dreams that take","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":74,"output_tokens":62,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:17
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" their flight.","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":77,"output_tokens":65,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+        id:18
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":77,"output_tokens":65,"input_tokens":12,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"34c93a21-9ab6-496a-b8f3-5b1f7a87b038"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Tue, 02 Dec 2025 14:17:57 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764685077736'
+      req-cost-time:
+      - '261'
+      resp-start-time:
+      - '1764685077997'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '255'
+      x-request-id:
+      - 34c93a21-9ab6-496a-b8f3-5b1f7a87b038
+    status:
+      code: 200
+      message: OK
+version: 1

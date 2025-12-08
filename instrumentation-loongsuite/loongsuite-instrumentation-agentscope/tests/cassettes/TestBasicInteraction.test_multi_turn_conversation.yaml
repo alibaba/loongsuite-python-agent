@@ -1,0 +1,193 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a conversational assistant.
+          role: system
+        - content: Hello, my name is Alice
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"Hello","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":27,"output_tokens":1,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" Alice! It","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":30,"output_tokens":4,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"'s nice to","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":33,"output_tokens":7,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" meet you.","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":36,"output_tokens":10,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" How can I assist you today","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":42,"output_tokens":16,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"?","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":43,"output_tokens":17,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":43,"output_tokens":17,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"350bef1a-0441-4eee-819d-8075c4d31407"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 08:51:28 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764233488023'
+      req-cost-time:
+      - '286'
+      resp-start-time:
+      - '1764233488310'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '279'
+      x-request-id:
+      - 350bef1a-0441-4eee-819d-8075c4d31407
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a conversational assistant.
+          role: system
+        - content: Hello, my name is Alice
+          role: user
+        - content: What's my name?
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"Your","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":33,"output_tokens":1,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" name is Alice","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":36,"output_tokens":4,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":". Nice","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":38,"output_tokens":6,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" to meet you","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":41,"output_tokens":9,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"!","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":42,"output_tokens":10,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":42,"output_tokens":10,"input_tokens":32,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4848dc54-c713-44fa-8c29-4b6a7902cec4"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 08:51:28 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764233488920'
+      req-cost-time:
+      - '231'
+      resp-start-time:
+      - '1764233489151'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '225'
+      x-request-id:
+      - 4848dc54-c713-44fa-8c29-4b6a7902cec4
+    status:
+      code: 200
+      message: OK
+version: 1

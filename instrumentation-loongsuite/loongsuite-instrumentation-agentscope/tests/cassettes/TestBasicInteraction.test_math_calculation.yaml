@@ -1,0 +1,229 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a math assistant.
+          role: system
+        - content: Calculate 123 * 456
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"To","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":30,"output_tokens":1,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" calculate \\(1","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":33,"output_tokens":4,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"23 \\","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":36,"output_tokens":7,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"times 4","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":39,"output_tokens":10,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"56\\), you can","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":45,"output_tokens":16,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" use the standard multiplication method:\n\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":51,"output_tokens":22,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"\\[\n\\begin{array","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":57,"output_tokens":28,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"}{r}\n     ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":61,"output_tokens":32,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" 123 \\\\\n\\t","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":67,"output_tokens":38,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:10
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"imes 456 \\\\\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":73,"output_tokens":44,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:11
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"\\hline\n     ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":79,"output_tokens":50,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:12
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"738 ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":83,"output_tokens":54,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:13
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" & \\text{(","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":87,"output_tokens":58,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:14
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"123 *","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":91,"output_tokens":62,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:15
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" 6)} \\\\\n   ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":96,"output_tokens":67,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:16
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" 615","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":100,"output_tokens":71,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:17
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"0  & \\text{(","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":106,"output_tokens":77,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:18
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"123 * 5","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":112,"output_tokens":83,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:19
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":", shifted one position","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":116,"output_tokens":87,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:20
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" to the left)} \\\\\n+","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":122,"output_tokens":93,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:21
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" 49200","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":128,"output_tokens":99,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:22
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"  & \\text{(1","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":134,"output_tokens":105,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:23
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"23 * 4,","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":140,"output_tokens":111,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:24
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" shifted two positions to the left","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":146,"output_tokens":117,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:25
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":")} \\\\\n\\hline\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":152,"output_tokens":123,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:26
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"   56","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":156,"output_tokens":127,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:27
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"088 \\\\\n","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":160,"output_tokens":131,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:28
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"\\end{array}\n\\","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":166,"output_tokens":137,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:29
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"]\n\nSo, \\(12","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":172,"output_tokens":143,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:30
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"3 \\times 45","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":178,"output_tokens":149,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:31
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"6 = 560","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":184,"output_tokens":155,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:32
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"88\\).","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":188,"output_tokens":159,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+        id:33
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":188,"output_tokens":159,"input_tokens":29,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"778bd516-71ce-40ce-a785-5a775a3f1631"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 08:51:17 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764233477451'
+      req-cost-time:
+      - '245'
+      resp-start-time:
+      - '1764233477697'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '237'
+      x-request-id:
+      - 778bd516-71ce-40ce-a785-5a775a3f1631
+    status:
+      code: 200
+      message: OK
+version: 1

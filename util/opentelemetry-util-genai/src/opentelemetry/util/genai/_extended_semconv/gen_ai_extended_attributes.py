@@ -117,3 +117,9 @@ class GenAiExtendedOperationNameValues(Enum):
 class GenAiExtendedProviderNameValues(Enum):
     DASHSCOPE = "dashscope"
     """DashScope."""
+
+    OLLAMA = "ollama"
+    """Ollama."""
+
+    MOONSHOT = "moonshot"
+    """Moonshot."""
