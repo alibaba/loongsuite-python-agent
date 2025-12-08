@@ -18,7 +18,7 @@ from ._test_helpers import print_span_tree
 
 
 class TestSpanContentCapture:
-    """测试 Span 内容捕获功能"""
+    """Test Span content capture functionality"""
 
     @pytest.mark.vcr()
     def test_span_content_with_span_only(
@@ -27,7 +27,7 @@ class TestSpanContentCapture:
         instrument_with_content,
         request,
     ):
-        """测试 SPAN_ONLY 模式下是否捕获 input/output"""
+        """Test if input/output is captured in SPAN_ONLY mode"""
         # agentscope.init already called in fixture # agentscope.init(project="test_span_content")
 
         toolkit = Toolkit()
@@ -51,12 +51,12 @@ class TestSpanContentCapture:
         response = asyncio.run(run())
         assert response is not None
 
-        # 获取 spans
+        # Get spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         print_span_tree(spans)
 
-        # 查找 chat span
+        # Find chat span
         chat_spans = [
             s for s in spans
             if s.attributes and s.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "chat"
@@ -64,7 +64,7 @@ class TestSpanContentCapture:
 
         assert len(chat_spans) > 0, "Expected at least one chat span"
 
-        # 检查第一个 chat span 的属性
+        # Check attributes of first chat span
         chat_span = chat_spans[0]
         attrs = dict(chat_span.attributes)
 
@@ -73,7 +73,7 @@ class TestSpanContentCapture:
             if "message" in key.lower() or "input" in key.lower() or "output" in key.lower():
                 print(f"{key}: {value[:100] if isinstance(value, str) and len(value) > 100 else value}")
 
-        # 验证 input/output 是否被捕获
+        # Verify if input/output is captured
         has_input = any(
             "input" in k.lower() or "prompt" in k.lower()
             for k in attrs.keys()
@@ -86,14 +86,14 @@ class TestSpanContentCapture:
         print(f"\nHas input-related attributes: {has_input}")
         print(f"Has output-related attributes: {has_output}")
 
-        # 打印所有属性键
+        # Print all attribute keys
         print(f"\nAll attribute keys: {sorted(attrs.keys())}")
 
-        # 验证基本的 GenAI 属性
+        # Verify basic GenAI attributes
         assert GenAIAttributes.GEN_AI_OPERATION_NAME in attrs
         assert GenAIAttributes.GEN_AI_REQUEST_MODEL in attrs
 
-        # 检查是否有 input messages 或 output messages
+        # Check if there are input messages or output messages
         if GenAIAttributes.GEN_AI_INPUT_MESSAGES in attrs:
             print("\n✓ Found GEN_AI_INPUT_MESSAGES")
             print(f"  Value: {attrs[GenAIAttributes.GEN_AI_INPUT_MESSAGES][:200]}...")
@@ -110,7 +110,7 @@ class TestSpanContentCapture:
         instrument_with_content_and_events,
         request,
     ):
-        """测试 SPAN_AND_EVENT 模式下是否在 span 和 event 中都捕获内容"""
+        """Test if content is captured in both span and event in SPAN_AND_EVENT mode"""
         # agentscope.init already called in fixture # agentscope.init(project="test_span_and_event")
 
         toolkit = Toolkit()
@@ -134,15 +134,15 @@ class TestSpanContentCapture:
         response = asyncio.run(run())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
 
-        # 验证 events
+        # Verify events
         logs = log_exporter.get_finished_logs()
         print(f"\n=== Found {len(logs)} log events ===")
 
-        # 查找 chat span
+        # Find chat span
         chat_spans = [
             s for s in spans
             if s.attributes and s.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "chat"
@@ -158,7 +158,7 @@ class TestSpanContentCapture:
             if GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in attrs:
                 print("✓ Span has output messages")
 
-        # 如果有 log events，检查内容
+        # If there are log events, check content
         if len(logs) > 0:
             print("\n=== Checking for content in events ===")
             for i, log in enumerate(logs):
@@ -167,7 +167,7 @@ class TestSpanContentCapture:
                     event_name = attrs.get("event.name", "unknown")
                     print(f"Event {i}: {event_name}")
 
-                    # 检查是否有内容
+                    # Check if there is content
                     has_content = any(
                         "content" in str(k).lower() or "message" in str(k).lower()
                         for k in attrs.keys()
@@ -182,7 +182,7 @@ class TestSpanContentCapture:
         instrument_no_content,
         request,
     ):
-        """测试内容捕获禁用时的情况"""
+        """Test when content capture is disabled"""
         # agentscope.init already called in fixture # agentscope.init(project="test_no_content")
 
         toolkit = Toolkit()
@@ -206,7 +206,7 @@ class TestSpanContentCapture:
         response = asyncio.run(run())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [
             s for s in spans
@@ -218,14 +218,14 @@ class TestSpanContentCapture:
             attrs = dict(chat_span.attributes)
 
             print("\n=== Content capture disabled ===")
-            # 内容应该不被捕获
+            # Content should not be captured
             has_input_messages = GenAIAttributes.GEN_AI_INPUT_MESSAGES in attrs
             has_output_messages = GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in attrs
 
             print(f"Has input messages: {has_input_messages}")
             print(f"Has output messages: {has_output_messages}")
 
-            # 但基本属性应该存在
+            # But basic attributes should exist
             assert GenAIAttributes.GEN_AI_OPERATION_NAME in attrs
             assert GenAIAttributes.GEN_AI_REQUEST_MODEL in attrs
 

@@ -23,7 +23,7 @@ from ._test_helpers import (
 
 @pytest.fixture(scope="function")
 def dashscope_model(request):
-    """创建 DashScope 聊天模型"""
+    """Create DashScope chat model"""
     return DashScopeChatModel(
         model_name="qwen-max",
         api_key=request.config.option.api_key,
@@ -31,7 +31,7 @@ def dashscope_model(request):
 
 
 class TestAgentBasic:
-    """Agent 基础测试"""
+    """Agent basic tests"""
 
     def test_agent_simple_call(
         self,
@@ -40,11 +40,11 @@ class TestAgentBasic:
         instrument_with_content,
         dashscope_model,
     ):
-        """测试简单的 Agent 调用"""
+        """Test simple Agent call"""
         # Initialize agentscope
         agentscope.init(project="test_agent_simple")
 
-        # 创建 agent（不使用工具）
+        # Create agent (without tools)
         agent = ReActAgent(
             name="TestAgent",
             sys_prompt="You are a helpful assistant.",
@@ -52,10 +52,10 @@ class TestAgentBasic:
             formatter=DashScopeChatFormatter(),
         )
 
-        # 创建消息
+        # Create message
         msg = Msg("user", "Hello, how are you?", "user")
 
-        # 异步调用 agent
+        # Call agent asynchronously
         async def run_agent():
             response = await agent(msg)
             if hasattr(response, "__aiter__"):
@@ -67,18 +67,18 @@ class TestAgentBasic:
 
         response = asyncio.run(run_agent())
 
-        # 验证响应不为空
+        # Verify response is not None
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         print_span_tree(spans)
 
-        # 应该有 agent span 和 model span
+        # Should have agent span and model span
         assert len(spans) >= 1, f"Expected at least 1 span, got {len(spans)}"
 
-        # 查找 chat model spans
+        # Find chat model spans
         chat_spans = find_spans_by_name_prefix(spans, "chat ")
         assert len(chat_spans) > 0, "Expected at least one chat model span"
 
@@ -88,14 +88,14 @@ class TestAgentBasic:
         instrument_with_content,
         dashscope_model,
     ):
-        """测试带工具的 Agent 调用"""
+        """Test Agent call with tools"""
         agentscope.init(project="test_agent_tool")
 
-        # 创建工具包
+        # Create toolkit
         toolkit = Toolkit()
         toolkit.register_tool_function(execute_shell_command)
 
-        # 创建 agent
+        # Create agent
         agent = ReActAgent(
             name="ToolAgent",
             sys_prompt="You are an assistant with tool access.",
@@ -104,7 +104,7 @@ class TestAgentBasic:
             toolkit=toolkit,
         )
 
-        # 创建需要工具的消息
+        # Create message requiring tools
         msg = Msg("user", "compute 10+20 for me using shell", "user")
 
         async def run_agent():
@@ -122,7 +122,7 @@ class TestAgentBasic:
 
         asyncio.run(run_agent())
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         print_span_tree(spans)
@@ -130,11 +130,11 @@ class TestAgentBasic:
         # Should have at least model span
         assert len(spans) >= 1
 
-        # 查找各类 spans
+        # Find various spans
         chat_spans = find_spans_by_name_prefix(spans, "chat ")
         print(f"Found {len(chat_spans)} chat spans")
 
-        # 可能会有 tool spans（取决于是否真的调用了工具）
+        # May have tool spans (depending on whether tools were actually called)
         tool_spans = [
             s for s in spans
             if "tool" in s.name.lower() or
@@ -149,7 +149,7 @@ class TestAgentBasic:
         instrument_with_content,
         dashscope_model,
     ):
-        """测试多轮对话的 Agent 调用"""
+        """Test Agent call with multiple turns"""
         agentscope.init(project="test_agent_multi_turn")
 
         agent = ReActAgent(
@@ -169,28 +169,28 @@ class TestAgentBasic:
                 return result[-1] if result else response
             return response
 
-        # 多轮对话
+        # Multiple turns
         asyncio.run(run_agent("Hello"))
         asyncio.run(run_agent("What's 2+2?"))
         asyncio.run(run_agent("Thank you"))
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Multi-turn conversation: {len(spans)} spans ===")
 
-        # 在录制模式下应该有多个 model call spans
-        # 在回放模式下可能没有（VCR 拦截了 HTTP 请求）
+        # In recording mode should have multiple model call spans
+        # In replay mode may not have (VCR intercepts HTTP requests)
         chat_spans = [
             s for s in spans
             if s.attributes and s.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "chat"
         ]
-        # 至少应该有一些 spans（即使没有 chat spans，也应该有 agent spans）
+        # Should have at least some spans (even if no chat spans, should have agent spans)
         assert len(spans) >= 3, f"Expected at least 3 spans total, got {len(spans)}"
         print(f"Chat spans: {len(chat_spans)}")
 
 
 class TestAgentAttributes:
-    """Agent 属性测试"""
+    """Agent attribute tests"""
 
     def test_agent_span_attributes(
         self,
@@ -198,7 +198,7 @@ class TestAgentAttributes:
         instrument_with_content,
         dashscope_model,
     ):
-        """测试 Agent span 的属性"""
+        """Test Agent span attributes"""
         agentscope.init(project="test_agent_attrs")
 
         agent = ReActAgent(
@@ -221,17 +221,17 @@ class TestAgentAttributes:
 
         asyncio.run(run_agent())
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
 
-        # 查找 chat spans 并验证属性
+        # Find chat spans and verify attributes
         chat_spans = find_spans_by_name_prefix(spans, "chat ")
         assert len(chat_spans) > 0
 
         chat_span = chat_spans[0]
         attrs = chat_span.attributes
 
-        # 验证基本属性
+        # Verify basic attributes
         assert GenAIAttributes.GEN_AI_OPERATION_NAME in attrs
         assert GenAIAttributes.GEN_AI_REQUEST_MODEL in attrs
         assert "gen_ai.provider.name" in attrs
@@ -242,7 +242,7 @@ class TestAgentAttributes:
         instrument_with_content,
         dashscope_model,
     ):
-        """测试 Agent 使用 Formatter 的情况"""
+        """Test Agent using Formatter"""
         agentscope.init(project="test_formatter")
 
         agent = ReActAgent(
@@ -265,11 +265,11 @@ class TestAgentAttributes:
 
         asyncio.run(run_agent())
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Formatter test: {len(spans)} spans ===")
 
-        # 可能会有 formatter spans
+        # May have formatter spans
         formatter_spans = [
             s for s in spans
             if "format" in s.name.lower() or
@@ -280,17 +280,17 @@ class TestAgentAttributes:
 
 
 class TestAgentError:
-    """Agent 错误处理测试"""
+    """Agent error handling tests"""
 
     def test_agent_with_invalid_model(
         self,
         span_exporter,
         instrument_with_content,
     ):
-        """测试使用无效模型的 Agent"""
+        """Test Agent with invalid model"""
         agentscope.init(project="test_invalid_model")
 
-        # 创建一个使用无效 API key 的模型
+        # Create a model with invalid API key
         invalid_model = DashScopeChatModel(
             model_name="qwen-max",
             api_key="invalid_key_test",
@@ -320,7 +320,7 @@ class TestAgentError:
 
         asyncio.run(run_agent())
 
-        # 验证即使出错也会创建 spans
+        # Verify spans are created even on error
         spans = span_exporter.get_finished_spans()
         print(f"\nError test found {len(spans)} spans")
 

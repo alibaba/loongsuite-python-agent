@@ -17,11 +17,11 @@ from opentelemetry.semconv._incubating.attributes import (
 
 
 class TestBasicInteraction:
-    """Agent 基本交互测试"""
+    """Agent basic interaction tests"""
 
     @pytest.mark.vcr()
     def test_simple_qa(self, instrument_with_content, span_exporter, request):
-        """测试简单问答交互"""
+        """Test simple Q&A interaction"""
         agentscope.init(project="test_simple_qa")
 
         # Create model
@@ -30,7 +30,7 @@ class TestBasicInteraction:
             model_name="qwen-max",
         )
 
-        # 创建 Agent
+        # Create Agent
         agent = ReActAgent(
             name="Assistant",
             sys_prompt="You are a helpful assistant.",
@@ -38,10 +38,10 @@ class TestBasicInteraction:
             formatter=DashScopeChatFormatter(),
         )
 
-        # 准备消息
+        # Prepare message
         msg = Msg("user", "What is the capital of France?", "user")
 
-        # 调用 Agent
+        # Call Agent
         async def call_agent():
             response = await agent(msg)
             if hasattr(response, "__aiter__"):
@@ -54,17 +54,17 @@ class TestBasicInteraction:
         response = asyncio.run(call_agent())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         for span in spans:
             print(f"  - {span.name}")
 
-        # Should have at least一个聊天模型 span
+        # Should have at least one chat model span
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1, "No chat spans found"
 
-        # 可能还有 Agent span 和 Formatter span
+        # May also have Agent span and Formatter span
         agent_spans = [span for span in spans if "agent" in span.name.lower()]
         print(f"Agent spans: {len(agent_spans)}")
 
@@ -74,7 +74,7 @@ class TestBasicInteraction:
     def test_multi_turn_conversation(
         self, instrument_with_content, span_exporter, request
     ):
-        """测试多轮对话"""
+        """Test multi-turn conversation"""
         agentscope.init(project="test_multi_turn")
 
         model = DashScopeChatModel(
@@ -89,7 +89,7 @@ class TestBasicInteraction:
             formatter=DashScopeChatFormatter(),
         )
 
-        # 多轮对话
+        # Multiple turns
         async def multi_turn():
             msg1 = Msg("user", "My name is Alice", "user")
             response1 = await agent(msg1)
@@ -109,11 +109,11 @@ class TestBasicInteraction:
         response = asyncio.run(multi_turn())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
 
-        # Should have at least 2 个聊天 span
+        # Should have at least 2 chat spans
         assert len(chat_spans) >= 2, f"Expected at least 2 chat spans, got {len(chat_spans)}"
 
         print("✓ Multi-turn conversation test completed successfully")
@@ -122,7 +122,7 @@ class TestBasicInteraction:
     def test_math_calculation(
         self, instrument_with_content, span_exporter, request
     ):
-        """测试数学计算任务"""
+        """Test math calculation task"""
         agentscope.init(project="test_math")
 
         model = DashScopeChatModel(
@@ -130,7 +130,7 @@ class TestBasicInteraction:
             model_name="qwen-max",
         )
 
-        # 创建带工具的 Agent
+        # Create Agent with tools
         toolkit = Toolkit()
         toolkit.register_tool_function(execute_shell_command)
 
@@ -156,17 +156,17 @@ class TestBasicInteraction:
         response = asyncio.run(call_agent())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         for span in spans:
             print(f"  - {span.name}")
 
-        # 应该有聊天模型 span
+        # Should have chat model span
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
 
-        # 可能有工具调用 span
+        # May have tool call span
         tool_spans = [span for span in spans if "tool" in span.name.lower()]
         print(f"Tool spans: {len(tool_spans)}")
 
@@ -174,13 +174,13 @@ class TestBasicInteraction:
 
 
 class TestStreamPrinting:
-    """流式输出测试"""
+    """Streaming output tests"""
 
     @pytest.mark.vcr()
     def test_single_agent_streaming(
         self, instrument_with_content, span_exporter, request
     ):
-        """测试单个 Agent 流式输出"""
+        """Test single Agent streaming output"""
         agentscope.init(project="test_stream_single")
 
         model = DashScopeChatModel(
@@ -215,7 +215,7 @@ class TestStreamPrinting:
         print(f"Received {chunk_count} chunks")
         assert last_chunk is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
@@ -224,13 +224,13 @@ class TestStreamPrinting:
 
 
 class TestStructuredOutput:
-    """结构化输出测试"""
+    """Structured output tests"""
 
     @pytest.mark.vcr()
     def test_structured_output_einstein(
         self, instrument_with_content, span_exporter, request
     ):
-        """测试结构化输出 - Einstein 示例"""
+        """Test structured output - Einstein example"""
         agentscope.init(project="test_structured")
 
         model = DashScopeChatModel(
@@ -259,13 +259,13 @@ class TestStructuredOutput:
         response = asyncio.run(call_agent())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         print(f"\n=== Found {len(spans)} spans ===")
         for span in spans:
             print(f"  - {span.name}")
 
-        # 验证基本属性
+        # Verify basic attributes
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
 
@@ -274,7 +274,7 @@ class TestStructuredOutput:
         assert chat_span.attributes[GenAIAttributes.GEN_AI_OPERATION_NAME] == "chat"
         assert GenAIAttributes.GEN_AI_REQUEST_MODEL in chat_span.attributes
 
-        # 因为启用了内容捕获，应该有输入输出消息
+        # Since content capture is enabled, should have input/output messages
         assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in chat_span.attributes
         assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in chat_span.attributes
 
@@ -282,13 +282,13 @@ class TestStructuredOutput:
 
 
 class TestSpanContentCapture:
-    """Span 内容捕获测试"""
+    """Span content capture tests"""
 
     @pytest.mark.vcr()
     def test_span_content_disabled(
         self, instrument_no_content, span_exporter, request
     ):
-        """测试禁用内容捕获"""
+        """Test disabled content capture"""
         agentscope.init(project="test_content_disabled")
 
         model = DashScopeChatModel(
@@ -310,13 +310,13 @@ class TestSpanContentCapture:
         response = asyncio.run(call_model())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
 
         chat_span = chat_spans[0]
-        # 不应该有输入输出消息
+        # Should not have input/output messages
         assert GenAIAttributes.GEN_AI_INPUT_MESSAGES not in chat_span.attributes
         assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES not in chat_span.attributes
 
@@ -326,7 +326,7 @@ class TestSpanContentCapture:
     def test_span_content_with_span_only(
         self, instrument_with_content, span_exporter, request
     ):
-        """测试仅在 span 中捕获内容"""
+        """Test capturing content only in span"""
         agentscope.init(project="test_span_only")
 
         model = DashScopeChatModel(
@@ -348,13 +348,13 @@ class TestSpanContentCapture:
         response = asyncio.run(call_model())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
 
         chat_span = chat_spans[0]
-        # 应该有输入输出消息
+        # Should have input/output messages
         assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in chat_span.attributes
         assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in chat_span.attributes
 
@@ -364,7 +364,7 @@ class TestSpanContentCapture:
     def test_span_content_with_span_and_event(
         self, instrument_with_content_and_events, span_exporter, log_exporter, request
     ):
-        """测试在 span 和 event 中都捕获内容"""
+        """Test capturing content in both span and event"""
         agentscope.init(project="test_span_and_event")
 
         model = DashScopeChatModel(
@@ -386,17 +386,17 @@ class TestSpanContentCapture:
         response = asyncio.run(call_model())
         assert response is not None
 
-        # 验证 spans
+        # Verify spans
         spans = span_exporter.get_finished_spans()
         chat_spans = [span for span in spans if span.name.startswith("chat ")]
         assert len(chat_spans) >= 1
 
         chat_span = chat_spans[0]
-        # 应该有输入输出消息
+        # Should have input/output messages
         assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in chat_span.attributes
         assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in chat_span.attributes
 
-        # 验证 logs (可能有，也可能没有，取决于实现)
+        # Verify logs (may or may not exist, depending on implementation)
         logs = log_exporter.get_finished_logs()
         print(f"Found {len(logs)} log events")
 
