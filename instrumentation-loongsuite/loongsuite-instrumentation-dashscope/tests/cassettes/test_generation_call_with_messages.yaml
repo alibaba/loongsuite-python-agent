@@ -1,0 +1,86 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {},
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "Hello!"
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '105'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Hello! How can I assist you today? \ud83d\ude0a"
+          },
+          "usage": {
+            "input_tokens": 14,
+            "output_tokens": 11,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 25
+          },
+          "request_id": "95386392-96f0-4464-badd-331cdbb37634"
+        }
+    headers:
+      content-length:
+      - '245'
+      content-type:
+      - application/json
+      date:
+      - Mon, 17 Nov 2025 08:31:25 GMT
+      req-arrive-time:
+      - '1763368285985'
+      req-cost-time:
+      - '308'
+      resp-start-time:
+      - '1763368286293'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=95386392-96f0-4464-badd-331cdbb37634fc4ecf63fbc9ddef4e9f1c5c573710e6;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '301'
+      x-request-id:
+      - 95386392-96f0-4464-badd-331cdbb37634
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,73 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "wanx-v1",
+        "parameters": {},
+        "input": {
+          "prompt": "A mountain landscape"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '83'
+      Content-Type:
+      - application/json
+      X-DashScope-Async:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.2; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "bf2fdd62-dcc1-439b-afaa-a056505dc5ec",
+          "output": {
+            "task_id": "2d6b14cd-956b-47e8-b0b3-0afeb580f5dc",
+            "task_status": "PENDING"
+          }
+        }
+    headers:
+      content-length:
+      - '137'
+      content-type:
+      - application/json
+      date:
+      - Sun, 07 Dec 2025 11:29:27 GMT
+      req-arrive-time:
+      - '1765106967275'
+      req-cost-time:
+      - '132'
+      resp-start-time:
+      - '1765106967408'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=bf2fdd62-dcc1-439b-afaa-a056505dc5ec4cdc27ec633e66cc8e3c8f520583fc0e;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '124'
+      x-request-id:
+      - bf2fdd62-dcc1-439b-afaa-a056505dc5ec
+    status:
+      code: 200
+      message: OK
+version: 1

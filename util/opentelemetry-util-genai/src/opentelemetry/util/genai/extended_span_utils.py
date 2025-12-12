@@ -571,7 +571,9 @@ def _apply_rerank_finish_attributes(  # pylint: disable=too-many-branches
     span: Span, invocation: RerankInvocation
 ) -> None:
     """Apply attributes for rerank_documents operations."""
-    span.update_name(GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value)
+    span.update_name(
+        f"{GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value} {invocation.request_model or ''}".strip()
+    )
 
     # Build all attributes
     attributes: dict[str, Any] = {}

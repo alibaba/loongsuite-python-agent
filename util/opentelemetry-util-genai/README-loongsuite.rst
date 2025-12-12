@@ -614,6 +614,7 @@ Token 使用:
 设计文档
 --------
 
+<<<<<<< HEAD
 OpenTelemetry GenAI Utils 的设计文档: `Design Document <https://docs.google.com/document/d/1w9TbtKjuRX_wymS8DRSwPA03_VhrGlyx65hHAdNik1E/edit?tab=t.qneb4vabc1wc#heading=h.kh4j6stirken>`_
 
 参考资料
@@ -622,4 +623,10 @@ OpenTelemetry GenAI Utils 的设计文档: `Design Document <https://docs.google
 * `OpenTelemetry Project <https://opentelemetry.io/>`_
 * `OpenTelemetry GenAI Semantic Conventions <https://opentelemetry.io/docs/specs/semconv/gen-ai/>`_
 * `LoongSuite OpenTelemetry Python Agent <https://github.com/loongsuite/loongsuite-python-agent>`_
+=======
+- ``ExtendedTelemetryHandler`` 是 ``TelemetryHandler`` 的子类，完全兼容原有 API
+- 可以安全地替换 ``get_telemetry_handler()`` 为 ``get_extended_telemetry_handler()``
+- 所有原有功能保持不变，只是增加了新的操作类型支持
+- Embedding 操作的 ``gen_ai.operation.name`` 应该是 ``"embeddings"`` （复数形式），符合语义规范
+>>>>>>> 3a90289e3 (Add extended message parts)
 
