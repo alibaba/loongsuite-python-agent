@@ -26,13 +26,15 @@ class TestOutputPreviewExtraction(unittest.TestCase):
         """Tests string output preview extraction"""
         result = "This is a test output"
         preview = _extract_output_preview(result, 15)
-        self.assertEqual(preview, "This is a test ...")
+        # No truncation in instrumentation
+        self.assertEqual(preview, "This is a test output")
 
     def test_extract_output_preview_dict_with_memory(self):
         """Tests dict with memory field output preview extraction"""
         result = {"memory": "Memory content here"}
         preview = _extract_output_preview(result, 15)
-        self.assertEqual(preview, "Memory content ...")
+        # No truncation in instrumentation
+        self.assertEqual(preview, "Memory content here")
 
     def test_extract_output_preview_dict_with_results(self):
         """Tests dict with results list output preview extraction - Return original content directly"""
@@ -50,7 +52,7 @@ class TestOutputPreviewExtraction(unittest.TestCase):
             self.assertIn("Second memory", preview)
 
     def test_extract_output_preview_dict_with_results_truncated(self):
-        """Tests dict with results list output preview extraction - truncated"""
+        """Tests dict with results list output preview extraction - no truncation"""
         result = {
             "results": [
                 {"memory": "First memory"},
@@ -58,11 +60,11 @@ class TestOutputPreviewExtraction(unittest.TestCase):
             ]
         }
         preview = _extract_output_preview(result, 25)
-        # Original content truncated
+        # No truncation: should still contain content
         self.assertIsNotNone(preview)
         if preview:
-            self.assertTrue(preview.endswith("..."))
-            self.assertLessEqual(len(preview), 28)  # 25 + "..."
+            self.assertIn("First memory", preview)
+            self.assertIn("Second memory", preview)
 
     def test_extract_output_preview_list(self):
         """Tests list output preview extraction - Return original content directly"""
@@ -413,13 +415,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_input_messages_string(self):
         """Tests extracting input messages from string - directly returns original value"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         kwargs = {"messages": "Hello world", "user_id": "u1"}
         result = {}
         attributes = self.extractor.extract_generic_attributes(
@@ -436,13 +431,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_input_messages_dict_with_content(self):
         """Tests extracting input messages from dict - directly returns original value"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         kwargs = {
             "messages": {"role": "user", "content": "Hello from dict"},
             "user_id": "u1",
@@ -463,13 +451,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_input_messages_list_original(self):
         """Tests extracting input messages from list - directly returns original value"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         kwargs = {
             "messages": [
                 {"role": "system", "content": "System message"},
@@ -492,13 +473,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_output_messages_original(self):
         """Tests output messages - Return original content directly"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         kwargs = {"user_id": "u1", "memory_id": "mem_123"}
         result = {
             "results": [
@@ -673,13 +647,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_output_messages_memory_client_add_respects_async_mode(self):
         """MemoryClient.add: only capture output.messages when async_mode=False"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         # async_mode=True or not set -> don't capture output.messages
         kwargs_async = {
             "user_id": "u1",
@@ -757,13 +724,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_update_input_messages_with_data(self):
         """Tests update operation extracting data as input content"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         # Memory.update(memory_id, data)
         kwargs = {"memory_id": "mem_123", "data": "Updated memory content"}
         result = {"message": "Memory updated successfully!"}
@@ -784,13 +744,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_update_input_messages_with_text(self):
         """Tests update operation extracting text as input content (MemoryClient)"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         # MemoryClient.update(memory_id, text=...)
         kwargs = {"memory_id": "mem_456", "text": "New text content"}
         result = {"message": "Memory updated successfully!"}
@@ -811,13 +764,6 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     def test_batch_update_input_messages(self):
         """Tests batch_update operation extracting memories list as input content"""
-        from opentelemetry.instrumentation.mem0.config import (  # noqa: PLC0415
-            should_capture_content,
-        )
-
-        if not should_capture_content():
-            self.skipTest("Content capture is disabled")
-
         # MemoryClient.batch_update(memories=[...])
         kwargs = {
             "memories": [

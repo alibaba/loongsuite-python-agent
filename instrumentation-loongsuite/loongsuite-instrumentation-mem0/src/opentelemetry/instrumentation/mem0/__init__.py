@@ -26,6 +26,7 @@ from opentelemetry.instrumentation.mem0.package import _instruments
 from opentelemetry.instrumentation.mem0.version import __version__
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv.schemas import Schemas
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
 # Module-level logger
 logger = logging.getLogger(__name__)
@@ -121,6 +122,16 @@ class Mem0Instrumentor(BaseInstrumentor):
         if not tracer_provider:
             tracer_provider = trace_api.get_tracer_provider()
 
+        # Optional: logger provider for GenAI events (util will no-op if not provided)
+        logger_provider = kwargs.get("logger_provider")
+
+        # Create util GenAI handler (strong dependency, no fallback).
+        # Avoid singleton here so tests (and multiple tracer providers) don't leak across runs.
+        telemetry_handler = ExtendedTelemetryHandler(
+            tracer_provider=tracer_provider,
+            logger_provider=logger_provider,
+        )
+
         # Create tracer
         tracer = trace_api.get_tracer(
             "opentelemetry.instrumentation.mem0",
@@ -129,10 +140,9 @@ class Mem0Instrumentor(BaseInstrumentor):
             schema_url=Schemas.V1_28_0.value,
         )
 
-        # Wrap ThreadPoolExecutor.submit to support context propagation
         # Execute instrumentation (traces only, metrics removed)
-        self._instrument_memory_operations(tracer)
-        self._instrument_memory_client_operations(tracer)
+        self._instrument_memory_operations(telemetry_handler)
+        self._instrument_memory_client_operations(telemetry_handler)
         # Sub-phases controlled by toggle, avoid binding wrapper when disabled to reduce overhead
         if mem0_config.is_internal_phases_enabled():
             self._instrument_vector_operations(tracer)
@@ -379,7 +389,7 @@ class Mem0Instrumentor(BaseInstrumentor):
 
         return _wrapper
 
-    def _instrument_memory_operations(self, tracer):
+    def _instrument_memory_operations(self, telemetry_handler):
         """Instrument Memory and AsyncMemory operations."""
         try:
             if (
@@ -393,7 +403,7 @@ class Mem0Instrumentor(BaseInstrumentor):
                 )
                 return
 
-            wrapper = MemoryOperationWrapper(tracer)
+            wrapper = MemoryOperationWrapper(telemetry_handler)
 
             # Instrument Memory (sync)
             for method in self._public_methods_of(
@@ -431,7 +441,7 @@ class Mem0Instrumentor(BaseInstrumentor):
         except Exception as e:
             logger.debug(f"Failed to instrument Memory operations: {e}")
 
-    def _instrument_memory_client_operations(self, tracer):
+    def _instrument_memory_client_operations(self, telemetry_handler):
         """Instrument MemoryClient and AsyncMemoryClient operations."""
         try:
             if (
@@ -445,7 +455,7 @@ class Mem0Instrumentor(BaseInstrumentor):
                 )
                 return
 
-            wrapper = MemoryOperationWrapper(tracer)
+            wrapper = MemoryOperationWrapper(telemetry_handler)
 
             # Instrument MemoryClient (sync)
             for method in self._public_methods_of(

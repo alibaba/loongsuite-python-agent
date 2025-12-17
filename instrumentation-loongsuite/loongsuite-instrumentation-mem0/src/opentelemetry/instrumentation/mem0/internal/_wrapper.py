@@ -18,13 +18,18 @@ from opentelemetry.instrumentation.mem0.internal._extractors import (
     VectorOperationAttributeExtractor,
 )
 from opentelemetry.instrumentation.mem0.internal._util import (
+    extract_server_info,
     get_exception_type,
+    safe_str,
 )
 from opentelemetry.instrumentation.mem0.semconv import (
     SemanticAttributes,
     SpanName,
 )
 from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer
+
+from opentelemetry.util.genai._extended_memory import MemoryInvocation
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
 logger = logging.getLogger(__name__)
 
@@ -105,71 +110,17 @@ def _normalize_call_parameters(
     return normalized
 
 
-def _apply_operation_attributes(
-    span,
-    extractor,
-    operation_name: str,
-    instance: Any,
-    args: tuple,
-    kwargs: dict,
-    result: Any,
-    extract_attributes_func: Optional[Callable],
-    is_memory_client: bool = False,
-    func: Optional[Callable] = None,
-) -> None:
-    """
-    Unified attribute extraction and setting logic, reused by sync/async execution paths.
-
-    Args:
-        span: Current span
-        extractor: Attribute extractor
-        operation_name: Operation name
-        instance: Instance object
-        args: Positional arguments
-        kwargs: Keyword arguments
-        result: Execution result
-        extract_attributes_func: Custom attribute extraction function
-        is_memory_client: Whether MemoryClient instance
-        func: Original function object for parameter normalization
-    """
-    try:
-        # Normalize parameters using generic method (map args to kwargs)
-        normalized_kwargs = kwargs
-        if func is not None:
-            normalized_kwargs = _normalize_call_parameters(func, args, kwargs)
-
-        # Extract attributes
-        if extract_attributes_func:
-            operation_attrs = extract_attributes_func(
-                normalized_kwargs, result
-            )
-        else:
-            operation_attrs = extractor.extract_attributes_unified(
-                operation_name,
-                instance,
-                normalized_kwargs,
-                result,
-                is_memory_client=is_memory_client,
-            )
-
-        # Set attributes to span
-        for key, value in operation_attrs.items():
-            span.set_attribute(key, value)
-    except Exception as e:
-        logger.debug(f"Failed to set span attributes: {e}")
-
-
 class MemoryOperationWrapper:
     """Memory top-level operation wrapper."""
 
-    def __init__(self, tracer: Tracer):
+    def __init__(self, telemetry_handler: ExtendedTelemetryHandler):
         """
         Initialize wrapper.
 
         Args:
-            tracer: OpenTelemetry Tracer
+            telemetry_handler: GenAI ExtendedTelemetryHandler from opentelemetry-util-genai.
         """
-        self.tracer = tracer
+        self.telemetry_handler = telemetry_handler
         self.extractor = MemoryOperationAttributeExtractor()
 
     def wrap_operation(
@@ -193,7 +144,7 @@ class MemoryOperationWrapper:
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def sync_wrapper(instance: Any, *args, **kwargs):
-                return self._execute_with_span(
+                return self._execute_with_handler(
                     func,
                     instance,
                     args,
@@ -205,7 +156,7 @@ class MemoryOperationWrapper:
 
             @wraps(func)
             async def async_wrapper(instance: Any, *args, **kwargs):
-                return await self._execute_with_span_async(
+                return await self._execute_with_handler_async(
                     func,
                     instance,
                     args,
@@ -223,38 +174,130 @@ class MemoryOperationWrapper:
 
         return decorator
 
-    def _setup_span_and_attributes(
+    @staticmethod
+    def _set_invocation_fields_from_kwargs(
+        invocation: MemoryInvocation, normalized_kwargs: dict
+    ) -> None:
+        """Populate MemoryInvocation standard fields from normalized kwargs."""
+
+        def _int_or_none(value: Any) -> int | None:
+            try:
+                if value is None:
+                    return None
+                return int(value)
+            except Exception:
+                return None
+
+        def _float_or_none(value: Any) -> float | None:
+            try:
+                if value is None:
+                    return None
+                return float(value)
+            except Exception:
+                return None
+
+        if (user_id := normalized_kwargs.get("user_id")) is not None:
+            invocation.user_id = safe_str(user_id)
+        if (agent_id := normalized_kwargs.get("agent_id")) is not None:
+            invocation.agent_id = safe_str(agent_id)
+        if (run_id := normalized_kwargs.get("run_id")) is not None:
+            invocation.run_id = safe_str(run_id)
+        if (app_id := normalized_kwargs.get("app_id")) is not None:
+            invocation.app_id = safe_str(app_id)
+
+        if (memory_id := normalized_kwargs.get("memory_id")) is not None:
+            invocation.memory_id = safe_str(memory_id)
+        if (limit := normalized_kwargs.get("limit")) is not None:
+            invocation.limit = _int_or_none(limit)
+        if (page := normalized_kwargs.get("page")) is not None:
+            invocation.page = _int_or_none(page)
+        if (page_size := normalized_kwargs.get("page_size")) is not None:
+            invocation.page_size = _int_or_none(page_size)
+        if (top_k := normalized_kwargs.get("top_k")) is not None:
+            invocation.top_k = _int_or_none(top_k)
+        if (memory_type := normalized_kwargs.get("memory_type")) is not None:
+            invocation.memory_type = safe_str(memory_type)
+        if (threshold := normalized_kwargs.get("threshold")) is not None:
+            invocation.threshold = _float_or_none(threshold)
+        if "rerank" in normalized_kwargs:
+            # rerank can be explicitly False
+            invocation.rerank = bool(normalized_kwargs.get("rerank"))
+
+    @staticmethod
+    def _filter_operation_attrs_for_invocation(operation_attrs: dict) -> dict:
+        """Remove keys that should be carried by MemoryInvocation fields rather than custom attributes."""
+        # Strip content keys: content should go to invocation.input_messages/output_messages
+        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES, None)
+        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES, None)
+        # Strip server info keys: server info should go to invocation.server_address/server_port
+        operation_attrs.pop(SemanticAttributes.SERVER_ADDRESS, None)
+        operation_attrs.pop(SemanticAttributes.SERVER_PORT, None)
+        # Strip base semantic keys: util will set these
+        operation_attrs.pop(SemanticAttributes.GEN_AI_OPERATION_NAME, None)
+        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_OPERATION, None)
+        # Strip error key (error is handled by util)
+        operation_attrs.pop(SemanticAttributes.ERROR_TYPE, None)
+        return operation_attrs
+
+    def _apply_extracted_attrs_to_invocation(
         self,
-        span,
+        invocation: MemoryInvocation,
         instance: Any,
-        kwargs: dict,
+        normalized_kwargs: dict,
         operation_name: str,
-    ) -> dict:
-        """
-        Setup span basic and common attributes (shared by sync/async).
+        *,
+        result: Any = None,
+        extract_attributes_func: Optional[Callable] = None,
+        is_memory_client: bool = False,
+    ) -> None:
+        """Extract attributes using existing Mem0 extractor and map them onto MemoryInvocation."""
+        try:
+            if extract_attributes_func:
+                operation_attrs = extract_attributes_func(
+                    normalized_kwargs, result
+                )
+            else:
+                operation_attrs = self.extractor.extract_attributes_unified(
+                    operation_name,
+                    instance,
+                    normalized_kwargs,
+                    result,
+                    is_memory_client=is_memory_client,
+                )
 
-        Returns:
-            common_attrs: Common attributes dict for subsequent metrics recording
-        """
-        # Set basic attributes
-        span.set_attribute(
-            SemanticAttributes.GEN_AI_OPERATION_NAME,
-            SemanticAttributes.MEMORY_OPERATION,
-        )
-        span.set_attribute(
-            SemanticAttributes.GEN_AI_MEMORY_OPERATION, operation_name
-        )
+            # Map content to invocation fields (let util decide whether to record them)
+            if (input_msg := operation_attrs.get(
+                SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES
+            )) is not None:
+                invocation.input_messages = input_msg
+            if (output_msg := operation_attrs.get(
+                SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
+            )) is not None:
+                invocation.output_messages = output_msg
 
-        # Extract common attributes
-        common_attrs = self.extractor.extract_common_attributes(
-            instance, kwargs
-        )
-        for key, value in common_attrs.items():
-            span.set_attribute(key, value)
+            # Map server info to invocation fields
+            if (server_addr := operation_attrs.get(
+                SemanticAttributes.SERVER_ADDRESS
+            )) is not None:
+                invocation.server_address = safe_str(server_addr)
+            if (server_port := operation_attrs.get(
+                SemanticAttributes.SERVER_PORT
+            )) is not None:
+                try:
+                    invocation.server_port = int(server_port)
+                except Exception:
+                    invocation.server_port = None
 
-        return common_attrs
+            # Remaining attrs -> invocation.attributes
+            filtered = self._filter_operation_attrs_for_invocation(
+                dict(operation_attrs)
+            )
+            if filtered:
+                invocation.attributes.update(filtered)
+        except Exception as e:
+            logger.debug(f"Failed to extract invocation attributes: {e}")
 
-    def _execute_with_span(
+    def _execute_with_handler(
         self,
         func: Callable,
         instance: Any,
@@ -264,51 +307,48 @@ class MemoryOperationWrapper:
         extract_attributes_func: Optional[Callable],
         is_memory_client: bool = False,
     ) -> Any:
-        """Span execution logic for sync methods."""
-        span_name = operation_name
+        """Top-level Memory operation execution using util GenAI memory handler (sync)."""
+        normalized_kwargs = _normalize_call_parameters(func, args, kwargs)
 
-        with self.tracer.start_as_current_span(
-            span_name,
-            kind=SpanKind.CLIENT,
-        ) as span:
-            result = None
+        invocation = MemoryInvocation(operation=operation_name)
+        self._set_invocation_fields_from_kwargs(invocation, normalized_kwargs)
 
-            try:
-                # Setup basic and common attributes
-                self._setup_span_and_attributes(
-                    span, instance, kwargs, operation_name
-                )
+        # Server info (MemoryClient/AsyncMemoryClient)
+        try:
+            address, port = extract_server_info(instance)
+            if address:
+                invocation.server_address = address
+            if port is not None:
+                invocation.server_port = port
+        except Exception as e:
+            logger.debug(f"Failed to extract server info: {e}")
 
-                # Execute original method
-                result = func(*args, **kwargs)
+        # Pre-extract request attributes/content (no result yet)
+        self._apply_extracted_attrs_to_invocation(
+            invocation,
+            instance,
+            normalized_kwargs,
+            operation_name,
+            result=None,
+            extract_attributes_func=extract_attributes_func,
+            is_memory_client=is_memory_client,
+        )
 
-                # Extract operation attributes
-                _apply_operation_attributes(
-                    span,
-                    self.extractor,
-                    operation_name,
-                    instance,
-                    args,
-                    kwargs,
-                    result,
-                    extract_attributes_func,
-                    is_memory_client=is_memory_client,
-                    func=func,
-                )
+        with self.telemetry_handler.memory(invocation) as invocation:
+            result = func(*args, **kwargs)
+            # Post-extract result attributes/content
+            self._apply_extracted_attrs_to_invocation(
+                invocation,
+                instance,
+                normalized_kwargs,
+                operation_name,
+                result=result,
+                extract_attributes_func=extract_attributes_func,
+                is_memory_client=is_memory_client,
+            )
+            return result
 
-                span.set_status(Status(StatusCode.OK))
-                return result
-
-            except Exception as e:
-                logger.debug(f"Operation failed with exception: {e}")
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                span.record_exception(e)
-                span.set_attribute(
-                    SemanticAttributes.ERROR_TYPE, get_exception_type(e)
-                )
-                raise
-
-    async def _execute_with_span_async(
+    async def _execute_with_handler_async(
         self,
         func: Callable,
         instance: Any,
@@ -318,49 +358,46 @@ class MemoryOperationWrapper:
         extract_attributes_func: Optional[Callable],
         is_memory_client: bool = False,
     ) -> Any:
-        """Span execution logic for async methods."""
-        span_name = operation_name
+        """Top-level Memory operation execution using util GenAI memory handler (async)."""
+        normalized_kwargs = _normalize_call_parameters(func, args, kwargs)
 
-        with self.tracer.start_as_current_span(
-            span_name,
-            kind=SpanKind.CLIENT,
-        ) as span:
-            result = None
+        invocation = MemoryInvocation(operation=operation_name)
+        self._set_invocation_fields_from_kwargs(invocation, normalized_kwargs)
 
-            try:
-                # Setup basic and common attributes
-                self._setup_span_and_attributes(
-                    span, instance, kwargs, operation_name
-                )
+        # Server info (MemoryClient/AsyncMemoryClient)
+        try:
+            address, port = extract_server_info(instance)
+            if address:
+                invocation.server_address = address
+            if port is not None:
+                invocation.server_port = port
+        except Exception as e:
+            logger.debug(f"Failed to extract server info: {e}")
 
-                # Execute original method
-                result = await func(*args, **kwargs)
+        # Pre-extract request attributes/content (no result yet)
+        self._apply_extracted_attrs_to_invocation(
+            invocation,
+            instance,
+            normalized_kwargs,
+            operation_name,
+            result=None,
+            extract_attributes_func=extract_attributes_func,
+            is_memory_client=is_memory_client,
+        )
 
-                # Extract operation attributes
-                _apply_operation_attributes(
-                    span,
-                    self.extractor,
-                    operation_name,
-                    instance,
-                    args,
-                    kwargs,
-                    result,
-                    extract_attributes_func,
-                    is_memory_client=is_memory_client,
-                    func=func,
-                )
-
-                span.set_status(Status(StatusCode.OK))
-                return result
-
-            except Exception as e:
-                logger.debug(f"Operation failed with exception: {e}")
-                span.set_status(Status(StatusCode.ERROR, str(e)))
-                span.record_exception(e)
-                span.set_attribute(
-                    SemanticAttributes.ERROR_TYPE, get_exception_type(e)
-                )
-                raise
+        with self.telemetry_handler.memory(invocation) as invocation:
+            result = await func(*args, **kwargs)
+            # Post-extract result attributes/content
+            self._apply_extracted_attrs_to_invocation(
+                invocation,
+                instance,
+                normalized_kwargs,
+                operation_name,
+                result=result,
+                extract_attributes_func=extract_attributes_func,
+                is_memory_client=is_memory_client,
+            )
+            return result
 
 
 class VectorStoreWrapper:

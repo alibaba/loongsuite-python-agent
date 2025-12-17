@@ -5,15 +5,6 @@ Configuration for Mem0 instrumentation.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
-from typing import Optional
-
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT = (
-    "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
-)
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT_MAX_LENGTH = (
-    "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT_MAX_LENGTH"
-)
 
 SLOW_REQUEST_THRESHOLD_SECONDS = 5.0
 
@@ -58,51 +49,6 @@ def first_present_bool(keys: list[str], default: bool) -> bool:
     return default
 
 
-@dataclass
-class GenAITelemetryOptions:
-    """GenAI telemetry configuration options."""
-
-    capture_message_content: Optional[bool] = None
-    capture_message_content_max_length: Optional[int] = None
-
-    def __post_init__(self):
-        if self.capture_message_content is None:
-            self.capture_message_content = (
-                os.getenv(
-                    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, "false"
-                ).lower()
-                == "true"
-            )
-
-        if self.capture_message_content_max_length is None:
-            self.capture_message_content_max_length = int(
-                os.getenv(
-                    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT_MAX_LENGTH,
-                    "1048576",
-                )
-            )
-
-    def should_capture_content(self) -> bool:
-        """Check if content capture is enabled."""
-        return self.capture_message_content
-
-    def truncate_content(self, content: str) -> str:
-        """Truncate content to max length if needed."""
-        if not content:
-            return content
-        if len(content) > self.capture_message_content_max_length:
-            return (
-                content[: self.capture_message_content_max_length]
-                + "...[truncated]"
-            )
-        return content
-
-    @classmethod
-    def from_env(cls) -> "GenAITelemetryOptions":
-        """Create configuration from environment variables."""
-        return cls()
-
-
 class Mem0InstrumentationConfig:
     """Mem0 instrumentation configuration."""
 
@@ -124,16 +70,6 @@ def is_internal_phases_enabled() -> bool:
     )
 
 
-def should_capture_content() -> bool:
-    """Check if message content capture is enabled."""
-    return GenAITelemetryOptions.from_env().should_capture_content()
-
-
 def get_slow_threshold_seconds() -> float:
     """Get slow request threshold in seconds."""
     return SLOW_REQUEST_THRESHOLD_SECONDS
-
-
-def get_telemetry_options() -> GenAITelemetryOptions:
-    """Get GenAI telemetry configuration options."""
-    return GenAITelemetryOptions.from_env()

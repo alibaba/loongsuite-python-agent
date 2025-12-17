@@ -45,8 +45,15 @@ export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=<trace_endpoint>
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_SERVICE_NAME=mem0-demo
 
+# Enable GenAI experimental semantic conventions (required for GenAI content/event features)
+export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
+
 # (Optional) Capture message content – may contain sensitive data
-export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
+# Must be one of: NO_CONTENT | SPAN_ONLY | EVENT_ONLY | SPAN_AND_EVENT
+export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_ONLY
+
+# (Optional) Emit GenAI events (LogRecord). Requires a LoggerProvider exporter in your app.
+export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
 ```
 
 ### Option 1: Using opentelemetry-instrument
@@ -69,7 +76,9 @@ If everything is working, you should see spans for:
 You can also start your application with `loongsuite-instrument` to forward data to LoongSuite/Jaeger:
 
 ```bash
-export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
+export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
+export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_ONLY
+export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
 
 loongsuite-instrument \
     --traces_exporter console \
@@ -94,7 +103,9 @@ You can control the Mem0 instrumentation using environment variables.
 |-----------------------------------------------------------|---------|-----------------------------------------------------------------------------|
 | `OTEL_INSTRUMENTATION_MEM0_ENABLED`                       | `true`  | Enable or disable the Mem0 instrumentation entirely.                       |
 | `OTEL_INSTRUMENTATION_MEM0_INNER_ENABLED`                 | `false` | Enable internal phases (Vector Store, Graph Store, Rerank).              |
-| `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`      | `false` | Capture input/output message content (may contain PII or sensitive data).  |
+| `OTEL_SEMCONV_STABILITY_OPT_IN`                           | *(empty)* | Set to `gen_ai_latest_experimental` to enable GenAI experimental semantics (required for content/event). |
+| `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`      | `NO_CONTENT` | Content capturing mode: `NO_CONTENT`, `SPAN_ONLY`, `EVENT_ONLY`, `SPAN_AND_EVENT` (may contain PII/sensitive data). |
+| `OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT`                   | `false` | Emit GenAI events (`LogRecord`). Requires configuring a `LoggerProvider` exporter. |
 
 ### Configuration Examples
 
@@ -103,7 +114,11 @@ You can control the Mem0 instrumentation using environment variables.
 export OTEL_INSTRUMENTATION_MEM0_INNER_ENABLED=true
 
 # Enable content capture (be careful with sensitive data)
-export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
+export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
+export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_AND_EVENT
+
+# Enable event emission (requires LoggerProvider exporter)
+export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
 ```
 
 ## Semantic Conventions Status

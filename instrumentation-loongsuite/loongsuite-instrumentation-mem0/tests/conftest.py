@@ -324,9 +324,13 @@ def environment():
     # Provide placeholder keys for HTTP requests, avoid using real credentials
     os.environ.setdefault("OPENAI_API_KEY", "test_openai_api_key")
     os.environ.setdefault("MEM0_API_KEY", "test_mem0_api_key")
+    # Enable GenAI experimental semantic conventions for util-based memory handler.
+    os.environ.setdefault(
+        "OTEL_SEMCONV_STABILITY_OPT_IN", "gen_ai_latest_experimental"
+    )
     # Allow capturing message content and internal phases (controlled by tests as needed)
     os.environ.setdefault(
-        "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "True"
+        "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "SPAN_ONLY"
     )
     yield
     # Don't clean up, maintain consistency across test cases
@@ -334,7 +338,7 @@ def environment():
 
 @pytest.fixture(scope="function")
 def instrument_with_content(tracer_provider, meter_provider):
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "True"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "SPAN_ONLY"
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider, meter_provider=meter_provider
@@ -346,7 +350,7 @@ def instrument_with_content(tracer_provider, meter_provider):
 
 @pytest.fixture(scope="function")
 def instrument_no_content(tracer_provider, meter_provider):
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "False"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "NO_CONTENT"
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider, meter_provider=meter_provider
@@ -367,7 +371,7 @@ def instrument_with_factories_patched(
     patch_factories(monkeypatch)
 
     # Then instrument (enable internal phase capture)
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "True"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "SPAN_ONLY"
     os.environ["OTEL_INSTRUMENTATION_MEM0_INNER_ENABLED"] = "True"
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(

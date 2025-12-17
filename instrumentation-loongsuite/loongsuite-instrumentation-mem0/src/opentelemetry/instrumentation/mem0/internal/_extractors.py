@@ -5,12 +5,8 @@ Extracts attributes from Memory operations, Vector operations, Graph operations,
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Protocol, Tuple, cast
 
-from opentelemetry.instrumentation.mem0.config import (
-    get_telemetry_options,
-    should_capture_content,
-)
 from opentelemetry.instrumentation.mem0.internal._util import (
     _normalize_provider_from_class,
     extract_filters_keys,
@@ -21,7 +17,6 @@ from opentelemetry.instrumentation.mem0.internal._util import (
     safe_get,
     safe_int,
     safe_str,
-    truncate_string,
 )
 from opentelemetry.instrumentation.mem0.semconv import (
     ContentExtractionKeys,
@@ -29,6 +24,12 @@ from opentelemetry.instrumentation.mem0.semconv import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _SpecificAttributeExtractor(Protocol):
+    def __call__(
+        self, kwargs: Dict[str, Any], result: Any
+    ) -> Dict[str, Any]: ...
 
 
 @dataclass
@@ -174,7 +175,7 @@ def _extract_input_content(
     return None
 
 
-def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
+def _extract_output_preview(result: Any, max_len: Optional[int] = None) -> Optional[str]:
     """
     Extract output content from Memory operation result, returning fields containing content.
 
@@ -185,13 +186,15 @@ def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
        b. For Mixed structure (both results and relations), merge both
        c. Otherwise return first non-empty container field
     3. For lists, return original content directly
+    Note: max_len is kept for backward compatibility with historical tests/callers,
+    but output is no longer truncated by this instrumentation.
     """
     if result is None:
         return None
     try:
         # Direct string
         if isinstance(result, str):
-            return truncate_string(str(result), max_len)
+            return str(result)
 
         # Dict: extract content
         if isinstance(result, dict):
@@ -200,7 +203,7 @@ def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
             # 1. Try simple fields (direct string values)
             for k in ContentExtractionKeys.OUTPUT_SIMPLE_KEYS:
                 if k in d and isinstance(d[k], str):
-                    return truncate_string(str(d[k]), max_len)
+                    return str(d[k])
 
             # 2. Special handling: Mem0 Mixed structure (both results and relations)
             #    Merge both contents to ensure Graph results are included
@@ -224,11 +227,11 @@ def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
                         "results": results_val,
                         "relations": relations_val,
                     }
-                    return truncate_string(safe_str(merged), max_len)
+                    return safe_str(merged)
                 elif has_results:
-                    return truncate_string(safe_str(results_val), max_len)
+                    return safe_str(results_val)
                 elif has_relations:
-                    return truncate_string(safe_str(relations_val), max_len)
+                    return safe_str(relations_val)
 
             # 3. Try container fields, return first non-empty field content
             for k in ContentExtractionKeys.OUTPUT_CONTAINER_KEYS:
@@ -241,7 +244,7 @@ def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
 
                     # If not empty, return content
                     if not is_empty:
-                        return truncate_string(safe_str(v), max_len)
+                        return safe_str(v)
 
             # 4. If all container fields are empty, try extracting from relations field (Mem0 graph-specific structure)
             if "relations" in d:
@@ -260,16 +263,16 @@ def _extract_output_preview(result: Any, max_len: int) -> Optional[str]:
                             not isinstance(value, (list, dict))
                             or len(value) > 0
                         ):
-                            return truncate_string(safe_str(value), max_len)
+                            return safe_str(value)
                     # If any content, return entire relations
                     if relations:
-                        return truncate_string(safe_str(relations), max_len)
+                        return safe_str(relations)
 
             return None
 
         # List: return original content directly
         if isinstance(result, list):
-            return truncate_string(safe_str(result), max_len)
+            return safe_str(result)
     except Exception as e:
         logger.debug(f"Failed to extract output preview: {e}")
         return None
@@ -577,7 +580,8 @@ class MemoryOperationAttributeExtractor:
         specific = getattr(self, f"extract_{method_key}_attributes", None)
         if callable(specific):
             try:
-                attributes.update(specific(kwargs, result))
+                specific_func = cast(_SpecificAttributeExtractor, specific)
+                attributes.update(specific_func(kwargs, result))  # pylint: disable=not-callable
             except Exception as e:
                 logger.debug(
                     "Failed to extract specific attributes for method '%s': %s",
@@ -669,13 +673,12 @@ class MemoryOperationAttributeExtractor:
                         f"Failed to extract batch size for key '{bulk_key}': {e}"
                     )
 
-        # Input content (controlled by switch + method rule)
-        if rule.allow_input_messages and should_capture_content():
-            telemetry_options = get_telemetry_options()
+        # Input content (always populate; util handler decides whether to record)
+        if rule.allow_input_messages:
             extracted_content = _extract_input_content(operation_name, kwargs)
             if extracted_content:
                 attributes[SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES] = (
-                    telemetry_options.truncate_content(extracted_content)
+                    extracted_content
                 )
 
         # Result preview (controlled by switch + method rule + MemoryClient async_mode)
@@ -685,16 +688,12 @@ class MemoryOperationAttributeExtractor:
                 operation_name, kwargs, is_memory_client
             )
             and result is not None
-            and should_capture_content()
         ):
-            telemetry_options = get_telemetry_options()
-            preview = _extract_output_preview(
-                result, telemetry_options.capture_message_content_max_length
-            )
+            preview = _extract_output_preview(result)
             if preview:
                 attributes[
                     SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
-                ] = telemetry_options.truncate_content(preview)
+                ] = preview
 
         # Result count (unified using gen_ai.memory.result.count)
         # Uses unified extract_result_count function, auto-identifies all return structures:

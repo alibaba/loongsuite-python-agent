@@ -18,7 +18,6 @@ from opentelemetry.instrumentation.mem0.config import (
     get_optional_bool_env,
     get_slow_threshold_seconds,
     is_internal_phases_enabled,
-    should_capture_content,
 )
 
 
@@ -138,24 +137,6 @@ class TestConfigFunctions(unittest.TestCase):
             clear=True,
         ):
             self.assertFalse(is_internal_phases_enabled())
-
-    def test_should_capture_content_true(self):
-        """Tests content capture enabled."""
-        with patch.dict(
-            os.environ,
-            {"OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "true"},
-        ):
-            result = should_capture_content()
-            self.assertTrue(result)
-
-    def test_should_capture_content_false(self):
-        """Tests content capture disabled."""
-        with patch.dict(
-            os.environ,
-            {"OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "false"},
-        ):
-            result = should_capture_content()
-            self.assertFalse(result)
 
     def test_get_slow_threshold_seconds(self):
         """Tests getting slow request threshold seconds."""
