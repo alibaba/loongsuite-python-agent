@@ -27,7 +27,6 @@ from opentelemetry.instrumentation.mem0.semconv import (
     SpanName,
 )
 from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer
-
 from opentelemetry.util.genai._extended_memory import MemoryInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 

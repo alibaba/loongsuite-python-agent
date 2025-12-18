@@ -18,5 +18,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Added
 
-- `loongsuite-instrumentation-mem0`: add support for mem0
+- `loongsuite-instrumentation-mem0`: add support for mem0 && use memory handler
   ([#67](https://github.com/alibaba/loongsuite-python-agent/pull/67))
