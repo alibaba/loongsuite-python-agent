@@ -32,44 +32,6 @@ env:
 
 jobs:
 
-  py39-test-loongsuite-instrumentation-mem0-oldest_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-mem0-oldest 3.9 Ubuntu
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout repo @ SHA - ${{ github.sha }}
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-
-      - name: Install tox
-        run: pip install tox-uv
-
-      - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py39-test-loongsuite-instrumentation-mem0-oldest -- -ra
-
-  py39-test-loongsuite-instrumentation-mem0-latest_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-mem0-latest 3.9 Ubuntu
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout repo @ SHA - ${{ github.sha }}
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-
-      - name: Install tox
-        run: pip install tox-uv
-
-      - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py39-test-loongsuite-instrumentation-mem0-latest -- -ra
-
   py310-test-loongsuite-instrumentation-mem0-oldest_ubuntu-latest:
     name: LoongSuite loongsuite-instrumentation-mem0-oldest 3.10 Ubuntu
     runs-on: ubuntu-latest
