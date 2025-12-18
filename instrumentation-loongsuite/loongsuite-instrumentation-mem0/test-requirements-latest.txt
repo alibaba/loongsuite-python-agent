@@ -12,6 +12,7 @@ wrapt==1.17.3
 mock>=4.0.0
 
 # Internal / OTEL from source
+-e opentelemetry-instrumentation
 -e instrumentation-loongsuite/loongsuite-instrumentation-mem0
 -e util/opentelemetry-util-genai
 
