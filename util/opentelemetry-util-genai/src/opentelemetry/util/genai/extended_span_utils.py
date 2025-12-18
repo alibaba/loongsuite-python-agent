@@ -35,7 +35,7 @@ from opentelemetry.semconv.attributes import (
 )
 from opentelemetry.trace import Span
 from opentelemetry.trace.propagation import set_span_in_context
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
     GEN_AI_RERANK_BATCH_SIZE,
     GEN_AI_RERANK_DEVICE,
@@ -49,9 +49,11 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_RERANK_SCORING_PROMPT,
     GEN_AI_RETRIEVAL_DOCUMENTS,
     GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
     GenAiExtendedOperationNameValues,
+    GenAiSpanKindValues,
 )
 from opentelemetry.util.genai.extended_types import (
     CreateAgentInvocation,
@@ -93,6 +95,9 @@ def _get_invoke_agent_common_attributes(
     attributes[GenAI.GEN_AI_OPERATION_NAME] = (
         GenAI.GenAiOperationNameValues.INVOKE_AGENT.value
     )
+
+    # LoongSuite Extension: span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.AGENT.value
 
     # Required attributes
     if invocation.provider:
@@ -333,6 +338,9 @@ def _apply_embedding_finish_attributes(
         GenAI.GenAiOperationNameValues.EMBEDDINGS.value
     )
 
+    # LoongSuite Extension: span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.EMBEDDING.value
+
     # Required attributes
     if invocation.request_model:
         attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
@@ -382,6 +390,9 @@ def _apply_create_agent_finish_attributes(
         GenAI.GenAiOperationNameValues.CREATE_AGENT.value
     )
 
+    # LoongSuite Extension: span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.AGENT.value
+
     # Required attributes
     if invocation.provider:
         attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
@@ -423,6 +434,9 @@ def _apply_execute_tool_finish_attributes(
         GenAI.GEN_AI_OPERATION_NAME,
         GenAI.GenAiOperationNameValues.EXECUTE_TOOL.value,
     )
+
+    # LoongSuite Extension: span kind
+    span.set_attribute(GEN_AI_SPAN_KIND, GenAiSpanKindValues.TOOL.value)
 
     # Build all attributes
     attributes: dict[str, Any] = {}
@@ -546,6 +560,9 @@ def _apply_retrieve_finish_attributes(
         GenAiExtendedOperationNameValues.RETRIEVE_DOCUMENTS.value
     )
 
+    # LoongSuite Extension: span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.RETRIEVER.value
+
     # Recommended attributes
     if invocation.query is not None:
         attributes[GEN_AI_RETRIEVAL_QUERY] = invocation.query
@@ -571,7 +588,9 @@ def _apply_rerank_finish_attributes(  # pylint: disable=too-many-branches
     span: Span, invocation: RerankInvocation
 ) -> None:
     """Apply attributes for rerank_documents operations."""
-    span.update_name(GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value)
+    span.update_name(
+        f"{GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value} {invocation.request_model or ''}".strip()
+    )
 
     # Build all attributes
     attributes: dict[str, Any] = {}
@@ -580,6 +599,9 @@ def _apply_rerank_finish_attributes(  # pylint: disable=too-many-branches
     attributes[GenAI.GEN_AI_OPERATION_NAME] = (
         GenAiExtendedOperationNameValues.RERANK_DOCUMENTS.value
     )
+
+    # LoongSuite Extension: span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.RERANKER.value
 
     # Required attributes
     if invocation.provider:

@@ -1,0 +1,13 @@
+# Test requirements for latest versions
+agentscope>=1.0.0
+pytest
+pytest-asyncio
+pytest-cov
+pytest-vcr>=1.0.2
+vcrpy>=5.1.0
+pyyaml>=6.0
+wrapt
+
+-e opentelemetry-instrumentation
+-e instrumentation-loongsuite/loongsuite-instrumentation-agentscope
+-e util/opentelemetry-util-genai

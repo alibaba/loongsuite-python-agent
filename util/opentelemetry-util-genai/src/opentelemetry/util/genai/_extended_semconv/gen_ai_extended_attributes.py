@@ -105,6 +105,35 @@ GEN_AI_RERANK_OUTPUT_DOCUMENTS: Final = "gen_ai.rerank.output_documents"
 The reranked documents returned by the reranking operation.
 """
 
+GEN_AI_SPAN_KIND: Final = "gen_ai.span.kind"
+"""
+The semantic type of GenAI operation (e.g., LLM, AGENT, EMBEDDING).
+This attribute extends OpenTelemetry semantics to classify GenAI-specific operations
+for scenarios like Completion, Chat, RAG, Agent, and Tool execution.
+
+Note: This is an Attribute, distinct from OpenTelemetry's Span kind field.
+"""
+
+
+class GenAiSpanKindValues(Enum):
+    AGENT = "AGENT"
+    """Agent operation (create_agent, invoke_agent)."""
+
+    LLM = "LLM"
+    """Large Language Model operation (chat completion)."""
+
+    EMBEDDING = "EMBEDDING"
+    """Embedding generation operation."""
+
+    TOOL = "TOOL"
+    """Tool execution operation."""
+
+    RETRIEVER = "RETRIEVER"
+    """Document retrieval operation."""
+
+    RERANKER = "RERANKER"
+    """Document reranking operation."""
+
 
 class GenAiExtendedOperationNameValues(Enum):
     RETRIEVE_DOCUMENTS = "retrieve_documents"
@@ -117,3 +146,9 @@ class GenAiExtendedOperationNameValues(Enum):
 class GenAiExtendedProviderNameValues(Enum):
     DASHSCOPE = "dashscope"
     """DashScope."""
+
+    OLLAMA = "ollama"
+    """Ollama."""
+
+    MOONSHOT = "moonshot"
+    """Moonshot."""

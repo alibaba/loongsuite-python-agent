@@ -892,7 +892,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             invocation.attributes = {"custom": "rerank_attr"}
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "rerank_documents")
+        self.assertEqual(span.name, "rerank_documents rerank-english-v2.0")
         self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
         _assert_span_time_order(span)
 
@@ -962,7 +962,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.telemetry_handler.stop_rerank(invocation)
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "rerank_documents")
+        self.assertEqual(span.name, "rerank_documents rerank-model")
         span_attrs = _get_span_attributes(span)
         _assert_span_attributes(
             span_attrs,

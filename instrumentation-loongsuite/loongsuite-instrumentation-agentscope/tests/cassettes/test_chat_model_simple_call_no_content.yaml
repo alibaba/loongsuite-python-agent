@@ -1,0 +1,49 @@
+# VCR cassette - 示例文件
+# 这个文件展示了 VCR cassette 的格式
+# 当你第一次运行带有 @pytest.mark.vcr() 装饰器的测试时，VCR 会自动录制真实的 HTTP 请求和响应
+# 后续运行时，它会回放这些录制的内容，不需要真实的 API 调用
+
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-max",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello!"
+          }
+        ]
+      }
+    headers:
+      accept:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      content-type:
+      - application/json
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "text": "Hello! How can I help you today?"
+          },
+          "usage": {
+            "input_tokens": 10,
+            "output_tokens": 8
+          },
+          "request_id": "test-request-id-12345"
+        }
+    headers:
+      content-type:
+      - application/json
+      request-id:
+      - test-request-id-12345
+    status:
+      code: 200
+      message: OK
+version: 1
+

@@ -1,0 +1,112 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are an assistant with tool access.
+          role: system
+        - content: compute 10+20 for me using shell
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.4; python/3.13.0; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d69a5e709960444d939d30","type":"function","function":{"name":"execute_shell_command","arguments":"{\"command\": \""}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":340,"output_tokens":16,"input_tokens":324,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5410e11b-2f6b-4c5c-9221-05b24096c8f6"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":"echo $((10"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":345,"output_tokens":21,"input_tokens":324,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5410e11b-2f6b-4c5c-9221-05b24096c8f6"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":"+20))\", \""}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":351,"output_tokens":27,"input_tokens":324,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5410e11b-2f6b-4c5c-9221-05b24096c8f6"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":"timeout\": 3"}}],"role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":355,"output_tokens":31,"input_tokens":324,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5410e11b-2f6b-4c5c-9221-05b24096c8f6"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"","type":"function","function":{"arguments":"00}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}]},"usage":{"total_tokens":358,"output_tokens":34,"input_tokens":324,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"5410e11b-2f6b-4c5c-9221-05b24096c8f6"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Wed, 17 Dec 2025 03:55:48 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1765943747292'
+      req-cost-time:
+      - '1052'
+      resp-start-time:
+      - '1765943748344'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '1043'
+      x-request-id:
+      - 5410e11b-2f6b-4c5c-9221-05b24096c8f6
+    status:
+      code: 200
+      message: OK
+version: 1

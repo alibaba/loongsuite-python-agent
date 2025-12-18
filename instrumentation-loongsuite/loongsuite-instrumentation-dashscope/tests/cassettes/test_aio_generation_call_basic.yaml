@@ -1,0 +1,72 @@
+interactions:
+- request:
+    body:
+      input:
+        prompt: Hello!
+      model: qwen-turbo
+      parameters: {}
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Hello! How can I assist you today? \ud83d\ude0a"
+          },
+          "usage": {
+            "input_tokens": 14,
+            "output_tokens": 11,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 25
+          },
+          "request_id": "a5641492-94a0-45dc-abd7-e365cfab23a3"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 17 Nov 2025 08:31:28 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - acw_tc=a5641492-94a0-45dc-abd7-e365cfab23a35b73256ab7df37c2ffa21ba0ba30e4e0;path=/;HttpOnly;Max-Age=1800
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '245'
+      req-arrive-time:
+      - '1763368287781'
+      req-cost-time:
+      - '334'
+      resp-start-time:
+      - '1763368288115'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '327'
+      x-request-id:
+      - a5641492-94a0-45dc-abd7-e365cfab23a3
+    status:
+      code: 200
+      message: OK
+version: 1

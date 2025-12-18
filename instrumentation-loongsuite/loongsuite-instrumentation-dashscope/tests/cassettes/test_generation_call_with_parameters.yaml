@@ -1,0 +1,85 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {
+          "temperature": 0.8,
+          "top_p": 0.9,
+          "max_tokens": 100
+        },
+        "input": {
+          "prompt": "Write a short poem"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '135'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Beneath the moon, the stars align,  \nA whisper winds through the pine.  \nThe night is soft, the world is still,  \nAnd dreams begin where thoughts will."
+          },
+          "usage": {
+            "input_tokens": 16,
+            "output_tokens": 37,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 53
+          },
+          "request_id": "ee8de668-5f8f-40e3-80f4-e3a0013967bb"
+        }
+    headers:
+      content-length:
+      - '360'
+      content-type:
+      - application/json
+      date:
+      - Mon, 17 Nov 2025 08:31:27 GMT
+      req-arrive-time:
+      - '1763368287002'
+      req-cost-time:
+      - '633'
+      resp-start-time:
+      - '1763368287636'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=ee8de668-5f8f-40e3-80f4-e3a0013967bbd5d31169b9fcbffc57c75542a5810acc;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '627'
+      x-request-id:
+      - ee8de668-5f8f-40e3-80f4-e3a0013967bb
+    status:
+      code: 200
+      message: OK
+version: 1

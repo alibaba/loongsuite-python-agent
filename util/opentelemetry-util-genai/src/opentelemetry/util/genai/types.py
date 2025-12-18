@@ -22,6 +22,9 @@ from typing import Any, Literal, Type, Union
 from typing_extensions import TypeAlias
 
 from opentelemetry.context import Context
+from opentelemetry.semconv._incubating.attributes import (
+    gen_ai_attributes as GenAI,
+)
 from opentelemetry.trace import Span
 
 ContextToken: TypeAlias = Token[Context]
@@ -203,6 +206,8 @@ class LLMInvocation:
     """
 
     request_model: str
+    # Chat by default
+    operation_name: str = GenAI.GenAiOperationNameValues.CHAT.value
     context_token: ContextToken | None = None
     span: Span | None = None
     input_messages: list[InputMessage] = field(

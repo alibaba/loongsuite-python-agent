@@ -1,0 +1,70 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "invalid-model-name",
+        "parameters": {},
+        "input": {
+          "query": "test query",
+          "documents": [
+            "test document"
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '115'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank
+  response:
+    body:
+      string: |-
+        {
+          "code": "InvalidParameter",
+          "message": "Model not exist.",
+          "request_id": "d7859a78-9d8f-44f2-9cab-0222b87b74de"
+        }
+    headers:
+      content-length:
+      - '108'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 06:18:34 GMT
+      req-arrive-time:
+      - '1763446714726'
+      req-cost-time:
+      - '6'
+      resp-start-time:
+      - '1763446714733'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=d7859a78-9d8f-44f2-9cab-0222b87b74de8151298923ee575bfa96bb9d5cc261b9;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '1'
+      x-request-id:
+      - d7859a78-9d8f-44f2-9cab-0222b87b74de
+    status:
+      code: 400
+      message: Bad Request
+version: 1

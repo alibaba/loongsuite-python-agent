@@ -1,0 +1,89 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a test assistant.
+          role: system
+        - content: What is 2+2?
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"2","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":27,"output_tokens":1,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"c56c1446-14c3-4889-9973-80e53d28f53e"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"+","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":28,"output_tokens":2,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"c56c1446-14c3-4889-9973-80e53d28f53e"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"2 is ","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":31,"output_tokens":5,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"c56c1446-14c3-4889-9973-80e53d28f53e"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"4.","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":33,"output_tokens":7,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"c56c1446-14c3-4889-9973-80e53d28f53e"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":33,"output_tokens":7,"input_tokens":26,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"c56c1446-14c3-4889-9973-80e53d28f53e"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:57:32 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764230252618'
+      req-cost-time:
+      - '264'
+      resp-start-time:
+      - '1764230252883'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '257'
+      x-request-id:
+      - c56c1446-14c3-4889-9973-80e53d28f53e
+    status:
+      code: 200
+      message: OK
+version: 1

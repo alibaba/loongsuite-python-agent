@@ -1,0 +1,123 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant named Friday.
+          role: system
+        - content: Hi! Who are you?
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"Hello","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":320,"output_tokens":1,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"! I'm","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":323,"output_tokens":4,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" Friday, your","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":326,"output_tokens":7,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" friendly AI assistant","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":329,"output_tokens":10,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":". How can I assist","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":334,"output_tokens":15,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" you today?","role":"assistant"},"index":0,"finish_reason":"null"}]},"usage":{"total_tokens":337,"output_tokens":18,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"index":0,"finish_reason":"stop"}]},"usage":{"total_tokens":337,"output_tokens":18,"input_tokens":319,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"ac2901c7-3e79-4824-b971-13a784368c4d"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Thu, 27 Nov 2025 07:51:25 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1764229885727'
+      req-cost-time:
+      - '264'
+      resp-start-time:
+      - '1764229885992'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '258'
+      x-request-id:
+      - ac2901c7-3e79-4824-b971-13a784368c4d
+    status:
+      code: 200
+      message: OK
+version: 1

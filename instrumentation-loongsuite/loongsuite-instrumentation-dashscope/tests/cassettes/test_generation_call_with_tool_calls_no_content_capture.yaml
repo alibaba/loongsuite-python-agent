@@ -1,0 +1,128 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {
+          "tools": [
+            {
+              "type": "function",
+              "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "type": "string",
+                      "description": "The city and state, e.g. San Francisco, CA"
+                    }
+                  },
+                  "required": [
+                    "location"
+                  ]
+                }
+              }
+            }
+          ],
+          "result_format": "message"
+        },
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "What's the weather in Beijing?"
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '464'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.13.9; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "tool_calls",
+                "index": 0,
+                "message": {
+                  "content": "",
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"location\": \"Beijing\"}",
+                        "name": "get_current_weather"
+                      },
+                      "id": "call_fde925828f0041d6aecf5d",
+                      "index": 0,
+                      "type": "function"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 177,
+            "output_tokens": 21,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 198
+          },
+          "request_id": "0cedf97d-813a-4879-87a7-12ee56422748"
+        }
+    headers:
+      content-length:
+      - '436'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 11:35:46 GMT
+      req-arrive-time:
+      - '1763465746698'
+      req-cost-time:
+      - '414'
+      resp-start-time:
+      - '1763465747113'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=0cedf97d-813a-4879-87a7-12ee56422748cf61aa8e5ffc37fa0c7a26e536fe1b44;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '406'
+      x-request-id:
+      - 0cedf97d-813a-4879-87a7-12ee56422748
+    status:
+      code: 200
+      message: OK
+version: 1

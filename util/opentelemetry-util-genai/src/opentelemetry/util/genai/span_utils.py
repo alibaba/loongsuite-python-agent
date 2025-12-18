@@ -33,6 +33,10 @@ from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIExtended,  # LoongSuite Extension
 )
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+    GEN_AI_SPAN_KIND,  # LoongSuite Extension
+    GenAiSpanKindValues,  # LoongSuite Extension
+)
 from opentelemetry.util.genai.types import (
     Error,
     FunctionToolDefinition,
@@ -59,9 +63,11 @@ def _get_llm_common_attributes(
     Returns a dictionary of attributes.
     """
     attributes: dict[str, Any] = {}
-    attributes[GenAI.GEN_AI_OPERATION_NAME] = (
-        GenAI.GenAiOperationNameValues.CHAT.value
-    )
+    attributes[GenAI.GEN_AI_OPERATION_NAME] = invocation.operation_name
+
+    # LoongSuite Extension: Logical span kind
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.LLM.value
+
     if invocation.request_model:
         attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
     if invocation.provider is not None:
@@ -72,7 +78,7 @@ def _get_llm_common_attributes(
 
 def _get_llm_span_name(invocation: LLMInvocation) -> str:
     """Get the span name for an LLM invocation."""
-    return f"{GenAI.GenAiOperationNameValues.CHAT.value} {invocation.request_model}".strip()
+    return f"{invocation.operation_name} {invocation.request_model}".strip()
 
 
 def _get_llm_messages_attributes_for_span(

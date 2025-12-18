@@ -1,0 +1,81 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "Hello, world!"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '79'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.9.6; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "finish_reason": "stop",
+            "text": "Hello! How can I assist you today? \ud83d\ude0a"
+          },
+          "usage": {
+            "input_tokens": 16,
+            "output_tokens": 11,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 27
+          },
+          "request_id": "f202876d-4977-4937-beb6-46c46bc14a41"
+        }
+    headers:
+      content-length:
+      - '245'
+      content-type:
+      - application/json
+      date:
+      - Tue, 18 Nov 2025 08:05:43 GMT
+      req-arrive-time:
+      - '1763453143758'
+      req-cost-time:
+      - '320'
+      resp-start-time:
+      - '1763453144078'
+      server:
+      - istio-envoy
+      set-cookie:
+      - acw_tc=f202876d-4977-4937-beb6-46c46bc14a4140c925bb5fd1dfd3b782a2cd9398cb24;path=/;HttpOnly;Max-Age=1800
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '313'
+      x-request-id:
+      - f202876d-4977-4937-beb6-46c46bc14a41
+    status:
+      code: 200
+      message: OK
+version: 1

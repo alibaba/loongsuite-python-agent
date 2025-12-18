@@ -1,0 +1,82 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: Say this is a test
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: false
+        result_format: message
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.1; python/3.12.11; platform/macOS-15.1.1-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "stop",
+                "message": {
+                  "content": "This is a test.",
+                  "role": "assistant"
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 13,
+            "output_tokens": 5,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 18
+          },
+          "request_id": "8420e3d0-5a23-409b-b21d-04d1cd9d8f54"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 02 Dec 2025 14:19:24 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '268'
+      req-arrive-time:
+      - '1764685163852'
+      req-cost-time:
+      - '557'
+      resp-start-time:
+      - '1764685164410'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '549'
+      x-request-id:
+      - 8420e3d0-5a23-409b-b21d-04d1cd9d8f54
+    status:
+      code: 200
+      message: OK
+version: 1

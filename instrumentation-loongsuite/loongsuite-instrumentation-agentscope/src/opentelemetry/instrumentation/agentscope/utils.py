@@ -1,35 +1,565 @@
-import os
-from importlib.metadata import version
+# -*- coding: utf-8 -*-
+"""Attributes processor for span attributes."""
 
-from packaging import version as pkg_version
+from __future__ import annotations
 
-try:
-    from pydantic import BaseModel
-except ImportError:
-    BaseModel = None
+import datetime
+import enum
+import inspect
+import json
+import logging
+from dataclasses import is_dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-# 获取 AgentScope 版本
-try:
-    _AGENTSCOPE_VERSION = version("agentscope")
-except Exception:
-    _AGENTSCOPE_VERSION = "0.0.0"
+from agentscope import _config
+from agentscope.agent import AgentBase
+from agentscope.embedding import EmbeddingModelBase
+from agentscope.message import Msg
+from agentscope.model import ChatModelBase, ChatResponse
+from pydantic import BaseModel
 
-# 环境变量配置
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT = (
-    "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
+from opentelemetry.semconv._incubating.attributes import (
+    gen_ai_attributes as GenAIAttributes,
+)
+from opentelemetry.util.genai.types import (
+    InputMessage,
+    OutputMessage,
+    Text,
+    ToolCall,
+    ToolCallResponse,
 )
 
+from .message_converter import get_message_converter
 
-def is_agentscope_v1():
-    """检查是否为 AgentScope v1.0.0 及以上版本"""
-    return pkg_version.parse(_AGENTSCOPE_VERSION) >= pkg_version.parse("1.0.0")
+logger = logging.getLogger(__name__)
 
 
-def is_content_enabled() -> bool:
-    """检查是否应该捕获消息内容"""
-    return (
-        os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, "false"
-        ).lower()
-        == "true"
-    )
+class AgentScopeGenAiProviderName(str, Enum):
+    """Extended provider names not in standard OpenTelemetry semantic conventions."""
+
+    OLLAMA = "ollama"
+    DASHSCOPE = "dashscope"
+    MOONSHOT = "moonshot"
+
+
+# Provider name mapping based on class names
+_PROVIDER_NAME_MAP = {
+    "openai": GenAIAttributes.GenAiProviderNameValues.OPENAI.value,
+    "gemini": GenAIAttributes.GenAiProviderNameValues.GCP_GEMINI.value,
+    "anthropic": GenAIAttributes.GenAiProviderNameValues.ANTHROPIC.value,
+    "dashscope": AgentScopeGenAiProviderName.DASHSCOPE.value,
+    "ollama": AgentScopeGenAiProviderName.OLLAMA.value,
+}
+
+# Base URL to provider mapping for OpenAI-compatible APIs
+_BASE_URL_PROVIDER_MAP = [
+    ("openai.com", GenAIAttributes.GenAiProviderNameValues.OPENAI.value),
+    (
+        "api.deepseek.com",
+        GenAIAttributes.GenAiProviderNameValues.DEEPSEEK.value,
+    ),
+    ("dashscope.aliyuncs.com", AgentScopeGenAiProviderName.DASHSCOPE.value),
+]
+
+
+def get_provider_name(chat_model: ChatModelBase) -> str:
+    """Parse chat model provider name"""
+    classname = chat_model.__class__.__name__
+    prefix = classname.removesuffix("ChatModel").lower()
+
+    # Special handling for DashScopeChatModel with base_http_api_url
+    if (
+        prefix == "dashscope"
+        and hasattr(chat_model, "base_http_api_url")
+        and chat_model.base_http_api_url
+    ):
+        base_url = chat_model.base_http_api_url
+        for url_fragment, provider in _BASE_URL_PROVIDER_MAP:
+            if url_fragment in base_url:
+                return provider
+
+    return _PROVIDER_NAME_MAP.get(prefix, "unknown")
+
+
+def get_embedding_provider_name(embedding_model: EmbeddingModelBase) -> str:
+    """Parse embedding model provider name"""
+    class_name = embedding_model.__class__.__name__
+
+    if "DashScope" in class_name:
+        return AgentScopeGenAiProviderName.DASHSCOPE.value
+    elif "OpenAI" in class_name:
+        return GenAIAttributes.GenAiProviderNameValues.OPENAI.value
+    elif "Gemini" in class_name:
+        return GenAIAttributes.GenAiProviderNameValues.GCP_GEMINI.value
+    elif "Ollama" in class_name:
+        return AgentScopeGenAiProviderName.OLLAMA.value
+    else:
+        model_name = getattr(embedding_model, "model_name", "")
+        if "text-embedding" in model_name:
+            if "qwen" in model_name or "dashscope" in model_name:
+                return AgentScopeGenAiProviderName.DASHSCOPE.value
+            else:
+                return GenAIAttributes.GenAiProviderNameValues.OPENAI.value
+        return "agentscope"
+
+
+def _get_tool_definitions(
+    tools: list[dict[str, Any]] | None,
+    tool_choice: str | None,
+) -> str | None:
+    """Extract and serialize tool definitions for tracing."""
+    if tools is None or not isinstance(tools, list) or len(tools) == 0:
+        return None
+
+    if tool_choice == "none":
+        return None
+
+    try:
+        flat_tools = []
+        for tool in tools:
+            if not isinstance(tool, dict) or "function" not in tool:
+                continue
+
+            func_def = tool["function"]
+            flat_tool = {
+                "type": tool.get("type", "function"),
+                "name": func_def.get("name"),
+                "description": func_def.get("description"),
+                "parameters": func_def.get("parameters"),
+            }
+            flat_tool = {k: v for k, v in flat_tool.items() if v is not None}
+            flat_tools.append(flat_tool)
+
+        if flat_tools:
+            return _serialize_to_str(flat_tools)
+        return None
+
+    except Exception:
+        return None
+
+
+def _to_serializable(obj: Any) -> Any:
+    """Convert an object to a JSON serializable type."""
+    if isinstance(obj, (str, int, bool, float, type(None))):
+        return obj
+    elif isinstance(obj, (list, tuple, set, frozenset)):
+        return [_to_serializable(x) for x in obj]
+    elif isinstance(obj, dict):
+        return {str(key): _to_serializable(val) for (key, val) in obj.items()}
+    elif isinstance(obj, (Msg, BaseModel)) or is_dataclass(obj):
+        return repr(obj)
+    elif inspect.isclass(obj) and issubclass(obj, BaseModel):
+        return repr(obj)
+    elif isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
+        return obj.isoformat()
+    elif isinstance(obj, datetime.timedelta):
+        return obj.total_seconds()
+    elif isinstance(obj, enum.Enum):
+        return _to_serializable(obj.value)
+    else:
+        return str(obj)
+
+
+def _serialize_to_str(value: Any) -> str:
+    """Serialize value to JSON string"""
+    try:
+        return json.dumps(value, ensure_ascii=False)
+    except TypeError:
+        return json.dumps(_to_serializable(value), ensure_ascii=False)
+
+
+def _convert_block_to_part(block: Dict[str, Any]) -> Dict[str, Any] | None:
+    """Convert content block to standardized part format."""
+    block_type = block.get("type")
+
+    if block_type == "text":
+        return {"type": "text", "content": block.get("text", "")}
+
+    elif block_type == "thinking":
+        return {
+            "type": "text",
+            "content": f"[Thinking] {block.get('thinking', '')}",
+        }
+
+    elif block_type == "tool_use":
+        return {
+            "type": "tool_call",
+            "id": block.get("id", ""),
+            "name": block.get("name", ""),
+            "arguments": block.get("input", {}),
+        }
+
+    elif block_type == "tool_result":
+        output = block.get("output", "")
+        result = (
+            _serialize_to_str(output)
+            if isinstance(output, (list, dict))
+            else str(output)
+        )
+        return {
+            "type": "tool_call_response",
+            "id": block.get("id", ""),
+            "result": result,
+        }
+
+    elif block_type == "image":
+        source = block.get("source", {})
+        source_type = source.get("type")
+        if source_type == "url":
+            return {"type": "image", "url": source.get("url", "")}
+        elif source_type == "base64":
+            data = source.get("data", "")
+            media_type = source.get("media_type", "image/jpeg")
+            return {"type": "image", "url": f"data:{media_type};base64,{data}"}
+
+    elif block_type == "audio":
+        return {"type": "audio", "source": block.get("source", {})}
+
+    elif block_type == "video":
+        return {"type": "video", "source": block.get("source", {})}
+
+    return None
+
+
+def _format_msg_to_parts(msg: Msg) -> dict[str, Any]:
+    """Convert Msg to standard format (parts structure)"""
+    try:
+        parts = []
+        for block in msg.get_content_blocks():
+            part = _convert_block_to_part(block)
+            if part:
+                parts.append(part)
+
+        formatted_msg = {"role": msg.role, "parts": parts}
+        if msg.name:
+            formatted_msg["name"] = msg.name
+
+        return formatted_msg
+
+    except Exception as e:
+        logger.debug(f"Error formatting message: {e}")
+        return {
+            "role": msg.role,
+            "parts": [
+                {
+                    "type": "text",
+                    "content": str(msg.content) if msg.content else "",
+                }
+            ],
+        }
+
+
+def extract_llm_attributes(
+    call_instance: ChatModelBase,
+    call_args: Tuple[Any, ...],
+    call_kwargs: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract LLM call attributes"""
+    provider_name = get_provider_name(call_instance)
+
+    messages = call_args[0] if call_args else call_kwargs.get("messages")
+
+    if messages:
+        try:
+            input_messages = get_message_converter(provider_name)(messages)
+        except Exception as e:
+            logger.warning(
+                f"Failed to convert input messages: {e}", exc_info=True
+            )
+            input_messages = {"args": call_args, "kwargs": call_kwargs}
+    else:
+        logger.debug("No messages provided for LLM call")
+        input_messages = {"args": call_args, "kwargs": call_kwargs}
+
+    tool_definitions = None
+    if not call_kwargs.get("structured_model", False):
+        tool_definitions = _get_tool_definitions(
+            call_kwargs.get("tools"), call_kwargs.get("tool_choice")
+        )
+
+    return {
+        "operation_name": GenAIAttributes.GenAiOperationNameValues.CHAT.value,
+        "provider_name": provider_name,
+        "request_model": getattr(call_instance, "model_name", "unknown_model"),
+        "request_max_tokens": call_kwargs.get("max_tokens"),
+        "request_temperature": call_kwargs.get("temperature"),
+        "request_top_p": call_kwargs.get("top_p"),
+        "request_top_k": call_kwargs.get("top_k"),
+        "request_stop_sequences": call_kwargs.get("stop_sequences"),
+        "request_tool_definitions": tool_definitions,
+        "input_messages": _serialize_to_str(input_messages),
+    }
+
+
+def extract_embedding_attributes(
+    call_instance: EmbeddingModelBase,
+    call_args: Tuple[Any, ...],
+    call_kwargs: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract Embedding call attributes"""
+    provider_name = get_embedding_provider_name(call_instance)
+
+    text_for_embedding = call_args[0] if call_args else call_kwargs.get("text")
+
+    if text_for_embedding:
+        input_message = []
+        for text_item in text_for_embedding:
+            input_message.append(
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": text_item}],
+                }
+            )
+        input_messages = input_message
+    else:
+        logger.debug("No text provided for embedding call")
+        input_messages = {"args": call_args, "kwargs": call_kwargs}
+
+    return {
+        "operation_name": GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
+        "provider_name": provider_name,
+        "request_model": getattr(call_instance, "model_name", "unknown_model"),
+        "request_encoding_formats": call_kwargs.get("encoding_formats"),
+        "input_messages": _serialize_to_str(input_messages),
+    }
+
+
+def extract_agent_attributes(
+    reply_instance: AgentBase,
+    reply_args: Tuple[Any, ...],
+    reply_kwargs: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract Agent reply call attributes"""
+    msg = reply_args[0] if reply_args else reply_kwargs.get("msg")
+
+    if msg:
+        try:
+            if isinstance(msg, Msg):
+                input_messages = _format_msg_to_parts(msg)
+            elif isinstance(msg, list):
+                input_messages = [
+                    _format_msg_to_parts(m) for m in msg if isinstance(m, Msg)
+                ]
+            else:
+                input_messages = []
+        except Exception as e:
+            logger.debug(f"Error formatting agent messages: {e}")
+            input_messages = []
+    else:
+        logger.debug("No msg provided for agent reply")
+        input_messages = {"args": reply_args, "kwargs": reply_kwargs}
+
+    request_model = None
+    provider_name = None
+    if hasattr(reply_instance, "model") and reply_instance.model:
+        model = reply_instance.model
+        # Only set request_model if model has a model_name attribute
+        request_model = getattr(model, "model_name", None)
+        if isinstance(model, ChatModelBase):
+            provider_name = get_provider_name(model)
+
+    return {
+        "operation_name": GenAIAttributes.GenAiOperationNameValues.INVOKE_AGENT.value,
+        "agent_id": getattr(reply_instance, "id", "unknown"),
+        "agent_name": getattr(reply_instance, "name", "unknown_agent"),
+        "agent_description": inspect.getdoc(reply_instance.__class__)
+        or "No description available",
+        "system_instructions": reply_instance.sys_prompt
+        if hasattr(reply_instance, "sys_prompt")
+        else None,
+        "request_model": request_model,
+        "provider_name": provider_name,
+        "conversation_id": _config.run_id,
+        "input_messages": _serialize_to_str(input_messages),
+    }
+
+
+def get_chatmodel_output_messages(chat_response: Any) -> List[Dict[str, Any]]:
+    """Convert ChatResponse to OpenTelemetry standard output message format."""
+    try:
+        if not isinstance(chat_response, ChatResponse):
+            return []
+
+        parts = []
+        for block in chat_response.content:
+            part = _convert_block_to_part(block)
+            if part:
+                parts.append(part)
+
+        if not parts:
+            parts.append({"type": "text", "content": ""})
+
+        return [
+            {
+                "role": "assistant",
+                "parts": parts,
+                "finish_reason": "stop",
+            }
+        ]
+
+    except Exception as e:
+        logger.warning(
+            f"Error processing ChatResponse to output messages: {e}"
+        )
+        return [
+            {
+                "role": "assistant",
+                "parts": [
+                    {"type": "text", "content": "<error processing response>"}
+                ],
+                "finish_reason": "error",
+            }
+        ]
+
+
+def convert_agentscope_messages_to_genai_format(
+    messages: Any,
+    provider_name: Optional[str] = None,
+) -> List[InputMessage]:
+    """Convert AgentScope messages to opentelemetry-util-genai InputMessage format.
+
+    This function is used by ExtendedTelemetryHandler which requires InputMessage objects.
+    """
+    if not messages:
+        return []
+
+    if not isinstance(messages, list):
+        messages = [messages]
+
+    input_messages = []
+    for msg in messages:
+        if isinstance(msg, Msg):
+            msg_dict = _format_msg_to_parts(msg)
+        elif isinstance(msg, dict):
+            if provider_name:
+                try:
+                    converted = get_message_converter(provider_name)([msg])
+                    msg_dict = converted[0] if converted else msg
+                except Exception:
+                    msg_dict = msg
+            else:
+                msg_dict = msg
+        else:
+            continue
+
+        role = msg_dict.get("role", "user")
+        parts = msg_dict.get("parts", [])
+
+        converted_parts = []
+        for part in parts:
+            part_type = part.get("type")
+            if part_type == "text":
+                converted_parts.append(Text(content=part.get("content", "")))
+            elif part_type == "tool_call":
+                converted_parts.append(
+                    ToolCall(
+                        id=part.get("id"),
+                        name=part.get("name", ""),
+                        arguments=part.get("arguments", {}),
+                    )
+                )
+            elif part_type == "tool_call_response":
+                converted_parts.append(
+                    ToolCallResponse(
+                        id=part.get("id"),
+                        response=part.get("result", ""),
+                    )
+                )
+            else:
+                # Keep other types as-is
+                converted_parts.append(part)
+
+        input_messages.append(InputMessage(role=role, parts=converted_parts))
+
+    return input_messages
+
+
+def convert_chatresponse_to_output_messages(
+    chat_response: Any,
+) -> List[OutputMessage]:
+    """Convert ChatResponse to opentelemetry-util-genai OutputMessage format.
+
+    This function is used by ExtendedTelemetryHandler which requires OutputMessage objects.
+    """
+    output_dicts = get_chatmodel_output_messages(chat_response)
+    if not output_dicts:
+        return []
+
+    output_messages = []
+    for msg_dict in output_dicts:
+        role = msg_dict.get("role", "assistant")
+        parts_dicts = msg_dict.get("parts", [])
+        finish_reason = msg_dict.get("finish_reason", "stop")
+
+        converted_parts = []
+        for part in parts_dicts:
+            part_type = part.get("type")
+            if part_type == "text":
+                converted_parts.append(Text(content=part.get("content", "")))
+            elif part_type == "tool_call":
+                converted_parts.append(
+                    ToolCall(
+                        id=part.get("id"),
+                        name=part.get("name", ""),
+                        arguments=part.get("arguments", {}),
+                    )
+                )
+            else:
+                converted_parts.append(part)
+
+        output_messages.append(
+            OutputMessage(
+                role=role,
+                parts=converted_parts,
+                finish_reason=finish_reason,
+            )
+        )
+
+    return output_messages
+
+
+def convert_agent_response_to_output_messages(
+    agent_response: Any,
+) -> List[OutputMessage]:
+    """Convert agent Msg response to opentelemetry-util-genai OutputMessage format.
+
+    This function is used by ExtendedTelemetryHandler which requires OutputMessage objects.
+    """
+    if not hasattr(agent_response, "content"):
+        return []
+
+    try:
+        # Use _format_msg_to_parts to convert Msg to dict, then convert to OutputMessage
+        msg_dict = _format_msg_to_parts(agent_response)
+        parts_dicts = msg_dict.get("parts", [])
+
+        converted_parts = []
+        for part in parts_dicts:
+            part_type = part.get("type")
+            if part_type == "text":
+                converted_parts.append(Text(content=part.get("content", "")))
+            elif part_type == "tool_call":
+                converted_parts.append(
+                    ToolCall(
+                        id=part.get("id"),
+                        name=part.get("name", ""),
+                        arguments=part.get("arguments", {}),
+                    )
+                )
+            else:
+                converted_parts.append(Text(content=str(part)))
+
+        if not converted_parts:
+            converted_parts.append(Text(content=""))
+
+        return [
+            OutputMessage(
+                role="assistant",
+                parts=converted_parts,
+                finish_reason="stop",
+            )
+        ]
+    except Exception as e:
+        logger.debug(f"Failed to convert agent response: {e}")
+        return []

@@ -1,0 +1,124 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are an assistant.
+          role: system
+        - content: Format test message
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.4; python/3.13.0; platform/macOS-15.3.2-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |+
+        id:1
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"Sure","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":22,"output_tokens":1,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:2
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"! Could","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":24,"output_tokens":3,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:3
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" you please specify","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":27,"output_tokens":6,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:4
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" how","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":28,"output_tokens":7,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:5
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" you would like the test message","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":34,"output_tokens":13,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:6
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" to be formatted? For example","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":40,"output_tokens":19,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:7
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":", do you want it in","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":46,"output_tokens":25,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:8
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" bold, italic,","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":50,"output_tokens":29,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:9
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" with bullet points, or","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":55,"output_tokens":34,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:10
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":" in a specific structure","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":59,"output_tokens":38,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:11
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"?","role":"assistant"},"finish_reason":"null"}]},"usage":{"total_tokens":60,"output_tokens":39,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+        id:12
+        event:result
+        :HTTP_STATUS/200
+        data:{"output":{"choices":[{"message":{"content":"","role":"assistant"},"finish_reason":"stop"}]},"usage":{"total_tokens":60,"output_tokens":39,"input_tokens":21,"prompt_tokens_details":{"cached_tokens":0}},"request_id":"4a21b111-5146-40a8-91b6-7906d4749fb1"}
+
+    headers:
+      Content-Type:
+      - text/event-stream;charset=UTF-8
+      Date:
+      - Wed, 17 Dec 2025 03:55:54 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie: test_set_cookie
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      req-arrive-time:
+      - '1765943754826'
+      req-cost-time:
+      - '274'
+      resp-start-time:
+      - '1765943755100'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'false'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '264'
+      x-request-id:
+      - 4a21b111-5146-40a8-91b6-7906d4749fb1
+    status:
+      code: 200
+      message: OK
+version: 1
