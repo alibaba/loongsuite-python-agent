@@ -29,8 +29,36 @@ from opentelemetry.instrumentation.mem0.semconv import (
 from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer
 from opentelemetry.util.genai._extended_memory import MemoryInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
+from opentelemetry.util.genai.types import Error
 
 logger = logging.getLogger(__name__)
+
+
+def _get_field(payload: dict, field_name: str) -> Any:
+    """
+    DashScope-style helper: fetch a field if present (distinguish between missing vs present None).
+    """
+    if field_name in payload:
+        return payload.get(field_name)
+    return None
+
+
+def _coerce_optional_int(value: Any) -> Optional[int]:
+    try:
+        if value is None:
+            return None
+        return int(value)
+    except Exception:
+        return None
+
+
+def _coerce_optional_float(value: Any) -> Optional[float]:
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except Exception:
+        return None
 
 
 def _normalize_call_parameters(
@@ -179,7 +207,7 @@ class MemoryOperationWrapper:
     ) -> None:
         """Populate MemoryInvocation standard fields from normalized kwargs."""
 
-        def _int_or_none(value: Any) -> int | None:
+        def _int_or_none(value: Any) -> Optional[int]:
             try:
                 if value is None:
                     return None
@@ -187,7 +215,7 @@ class MemoryOperationWrapper:
             except Exception:
                 return None
 
-        def _float_or_none(value: Any) -> float | None:
+        def _float_or_none(value: Any) -> Optional[float]:
             try:
                 if value is None:
                     return None
@@ -220,27 +248,121 @@ class MemoryOperationWrapper:
             invocation.threshold = _float_or_none(threshold)
         if "rerank" in normalized_kwargs:
             # rerank can be explicitly False
-            invocation.rerank = bool(normalized_kwargs.get("rerank"))
+            raw_rerank = normalized_kwargs.get("rerank")
+            invocation.rerank = (
+                bool(raw_rerank) if raw_rerank is not None else None
+            )
 
     @staticmethod
-    def _filter_operation_attrs_for_invocation(operation_attrs: dict) -> dict:
-        """Remove keys that should be carried by MemoryInvocation fields rather than custom attributes."""
-        # Strip content keys: content should go to invocation.input_messages/output_messages
-        operation_attrs.pop(
-            SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES, None
-        )
-        operation_attrs.pop(
-            SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES, None
-        )
-        # Strip server info keys: server info should go to invocation.server_address/server_port
-        operation_attrs.pop(SemanticAttributes.SERVER_ADDRESS, None)
-        operation_attrs.pop(SemanticAttributes.SERVER_PORT, None)
-        # Strip base semantic keys: util will set these
-        operation_attrs.pop(SemanticAttributes.GEN_AI_OPERATION_NAME, None)
-        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_OPERATION, None)
-        # Strip error key (error is handled by util)
-        operation_attrs.pop(SemanticAttributes.ERROR_TYPE, None)
-        return operation_attrs
+    def _apply_custom_extractor_output_to_invocation(
+        invocation: MemoryInvocation, extracted: dict
+    ) -> None:
+        """
+        Apply custom extractor output directly onto MemoryInvocation.
+
+        Expected format (no compatibility guarantees):
+        - Any MemoryInvocation field name can be provided directly, e.g.:
+          user_id/agent_id/run_id/app_id/memory_id/limit/page/page_size/top_k/
+          memory_type/threshold/rerank/input_messages/output_messages/
+          server_address/server_port
+        - Custom attributes can be provided as:
+          - key "attributes": dict[str, Any]
+          - or any other leftover keys will be treated as custom attributes
+        """
+
+        # Core invocation fields (DashScope-style "get parameter then set")
+        if "user_id" in extracted:
+            raw = _get_field(extracted, "user_id")
+            invocation.user_id = safe_str(raw) if raw is not None else None
+        if "agent_id" in extracted:
+            raw = _get_field(extracted, "agent_id")
+            invocation.agent_id = safe_str(raw) if raw is not None else None
+        if "run_id" in extracted:
+            raw = _get_field(extracted, "run_id")
+            invocation.run_id = safe_str(raw) if raw is not None else None
+        if "app_id" in extracted:
+            raw = _get_field(extracted, "app_id")
+            invocation.app_id = safe_str(raw) if raw is not None else None
+        if "memory_id" in extracted:
+            raw = _get_field(extracted, "memory_id")
+            invocation.memory_id = safe_str(raw) if raw is not None else None
+
+        if "limit" in extracted:
+            invocation.limit = _coerce_optional_int(
+                _get_field(extracted, "limit")
+            )
+        if "page" in extracted:
+            invocation.page = _coerce_optional_int(
+                _get_field(extracted, "page")
+            )
+        if "page_size" in extracted:
+            invocation.page_size = _coerce_optional_int(
+                _get_field(extracted, "page_size")
+            )
+        if "top_k" in extracted:
+            invocation.top_k = _coerce_optional_int(
+                _get_field(extracted, "top_k")
+            )
+
+        if "memory_type" in extracted:
+            raw = _get_field(extracted, "memory_type")
+            invocation.memory_type = safe_str(raw) if raw is not None else None
+        if "threshold" in extracted:
+            invocation.threshold = _coerce_optional_float(
+                _get_field(extracted, "threshold")
+            )
+        if "rerank" in extracted:
+            raw_rerank = _get_field(extracted, "rerank")
+            invocation.rerank = (
+                bool(raw_rerank) if raw_rerank is not None else None
+            )
+
+        if "input_messages" in extracted:
+            invocation.input_messages = _get_field(extracted, "input_messages")
+        if "output_messages" in extracted:
+            invocation.output_messages = _get_field(
+                extracted, "output_messages"
+            )
+
+        if "server_address" in extracted:
+            raw = _get_field(extracted, "server_address")
+            invocation.server_address = (
+                safe_str(raw) if raw is not None else None
+            )
+        if "server_port" in extracted:
+            invocation.server_port = _coerce_optional_int(
+                _get_field(extracted, "server_port")
+            )
+
+        # Custom attributes
+        attrs = extracted.get("attributes")
+        if isinstance(attrs, dict):
+            invocation.attributes.update(attrs)
+
+        # Any leftover keys -> invocation.attributes (excluding known fields)
+        known = {
+            "user_id",
+            "agent_id",
+            "run_id",
+            "app_id",
+            "memory_id",
+            "limit",
+            "page",
+            "page_size",
+            "top_k",
+            "memory_type",
+            "threshold",
+            "rerank",
+            "input_messages",
+            "output_messages",
+            "server_address",
+            "server_port",
+            "attributes",
+        }
+        for k, v in extracted.items():
+            if k in known:
+                continue
+            invocation.attributes[k] = v
 
     def _apply_extracted_attrs_to_invocation(
         self,
@@ -259,52 +381,30 @@ class MemoryOperationWrapper:
                 operation_attrs = extract_attributes_func(
                     normalized_kwargs, result
                 )
-            else:
-                operation_attrs = self.extractor.extract_attributes_unified(
-                    operation_name,
-                    instance,
-                    normalized_kwargs,
-                    result,
-                    is_memory_client=is_memory_client,
-                )
+                if isinstance(operation_attrs, dict):
+                    self._apply_custom_extractor_output_to_invocation(
+                        invocation, operation_attrs
+                    )
+                return
 
-            # Map content to invocation fields (let util decide whether to record them)
-            if (
-                input_msg := operation_attrs.get(
-                    SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES
-                )
-            ) is not None:
+            # Built-in extractor path: directly extract for MemoryInvocation fields
+            input_msg, output_msg = self.extractor.extract_invocation_content(
+                operation_name,
+                normalized_kwargs,
+                result,
+                is_memory_client=is_memory_client,
+            )
+            if input_msg is not None:
                 invocation.input_messages = input_msg
-            if (
-                output_msg := operation_attrs.get(
-                    SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
-                )
-            ) is not None:
+            if output_msg is not None:
                 invocation.output_messages = output_msg
 
-            # Map server info to invocation fields
-            if (
-                server_addr := operation_attrs.get(
-                    SemanticAttributes.SERVER_ADDRESS
-                )
-            ) is not None:
-                invocation.server_address = safe_str(server_addr)
-            if (
-                server_port := operation_attrs.get(
-                    SemanticAttributes.SERVER_PORT
-                )
-            ) is not None:
-                try:
-                    invocation.server_port = int(server_port)
-                except Exception:
-                    invocation.server_port = None
-
-            # Remaining attrs -> invocation.attributes
-            filtered = self._filter_operation_attrs_for_invocation(
-                dict(operation_attrs)
+            # Extra attributes only (NOT covered by MemoryInvocation fields)
+            extra_attrs = self.extractor.extract_invocation_attributes(
+                operation_name, normalized_kwargs, result
             )
-            if filtered:
-                invocation.attributes.update(filtered)
+            if extra_attrs:
+                invocation.attributes.update(extra_attrs)
         except Exception as e:
             logger.debug(f"Failed to extract invocation attributes: {e}")
 
@@ -345,9 +445,11 @@ class MemoryOperationWrapper:
             is_memory_client=is_memory_client,
         )
 
-        with self.telemetry_handler.memory(invocation) as invocation:
+        # Follow the same explicit start/stop/fail style as other LoongSuite instrumentations (e.g. dashscope)
+        self.telemetry_handler.start_memory(invocation)
+        try:
             result = func(*args, **kwargs)
-            # Post-extract result attributes/content
+            # Post-extract result attributes/content (must happen before stop_memory)
             self._apply_extracted_attrs_to_invocation(
                 invocation,
                 instance,
@@ -357,7 +459,13 @@ class MemoryOperationWrapper:
                 extract_attributes_func=extract_attributes_func,
                 is_memory_client=is_memory_client,
             )
+            self.telemetry_handler.stop_memory(invocation)
             return result
+        except Exception as e:
+            self.telemetry_handler.fail_memory(
+                invocation, Error(message=str(e), type=type(e))
+            )
+            raise
 
     async def _execute_with_handler_async(
         self,
@@ -396,9 +504,11 @@ class MemoryOperationWrapper:
             is_memory_client=is_memory_client,
         )
 
-        with self.telemetry_handler.memory(invocation) as invocation:
+        # Follow the same explicit start/stop/fail style as other LoongSuite instrumentations (e.g. dashscope)
+        self.telemetry_handler.start_memory(invocation)
+        try:
             result = await func(*args, **kwargs)
-            # Post-extract result attributes/content
+            # Post-extract result attributes/content (must happen before stop_memory)
             self._apply_extracted_attrs_to_invocation(
                 invocation,
                 instance,
@@ -408,7 +518,13 @@ class MemoryOperationWrapper:
                 extract_attributes_func=extract_attributes_func,
                 is_memory_client=is_memory_client,
             )
+            self.telemetry_handler.stop_memory(invocation)
             return result
+        except Exception as e:
+            self.telemetry_handler.fail_memory(
+                invocation, Error(message=str(e), type=type(e))
+            )
+            raise
 
 
 class VectorStoreWrapper:

@@ -25,144 +25,92 @@ from opentelemetry.instrumentation.mem0.internal._util import (
 
 
 class TestStringUtils(unittest.TestCase):
-    def test_truncate_string_normal(self):
-        result = truncate_string("hello world", 5)
-        self.assertEqual(result, "hello...")
-
-    def test_truncate_string_no_truncation(self):
-        result = truncate_string("hello", 10)
-        self.assertEqual(result, "hello")
-
-    def test_truncate_string_none_input(self):
-        result = truncate_string(None, 10)  # type: ignore
-        self.assertIsNone(result)
-
-    def test_truncate_string_empty_input(self):
-        result = truncate_string("", 10)
-        self.assertEqual(result, "")
+    def test_truncate_string(self):
+        for value, max_len, expected in (
+            ("hello world", 5, "hello..."),
+            ("hello", 10, "hello"),
+            (None, 10, None),  # type: ignore[arg-type]
+            ("", 10, ""),
+        ):
+            with self.subTest(value=value, max_len=max_len):
+                self.assertEqual(truncate_string(value, max_len), expected)
 
 
 class TestSafeGetUtils(unittest.TestCase):
-    def test_safe_get_dict(self):
+    def test_safe_get(self):
         data = {"a": {"b": "value"}}
-        result = safe_get(data, "a", "b")
-        self.assertEqual(result, "value")
-
-    def test_safe_get_dict_missing_key(self):
-        data = {"a": {"b": "value"}}
-        result = safe_get(data, "a", "c", default="default")
-        self.assertEqual(result, "default")
-
-    def test_safe_get_object(self):
         obj = Mock()
         obj.attr = "value"
-        result = safe_get(obj, "attr")
-        self.assertEqual(result, "value")
-
-    def test_safe_get_none_input(self):
-        result = safe_get(None, "key")
-        self.assertIsNone(result)
+        cases = [
+            ("dict_nested", data, ("a", "b"), None, "value"),
+            ("dict_missing", data, ("a", "c"), "default", "default"),
+            ("object_attr", obj, ("attr",), None, "value"),
+            ("none_input", None, ("key",), None, None),
+        ]
+        for name, target, keys, default, expected in cases:
+            with self.subTest(case=name):
+                if default is None:
+                    self.assertEqual(safe_get(target, *keys), expected)
+                else:
+                    self.assertEqual(
+                        safe_get(target, *keys, default=default), expected
+                    )
 
 
 class TestSafeTypeConversion(unittest.TestCase):
-    def test_safe_int_valid(self):
-        result = safe_int("123")
-        self.assertEqual(result, 123)
-
-    def test_safe_int_invalid(self):
-        result = safe_int("abc", default=42)
-        self.assertEqual(result, 42)
-
-    def test_safe_float_valid(self):
-        result = safe_float("3.14")
-        self.assertEqual(result, 3.14)
-
-    def test_safe_float_invalid(self):
-        result = safe_float("abc", default=1.0)
-        self.assertEqual(result, 1.0)
-
-    def test_safe_str_valid(self):
-        result = safe_str(123)
-        self.assertEqual(result, "123")
-
-    def test_safe_str_none(self):
-        result = safe_str(None, default="default")
-        self.assertEqual(result, "default")
+    def test_safe_type_conversion(self):
+        for func, value, default, expected, label in (
+            (safe_int, "123", 0, 123, "int_valid"),
+            (safe_int, "abc", 42, 42, "int_invalid"),
+            (safe_float, "3.14", 0.0, 3.14, "float_valid"),
+            (safe_float, "abc", 1.0, 1.0, "float_invalid"),
+            (safe_str, 123, "", "123", "str_valid"),
+            (safe_str, None, "default", "default", "str_none"),
+        ):
+            with self.subTest(case=label):
+                if func is safe_str:
+                    self.assertEqual(func(value, default=default), expected)
+                else:
+                    self.assertEqual(func(value, default=default), expected)
 
 
 class TestExtractUtils(unittest.TestCase):
-    def test_extract_result_count_direct_list(self):
-        data = [1, 2, 3, 4, 5]
-        result = extract_result_count(data)
-        self.assertEqual(result, 5)
+    def test_extract_result_count_basic(self):
+        cases = [
+            ("direct_list", [1, 2, 3, 4, 5], 5),
+            ("dict_memories", {"memories": [1, 2, 3]}, 3),
+            ("dict_results", {"results": [1, 2, 3, 4]}, 4),
+            ("dict_nodes", {"nodes": [{"id": 1}, {"id": 2}]}, 2),
+            ("none", None, None),
+            ("empty_dict", {}, None),
+        ]
+        for name, data, expected in cases:
+            with self.subTest(case=name):
+                self.assertEqual(extract_result_count(data), expected)
 
-    def test_extract_result_count_dict_with_list(self):
-        data = {"memories": [1, 2, 3]}
-        result = extract_result_count(data)
-        self.assertEqual(result, 3)
+    def test_extract_affected_count(self):
+        cases = [
+            ("affected_count", {"affected_count": 10}, 10),
+            ("deleted_count", {"deleted_count": 5}, 5),
+            ("updated_count", {"updated_count": 3}, 3),
+            ("modified_count", {"modified_count": 7}, 7),
+            ("bool_true", True, 1),
+            ("bool_false", False, None),
+            ("none", None, None),
+            ("empty_dict", {}, None),
+        ]
+        for name, data, expected in cases:
+            with self.subTest(case=name):
+                self.assertEqual(extract_affected_count(data), expected)
 
-    def test_extract_result_count_dict_with_results_key(self):
-        data = {"results": [1, 2, 3, 4]}
-        result = extract_result_count(data)
-        self.assertEqual(result, 4)
-
-    def test_extract_result_count_dict_with_nodes_key(self):
-        data = {"nodes": [{"id": 1}, {"id": 2}]}
-        result = extract_result_count(data)
-        self.assertEqual(result, 2)
-
-    def test_extract_result_count_none(self):
-        result = extract_result_count(None)
-        self.assertIsNone(result)
-
-    def test_extract_result_count_empty_dict(self):
-        result = extract_result_count({})
-        self.assertIsNone(result)
-
-    def test_extract_affected_count_dict_affected(self):
-        data = {"affected_count": 10}
-        result = extract_affected_count(data)
-        self.assertEqual(result, 10)
-
-    def test_extract_affected_count_dict_deleted(self):
-        data = {"deleted_count": 5}
-        result = extract_affected_count(data)
-        self.assertEqual(result, 5)
-
-    def test_extract_affected_count_dict_updated(self):
-        data = {"updated_count": 3}
-        result = extract_affected_count(data)
-        self.assertEqual(result, 3)
-
-    def test_extract_affected_count_dict_modified(self):
-        data = {"modified_count": 7}
-        result = extract_affected_count(data)
-        self.assertEqual(result, 7)
-
-    def test_extract_affected_count_bool_true(self):
-        result = extract_affected_count(True)
-        self.assertEqual(result, 1)
-
-    def test_extract_affected_count_bool_false(self):
-        result = extract_affected_count(False)
-        self.assertIsNone(result)
-
-    def test_extract_affected_count_none(self):
-        result = extract_affected_count(None)
-        self.assertIsNone(result)
-
-    def test_extract_affected_count_empty_dict(self):
-        result = extract_affected_count({})
-        self.assertIsNone(result)
-
-    def test_extract_filters_keys_dict(self):
-        filters = {"key1": "value1", "key2": "value2"}
-        result = extract_filters_keys(filters)
-        self.assertEqual(result, ["key1", "key2"])
-
-    def test_extract_filters_keys_none(self):
-        result = extract_filters_keys(None)
-        self.assertIsNone(result)
+    def test_extract_filters_keys(self):
+        cases = [
+            ("dict", {"key1": "value1", "key2": "value2"}, ["key1", "key2"]),
+            ("none", None, None),
+        ]
+        for name, filters, expected in cases:
+            with self.subTest(case=name):
+                self.assertEqual(extract_filters_keys(filters), expected)
 
     # ===== Graph structure tests =====
     def test_extract_result_count_graph_add_structure(self):

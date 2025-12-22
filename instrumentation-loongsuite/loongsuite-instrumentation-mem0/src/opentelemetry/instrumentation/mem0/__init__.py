@@ -122,6 +122,8 @@ class Mem0Instrumentor(BaseInstrumentor):
         if not tracer_provider:
             tracer_provider = trace_api.get_tracer_provider()
 
+        meter_provider = kwargs.get("meter_provider")
+
         # Optional: logger provider for GenAI events (util will no-op if not provided)
         logger_provider = kwargs.get("logger_provider")
 
@@ -129,6 +131,7 @@ class Mem0Instrumentor(BaseInstrumentor):
         # Avoid singleton here so tests (and multiple tracer providers) don't leak across runs.
         telemetry_handler = ExtendedTelemetryHandler(
             tracer_provider=tracer_provider,
+            meter_provider=meter_provider,
             logger_provider=logger_provider,
         )
 

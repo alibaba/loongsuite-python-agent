@@ -24,72 +24,63 @@ from opentelemetry.instrumentation.mem0.config import (
 class TestEnvironmentUtils(unittest.TestCase):
     """Tests for environment variable utility functions."""
 
-    def test_get_bool_env_true_values(self):
-        """Tests boolean environment variable true values."""
-        test_cases = ["true", "1", "yes", "on", "TRUE", "YES", "ON"]
-        for value in test_cases:
-            with patch.dict(os.environ, {"TEST_VAR": value}):
-                result = get_bool_env("TEST_VAR")
-                self.assertTrue(result)
+    def test_env_helpers_table_driven(self):
+        """Table-driven tests for env helper functions to reduce redundancy."""
+        # get_bool_env
+        for value, expected in (
+            ("true", True),
+            ("1", True),
+            ("yes", True),
+            ("on", True),
+            ("TRUE", True),
+            ("YES", True),
+            ("ON", True),
+            ("false", False),
+            ("0", False),
+            ("no", False),
+            ("off", False),
+            ("FALSE", False),
+            ("NO", False),
+            ("OFF", False),
+        ):
+            with self.subTest(func="get_bool_env", value=value):
+                with patch.dict(os.environ, {"TEST_VAR": value}):
+                    self.assertEqual(get_bool_env("TEST_VAR"), expected)
 
-    def test_get_bool_env_false_values(self):
-        """Tests boolean environment variable false values."""
-        test_cases = ["false", "0", "no", "off", "FALSE", "NO", "OFF"]
-        for value in test_cases:
-            with patch.dict(os.environ, {"TEST_VAR": value}):
-                result = get_bool_env("TEST_VAR")
-                self.assertFalse(result)
+        with self.subTest(func="get_bool_env_default"):
+            self.assertTrue(get_bool_env("NON_EXISTENT_VAR", default=True))
 
-    def test_get_bool_env_default(self):
-        """Tests boolean environment variable default value."""
-        result = get_bool_env("NON_EXISTENT_VAR", default=True)
-        self.assertTrue(result)
+        # get_int_env
+        for value, default, expected in (("42", 10, 42), ("invalid", 10, 10)):
+            with self.subTest(func="get_int_env", value=value):
+                with patch.dict(os.environ, {"TEST_VAR": value}):
+                    self.assertEqual(
+                        get_int_env("TEST_VAR", default), expected
+                    )
 
-    def test_get_int_env_valid(self):
-        """Tests integer environment variable valid value."""
-        with patch.dict(os.environ, {"TEST_VAR": "42"}):
-            result = get_int_env("TEST_VAR", 10)
-            self.assertEqual(result, 42)
+        # get_optional_bool_env
+        for env, expected in (("true", True), ("false", False), (None, None)):
+            with self.subTest(func="get_optional_bool_env", value=env):
+                if env is None:
+                    with patch.dict(os.environ, {}, clear=True):
+                        self.assertIsNone(get_optional_bool_env("TEST_VAR"))
+                else:
+                    with patch.dict(os.environ, {"TEST_VAR": env}):
+                        self.assertEqual(
+                            get_optional_bool_env("TEST_VAR"), expected
+                        )
 
-    def test_get_int_env_invalid(self):
-        """Tests integer environment variable invalid value."""
-        with patch.dict(os.environ, {"TEST_VAR": "invalid"}):
-            result = get_int_env("TEST_VAR", 10)
-            self.assertEqual(result, 10)
-
-    def test_get_optional_bool_env_true(self):
-        """Tests optional boolean environment variable true value."""
-        with patch.dict(os.environ, {"TEST_VAR": "true"}):
-            result = get_optional_bool_env("TEST_VAR")
-            self.assertTrue(result)
-
-    def test_get_optional_bool_env_false(self):
-        """Tests optional boolean environment variable false value."""
-        with patch.dict(os.environ, {"TEST_VAR": "false"}):
-            result = get_optional_bool_env("TEST_VAR")
-            self.assertFalse(result)
-
-    def test_get_optional_bool_env_none(self):
-        """Tests optional boolean environment variable not set."""
-        result = get_optional_bool_env("NON_EXISTENT_VAR")
-        self.assertIsNone(result)
-
-    def test_first_present_bool_first_key(self):
-        """Tests prioritizing first existing key."""
-        with patch.dict(os.environ, {"KEY1": "true", "KEY2": "false"}):
-            result = first_present_bool(["KEY1", "KEY2"], False)
-            self.assertTrue(result)
-
-    def test_first_present_bool_second_key(self):
-        """Tests using second key when first doesn't exist."""
-        with patch.dict(os.environ, {"KEY2": "true"}):
-            result = first_present_bool(["KEY1", "KEY2"], False)
-            self.assertTrue(result)
-
-    def test_first_present_bool_default(self):
-        """Tests using default value when all keys don't exist."""
-        result = first_present_bool(["KEY1", "KEY2"], True)
-        self.assertTrue(result)
+        # first_present_bool
+        for environ, default, expected, label in (
+            ({"KEY1": "true", "KEY2": "false"}, False, True, "first_key"),
+            ({"KEY2": "true"}, False, True, "second_key"),
+            ({}, True, True, "default"),
+        ):
+            with self.subTest(func="first_present_bool", label=label):
+                with patch.dict(os.environ, environ, clear=True):
+                    self.assertEqual(
+                        first_present_bool(["KEY1", "KEY2"], default), expected
+                    )
 
 
 class TestMem0InstrumentationConfig(unittest.TestCase):

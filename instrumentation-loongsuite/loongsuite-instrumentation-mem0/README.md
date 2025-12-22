@@ -105,7 +105,7 @@ You can control the Mem0 instrumentation using environment variables.
 | `OTEL_INSTRUMENTATION_MEM0_INNER_ENABLED`                 | `false` | Enable internal phases (Vector Store, Graph Store, Rerank).              |
 | `OTEL_SEMCONV_STABILITY_OPT_IN`                           | *(empty)* | Set to `gen_ai_latest_experimental` to enable GenAI experimental semantics (required for content/event). |
 | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`      | `NO_CONTENT` | Content capturing mode: `NO_CONTENT`, `SPAN_ONLY`, `EVENT_ONLY`, `SPAN_AND_EVENT` (may contain PII/sensitive data). |
-| `OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT`                   | `false` | Emit GenAI events (`LogRecord`). Requires configuring a `LoggerProvider` exporter. |
+| `OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT`                   | `false` | Emit GenAI events (`LogRecord`). Requires configuring a `LoggerProvider`. |
 
 ### Configuration Examples
 

@@ -12,7 +12,6 @@ from opentelemetry.instrumentation.mem0.internal._util import (
     extract_filters_keys,
     extract_provider,
     extract_result_count,
-    extract_server_info,
     safe_float,
     safe_get,
     safe_int,
@@ -173,130 +172,6 @@ def _extract_input_content(
         )
 
     return None
-
-
-def _extract_output_preview(
-    result: Any, max_len: Optional[int] = None
-) -> Optional[str]:
-    """
-    Extract output content from Memory operation result, returning fields containing content.
-
-    Strategy:
-    1. For strings, return directly
-    2. For dicts:
-       a. Prioritize simple fields (direct string values)
-       b. For Mixed structure (both results and relations), merge both
-       c. Otherwise return first non-empty container field
-    3. For lists, return original content directly
-    Note: max_len is kept for backward compatibility with historical tests/callers,
-    but output is no longer truncated by this instrumentation.
-    """
-    if result is None:
-        return None
-    try:
-        # Direct string
-        if isinstance(result, str):
-            return str(result)
-
-        # Dict: extract content
-        if isinstance(result, dict):
-            d: Dict[Any, Any] = cast(Dict[Any, Any], result)
-
-            # 1. Try simple fields (direct string values)
-            for k in ContentExtractionKeys.OUTPUT_SIMPLE_KEYS:
-                if k in d and isinstance(d[k], str):
-                    return str(d[k])
-
-            # 2. Special handling: Mem0 Mixed structure (both results and relations)
-            #    Merge both contents to ensure Graph results are included
-            if "results" in d and "relations" in d:
-                results_val = d["results"]
-                relations_val = d["relations"]
-
-                # Check if both have content
-                has_results = results_val and (
-                    not isinstance(results_val, (list, dict))
-                    or len(results_val) > 0
-                )
-                has_relations = relations_val and (
-                    not isinstance(relations_val, (list, dict))
-                    or len(relations_val) > 0
-                )
-
-                if has_results and has_relations:
-                    # Merge both: construct dict containing both
-                    merged = {
-                        "results": results_val,
-                        "relations": relations_val,
-                    }
-                    return safe_str(merged)
-                elif has_results:
-                    return safe_str(results_val)
-                elif has_relations:
-                    return safe_str(relations_val)
-
-            # 3. Try container fields, return first non-empty field content
-            for k in ContentExtractionKeys.OUTPUT_CONTAINER_KEYS:
-                v = d.get(k)
-                if v is not None:
-                    # Check if empty (empty list, empty dict, etc.)
-                    is_empty = False
-                    if isinstance(v, (list, dict, str)):
-                        is_empty = len(v) == 0
-
-                    # If not empty, return content
-                    if not is_empty:
-                        return safe_str(v)
-
-            # 4. If all container fields are empty, try extracting from relations field (Mem0 graph-specific structure)
-            if "relations" in d:
-                relations = d["relations"]
-                if isinstance(relations, dict):
-                    # Try extracting from added_entities, deleted_entities, etc.
-                    for key in (
-                        "added_entities",
-                        "deleted_entities",
-                        "nodes",
-                        "edges",
-                        "entities",
-                    ):
-                        value = relations.get(key)
-                        if value and (
-                            not isinstance(value, (list, dict))
-                            or len(value) > 0
-                        ):
-                            return safe_str(value)
-                    # If any content, return entire relations
-                    if relations:
-                        return safe_str(relations)
-
-            return None
-
-        # List: return original content directly
-        if isinstance(result, list):
-            return safe_str(result)
-    except Exception as e:
-        logger.debug(f"Failed to extract output preview: {e}")
-        return None
-    return None
-
-
-def _set_attributes_from_spec(
-    attributes: Dict[str, Any],
-    instance: Any,
-    kwargs: Dict[str, Any],
-    spec: List[Tuple[str, str, Any]],
-) -> None:
-    """
-    Generic helper: extract from kwargs/instance and write to attributes based on spec.
-    Prioritizes kwargs, then instance attributes. Only sets non-None values.
-    """
-    for param_name, attr_key, caster in spec:
-        value = kwargs.get(param_name)
-        if value is None:
-            value = safe_get(instance, param_name)
-        if value is not None:
-            attributes[attr_key] = caster(value)
 
 
 # Configuration attribute mappings for each component type
@@ -535,97 +410,78 @@ def _should_capture_output_messages(
 class MemoryOperationAttributeExtractor:
     """Memory operation attribute extractor."""
 
-    def extract_attributes_unified(
-        self,
-        method: str,
-        instance: Any,
-        kwargs: Dict[str, Any],
-        result: Any = None,
-        is_memory_client: bool = False,
-    ) -> Dict[str, Any]:
-        """
-        Unified entry point:
-        - Extract common identity attributes (user_id/agent_id/run_id/app_id)
-        - Look up method rules and extract parameter/result attributes
-        - Handle special cases separately if needed
-        """
-        attributes: Dict[str, Any] = {}
-        method_key = (method or "").strip().lower()
-
-        # Common attributes
-        try:
-            attributes.update(self.extract_common_attributes(instance, kwargs))
-        except Exception as e:
-            logger.debug(f"Failed to extract common attributes: {e}")
-
-        # Look up method extraction rule
-        rule = METHOD_EXTRACTION_RULES.get(method_key)
-
-        # Generic attribute extraction (rule-driven)
-        try:
-            generic_attrs = self.extract_generic_attributes(
-                method_key,
-                kwargs,
-                result,
-                rule,
-                is_memory_client=is_memory_client,
-            )
-            attributes.update(generic_attrs)
-        except Exception as e:
-            logger.debug(
-                "Failed to extract generic attributes for method '%s': %s",
-                method_key,
-                e,
-            )
-
-        # Specific extractor for additional attributes if needed
-        specific = getattr(self, f"extract_{method_key}_attributes", None)
-        if callable(specific):
-            try:
-                specific_func = cast(_SpecificAttributeExtractor, specific)
-                attributes.update(specific_func(kwargs, result))  # pylint: disable=not-callable
-            except Exception as e:
-                logger.debug(
-                    "Failed to extract specific attributes for method '%s': %s",
-                    method_key,
-                    e,
-                )
-
-        return attributes
-
     @staticmethod
-    def extract_generic_attributes(
+    def extract_invocation_content(
         operation_name: str,
         kwargs: Dict[str, Any],
         result: Any = None,
-        rule: Optional[MethodExtractionRule] = None,
         *,
         is_memory_client: bool = False,
+    ) -> tuple[Optional[str], Optional[str]]:
+        """
+        Extract content for MemoryInvocation fields:
+        - invocation.input_messages
+        - invocation.output_messages
+
+        Returns (input_messages, output_messages). If not applicable, returns None for that item.
+        """
+        op = (operation_name or "").strip().lower()
+        rule = METHOD_EXTRACTION_RULES.get(op) or MethodExtractionRule()
+
+        input_msg: Optional[str] = None
+        output_msg: Optional[str] = None
+
+        if rule.allow_input_messages:
+            extracted = _extract_input_content(op, kwargs)
+            if extracted:
+                input_msg = extracted
+
+        if (
+            rule.allow_output_messages
+            and result is not None
+            and _should_capture_output_messages(op, kwargs, is_memory_client)
+            and result
+        ):
+            output_msg = safe_str(result)
+
+        return input_msg, output_msg
+
+    @staticmethod
+    def extract_invocation_attributes(
+        operation_name: str,
+        kwargs: Dict[str, Any],
+        result: Any = None,
     ) -> Dict[str, Any]:
         """
-        Generic attribute extraction covering most parameters/returns without method branching.
-        Optionally controls I/O content and result count fields via MethodExtractionRule.
+        Extract ONLY custom attributes that are NOT already covered by MemoryInvocation fields.
 
-        Args:
-            operation_name: Operation name (e.g. 'add', 'search', 'update')
-            kwargs: Method call parameters
-            result: Execution result
-            rule: Method extraction rule
-            is_memory_client: Whether this is a MemoryClient instance
+        Important:
+        - Do NOT include identifiers / paging / server / content fields here.
+          Those are emitted by util memory handler from MemoryInvocation itself.
         """
         attributes: Dict[str, Any] = {}
+        op = (operation_name or "").strip().lower()
 
-        # Default rule: maintain historical behavior (all enabled)
-        if rule is None:
-            rule = MethodExtractionRule()
-
-        # ID / Pagination / Search parameters
-        _set_attributes_from_spec(
-            attributes,
-            instance=None,
-            kwargs=kwargs,
-            spec=GENERIC_MEMORY_ID_PAGINATION_SEARCH_SPEC,
-        )
+        # Keep only params not represented by MemoryInvocation fields
+        # (e.g. infer / keyword_search / only_metadata_based_search)
+        if "infer" in kwargs:
+            infer_val = kwargs.get("infer")
+            if infer_val is not None:
+                attributes[SemanticAttributes.GEN_AI_MEMORY_INFER] = bool(
+                    infer_val
+                )
+        if "only_metadata_based_search" in kwargs:
+            only_meta_val = kwargs.get("only_metadata_based_search")
+            if only_meta_val is not None:
+                attributes[
+                    SemanticAttributes.GEN_AI_MEMORY_ONLY_METADATA_BASED_SEARCH
+                ] = bool(only_meta_val)
+        if "keyword_search" in kwargs:
+            keyword_val = kwargs.get("keyword_search")
+            if keyword_val is not None:
+                attributes[SemanticAttributes.GEN_AI_MEMORY_KEYWORD_SEARCH] = (
+                    bool(keyword_val)
+                )
 
         # List parameters: fields / categories
         if fields := kwargs.get("fields"):
@@ -666,103 +522,46 @@ class MemoryOperationAttributeExtractor:
         for bulk_key in ContentExtractionKeys.BATCH_OPERATION_KEYS:
             if isinstance(kwargs.get(bulk_key), list):
                 try:
-                    attributes[SemanticAttributes.GEN_AI_MEMORY_BATCH_SIZE] = (
-                        len(kwargs.get(bulk_key))
-                    )
-                    break
+                    bulk_val = kwargs.get(bulk_key)
+                    if isinstance(bulk_val, list):
+                        attributes[
+                            SemanticAttributes.GEN_AI_MEMORY_BATCH_SIZE
+                        ] = len(bulk_val)
+                        break
                 except Exception as e:
                     logger.debug(
-                        f"Failed to extract batch size for key '{bulk_key}': {e}"
+                        "Failed to extract batch size for key '%s': %s",
+                        bulk_key,
+                        e,
                     )
 
-        # Input content (always populate; util handler decides whether to record)
-        if rule.allow_input_messages:
-            extracted_content = _extract_input_content(operation_name, kwargs)
-            if extracted_content:
-                attributes[SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES] = (
-                    extracted_content
-                )
-
-        # Result preview (controlled by switch + method rule + MemoryClient async_mode)
-        if (
-            rule.allow_output_messages
-            and _should_capture_output_messages(
-                operation_name, kwargs, is_memory_client
-            )
-            and result is not None
-        ):
-            preview = _extract_output_preview(result)
-            if preview:
-                attributes[
-                    SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
-                ] = preview
-
-        # Result count (unified using gen_ai.memory.result.count)
-        # Uses unified extract_result_count function, auto-identifies all return structures:
-        # - Vector: {"results": [...]}
-        # - Graph: {"added_entities": [[...]], "deleted_entities": [[...]]}
-        # - Memory mixed: {"results": [...], "relations": {...}}
+        # Result count
         if result is not None:
             cnt: Optional[int] = None
             try:
                 cnt = extract_result_count(result)
             except Exception as e:
-                logger.debug(f"Failed to extract result_count: {e}")
+                logger.debug("Failed to extract result_count: %s", e)
                 cnt = None
             if cnt is not None:
                 attributes[SemanticAttributes.GEN_AI_MEMORY_RESULT_COUNT] = cnt
 
-        return attributes
-
-    @staticmethod
-    def extract_common_attributes(
-        instance: Any,
-        kwargs: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """
-        Extracts common attributes (user_id, agent_id, run_id, app_id, etc.).
-
-        Args:
-            instance: Memory/MemoryClient instance
-            kwargs: Method call parameters
-
-        Returns:
-            Attributes dict
-        """
-        attributes: Dict[str, Any] = {}
-
-        # Actual parameter keys from mem0 source code (no excessive aliases)
-        user_val = kwargs.get("user_id")
-        if user_val is not None:
-            attributes[SemanticAttributes.GEN_AI_MEMORY_USER_ID] = safe_str(
-                user_val
-            )
-
-        agent_val = kwargs.get("agent_id")
-        if agent_val is not None:
-            attributes[SemanticAttributes.GEN_AI_MEMORY_AGENT_ID] = safe_str(
-                agent_val
-            )
-
-        run_val = kwargs.get("run_id")
-        if run_val is not None:
-            attributes[SemanticAttributes.GEN_AI_MEMORY_RUN_ID] = safe_str(
-                run_val
-            )
-
-        app_val = kwargs.get("app_id")
-        if app_val is not None:
-            attributes[SemanticAttributes.GEN_AI_MEMORY_APP_ID] = safe_str(
-                app_val
-            )
-
-        # Extract server info (MemoryClient only)
-        if hasattr(instance, "host"):
-            address, port = extract_server_info(instance)
-            if address:
-                attributes[SemanticAttributes.SERVER_ADDRESS] = address
-            if port:
-                attributes[SemanticAttributes.SERVER_PORT] = port
+        # Allow op-specific extension extractors to add extra attributes
+        specific = getattr(
+            MemoryOperationAttributeExtractor,
+            f"extract_{op}_attributes",
+            None,
+        )
+        if callable(specific):
+            try:
+                specific_func = cast(_SpecificAttributeExtractor, specific)
+                attributes.update(specific_func(kwargs, result))  # pylint: disable=not-callable
+            except Exception as e:
+                logger.debug(
+                    "Failed to extract specific attributes for method '%s': %s",
+                    op,
+                    e,
+                )
 
         return attributes
 
