@@ -175,7 +175,9 @@ def _extract_input_content(
     return None
 
 
-def _extract_output_preview(result: Any, max_len: Optional[int] = None) -> Optional[str]:
+def _extract_output_preview(
+    result: Any, max_len: Optional[int] = None
+) -> Optional[str]:
     """
     Extract output content from Memory operation result, returning fields containing content.
 

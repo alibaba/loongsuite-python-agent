@@ -338,7 +338,9 @@ def environment():
 
 @pytest.fixture(scope="function")
 def instrument_with_content(tracer_provider, meter_provider):
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "SPAN_ONLY"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = (
+        "SPAN_ONLY"
+    )
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider, meter_provider=meter_provider
@@ -350,7 +352,9 @@ def instrument_with_content(tracer_provider, meter_provider):
 
 @pytest.fixture(scope="function")
 def instrument_no_content(tracer_provider, meter_provider):
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "NO_CONTENT"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = (
+        "NO_CONTENT"
+    )
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider, meter_provider=meter_provider
@@ -371,7 +375,9 @@ def instrument_with_factories_patched(
     patch_factories(monkeypatch)
 
     # Then instrument (enable internal phase capture)
-    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "SPAN_ONLY"
+    os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = (
+        "SPAN_ONLY"
+    )
     os.environ["OTEL_INSTRUMENTATION_MEM0_INNER_ENABLED"] = "True"
     instrumentor = Mem0Instrumentor()
     instrumentor.instrument(

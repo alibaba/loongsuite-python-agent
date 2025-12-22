@@ -226,8 +226,12 @@ class MemoryOperationWrapper:
     def _filter_operation_attrs_for_invocation(operation_attrs: dict) -> dict:
         """Remove keys that should be carried by MemoryInvocation fields rather than custom attributes."""
         # Strip content keys: content should go to invocation.input_messages/output_messages
-        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES, None)
-        operation_attrs.pop(SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES, None)
+        operation_attrs.pop(
+            SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES, None
+        )
+        operation_attrs.pop(
+            SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES, None
+        )
         # Strip server info keys: server info should go to invocation.server_address/server_port
         operation_attrs.pop(SemanticAttributes.SERVER_ADDRESS, None)
         operation_attrs.pop(SemanticAttributes.SERVER_PORT, None)
@@ -265,23 +269,31 @@ class MemoryOperationWrapper:
                 )
 
             # Map content to invocation fields (let util decide whether to record them)
-            if (input_msg := operation_attrs.get(
-                SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES
-            )) is not None:
+            if (
+                input_msg := operation_attrs.get(
+                    SemanticAttributes.GEN_AI_MEMORY_INPUT_MESSAGES
+                )
+            ) is not None:
                 invocation.input_messages = input_msg
-            if (output_msg := operation_attrs.get(
-                SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
-            )) is not None:
+            if (
+                output_msg := operation_attrs.get(
+                    SemanticAttributes.GEN_AI_MEMORY_OUTPUT_MESSAGES
+                )
+            ) is not None:
                 invocation.output_messages = output_msg
 
             # Map server info to invocation fields
-            if (server_addr := operation_attrs.get(
-                SemanticAttributes.SERVER_ADDRESS
-            )) is not None:
+            if (
+                server_addr := operation_attrs.get(
+                    SemanticAttributes.SERVER_ADDRESS
+                )
+            ) is not None:
                 invocation.server_address = safe_str(server_addr)
-            if (server_port := operation_attrs.get(
-                SemanticAttributes.SERVER_PORT
-            )) is not None:
+            if (
+                server_port := operation_attrs.get(
+                    SemanticAttributes.SERVER_PORT
+                )
+            ) is not None:
                 try:
                     invocation.server_port = int(server_port)
                 except Exception:
