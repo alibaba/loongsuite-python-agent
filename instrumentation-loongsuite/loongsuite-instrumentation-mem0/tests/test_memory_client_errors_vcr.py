@@ -55,12 +55,12 @@ def test_client_connection_error_vcr(
     error_spans = [
         s for s in spans if s.status.status_code == StatusCode.ERROR
     ]
-    assert (
-        error_spans
-    ), "Should generate at least one top-level span with ERROR status"
-    assert any(
-        "error.type" in s.attributes for s in error_spans
-    ), "Error span should contain error.type"
+    assert error_spans, (
+        "Should generate at least one top-level span with ERROR status"
+    )
+    assert any("error.type" in s.attributes for s in error_spans), (
+        "Error span should contain error.type"
+    )
 
 
 def _start_test_http_server(status_code: int) -> Tuple[HTTPServer, str]:
