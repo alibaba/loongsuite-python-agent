@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 def _get_field(payload: dict, field_name: str) -> Any:
     """
-    DashScope-style helper: fetch a field if present (distinguish between missing vs present None).
+    fetch a field if present (distinguish between missing vs present None).
     """
     if field_name in payload:
         return payload.get(field_name)
@@ -269,8 +269,6 @@ class MemoryOperationWrapper:
           - key "attributes": dict[str, Any]
           - or any other leftover keys will be treated as custom attributes
         """
-
-        # Core invocation fields (DashScope-style "get parameter then set")
         if "user_id" in extracted:
             raw = _get_field(extracted, "user_id")
             invocation.user_id = safe_str(raw) if raw is not None else None
@@ -445,7 +443,6 @@ class MemoryOperationWrapper:
             is_memory_client=is_memory_client,
         )
 
-        # Follow the same explicit start/stop/fail style as other LoongSuite instrumentations (e.g. dashscope)
         self.telemetry_handler.start_memory(invocation)
         try:
             result = func(*args, **kwargs)
@@ -504,7 +501,6 @@ class MemoryOperationWrapper:
             is_memory_client=is_memory_client,
         )
 
-        # Follow the same explicit start/stop/fail style as other LoongSuite instrumentations (e.g. dashscope)
         self.telemetry_handler.start_memory(invocation)
         try:
             result = await func(*args, **kwargs)
