@@ -20,6 +20,9 @@ pip install agentscope
 
 # Install this instrumentation
 pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
+
+# Note: This instrumentation uses ExtendedTelemetryHandler from opentelemetry-util-genai
+pip install ./util/opentelemetry-util-genai
 ```
 
 ## Usage
