@@ -10,11 +10,25 @@ Installation
 
     pip install loongsuite-distro
 
+Optional dependencies:
+
+::
+
+    # Install with baggage processor support
+    pip install loongsuite-distro[baggage]
+    
+    # Install with OTLP exporter support
+    pip install loongsuite-distro[otlp]
+    
+    # Install with both
+    pip install loongsuite-distro[baggage,otlp]
+
 Features
 --------
 
 1. **LoongSuite Distro**: Provides LoongSuite-specific OpenTelemetry configuration
 2. **LoongSuite Bootstrap**: Install all LoongSuite components from tar package
+3. **Baggage Processor**: Optional baggage span processor with prefix matching and stripping support
 
 Usage
 -----
@@ -38,6 +52,20 @@ Install from GitHub Releases::
 Install latest version::
 
     loongsuite-bootstrap --latest
+
+### Configure Baggage Processor
+
+The baggage processor is automatically loaded if configured via environment variables.
+First, install the optional dependency::
+
+    pip install loongsuite-distro[baggage]
+
+Then configure via environment variables::
+
+    export LOONGSUITE_PROCESSOR_BAGGAGE_ALLOWED_PREFIXES="traffic.,app."
+    export LOONGSUITE_PROCESSOR_BAGGAGE_STRIP_PREFIXES="traffic."
+
+The processor will only be loaded if ``LOONGSUITE_PROCESSOR_BAGGAGE_ALLOWED_PREFIXES`` is set.
 
 For more usage, please refer to `LOONGSUITE_BOOTSTRAP_README.md`.
 

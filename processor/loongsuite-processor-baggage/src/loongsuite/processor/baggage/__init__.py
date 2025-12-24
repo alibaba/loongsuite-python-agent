@@ -16,4 +16,3 @@ from .processor import LoongSuiteBaggageSpanProcessor
 from .version import __version__
 
 __all__ = ["LoongSuiteBaggageSpanProcessor", "__version__"]
-
