@@ -1,0 +1,11 @@
+{
+  "skip_packages": [
+    "opentelemetry-instrumentation-langchain"
+  ],
+  "description": "Build configuration file, defines packages to skip (to avoid duplicates)",
+  "notes": [
+    "When there are packages with the same name in instrumentation-genai and instrumentation-loongsuite,",
+    "prefer the version in instrumentation-loongsuite and skip the version in instrumentation-genai"
+  ]
+}
+
