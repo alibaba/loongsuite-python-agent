@@ -7,8 +7,11 @@ This script will:
 2. Build all packages under instrumentation-genai/
 3. Build all packages under instrumentation-loongsuite/
 4. Build util/opentelemetry-util-genai/
-5. Skip duplicate packages according to config file
-6. Package all whl files into tar.gz
+5. Build processor/loongsuite-processor-baggage/
+6. Skip duplicate packages according to config file
+7. Package all whl files into tar.gz
+
+Note: loongsuite-distro is not included as it is published separately to PyPI.
 """
 
 import argparse
@@ -189,15 +192,15 @@ def collect_packages(
         all_whl_files.extend(whl_files)
         existing_whl_files.update(whl_files)
 
-    # 5. Build loongsuite-distro/
-    loongsuite_distro_dir = base_dir / "loongsuite-distro"
+    # 5. Build processor/loongsuite-processor-baggage/
+    processor_baggage_dir = base_dir / "processor" / "loongsuite-processor-baggage"
     if (
-        loongsuite_distro_dir.exists()
-        and (loongsuite_distro_dir / "pyproject.toml").exists()
+        processor_baggage_dir.exists()
+        and (processor_baggage_dir / "pyproject.toml").exists()
     ):
-        logger.info("Building loongsuite-distro/...")
+        logger.info("Building processor/loongsuite-processor-baggage/...")
         whl_files = build_package(
-            loongsuite_distro_dir, dist_dir, existing_whl_files
+            processor_baggage_dir, dist_dir, existing_whl_files
         )
         all_whl_files.extend(whl_files)
         existing_whl_files.update(whl_files)
