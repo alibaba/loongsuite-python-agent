@@ -326,9 +326,6 @@ class AdkAttributeExtractors:
                 except Exception as e:
                     _logger.debug(f"Failed to extract input messages: {e}")
 
-            attrs["input.mime_type"] = "application/json"
-            # ❌ 移除 gen_ai.request.is_stream (非标准属性)
-
             return attrs
 
         except Exception as e:

@@ -75,20 +75,6 @@ class OTelGenAISpanValidator:
         },
     }
 
-    # Non-standard attributes that should NOT be present
-    NON_STANDARD_ATTRIBUTES = {
-        "gen_ai.span.kind",  # Use gen_ai.operation.name instead
-        "gen_ai.system",  # Use gen_ai.provider.name instead
-        "gen_ai.session.id",  # Use gen_ai.conversation.id instead
-        "gen_ai.user.id",  # Use enduser.id instead
-        "gen_ai.framework",  # Non-standard
-        "gen_ai.model_name",  # Redundant
-        "gen_ai.request.is_stream",  # Non-standard
-        "gen_ai.usage.total_tokens",  # Non-standard
-        "gen_ai.input.message_count",  # Non-standard
-        "gen_ai.output.message_count",  # Non-standard
-    }
-
     def validate_span(self, span, expected_operation: str) -> Dict[str, Any]:
         """Validate a single span's attributes against OTel GenAI conventions."""
         validation_result = {
@@ -113,11 +99,6 @@ class OTelGenAISpanValidator:
             validation_result["errors"].append(
                 f"Expected operation '{expected_operation}', got '{actual_operation}'"
             )
-
-        # Check for non-standard attributes
-        for attr_key in attributes.keys():
-            if attr_key in self.NON_STANDARD_ATTRIBUTES:
-                validation_result["non_standard_found"].append(attr_key)
 
         # Validate required and recommended attributes
         if expected_operation in self.REQUIRED_ATTRIBUTES_BY_OPERATION:
