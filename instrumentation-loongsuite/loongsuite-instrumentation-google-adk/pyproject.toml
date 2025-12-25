@@ -64,20 +64,5 @@ packages = ["src/opentelemetry"]
 minversion = "7.0"
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "--cov=opentelemetry/instrumentation/google_adk --cov-report=term-missing --cov-report=html"
-
-[tool.coverage.run]
-source = ["src"]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "@abstractmethod",
-]
 
 
