@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **loongsuite-instrumentation-google-adk**: Add initial support for Google Agent Development Kit (ADK) #35
+
 ## Version 1.39.0/0.60b0 (2025-12-03)
 
 ### Added 
