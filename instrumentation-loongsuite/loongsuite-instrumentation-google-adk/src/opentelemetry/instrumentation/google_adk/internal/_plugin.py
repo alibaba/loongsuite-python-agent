@@ -6,6 +6,7 @@ plugin mechanism with OpenTelemetry GenAI semantic conventions.
 """
 
 import logging
+import time
 from typing import Any, Dict, Optional
 
 from google.adk.agents.base_agent import BaseAgent
@@ -236,21 +237,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 # Record metrics
                 duration = self._calculate_span_duration(span)
 
-                # Extract conversation_id and user_id
-                conversation_id = (
-                    invocation_context.session.id
-                    if invocation_context.session
-                    else None
-                )
-                user_id = getattr(invocation_context, "user_id", None)
-
                 self._metrics.record_agent_call(
                     operation_name="invoke_agent",
                     agent_name=invocation_context.app_name,
                     duration=duration,
                     error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
                 )
 
                 span.end()
@@ -311,25 +302,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 # Record metrics
                 duration = self._calculate_span_duration(span)
 
-                # Extract conversation_id and user_id
-                conversation_id = None
-                user_id = None
-                if callback_context and callback_context._invocation_context:
-                    if callback_context._invocation_context.session:
-                        conversation_id = (
-                            callback_context._invocation_context.session.id
-                        )
-                    user_id = getattr(
-                        callback_context._invocation_context, "user_id", None
-                    )
-
                 self._metrics.record_agent_call(
                     operation_name="invoke_agent",
                     agent_name=agent.name,
                     duration=duration,
                     error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
                 )
 
                 span.end()
@@ -409,18 +386,6 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                     llm_response, request_key, llm_span
                 )
 
-                # Extract conversation_id and user_id
-                conversation_id = None
-                user_id = None
-                if callback_context and callback_context._invocation_context:
-                    if callback_context._invocation_context.session:
-                        conversation_id = (
-                            callback_context._invocation_context.session.id
-                        )
-                    user_id = getattr(
-                        callback_context._invocation_context, "user_id", None
-                    )
-
                 # Extract token usage
                 prompt_tokens = 0
                 completion_tokens = 0
@@ -441,8 +406,6 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                     error_type=None,
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
                 )
 
                 llm_span.end()
@@ -478,23 +441,6 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                         llm_request.model if llm_request else "unknown"
                     )
 
-                    # Extract conversation_id and user_id
-                    conversation_id = None
-                    user_id = None
-                    if (
-                        callback_context
-                        and callback_context._invocation_context
-                    ):
-                        if callback_context._invocation_context.session:
-                            conversation_id = (
-                                callback_context._invocation_context.session.id
-                            )
-                        user_id = getattr(
-                            callback_context._invocation_context,
-                            "user_id",
-                            None,
-                        )
-
                     self._metrics.record_llm_call(
                         operation_name="chat",
                         model_name=model_name,
@@ -502,8 +448,6 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                         error_type=error_type,
                         prompt_tokens=0,
                         completion_tokens=0,
-                        conversation_id=conversation_id,
-                        user_id=user_id,
                     )
 
                     # ✅ Use standard OTel span status for errors
@@ -583,25 +527,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 # Record metrics
                 duration = self._calculate_span_duration(span)
 
-                # Extract conversation_id and user_id from tool_context
-                conversation_id = (
-                    getattr(tool_context, "session_id", None)
-                    if tool_context
-                    else None
-                )
-                user_id = (
-                    getattr(tool_context, "user_id", None)
-                    if tool_context
-                    else None
-                )
-
                 self._metrics.record_tool_call(
                     operation_name="execute_tool",
                     tool_name=tool.name,
                     duration=duration,
                     error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
                 )
 
                 span.end()
@@ -633,25 +563,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 # Record error metrics
                 duration = self._calculate_span_duration(span)
 
-                # Extract conversation_id and user_id
-                conversation_id = (
-                    getattr(tool_context, "session_id", None)
-                    if tool_context
-                    else None
-                )
-                user_id = (
-                    getattr(tool_context, "user_id", None)
-                    if tool_context
-                    else None
-                )
-
                 self._metrics.record_tool_call(
                     operation_name="execute_tool",
                     tool_name=tool.name,
                     duration=duration,
                     error_type=error_type,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
                 )
 
                 # ✅ Use standard OTel span status for errors
@@ -681,8 +597,6 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         Returns:
             Duration in seconds
         """
-        import time
-
         if hasattr(span, "start_time") and span.start_time:
             current_time_ns = time.time_ns()
             return (

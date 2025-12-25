@@ -329,9 +329,9 @@ class TestGoogleAdkMetricsIntegration:
         )
 
         # Check for non-standard metrics
-        assert (
-            len(validation_result["non_standard_found"]) == 0
-        ), f"Found non-standard metrics: {validation_result['non_standard_found']}"
+        assert len(validation_result["non_standard_found"]) == 0, (
+            f"Found non-standard metrics: {validation_result['non_standard_found']}"
+        )
 
         # Check standard metrics are present
         assert (
@@ -346,38 +346,38 @@ class TestGoogleAdkMetricsIntegration:
         duration_points = self.get_metric_data_points(
             "gen_ai.client.operation.duration"
         )
-        assert (
-            len(duration_points) >= 1
-        ), "Should have at least 1 duration data point"
+        assert len(duration_points) >= 1, (
+            "Should have at least 1 duration data point"
+        )
 
         # Validate duration attributes
         duration_attrs = dict(duration_points[0].attributes)
-        assert (
-            duration_attrs.get("gen_ai.operation.name") == "chat"
-        ), "Should have gen_ai.operation.name = 'chat'"
-        assert (
-            "gen_ai.provider.name" in duration_attrs
-        ), "Should have gen_ai.provider.name"
-        assert (
-            duration_attrs.get("gen_ai.request.model") == "gemini-pro"
-        ), "Should have gen_ai.request.model"
+        assert duration_attrs.get("gen_ai.operation.name") == "chat", (
+            "Should have gen_ai.operation.name = 'chat'"
+        )
+        assert "gen_ai.provider.name" in duration_attrs, (
+            "Should have gen_ai.provider.name"
+        )
+        assert duration_attrs.get("gen_ai.request.model") == "gemini-pro", (
+            "Should have gen_ai.request.model"
+        )
 
         # Validate NO non-standard attributes
         assert "callType" not in duration_attrs, "Should NOT have callType"
         assert "spanKind" not in duration_attrs, "Should NOT have spanKind"
         assert "modelName" not in duration_attrs, "Should NOT have modelName"
-        assert (
-            "session_id" not in duration_attrs
-        ), "Should NOT have session_id (high cardinality)"
-        assert (
-            "user_id" not in duration_attrs
-        ), "Should NOT have user_id (high cardinality)"
+        assert "session_id" not in duration_attrs, (
+            "Should NOT have session_id (high cardinality)"
+        )
+        assert "user_id" not in duration_attrs, (
+            "Should NOT have user_id (high cardinality)"
+        )
 
         # Get token usage data points
         token_points = self.get_metric_data_points("gen_ai.client.token.usage")
-        assert (
-            len(token_points) == 2
-        ), "Should have 2 token usage data points (input + output)"
+        assert len(token_points) == 2, (
+            "Should have 2 token usage data points (input + output)"
+        )
 
         # Validate token types
         token_types = {
@@ -405,9 +405,9 @@ class TestGoogleAdkMetricsIntegration:
 
         # Validate NO usageType attribute (should be gen_ai.token.type)
         input_attrs = dict(input_point.attributes)
-        assert (
-            "usageType" not in input_attrs
-        ), "Should NOT have usageType (use gen_ai.token.type)"
+        assert "usageType" not in input_attrs, (
+            "Should NOT have usageType (use gen_ai.token.type)"
+        )
 
     @pytest.mark.asyncio
     async def test_llm_metrics_with_error(self):
@@ -504,12 +504,12 @@ class TestGoogleAdkMetricsIntegration:
 
         # Validate attributes
         agent_attrs = dict(duration_points[0].attributes)
-        assert (
-            agent_attrs.get("gen_ai.operation.name") == "invoke_agent"
-        ), "Should have gen_ai.operation.name = 'invoke_agent'"
-        assert (
-            "gen_ai.provider.name" in agent_attrs
-        ), "Should have provider name"
+        assert agent_attrs.get("gen_ai.operation.name") == "invoke_agent", (
+            "Should have gen_ai.operation.name = 'invoke_agent'"
+        )
+        assert "gen_ai.provider.name" in agent_attrs, (
+            "Should have provider name"
+        )
 
         # Agent name should be in gen_ai.request.model
         assert (
@@ -519,12 +519,12 @@ class TestGoogleAdkMetricsIntegration:
 
         # Validate NO ARMS attributes
         assert "spanKind" not in agent_attrs, "Should NOT have spanKind"
-        assert (
-            "session_id" not in agent_attrs
-        ), "Should NOT have high-cardinality session_id"
-        assert (
-            "user_id" not in agent_attrs
-        ), "Should NOT have high-cardinality user_id"
+        assert "session_id" not in agent_attrs, (
+            "Should NOT have high-cardinality session_id"
+        )
+        assert "user_id" not in agent_attrs, (
+            "Should NOT have high-cardinality user_id"
+        )
 
     @pytest.mark.asyncio
     async def test_tool_metrics_use_standard_attributes(self):
@@ -578,9 +578,9 @@ class TestGoogleAdkMetricsIntegration:
 
         # Validate attributes
         tool_attrs = dict(duration_points[0].attributes)
-        assert (
-            tool_attrs.get("gen_ai.operation.name") == "execute_tool"
-        ), "Should have gen_ai.operation.name = 'execute_tool'"
+        assert tool_attrs.get("gen_ai.operation.name") == "execute_tool", (
+            "Should have gen_ai.operation.name = 'execute_tool'"
+        )
         assert "gen_ai.provider.name" in tool_attrs
 
         # Tool name should be in metrics
@@ -653,14 +653,14 @@ class TestGoogleAdkMetricsIntegration:
             validation_result["metrics_found"]
             & self.validator.STANDARD_METRICS
         )
-        assert (
-            len(standard_metrics) == 2
-        ), f"Should have exactly 2 standard metrics, got {len(standard_metrics)}: {standard_metrics}"
+        assert len(standard_metrics) == 2, (
+            f"Should have exactly 2 standard metrics, got {len(standard_metrics)}: {standard_metrics}"
+        )
 
         # Should have NO non-standard metrics
-        assert (
-            len(validation_result["non_standard_found"]) == 0
-        ), f"Should have NO non-standard metrics, found: {validation_result['non_standard_found']}"
+        assert len(validation_result["non_standard_found"]) == 0, (
+            f"Should have NO non-standard metrics, found: {validation_result['non_standard_found']}"
+        )
 
         # Explicitly check ARMS metrics are NOT present
         arms_metrics = {
@@ -671,9 +671,9 @@ class TestGoogleAdkMetricsIntegration:
             "llm_first_token_seconds",
         }
         found_arms_metrics = validation_result["metrics_found"] & arms_metrics
-        assert (
-            len(found_arms_metrics) == 0
-        ), f"Should NOT have ARMS metrics, found: {found_arms_metrics}"
+        assert len(found_arms_metrics) == 0, (
+            f"Should NOT have ARMS metrics, found: {found_arms_metrics}"
+        )
 
         # Explicitly check custom GenAI metrics are NOT present
         custom_genai_metrics = {
@@ -687,9 +687,9 @@ class TestGoogleAdkMetricsIntegration:
         found_custom_metrics = (
             validation_result["metrics_found"] & custom_genai_metrics
         )
-        assert (
-            len(found_custom_metrics) == 0
-        ), f"Should NOT have custom GenAI metrics, found: {found_custom_metrics}"
+        assert len(found_custom_metrics) == 0, (
+            f"Should NOT have custom GenAI metrics, found: {found_custom_metrics}"
+        )
 
 
 # Run tests

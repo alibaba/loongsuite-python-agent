@@ -8,6 +8,7 @@ import asyncio
 import logging
 import os
 import sys
+import traceback
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -247,8 +248,6 @@ async def run_conversation(
 
     except Exception as e:
         logger.error(f"处理消息时出错: {e}")
-        import traceback
-
         logger.error(f"详细错误信息: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"处理消息失败: {str(e)}")
 

@@ -71,8 +71,6 @@ class AdkMetricsCollector:
         error_type: Optional[str] = None,
         prompt_tokens: int = 0,
         completion_tokens: int = 0,
-        conversation_id: Optional[str] = None,
-        user_id: Optional[str] = None,
     ) -> None:
         """
         Record LLM call metrics following standard OTel GenAI conventions.
@@ -84,8 +82,6 @@ class AdkMetricsCollector:
             error_type: Error type if error occurred
             prompt_tokens: Number of prompt tokens
             completion_tokens: Number of completion tokens
-            conversation_id: Conversation ID (not used in metrics due to high cardinality)
-            user_id: User ID (not used in metrics due to high cardinality)
         """
         try:
             # ✅ Build standard attributes for operation.duration
@@ -139,8 +135,6 @@ class AdkMetricsCollector:
         agent_name: str,
         duration: float,
         error_type: Optional[str] = None,
-        conversation_id: Optional[str] = None,
-        user_id: Optional[str] = None,
     ) -> None:
         """
         Record Agent call metrics following standard OTel GenAI conventions.
@@ -150,8 +144,6 @@ class AdkMetricsCollector:
             agent_name: Agent name
             duration: Duration in seconds
             error_type: Error type if error occurred
-            conversation_id: Conversation ID (not used in metrics due to high cardinality)
-            user_id: User ID (not used in metrics due to high cardinality)
         """
         try:
             # ✅ Build standard attributes
@@ -184,8 +176,6 @@ class AdkMetricsCollector:
         tool_name: str,
         duration: float,
         error_type: Optional[str] = None,
-        conversation_id: Optional[str] = None,
-        user_id: Optional[str] = None,
     ) -> None:
         """
         Record Tool call metrics following standard OTel GenAI conventions.
@@ -195,8 +185,6 @@ class AdkMetricsCollector:
             tool_name: Tool name
             duration: Duration in seconds
             error_type: Error type if error occurred
-            conversation_id: Conversation ID (not used in metrics due to high cardinality)
-            user_id: User ID (not used in metrics due to high cardinality)
         """
         try:
             # ✅ Build standard attributes

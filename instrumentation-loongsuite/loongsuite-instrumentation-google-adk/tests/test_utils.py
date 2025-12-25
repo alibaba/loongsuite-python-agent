@@ -3,6 +3,7 @@ Unit tests for utility functions.
 """
 
 import os
+from unittest.mock import Mock
 
 import pytest
 
@@ -226,8 +227,6 @@ class TestModelUtils:
 
     def test_extract_model_name_from_object(self):
         """Test extracting model name from object with model attribute."""
-        from unittest.mock import Mock
-
         mock_obj = Mock()
         mock_obj.model = "gemini-pro"
         result = extract_model_name(mock_obj)

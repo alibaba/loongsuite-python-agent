@@ -248,31 +248,31 @@ class TestGoogleAdkPluginIntegration:
         llm_span = spans[0]
 
         # Validate span name follows OTel convention: "chat {model}"
-        assert (
-            llm_span.name == "chat gemini-pro"
-        ), f"Expected span name 'chat gemini-pro', got '{llm_span.name}'"
+        assert llm_span.name == "chat gemini-pro", (
+            f"Expected span name 'chat gemini-pro', got '{llm_span.name}'"
+        )
 
         # Validate span attributes using validator
         validation_result = self.validator.validate_span(llm_span, "chat")
 
         # Check for errors
-        assert (
-            len(validation_result["errors"]) == 0
-        ), f"Validation errors: {validation_result['errors']}"
+        assert len(validation_result["errors"]) == 0, (
+            f"Validation errors: {validation_result['errors']}"
+        )
 
         # Check for non-standard attributes
-        assert (
-            len(validation_result["non_standard_found"]) == 0
-        ), f"Found non-standard attributes: {validation_result['non_standard_found']}"
+        assert len(validation_result["non_standard_found"]) == 0, (
+            f"Found non-standard attributes: {validation_result['non_standard_found']}"
+        )
 
         # Validate specific required attributes
         attributes = llm_span.attributes
-        assert (
-            attributes.get("gen_ai.operation.name") == "chat"
-        ), "Should have gen_ai.operation.name = 'chat'"
-        assert (
-            "gen_ai.provider.name" in attributes
-        ), "Should have gen_ai.provider.name (not gen_ai.system)"
+        assert attributes.get("gen_ai.operation.name") == "chat", (
+            "Should have gen_ai.operation.name = 'chat'"
+        )
+        assert "gen_ai.provider.name" in attributes, (
+            "Should have gen_ai.provider.name (not gen_ai.system)"
+        )
         assert attributes.get("gen_ai.request.model") == "gemini-pro"
         assert attributes.get("gen_ai.response.model") == "gemini-pro-001"
 
@@ -281,34 +281,34 @@ class TestGoogleAdkPluginIntegration:
         assert attributes.get("gen_ai.usage.output_tokens") == 50
 
         # Validate conversation tracking uses correct attributes
-        assert (
-            "gen_ai.conversation.id" in attributes
-        ), "Should use gen_ai.conversation.id (not gen_ai.session.id)"
+        assert "gen_ai.conversation.id" in attributes, (
+            "Should use gen_ai.conversation.id (not gen_ai.session.id)"
+        )
         assert attributes.get("gen_ai.conversation.id") == "conv_123"
-        assert (
-            "enduser.id" in attributes
-        ), "Should use enduser.id (not gen_ai.user.id)"
+        assert "enduser.id" in attributes, (
+            "Should use enduser.id (not gen_ai.user.id)"
+        )
         assert attributes.get("enduser.id") == "user_456"
 
         # Validate finish_reasons is array
-        assert (
-            "gen_ai.response.finish_reasons" in attributes
-        ), "Should have gen_ai.response.finish_reasons (array)"
+        assert "gen_ai.response.finish_reasons" in attributes, (
+            "Should have gen_ai.response.finish_reasons (array)"
+        )
         finish_reasons = attributes.get("gen_ai.response.finish_reasons")
-        assert isinstance(
-            finish_reasons, (list, tuple)
-        ), "gen_ai.response.finish_reasons should be array"
+        assert isinstance(finish_reasons, (list, tuple)), (
+            "gen_ai.response.finish_reasons should be array"
+        )
 
         # Validate NO non-standard attributes
-        assert (
-            "gen_ai.span.kind" not in attributes
-        ), "Should NOT have gen_ai.span.kind (non-standard)"
-        assert (
-            "gen_ai.system" not in attributes
-        ), "Should NOT have gen_ai.system (use gen_ai.provider.name)"
-        assert (
-            "gen_ai.framework" not in attributes
-        ), "Should NOT have gen_ai.framework (non-standard)"
+        assert "gen_ai.span.kind" not in attributes, (
+            "Should NOT have gen_ai.span.kind (non-standard)"
+        )
+        assert "gen_ai.system" not in attributes, (
+            "Should NOT have gen_ai.system (use gen_ai.provider.name)"
+        )
+        assert "gen_ai.framework" not in attributes, (
+            "Should NOT have gen_ai.framework (non-standard)"
+        )
 
     @pytest.mark.asyncio
     async def test_agent_span_attributes_semantic_conventions(self):
@@ -353,17 +353,17 @@ class TestGoogleAdkPluginIntegration:
         agent_span = spans[0]
 
         # Validate span name: "invoke_agent {agent_name}"
-        assert (
-            agent_span.name == "invoke_agent weather_agent"
-        ), f"Expected span name 'invoke_agent weather_agent', got '{agent_span.name}'"
+        assert agent_span.name == "invoke_agent weather_agent", (
+            f"Expected span name 'invoke_agent weather_agent', got '{agent_span.name}'"
+        )
 
         # Validate attributes
         validation_result = self.validator.validate_span(
             agent_span, "invoke_agent"
         )
-        assert (
-            len(validation_result["errors"]) == 0
-        ), f"Validation errors: {validation_result['errors']}"
+        assert len(validation_result["errors"]) == 0, (
+            f"Validation errors: {validation_result['errors']}"
+        )
 
         attributes = agent_span.attributes
         assert attributes.get("gen_ai.operation.name") == "invoke_agent"
@@ -426,22 +426,22 @@ class TestGoogleAdkPluginIntegration:
         tool_span = spans[0]
 
         # Validate span name: "execute_tool {tool_name}"
-        assert (
-            tool_span.name == "execute_tool calculator"
-        ), f"Expected span name 'execute_tool calculator', got '{tool_span.name}'"
+        assert tool_span.name == "execute_tool calculator", (
+            f"Expected span name 'execute_tool calculator', got '{tool_span.name}'"
+        )
 
         # Validate SpanKind (should be INTERNAL per OTel convention)
-        assert (
-            tool_span.kind == trace_api.SpanKind.INTERNAL
-        ), "Tool spans should use SpanKind.INTERNAL"
+        assert tool_span.kind == trace_api.SpanKind.INTERNAL, (
+            "Tool spans should use SpanKind.INTERNAL"
+        )
 
         # Validate attributes
         validation_result = self.validator.validate_span(
             tool_span, "execute_tool"
         )
-        assert (
-            len(validation_result["errors"]) == 0
-        ), f"Validation errors: {validation_result['errors']}"
+        assert len(validation_result["errors"]) == 0, (
+            f"Validation errors: {validation_result['errors']}"
+        )
 
         attributes = tool_span.attributes
         assert attributes.get("gen_ai.operation.name") == "execute_tool"
@@ -487,9 +487,9 @@ class TestGoogleAdkPluginIntegration:
         runner_span = spans[0]
 
         # Validate span name (runner uses agent-style naming)
-        assert (
-            runner_span.name == "invoke_agent test_app"
-        ), f"Expected span name 'invoke_agent test_app', got '{runner_span.name}'"
+        assert runner_span.name == "invoke_agent test_app", (
+            f"Expected span name 'invoke_agent test_app', got '{runner_span.name}'"
+        )
 
         # Validate attributes
         attributes = runner_span.attributes
@@ -545,12 +545,12 @@ class TestGoogleAdkPluginIntegration:
         error_span = spans[0]
 
         # Validate span status
-        assert (
-            error_span.status.status_code == trace_api.StatusCode.ERROR
-        ), "Error span should have ERROR status"
-        assert (
-            "API rate limit exceeded" in error_span.status.description
-        ), "Error description should contain error message"
+        assert error_span.status.status_code == trace_api.StatusCode.ERROR, (
+            "Error span should have ERROR status"
+        )
+        assert "API rate limit exceeded" in error_span.status.description, (
+            "Error description should contain error message"
+        )
 
         # Validate error attributes
         attributes = error_span.attributes

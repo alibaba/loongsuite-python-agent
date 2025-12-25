@@ -13,6 +13,7 @@ Usage:
     # opentelemetry-instrument python your_app.py
 """
 
+import importlib.util
 import logging
 from typing import Collection, Optional
 
@@ -25,6 +26,7 @@ from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv.schemas import Schemas
 
 from .internal._plugin import GoogleAdkObservabilityPlugin
+from .package import _instruments
 from .version import __version__
 
 _logger = logging.getLogger(__name__)
@@ -148,7 +150,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
         Returns:
             Collection of required packages
         """
-        return ["google-adk >= 0.1.0"]
+        return _instruments
 
     def _instrument(self, **kwargs):
         """
@@ -164,8 +166,6 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
                 - meter_provider: Custom meter provider
         """
         # Check if google-adk is installed
-        import importlib.util
-
         if importlib.util.find_spec("google.adk.runners") is None:
             _logger.warning(
                 "google-adk not found, instrumentation will not be applied"
@@ -200,7 +200,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
 
         try:
             # Unwrap the Runner initialization
-            from google.adk.runners import Runner
+            from google.adk.runners import Runner  # noqa: PLC0415
 
             unwrap(Runner, "__init__")
 

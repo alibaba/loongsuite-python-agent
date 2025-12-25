@@ -1,0 +1,21 @@
+# Core testing
+pytest==7.4.4
+pytest-cov>=4.0.0
+pytest-asyncio==0.21.0
+
+# Third-party libraries used in tests
+google-adk==0.1.0
+wrapt==1.17.3
+
+# OpenTelemetry SDK and testing utilities (pinned to stable versions)
+opentelemetry-api==1.37
+opentelemetry-sdk==1.37
+opentelemetry-semantic-conventions==0.58b0
+opentelemetry-instrumentation-threading==0.58b0
+
+# Mock and utilities
+mock>=4.0.0
+
+# Internal dependency (this package, editable install)
+-e instrumentation-loongsuite/loongsuite-instrumentation-google-adk
+-e util/opentelemetry-util-genai
