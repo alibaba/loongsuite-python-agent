@@ -13,7 +13,11 @@
 # limitations under the License.
 
 
-_instruments = ("google-adk >= 0.1.0",)
+_instruments = (
+    "google-adk >= 1.14.1",
+    "litellm >= 1.0.0",
+    "deprecated >= 1.2.0",
+)
 
 _supports_metrics = True
 
