@@ -22,8 +22,6 @@ import os
 
 import pytest
 
-from opentelemetry import trace as trace_api
-
 # Skip all VCR tests if google-adk is not installed
 pytest.importorskip("google.adk")
 
@@ -46,13 +44,14 @@ class TestGoogleAdkPluginVcrIntegration:
         - Content capture (prompts and completions)
         - Finish reasons as array
         """
-        from google.adk.agents import LlmAgent
-        from google.adk.models.lite_llm import LiteLlm
-        from google.adk.runners import Runner
-        from google.adk.sessions.in_memory_session_service import (
+        # Import Google ADK dependencies (conditionally available)
+        from google.adk.agents import LlmAgent  # noqa: PLC0415
+        from google.adk.models.lite_llm import LiteLlm  # noqa: PLC0415
+        from google.adk.runners import Runner  # noqa: PLC0415
+        from google.adk.sessions.in_memory_session_service import (  # noqa: PLC0415
             InMemorySessionService,
         )
-        from google.genai import types
+        from google.genai import types  # noqa: PLC0415
 
         # Create model
         model = LiteLlm(
@@ -86,7 +85,9 @@ class TestGoogleAdkPluginVcrIntegration:
         # Make API call (recorded by VCR on first run)
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text="What is 2+2? Answer with just the number.")],
+            parts=[
+                types.Part(text="What is 2+2? Answer with just the number.")
+            ],
         )
 
         events = []
@@ -152,13 +153,14 @@ class TestGoogleAdkPluginVcrIntegration:
 
         Validates that prompts and completions are NOT captured.
         """
-        from google.adk.agents import LlmAgent
-        from google.adk.models.lite_llm import LiteLlm
-        from google.adk.runners import Runner
-        from google.adk.sessions.in_memory_session_service import (
+        # Import Google ADK dependencies (conditionally available)
+        from google.adk.agents import LlmAgent  # noqa: PLC0415
+        from google.adk.models.lite_llm import LiteLlm  # noqa: PLC0415
+        from google.adk.runners import Runner  # noqa: PLC0415
+        from google.adk.sessions.in_memory_session_service import (  # noqa: PLC0415
             InMemorySessionService,
         )
-        from google.genai import types
+        from google.genai import types  # noqa: PLC0415
 
         model = LiteLlm(
             model="dashscope/qwen-plus",
@@ -189,7 +191,9 @@ class TestGoogleAdkPluginVcrIntegration:
         user_message = types.Content(
             role="user",
             parts=[
-                types.Part(text="This is sensitive data that should not be captured")
+                types.Part(
+                    text="This is sensitive data that should not be captured"
+                )
             ],
         )
 
@@ -246,13 +250,14 @@ class TestGoogleAdkPluginVcrIntegration:
            - Positive token counts
         4. No non-standard attributes (callType, spanKind, session_id, user_id)
         """
-        from google.adk.agents import LlmAgent
-        from google.adk.models.lite_llm import LiteLlm
-        from google.adk.runners import Runner
-        from google.adk.sessions.in_memory_session_service import (
+        # Import Google ADK dependencies (conditionally available)
+        from google.adk.agents import LlmAgent  # noqa: PLC0415
+        from google.adk.models.lite_llm import LiteLlm  # noqa: PLC0415
+        from google.adk.runners import Runner  # noqa: PLC0415
+        from google.adk.sessions.in_memory_session_service import (  # noqa: PLC0415
             InMemorySessionService,
         )
-        from google.genai import types
+        from google.genai import types  # noqa: PLC0415
 
         model = LiteLlm(
             model="dashscope/qwen-plus",
@@ -329,7 +334,9 @@ class TestGoogleAdkPluginVcrIntegration:
         )
 
         # ===== 5. 验证 operation.duration metric =====
-        duration_metric = metrics_by_name["gen_ai.client.operation.duration"][0]
+        duration_metric = metrics_by_name["gen_ai.client.operation.duration"][
+            0
+        ]
         duration_points = list(duration_metric.data.data_points)
         assert len(duration_points) >= 1, (
             "Should have at least 1 duration data point"
