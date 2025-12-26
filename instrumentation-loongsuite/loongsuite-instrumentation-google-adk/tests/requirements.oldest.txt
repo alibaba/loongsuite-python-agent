@@ -8,6 +8,7 @@ pyyaml>=6.0.0
 
 # Third-party libraries used in tests
 google-adk==0.1.0
+litellm>=1.0.0  # Required by google.adk.models.lite_llm
 wrapt==1.17.3
 
 # OpenTelemetry SDK and testing utilities (pinned to stable versions)
