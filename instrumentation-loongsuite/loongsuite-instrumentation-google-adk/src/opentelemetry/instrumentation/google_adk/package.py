@@ -17,6 +17,7 @@ _instruments = (
     "google-adk >= 1.14.1",
     "litellm >= 1.0.0",
     "deprecated >= 1.2.0",
+    "requests >= 2.32.4",
 )
 
 _supports_metrics = True

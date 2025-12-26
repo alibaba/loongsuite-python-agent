@@ -10,6 +10,7 @@ pyyaml>=6.0.0
 google-adk>=1.14.1  # Minimum version with plugins support
 litellm>=1.0.0  # Required by google.adk.models.lite_llm
 deprecated>=1.2.0  # Required by google.adk.tools
+requests>=2.32.4  # Required by google-adk>=1.14.1, overrides dev-requirements.txt
 wrapt==1.17.3
 
 # Mock and utilities
