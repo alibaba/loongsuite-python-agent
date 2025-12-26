@@ -1,0 +1,115 @@
+interactions:
+- request:
+    body: |-
+      {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Answer briefly\n\nYou are an agent. Your internal name is \"metrics_test_agent\". The description about you is \"Metrics test\"."
+          },
+          {
+            "role": "user",
+            "content": "Hello"
+          }
+        ],
+        "model": "qwen-plus",
+        "max_tokens": 50,
+        "temperature": 0.7
+      }
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - Bearer test_dashscope_api_key
+      connection:
+      - keep-alive
+      content-length:
+      - '261'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.6.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.6.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.14
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: |-
+        {
+          "choices": [
+            {
+              "message": {
+                "role": "assistant",
+                "content": "Hello! I'm metrics_test_agent. How can I assist you today?"
+              },
+              "finish_reason": "stop",
+              "index": 0,
+              "logprobs": null
+            }
+          ],
+          "object": "chat.completion",
+          "usage": {
+            "prompt_tokens": 40,
+            "completion_tokens": 15,
+            "total_tokens": 55,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "created": 1766719939,
+          "system_fingerprint": null,
+          "model": "qwen-plus",
+          "id": "chatcmpl-1a6591bb-4e29-9e9d-9421-f14b826b3c9d"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 26 Dec 2025 03:32:18 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '427'
+      req-arrive-time:
+      - '1766719937751'
+      req-cost-time:
+      - '787'
+      resp-start-time:
+      - '1766719938538'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '786'
+      x-request-id:
+      - 1a6591bb-4e29-9e9d-9421-f14b826b3c9d
+    status:
+      code: 200
+      message: OK
+version: 1
