@@ -1,0 +1,13 @@
+# Lint-only requirements (no google-adk to avoid requests version conflict)
+# google-adk requires requests>=2.32.4, but dev-requirements.txt pins requests==2.32.3
+# ruff check only needs ruff which is in dev-requirements.txt
+
+# OpenTelemetry dependencies for type checking
+opentelemetry-api==1.37
+opentelemetry-sdk==1.37
+opentelemetry-semantic-conventions==0.58b0
+opentelemetry-instrumentation-threading==0.58b0
+
+# Editable installs
+-e instrumentation-loongsuite/loongsuite-instrumentation-google-adk
+-e util/opentelemetry-util-genai
