@@ -28,8 +28,11 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+import zipfile
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
+
+from packaging.specifiers import SpecifierSet
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +67,7 @@ def get_package_name_from_whl(whl_path: Path) -> str:
     parts = name.split("-")
     if len(parts) >= 2:
         package_parts = []
-        for i, part in enumerate(parts):
+        for part in parts:
             if any(c.isdigit() for c in part) or part in (
                 "dev",
                 "b0",
@@ -76,6 +79,75 @@ def get_package_name_from_whl(whl_path: Path) -> str:
             package_parts.append(part)
         return "-".join(package_parts)
     return name
+
+
+def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
+    """
+    Extract Python version requirement from whl file metadata
+    
+    Args:
+        whl_path: Path to whl file
+        
+    Returns:
+        Python version requirement string (e.g., ">=3.10, <=3.13") or None if not found
+    """
+    try:
+        with zipfile.ZipFile(whl_path, "r") as whl_zip:
+            # Look for METADATA file in the wheel
+            metadata_path = None
+            for name in whl_zip.namelist():
+                if name.endswith("/METADATA") or name == "METADATA":
+                    metadata_path = name
+                    break
+            
+            if not metadata_path:
+                return None
+            
+            # Read METADATA file
+            with whl_zip.open(metadata_path) as metadata_file:
+                for line in metadata_file:
+                    line_str = line.decode("utf-8").strip()
+                    if line_str.startswith("Requires-Python:"):
+                        return line_str.split(":", 1)[1].strip()
+    except Exception as e:
+        logger.debug(f"Failed to read Python requirement from {whl_path}: {e}")
+    
+    return None
+
+
+def check_python_version_compatibility(
+    whl_path: Path, current_version: Tuple[int, int]
+) -> Tuple[bool, Optional[str]]:
+    """
+    Check if current Python version is compatible with whl file requirements
+    
+    Args:
+        whl_path: Path to whl file
+        current_version: Current Python version as (major, minor) tuple
+        
+    Returns:
+        (is_compatible, requirement_string)
+        is_compatible: True if compatible, False otherwise
+        requirement_string: Python requirement string if found, None otherwise
+    """
+    requirement_str = get_python_requirement_from_whl(whl_path)
+    
+    if not requirement_str:
+        # If no requirement found, assume compatible
+        return True, None
+    
+    try:
+        # Parse the requirement string
+        spec = SpecifierSet(requirement_str)
+        # Convert current version to string format
+        current_version_str = f"{current_version[0]}.{current_version[1]}"
+        # Check if current version satisfies the requirement
+        is_compatible = spec.contains(current_version_str)
+        return is_compatible, requirement_str
+    except Exception as e:
+        logger.debug(f"Failed to parse Python requirement '{requirement_str}': {e}")
+        # If parsing fails, assume compatible to avoid false positives
+        return True, requirement_str
 
 
 def download_file(url: str, dest: Path) -> Path:
@@ -111,7 +183,7 @@ def filter_packages(
     whitelist: Optional[Set[str]] = None,
 ) -> Tuple[List[Path], List[Path]]:
     """
-    Filter packages based on blacklist/whitelist
+    Filter packages based on blacklist/whitelist and Python version compatibility
 
     Returns:
         (base dependency packages list, instrumentation packages list)
@@ -121,6 +193,10 @@ def filter_packages(
 
     blacklist = blacklist or set()
     whitelist = whitelist or set()
+    
+    # Get current Python version
+    current_version = (sys.version_info.major, sys.version_info.minor)
+    current_version_str = f"{current_version[0]}.{current_version[1]}"
 
     for whl_file in whl_files:
         package_name = get_package_name_from_whl(whl_file)
@@ -134,6 +210,18 @@ def filter_packages(
         if whitelist and package_name not in whitelist:
             logger.debug(
                 f"Skipping package (not in whitelist): {package_name}"
+            )
+            continue
+
+        # Check Python version compatibility
+        is_compatible, requirement_str = check_python_version_compatibility(
+            whl_file, current_version
+        )
+        
+        if not is_compatible:
+            logger.warning(
+                f"Skipping package (Python version incompatible): {package_name} "
+                f"(requires Python {requirement_str}, current: {current_version_str})"
             )
             continue
 
@@ -179,7 +267,7 @@ def install_packages(
 
 
 def install_from_tar(
-    tar_path: Path,
+    tar_path: Union[Path, str],
     blacklist: Optional[Set[str]] = None,
     whitelist: Optional[Set[str]] = None,
     upgrade: bool = False,
