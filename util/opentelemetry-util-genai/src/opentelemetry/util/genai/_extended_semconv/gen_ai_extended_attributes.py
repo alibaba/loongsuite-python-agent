@@ -114,6 +114,16 @@ for scenarios like Completion, Chat, RAG, Agent, and Tool execution.
 Note: This is an Attribute, distinct from OpenTelemetry's Span kind field.
 """
 
+GEN_AI_INPUT_MULTIMODAL_METADATA: Final = "gen_ai.input.multimodal_metadata"
+"""
+The multimodal metadata of the input messages.
+"""
+
+GEN_AI_OUTPUT_MULTIMODAL_METADATA: Final = "gen_ai.output.multimodal_metadata"
+"""
+The multimodal metadata of the output messages.
+"""
+
 
 class GenAiSpanKindValues(Enum):
     AGENT = "AGENT"

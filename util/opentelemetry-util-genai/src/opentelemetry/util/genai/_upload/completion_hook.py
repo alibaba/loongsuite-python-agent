@@ -22,19 +22,20 @@ import threading
 from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import ExitStack
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from functools import partial
 from time import time
 from typing import Any, Callable, Final, Literal
 from uuid import uuid4
 
 import fsspec
-
 from opentelemetry._logs import LogRecord
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import Span
 from opentelemetry.util.genai import types
 from opentelemetry.util.genai.completion_hook import CompletionHook
+from opentelemetry.util.genai.types import \
+    obj_to_dict  # type: ignore[attr-defined]
 from opentelemetry.util.genai.utils import gen_ai_json_dump
 
 GEN_AI_INPUT_MESSAGES_REF: Final = (
@@ -265,7 +266,7 @@ class UploadCompletionHook(CompletionHook):
             | list[types.OutputMessage]
             | list[types.MessagePart],
         ) -> JsonEncodeable:
-            return [asdict(dc) for dc in dataclass_list]
+            return [obj_to_dict(dc) for dc in dataclass_list]
 
         references = [
             (ref_name, ref, ref_attr, contents_hashed_to_filename)

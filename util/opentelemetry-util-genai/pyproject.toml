@@ -36,6 +36,7 @@ upload = "opentelemetry.util.genai._upload:upload_completion_hook"
 [project.optional-dependencies]
 test = ["pytest>=7.0.0"]
 upload = ["fsspec>=2025.9.0"]
+multimodal_upload = ["httpx>=0.24.0"]
 
 [project.urls]
 Homepage = "https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/util/opentelemetry-util-genai"
