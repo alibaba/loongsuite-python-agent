@@ -127,6 +127,12 @@ class Mem0Instrumentor(BaseInstrumentor):
         # Optional: logger provider for GenAI events (util will no-op if not provided)
         logger_provider = kwargs.get("logger_provider")
 
+        # Optional hooks for extensions (e.g. commercial metrics). We only pass through.
+        memory_before_hook = kwargs.get("memory_before_hook")
+        memory_after_hook = kwargs.get("memory_after_hook")
+        inner_before_hook = kwargs.get("inner_before_hook")
+        inner_after_hook = kwargs.get("inner_after_hook")
+
         # Create util GenAI handler (strong dependency, no fallback).
         # Avoid singleton here so tests (and multiple tracer providers) don't leak across runs.
         telemetry_handler = ExtendedTelemetryHandler(
@@ -144,13 +150,33 @@ class Mem0Instrumentor(BaseInstrumentor):
         )
 
         # Execute instrumentation (traces only, metrics removed)
-        self._instrument_memory_operations(telemetry_handler)
-        self._instrument_memory_client_operations(telemetry_handler)
+        self._instrument_memory_operations(
+            telemetry_handler,
+            memory_before_hook=memory_before_hook,
+            memory_after_hook=memory_after_hook,
+        )
+        self._instrument_memory_client_operations(
+            telemetry_handler,
+            memory_before_hook=memory_before_hook,
+            memory_after_hook=memory_after_hook,
+        )
         # Sub-phases controlled by toggle, avoid binding wrapper when disabled to reduce overhead
         if mem0_config.is_internal_phases_enabled():
-            self._instrument_vector_operations(tracer)
-            self._instrument_graph_operations(tracer)
-            self._instrument_reranker_operations(tracer)
+            self._instrument_vector_operations(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
+            self._instrument_graph_operations(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
+            self._instrument_reranker_operations(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
 
     def _uninstrument(self, **kwargs: Any) -> None:
         """Remove instrumentation."""
@@ -392,7 +418,13 @@ class Mem0Instrumentor(BaseInstrumentor):
 
         return _wrapper
 
-    def _instrument_memory_operations(self, telemetry_handler):
+    def _instrument_memory_operations(
+        self,
+        telemetry_handler,
+        *,
+        memory_before_hook=None,
+        memory_after_hook=None,
+    ):
         """Instrument Memory and AsyncMemory operations."""
         try:
             if (
@@ -407,6 +439,10 @@ class Mem0Instrumentor(BaseInstrumentor):
                 return
 
             wrapper = MemoryOperationWrapper(telemetry_handler)
+            wrapper.set_hooks(
+                memory_before_hook=memory_before_hook,
+                memory_after_hook=memory_after_hook,
+            )
 
             # Instrument Memory (sync)
             for method in self._public_methods_of(
@@ -444,7 +480,13 @@ class Mem0Instrumentor(BaseInstrumentor):
         except Exception as e:
             logger.debug(f"Failed to instrument Memory operations: {e}")
 
-    def _instrument_memory_client_operations(self, telemetry_handler):
+    def _instrument_memory_client_operations(
+        self,
+        telemetry_handler,
+        *,
+        memory_before_hook=None,
+        memory_after_hook=None,
+    ):
         """Instrument MemoryClient and AsyncMemoryClient operations."""
         try:
             if (
@@ -459,6 +501,10 @@ class Mem0Instrumentor(BaseInstrumentor):
                 return
 
             wrapper = MemoryOperationWrapper(telemetry_handler)
+            wrapper.set_hooks(
+                memory_before_hook=memory_before_hook,
+                memory_after_hook=memory_after_hook,
+            )
 
             # Instrument MemoryClient (sync)
             for method in self._public_methods_of(
@@ -594,7 +640,13 @@ class Mem0Instrumentor(BaseInstrumentor):
         except Exception as e:
             logger.debug(f"Failed to wrap {factory_class}.create: {e}")
 
-    def _instrument_vector_operations(self, tracer):
+    def _instrument_vector_operations(
+        self,
+        tracer,
+        *,
+        inner_before_hook=None,
+        inner_after_hook=None,
+    ):
         """Instrument VectorStore operations."""
         try:
             # Require both VectorStoreBase and VectorStoreFactory to be available
@@ -632,7 +684,11 @@ class Mem0Instrumentor(BaseInstrumentor):
                 ]
 
             # Create VectorStoreWrapper instance (trace-only)
-            vector_wrapper = VectorStoreWrapper(tracer)
+            vector_wrapper = VectorStoreWrapper(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
 
             # Use generic factory wrapping method
             self._wrap_factory_for_phase(
@@ -647,7 +703,13 @@ class Mem0Instrumentor(BaseInstrumentor):
         except Exception as e:
             logger.debug(f"Failed to instrument vector store operations: {e}")
 
-    def _instrument_graph_operations(self, tracer):
+    def _instrument_graph_operations(
+        self,
+        tracer,
+        *,
+        inner_before_hook=None,
+        inner_after_hook=None,
+    ):
         """Instrument GraphStore operations."""
         try:
             # If factories are unavailable, graph subphase instrumentation cannot be enabled
@@ -687,7 +749,11 @@ class Mem0Instrumentor(BaseInstrumentor):
                 ]
 
             # Create GraphStoreWrapper instance (trace-only)
-            graph_wrapper = GraphStoreWrapper(tracer)
+            graph_wrapper = GraphStoreWrapper(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
 
             # Use generic factory wrapping method
             self._wrap_factory_for_phase(
@@ -702,7 +768,13 @@ class Mem0Instrumentor(BaseInstrumentor):
         except Exception as e:
             logger.debug(f"Failed to instrument graph store operations: {e}")
 
-    def _instrument_reranker_operations(self, tracer):
+    def _instrument_reranker_operations(
+        self,
+        tracer,
+        *,
+        inner_before_hook=None,
+        inner_after_hook=None,
+    ):
         """Instrument Reranker operations."""
         try:
             if not _FACTORIES_AVAILABLE or RerankerFactory is None:
@@ -713,7 +785,11 @@ class Mem0Instrumentor(BaseInstrumentor):
                 return
 
             # Create RerankerWrapper instance (trace-only)
-            reranker_wrapper = RerankerWrapper(tracer)
+            reranker_wrapper = RerankerWrapper(
+                tracer,
+                inner_before_hook=inner_before_hook,
+                inner_after_hook=inner_after_hook,
+            )
 
             # Use generic factory wrapping method
             self._wrap_factory_for_phase(

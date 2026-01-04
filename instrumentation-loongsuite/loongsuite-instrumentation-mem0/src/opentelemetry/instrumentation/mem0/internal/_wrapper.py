@@ -6,7 +6,7 @@ Implements wrapping logic for top-level Memory operations and sub-phase operatio
 import inspect
 import logging
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 from opentelemetry.instrumentation.mem0.config import (
     is_internal_phases_enabled,
@@ -26,12 +26,40 @@ from opentelemetry.instrumentation.mem0.semconv import (
     SemanticAttributes,
     SpanName,
 )
-from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer
+from opentelemetry.trace import (
+    SpanKind,
+    Status,
+    StatusCode,
+    Tracer,
+    get_current_span,
+)
 from opentelemetry.util.genai._extended_memory import MemoryInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.types import Error
 
 logger = logging.getLogger(__name__)
+
+# Per-call hook context. Instrumentation only creates and passes it through.
+HookContext = Dict[str, Any]
+
+# Hook types are intentionally kept loose here to avoid coupling this package's runtime
+# to optional extension modules / type-checking configuration. Hooks are pure pass-through.
+MemoryBeforeHook = Optional[Callable[..., Any]]
+MemoryAfterHook = Optional[Callable[..., Any]]
+InnerBeforeHook = Optional[Callable[..., Any]]
+InnerAfterHook = Optional[Callable[..., Any]]
+
+
+def _safe_call_hook(hook: Optional[Callable], *args: Any) -> None:
+    """
+    Call a hook defensively: swallow hook exceptions to avoid breaking user code.
+    """
+    if not callable(hook):
+        return
+    try:
+        hook(*args)
+    except Exception as e:  # pragma: no cover - defensive
+        logger.debug("mem0 hook raised and was swallowed: %s", e)
 
 
 def _get_field(payload: dict, field_name: str) -> Any:
@@ -149,6 +177,22 @@ class MemoryOperationWrapper:
         """
         self.telemetry_handler = telemetry_handler
         self.extractor = MemoryOperationAttributeExtractor()
+        self._memory_before_hook: MemoryBeforeHook = None
+        self._memory_after_hook: MemoryAfterHook = None
+
+    def set_hooks(
+        self,
+        *,
+        memory_before_hook: MemoryBeforeHook = None,
+        memory_after_hook: MemoryAfterHook = None,
+    ) -> None:
+        """
+        Set optional hooks for top-level memory operations.
+
+        Hooks are stored on the wrapper instance to avoid changing wrapt wrapper signatures.
+        """
+        self._memory_before_hook = memory_before_hook
+        self._memory_after_hook = memory_after_hook
 
     def wrap_operation(
         self,
@@ -444,6 +488,18 @@ class MemoryOperationWrapper:
         )
 
         self.telemetry_handler.start_memory(invocation)
+        hook_context: HookContext = {}
+        # Read current span after util handler starts memory (span should exist in most cases)
+        span = get_current_span()
+        _safe_call_hook(
+            self._memory_before_hook,
+            span,
+            operation_name,
+            instance,
+            args,
+            dict(kwargs),
+            hook_context,
+        )
         try:
             result = func(*args, **kwargs)
             # Post-extract result attributes/content (must happen before stop_memory)
@@ -456,9 +512,31 @@ class MemoryOperationWrapper:
                 extract_attributes_func=extract_attributes_func,
                 is_memory_client=is_memory_client,
             )
+            _safe_call_hook(
+                self._memory_after_hook,
+                span,
+                operation_name,
+                instance,
+                args,
+                dict(kwargs),
+                hook_context,
+                result,
+                None,
+            )
             self.telemetry_handler.stop_memory(invocation)
             return result
         except Exception as e:
+            _safe_call_hook(
+                self._memory_after_hook,
+                span,
+                operation_name,
+                instance,
+                args,
+                dict(kwargs),
+                hook_context,
+                None,
+                e,
+            )
             self.telemetry_handler.fail_memory(
                 invocation, Error(message=str(e), type=type(e))
             )
@@ -502,6 +580,17 @@ class MemoryOperationWrapper:
         )
 
         self.telemetry_handler.start_memory(invocation)
+        hook_context: HookContext = {}
+        span = get_current_span()
+        _safe_call_hook(
+            self._memory_before_hook,
+            span,
+            operation_name,
+            instance,
+            args,
+            dict(kwargs),
+            hook_context,
+        )
         try:
             result = await func(*args, **kwargs)
             # Post-extract result attributes/content (must happen before stop_memory)
@@ -514,9 +603,31 @@ class MemoryOperationWrapper:
                 extract_attributes_func=extract_attributes_func,
                 is_memory_client=is_memory_client,
             )
+            _safe_call_hook(
+                self._memory_after_hook,
+                span,
+                operation_name,
+                instance,
+                args,
+                dict(kwargs),
+                hook_context,
+                result,
+                None,
+            )
             self.telemetry_handler.stop_memory(invocation)
             return result
         except Exception as e:
+            _safe_call_hook(
+                self._memory_after_hook,
+                span,
+                operation_name,
+                instance,
+                args,
+                dict(kwargs),
+                hook_context,
+                None,
+                e,
+            )
             self.telemetry_handler.fail_memory(
                 invocation, Error(message=str(e), type=type(e))
             )
@@ -526,7 +637,13 @@ class MemoryOperationWrapper:
 class VectorStoreWrapper:
     """Vector store subphase wrapper."""
 
-    def __init__(self, tracer: Tracer):
+    def __init__(
+        self,
+        tracer: Tracer,
+        *,
+        inner_before_hook: InnerBeforeHook = None,
+        inner_after_hook: InnerAfterHook = None,
+    ):
         """
         Initialize wrapper.
 
@@ -535,6 +652,8 @@ class VectorStoreWrapper:
         """
         self.tracer = tracer
         self.extractor = VectorOperationAttributeExtractor()
+        self._inner_before_hook = inner_before_hook
+        self._inner_after_hook = inner_after_hook
 
     def wrap_vector_operation(self, method_name: str) -> Callable:
         """
@@ -566,6 +685,17 @@ class VectorStoreWrapper:
                 kind=SpanKind.CLIENT,
             ) as span:
                 result = None
+                hook_context: HookContext = {}
+                _safe_call_hook(
+                    self._inner_before_hook,
+                    span,
+                    "vector",
+                    method_name,
+                    instance,
+                    args,
+                    dict(kwargs),
+                    hook_context,
+                )
 
                 # Store extracted attributes (defined outside try for finally access)
                 span_attrs = {}
@@ -582,6 +712,18 @@ class VectorStoreWrapper:
                         span.set_attribute(key, value)
 
                     span.set_status(Status(StatusCode.OK))
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "vector",
+                        method_name,
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        result,
+                        None,
+                    )
                     return result
 
                 except Exception as e:
@@ -589,6 +731,18 @@ class VectorStoreWrapper:
                     span.record_exception(e)
                     span.set_attribute(
                         SemanticAttributes.ERROR_TYPE, get_exception_type(e)
+                    )
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "vector",
+                        method_name,
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        None,
+                        e,
                     )
                     raise
 
@@ -602,7 +756,13 @@ class VectorStoreWrapper:
 class GraphStoreWrapper:
     """Graph store subphase wrapper."""
 
-    def __init__(self, tracer: Tracer):
+    def __init__(
+        self,
+        tracer: Tracer,
+        *,
+        inner_before_hook: InnerBeforeHook = None,
+        inner_after_hook: InnerAfterHook = None,
+    ):
         """
         Initialize wrapper.
 
@@ -611,6 +771,8 @@ class GraphStoreWrapper:
         """
         self.tracer = tracer
         self.extractor = GraphOperationAttributeExtractor()
+        self._inner_before_hook = inner_before_hook
+        self._inner_after_hook = inner_after_hook
 
     def wrap_graph_operation(self, method_name: str) -> Callable:
         """
@@ -638,6 +800,17 @@ class GraphStoreWrapper:
                 kind=SpanKind.CLIENT,
             ) as span:
                 result = None
+                hook_context: HookContext = {}
+                _safe_call_hook(
+                    self._inner_before_hook,
+                    span,
+                    "graph",
+                    method_name,
+                    instance,
+                    args,
+                    dict(kwargs),
+                    hook_context,
+                )
 
                 # Store extracted attributes (defined outside try for finally access)
                 span_attrs = {}
@@ -654,6 +827,18 @@ class GraphStoreWrapper:
                         span.set_attribute(key, value)
 
                     span.set_status(Status(StatusCode.OK))
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "graph",
+                        method_name,
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        result,
+                        None,
+                    )
                     return result
 
                 except Exception as e:
@@ -661,6 +846,18 @@ class GraphStoreWrapper:
                     span.record_exception(e)
                     span.set_attribute(
                         SemanticAttributes.ERROR_TYPE, get_exception_type(e)
+                    )
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "graph",
+                        method_name,
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        None,
+                        e,
                     )
                     raise
 
@@ -674,7 +871,13 @@ class GraphStoreWrapper:
 class RerankerWrapper:
     """Reranker subphase wrapper."""
 
-    def __init__(self, tracer: Tracer):
+    def __init__(
+        self,
+        tracer: Tracer,
+        *,
+        inner_before_hook: InnerBeforeHook = None,
+        inner_after_hook: InnerAfterHook = None,
+    ):
         """
         Initialize wrapper.
 
@@ -683,6 +886,8 @@ class RerankerWrapper:
         """
         self.tracer = tracer
         self.extractor = RerankerAttributeExtractor()
+        self._inner_before_hook = inner_before_hook
+        self._inner_after_hook = inner_after_hook
 
     def wrap_rerank(self) -> Callable:
         """
@@ -713,6 +918,17 @@ class RerankerWrapper:
                 SpanName.get_subphase_span_name("reranker", "rerank"),
                 kind=SpanKind.CLIENT,
             ) as span:
+                hook_context: HookContext = {}
+                _safe_call_hook(
+                    self._inner_before_hook,
+                    span,
+                    "rerank",
+                    "rerank",
+                    instance,
+                    args,
+                    dict(kwargs),
+                    hook_context,
+                )
                 # Store extracted attributes (defined outside try for finally access)
                 span_attrs = {}
 
@@ -728,6 +944,18 @@ class RerankerWrapper:
                     result = wrapped(*args, **kwargs)
 
                     span.set_status(Status(StatusCode.OK))
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "rerank",
+                        "rerank",
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        result,
+                        None,
+                    )
                     return result
 
                 except Exception as e:
@@ -735,6 +963,18 @@ class RerankerWrapper:
                     span.record_exception(e)
                     span.set_attribute(
                         SemanticAttributes.ERROR_TYPE, get_exception_type(e)
+                    )
+                    _safe_call_hook(
+                        self._inner_after_hook,
+                        span,
+                        "rerank",
+                        "rerank",
+                        instance,
+                        args,
+                        dict(kwargs),
+                        hook_context,
+                        None,
+                        e,
                     )
                     raise
 
