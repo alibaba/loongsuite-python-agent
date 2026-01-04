@@ -32,6 +32,10 @@ import zipfile
 from pathlib import Path
 from typing import Any, List, Optional, Set, Tuple, Union
 
+from loongsuite.distro.bootstrap_gen import (
+    default_instrumentations as gen_default_instrumentations,
+)
+from loongsuite.distro.bootstrap_gen import libraries as gen_libraries
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
@@ -63,23 +67,56 @@ def load_list_file(file_path: Path) -> Set[str]:
 
 
 def get_package_name_from_whl(whl_path: Path) -> str:
-    """Extract package name from whl filename"""
-    name = whl_path.stem
+    """
+    Extract package name from whl filename
+
+    Wheel filename format: {package_name}-{version}-{python_tag}-{abi_tag}-{platform_tag}.whl
+    Example: loongsuite_instrumentation_mem0-0.1.0-py3-none-any.whl
+
+    Returns normalized package name with hyphens (e.g., "loongsuite-instrumentation-mem0")
+    """
+    name = whl_path.stem  # Remove .whl extension
     parts = name.split("-")
-    if len(parts) >= 2:
-        package_parts = []
-        for part in parts:
-            if any(c.isdigit() for c in part) or part in (
-                "dev",
-                "b0",
-                "b1",
-                "rc0",
-                "rc1",
-            ):
-                break
-            package_parts.append(part)
-        return "-".join(package_parts)
-    return name
+
+    if len(parts) < 2:
+        # If no hyphens, return as-is (shouldn't happen for valid wheels)
+        return name.replace("_", "-")
+
+    package_parts = []
+    for part in parts:
+        # Check if this part looks like a version number
+        # Version numbers typically:
+        # - Start with a digit
+        # - Contain dots (e.g., "0.1.0", "1.2.3")
+        # - Or are build tags like "dev", "b0", etc.
+        # - Or are Python/ABI/platform tags
+
+        # Check for version-like patterns: starts with digit and contains dot, or is a known tag
+        is_version_like = (
+            (
+                part and part[0].isdigit() and "." in part
+            )  # e.g., "0.1.0", "1.2.3"
+            or part in ("dev", "b0", "b1", "rc0", "rc1")  # Build tags
+            or part.startswith("py")  # Python tags: "py3", "py2", "py"
+            or part in ("none", "any")  # ABI/platform tags
+        )
+
+        if is_version_like:
+            break
+
+        package_parts.append(part)
+
+    if not package_parts:
+        # Fallback: if we couldn't extract, use first part
+        result = parts[0] if parts else name
+    else:
+        # Join with hyphens
+        result = "-".join(package_parts)
+
+    # Normalize: convert underscores to hyphens for package name consistency
+    # (wheel filenames may use underscores, but package names use hyphens)
+    result = result.replace("_", "-")
+    return result
 
 
 def get_metadata_from_whl(whl_path: Path) -> Optional[dict[str, Any]]:
@@ -105,26 +142,50 @@ def get_metadata_from_whl(whl_path: Path) -> Optional[dict[str, Any]]:
                 return None
 
             metadata = {}
+            current_field = None
             # Read METADATA file
             with whl_zip.open(metadata_path) as metadata_file:
                 for line in metadata_file:
                     line_str = line.decode("utf-8").strip()
                     if not line_str:
+                        current_field = None
                         continue
-                    if line_str.startswith("Requires-Python:"):
-                        metadata["requires_python"] = line_str.split(":", 1)[1].strip()
-                    elif line_str.startswith("Requires-Dist:"):
-                        if "requires_dist" not in metadata:
-                            metadata["requires_dist"] = []
-                        metadata["requires_dist"].append(line_str.split(":", 1)[1].strip())
-                    elif line_str.startswith(" ") or line_str.startswith("\t"):
-                        # Continuation line for multi-line fields
-                        if "requires_dist" in metadata and metadata["requires_dist"]:
-                            metadata["requires_dist"][-1] += " " + line_str.strip()
+
+                    # Check for continuation line
+                    if line_str.startswith(" ") or line_str.startswith("\t"):
+                        if current_field and current_field in metadata:
+                            if isinstance(metadata[current_field], list):
+                                if metadata[current_field]:
+                                    metadata[current_field][-1] += (
+                                        " " + line_str.strip()
+                                    )
+                            else:
+                                metadata[current_field] += (
+                                    " " + line_str.strip()
+                                )
+                        continue
+
+                    # Parse field name and value
+                    if ":" in line_str:
+                        field_name, field_value = line_str.split(":", 1)
+                        field_name = field_name.strip()
+                        field_value = field_value.strip()
+                        current_field = field_name
+
+                        if field_name == "Requires-Python":
+                            metadata["requires_python"] = field_value
+                        elif field_name == "Requires-Dist":
+                            if "requires_dist" not in metadata:
+                                metadata["requires_dist"] = []
+                            metadata["requires_dist"].append(field_value)
+                        elif field_name == "Provides-Extra":
+                            if "provides_extra" not in metadata:
+                                metadata["provides_extra"] = []
+                            metadata["provides_extra"].append(field_value)
 
             return metadata if metadata else None
-    except Exception as e:
-        logger.debug(f"Failed to read metadata from {whl_path}: {e}")
+    except Exception:
+        pass
 
     return None
 
@@ -148,21 +209,221 @@ def get_installed_package_version(package_name: str) -> Optional[str]:
     Get installed version of a package
 
     Args:
-        package_name: Package name
+        package_name: Package name (may contain hyphens or underscores)
 
     Returns:
         Installed version string, or None if not installed
     """
+    # Try original name first
     cmd = [sys.executable, "-m", "pip", "show", package_name]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=True, timeout=5
+        )
         for line in result.stdout.splitlines():
             if line.startswith("Version:"):
                 return line.split(":", 1)[1].strip()
-    except subprocess.CalledProcessError:
-        # Package not installed
-        return None
+    except (
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+        Exception,
+    ):
+        pass
+
+    # Try with underscores replaced by hyphens
+    normalized = package_name.replace("_", "-")
+    if normalized != package_name:
+        cmd = [sys.executable, "-m", "pip", "show", normalized]
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, timeout=5
+            )
+            for line in result.stdout.splitlines():
+                if line.startswith("Version:"):
+                    return line.split(":", 1)[1].strip()
+        except (
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            Exception,
+        ):
+            pass
+
+    # Try with hyphens replaced by underscores
+    normalized = package_name.replace("-", "_")
+    if normalized != package_name:
+        cmd = [sys.executable, "-m", "pip", "show", normalized]
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, check=True, timeout=5
+            )
+            for line in result.stdout.splitlines():
+                if line.startswith("Version:"):
+                    return line.split(":", 1)[1].strip()
+        except (
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            Exception,
+        ):
+            pass
+
     return None
+
+
+def _is_library_installed(req_str: str) -> bool:
+    """
+    Check if a library is installed and version satisfies requirement
+
+    Similar to opentelemetry-bootstrap's _is_installed function
+
+    Args:
+        req_str: Requirement string (e.g., "redis >= 2.6")
+
+    Returns:
+        True if library is installed and version satisfies requirement, False otherwise
+    """
+    try:
+        req = Requirement(req_str)
+        package_name = req.name
+
+        # Try original name first
+        dist_version = get_installed_package_version(package_name)
+
+        # If not found, try normalized versions (handle underscores vs hyphens)
+        if dist_version is None:
+            normalized = package_name.replace("_", "-")
+            if normalized != package_name:
+                dist_version = get_installed_package_version(normalized)
+
+        if dist_version is None:
+            normalized = package_name.replace("-", "_")
+            if normalized != package_name:
+                dist_version = get_installed_package_version(normalized)
+
+        if dist_version is None:
+            return False
+
+        # Check if installed version satisfies requirement
+        return req.specifier.contains(dist_version)
+    except Exception:
+        return False
+
+
+def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
+    """
+    Check if a package is an instrumentation listed in bootstrap_gen.py
+
+    Args:
+        package_name: Package name to check
+
+    Returns:
+        True if the package is in bootstrap_gen.py (either in libraries or default_instrumentations)
+    """
+    if not package_name:
+        return False
+
+    normalized_name = package_name.replace("_", "-")
+
+    # Check default instrumentations
+    for default_instr in gen_default_instrumentations:
+        if isinstance(default_instr, str):
+            default_pkg_name = (
+                default_instr.split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split("~=")[0]
+                .split("!=")[0]
+                .strip()
+            )
+            if (
+                default_pkg_name == normalized_name
+                or default_pkg_name == package_name
+            ):
+                return True
+
+    # Check libraries mapping
+    for lib_mapping in gen_libraries:
+        instrumentation = lib_mapping.get("instrumentation", "")
+        if isinstance(instrumentation, str):
+            instr_pkg_name = (
+                instrumentation.split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split("~=")[0]
+                .split("!=")[0]
+                .strip()
+            )
+            if (
+                instr_pkg_name == normalized_name
+                or instr_pkg_name == package_name
+            ):
+                return True
+
+    return False
+
+
+def get_target_libraries_from_bootstrap_gen(
+    package_name: str,
+) -> Tuple[List[str], bool]:
+    """
+    Get target library requirements from bootstrap_gen.py
+
+    This function uses the pre-generated bootstrap_gen.py file to get
+    target library information, similar to opentelemetry-bootstrap.
+
+    Args:
+        package_name: Name of the instrumentation package (e.g., "opentelemetry-instrumentation-redis")
+                      May contain hyphens or underscores, will be normalized
+
+    Returns:
+        Tuple of (target_libraries list, is_default_instrumentation bool)
+        target_libraries contains library requirement strings (e.g., ["redis >= 2.6"])
+        is_default_instrumentation is True if this is a default instrumentation
+    """
+    if not package_name:
+        return [], False
+
+    # Normalize package name: convert underscores to hyphens for matching
+    normalized_name = package_name.replace("_", "-")
+
+    # Check if it's a default instrumentation
+    for default_instr in gen_default_instrumentations:
+        if isinstance(default_instr, str):
+            default_pkg_name = (
+                default_instr.split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split("~=")[0]
+                .split("!=")[0]
+                .strip()
+            )
+            if (
+                default_pkg_name == normalized_name
+                or default_pkg_name == package_name
+            ):
+                return [], True
+
+    # Look up in libraries mapping
+    target_libraries = []
+    for lib_mapping in gen_libraries:
+        instrumentation = lib_mapping.get("instrumentation", "")
+        if isinstance(instrumentation, str):
+            instr_pkg_name = (
+                instrumentation.split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split("~=")[0]
+                .split("!=")[0]
+                .strip()
+            )
+            if (
+                instr_pkg_name == normalized_name
+                or instr_pkg_name == package_name
+            ):
+                target_lib = lib_mapping.get("library", "")
+                if target_lib and isinstance(target_lib, str):
+                    target_libraries.append(target_lib)
+
+    return target_libraries, False
 
 
 def check_dependency_compatibility(
@@ -205,8 +466,7 @@ def check_dependency_compatibility(
                         conflicts.append(
                             f"{req.name} {installed_version} does not satisfy {req_str}"
                         )
-        except Exception as e:
-            logger.debug(f"Failed to parse requirement '{req_str}': {e}")
+        except Exception:
             # If parsing fails, assume compatible to avoid false positives
             continue
 
@@ -246,10 +506,7 @@ def check_python_version_compatibility(
         # Check if current version satisfies the requirement
         is_compatible = spec.contains(current_version_str)
         return is_compatible, requirement_str
-    except Exception as e:
-        logger.debug(
-            f"Failed to parse Python requirement '{requirement_str}': {e}"
-        )
+    except Exception:
         # If parsing fails, assume compatible to avoid false positives
         return True, requirement_str
 
@@ -286,16 +543,18 @@ def filter_packages(
     blacklist: Optional[Set[str]] = None,
     whitelist: Optional[Set[str]] = None,
     skip_version_check: bool = False,
+    auto_detect: bool = False,
 ) -> Tuple[List[Path], List[Path]]:
     """
     Filter packages based on blacklist/whitelist, Python version compatibility,
-    and dependency version compatibility
+    dependency version compatibility, and optionally auto-detect installed libraries
 
     Args:
         whl_files: List of whl file paths
         blacklist: blacklist (do not install these packages)
         whitelist: whitelist (only install these packages if specified)
         skip_version_check: If True, skip dependency version compatibility check
+        auto_detect: If True, only install instrumentation packages if their target libraries are installed
 
     Returns:
         (base dependency packages list, instrumentation packages list)
@@ -310,50 +569,106 @@ def filter_packages(
     current_version = (sys.version_info.major, sys.version_info.minor)
     current_version_str = f"{current_version[0]}.{current_version[1]}"
 
+    logger.info(f"Scanning {len(whl_files)} packages for installation...")
+    if auto_detect:
+        logger.info(
+            "Auto-detect mode enabled: will only install instrumentations for detected libraries"
+        )
+
     for whl_file in whl_files:
         package_name = get_package_name_from_whl(whl_file)
 
         # Check blacklist
         if blacklist and package_name in blacklist:
-            logger.debug(f"Skipping package (blacklist): {package_name}")
+            logger.info(f"Skipping {package_name} (blacklist)")
             continue
 
         # Check whitelist
         if whitelist and package_name not in whitelist:
-            logger.debug(
-                f"Skipping package (not in whitelist): {package_name}"
-            )
+            logger.info(f"Skipping {package_name} (not in whitelist)")
             continue
 
-        # Check Python version compatibility
-        is_compatible, requirement_str = check_python_version_compatibility(
-            whl_file, current_version
-        )
-
-        if not is_compatible:
-            logger.warning(
-                f"Skipping package (Python version incompatible): {package_name} "
-                f"(requires Python {requirement_str}, current: {current_version_str})"
+        # Check Python version compatibility (only for instrumentations in bootstrap_gen.py)
+        # Base dependencies and utility packages are installed without Python version check
+        is_instrumentation = _is_instrumentation_in_bootstrap_gen(package_name)
+        if is_instrumentation:
+            is_compatible, requirement_str = (
+                check_python_version_compatibility(whl_file, current_version)
             )
-            continue
+            if not is_compatible:
+                logger.info(
+                    f"Skipping {package_name} (Python version incompatible: requires {requirement_str}, current: {current_version_str})"
+                )
+                continue
 
-        # Check dependency version compatibility
-        is_dep_compatible, conflict_msg = check_dependency_compatibility(
-            whl_file, skip_version_check
-        )
-
-        if not is_dep_compatible:
-            logger.warning(
-                f"Skipping package (dependency version incompatible): {package_name} "
-                f"({conflict_msg})"
+        # Check dependency version compatibility (only for base dependencies)
+        # Instrumentation packages will be checked by pip during installation
+        if package_name in BASE_DEPENDENCIES:
+            is_dep_compatible, conflict_msg = check_dependency_compatibility(
+                whl_file, skip_version_check
             )
-            continue
+            if not is_dep_compatible:
+                logger.warning(
+                    f"Skipping {package_name} (dependency version incompatible: {conflict_msg})"
+                )
+                continue
 
         # Classify: base dependencies vs instrumentation
         if package_name in BASE_DEPENDENCIES:
             base_packages.append(whl_file)
         else:
-            instrumentation_packages.append(whl_file)
+            # For instrumentation packages, check if auto-detect is enabled
+            if auto_detect:
+                target_libraries, is_default = (
+                    get_target_libraries_from_bootstrap_gen(package_name)
+                )
+
+                # Default instrumentations are always installed (like opentelemetry-bootstrap)
+                if is_default:
+                    logger.info(
+                        f"Will install {package_name} (default instrumentation)"
+                    )
+                    instrumentation_packages.append(whl_file)
+                elif target_libraries:
+                    # Check if any target library is installed
+                    library_installed = False
+                    installed_libs = []
+                    not_installed_libs = []
+                    for lib_req in target_libraries:
+                        if _is_library_installed(lib_req):
+                            library_installed = True
+                            try:
+                                req = Requirement(lib_req)
+                                installed_libs.append(req.name)
+                            except Exception:
+                                installed_libs.append(lib_req)
+                        else:
+                            try:
+                                req = Requirement(lib_req)
+                                not_installed_libs.append(req.name)
+                            except Exception:
+                                not_installed_libs.append(lib_req)
+
+                    if library_installed:
+                        logger.info(
+                            f"Will install {package_name} (detected libraries: {', '.join(installed_libs)})"
+                        )
+                        instrumentation_packages.append(whl_file)
+                    else:
+                        logger.info(
+                            f"Skipping {package_name} (required libraries not installed: {', '.join(not_installed_libs)})"
+                        )
+                        continue
+                else:
+                    # No mapping found in bootstrap_gen.py, skip it
+                    logger.info(
+                        f"Skipping {package_name} (no target libraries mapping in bootstrap_gen.py)"
+                    )
+                    continue
+            else:
+                # Auto-detect disabled, install all instrumentation packages
+                logger.info(f"Will install {package_name}")
+                instrumentation_packages.append(whl_file)
 
     return base_packages, instrumentation_packages
 
@@ -413,7 +728,9 @@ def get_installed_loongsuite_packages() -> List[str]:
 
     cmd = [sys.executable, "-m", "pip", "list", "--format=json"]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=True
+        )
         installed_packages = json_lib.loads(result.stdout)
 
         # Filter packages to uninstall
@@ -470,7 +787,9 @@ def uninstall_packages(package_names: List[str], yes: bool = False):
         raise
 
 
-def resolve_tar_path(tar_path: Union[Path, str]) -> Tuple[Path, Optional[Path]]:
+def resolve_tar_path(
+    tar_path: Union[Path, str],
+) -> Tuple[Path, Optional[Path]]:
     """
     Resolve tar path, downloading from URI if necessary
 
@@ -519,7 +838,7 @@ def get_package_names_from_tar(
             raise ValueError("No whl files found in tar file")
 
         base_packages, instrumentation_packages = filter_packages(
-            whl_files, blacklist, whitelist
+            whl_files, blacklist, whitelist, auto_detect=False
         )
 
         # Get package names
@@ -540,6 +859,7 @@ def install_from_tar(
     upgrade: bool = False,
     keep_temp: bool = False,
     skip_version_check: bool = False,
+    auto_detect: bool = False,
 ):
     """
     Install loongsuite packages from tar package
@@ -550,6 +870,8 @@ def install_from_tar(
         whitelist: whitelist (only install these packages if specified)
         upgrade: whether to upgrade already installed packages
         keep_temp: whether to keep temporary directory
+        skip_version_check: If True, skip dependency version compatibility check
+        auto_detect: If True, only install instrumentation packages if their target libraries are installed
     """
     # Resolve tar path (download from URI if necessary)
     local_tar_path, temp_tar_dir = resolve_tar_path(tar_path)
@@ -558,15 +880,19 @@ def install_from_tar(
     temp_dir = Path(tempfile.mkdtemp(prefix="loongsuite-"))
 
     try:
+        logger.info("Extracting packages from tar file...")
         # Extract tar file
         whl_files = extract_tar(local_tar_path, temp_dir)
 
         if not whl_files:
             raise ValueError("No whl files found in tar file")
 
+        logger.info(f"Found {len(whl_files)} packages in tar file")
+
         # Filter packages
+        logger.info("Filtering packages...")
         base_packages, instrumentation_packages = filter_packages(
-            whl_files, blacklist, whitelist, skip_version_check
+            whl_files, blacklist, whitelist, skip_version_check, auto_detect
         )
 
         # Ensure base dependencies must be installed
@@ -578,6 +904,10 @@ def install_from_tar(
         # Merge all packages to install
         all_packages = base_packages + instrumentation_packages
 
+        if not all_packages:
+            logger.warning("No packages to install after filtering")
+            return
+
         logger.info(
             f"Will install {len(base_packages)} base dependency packages"
         )
@@ -585,8 +915,16 @@ def install_from_tar(
             f"Will install {len(instrumentation_packages)} instrumentation packages"
         )
 
+        if instrumentation_packages:
+            logger.info("Instrumentation packages to install:")
+            for pkg in instrumentation_packages:
+                pkg_name = get_package_name_from_whl(pkg)
+                logger.info(f"  - {pkg_name}")
+
         # Install
+        logger.info("Installing packages...")
         install_packages(all_packages, temp_dir, upgrade)
+        logger.info("Installation completed successfully!")
 
     finally:
         if not keep_temp:
@@ -735,6 +1073,16 @@ def main():
         action="store_true",
         help="force installation even if dependency versions are incompatible",
     )
+    install_group.add_argument(
+        "--auto-detect",
+        action="store_true",
+        help="only install instrumentation packages if their target libraries are installed (similar to opentelemetry-bootstrap)",
+    )
+    install_group.add_argument(
+        "--verbose",
+        action="store_true",
+        help="enable verbose debug logging",
+    )
 
     # Uninstall-specific arguments
     uninstall_group = parser.add_argument_group("uninstall options")
@@ -746,6 +1094,25 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Configure logging level
+    if args.verbose or (
+        hasattr(args, "action")
+        and args.action == "install"
+        and hasattr(args, "auto_detect")
+        and args.auto_detect
+    ):
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(levelname)s: %(message)s",
+            force=True,
+        )
+        logger.setLevel(logging.DEBUG)
+    else:
+        logging.basicConfig(
+            level=logging.INFO, format="%(levelname)s: %(message)s", force=True
+        )
+        logger.setLevel(logging.INFO)
 
     # Load blacklist/whitelist
     blacklist = load_list_file(args.blacklist) if args.blacklist else None
@@ -766,7 +1133,9 @@ def main():
         elif args.latest:
             tar_path = get_latest_release_url()
         else:
-            parser.error("For install action, must specify one of --tar, --version, or --latest")
+            parser.error(
+                "For install action, must specify one of --tar, --version, or --latest"
+            )
 
         # Install
         install_from_tar(
@@ -776,6 +1145,7 @@ def main():
             upgrade=args.upgrade,
             keep_temp=args.keep_temp,
             skip_version_check=args.force,
+            auto_detect=args.auto_detect,
         )
 
     elif args.action == "uninstall":
