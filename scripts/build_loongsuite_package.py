@@ -193,7 +193,9 @@ def collect_packages(
         existing_whl_files.update(whl_files)
 
     # 5. Build processor/loongsuite-processor-baggage/
-    processor_baggage_dir = base_dir / "processor" / "loongsuite-processor-baggage"
+    processor_baggage_dir = (
+        base_dir / "processor" / "loongsuite-processor-baggage"
+    )
     if (
         processor_baggage_dir.exists()
         and (processor_baggage_dir / "pyproject.toml").exists()

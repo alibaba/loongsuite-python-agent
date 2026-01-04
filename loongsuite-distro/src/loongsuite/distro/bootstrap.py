@@ -30,8 +30,9 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
-from typing import List, Optional, Set, Tuple, Union
+from typing import Any, List, Optional, Set, Tuple, Union
 
+from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
 logger = logging.getLogger(__name__)
@@ -81,15 +82,15 @@ def get_package_name_from_whl(whl_path: Path) -> str:
     return name
 
 
-def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
+def get_metadata_from_whl(whl_path: Path) -> Optional[dict[str, Any]]:
     """
-    Extract Python version requirement from whl file metadata
-    
+    Extract metadata from whl file
+
     Args:
         whl_path: Path to whl file
-        
+
     Returns:
-        Python version requirement string (e.g., ">=3.10, <=3.13") or None if not found
+        Dictionary with metadata fields, or None if not found
     """
     try:
         with zipfile.ZipFile(whl_path, "r") as whl_zip:
@@ -99,20 +100,121 @@ def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
                 if name.endswith("/METADATA") or name == "METADATA":
                     metadata_path = name
                     break
-            
+
             if not metadata_path:
                 return None
-            
+
+            metadata = {}
             # Read METADATA file
             with whl_zip.open(metadata_path) as metadata_file:
                 for line in metadata_file:
                     line_str = line.decode("utf-8").strip()
+                    if not line_str:
+                        continue
                     if line_str.startswith("Requires-Python:"):
-                        return line_str.split(":", 1)[1].strip()
+                        metadata["requires_python"] = line_str.split(":", 1)[1].strip()
+                    elif line_str.startswith("Requires-Dist:"):
+                        if "requires_dist" not in metadata:
+                            metadata["requires_dist"] = []
+                        metadata["requires_dist"].append(line_str.split(":", 1)[1].strip())
+                    elif line_str.startswith(" ") or line_str.startswith("\t"):
+                        # Continuation line for multi-line fields
+                        if "requires_dist" in metadata and metadata["requires_dist"]:
+                            metadata["requires_dist"][-1] += " " + line_str.strip()
+
+            return metadata if metadata else None
     except Exception as e:
-        logger.debug(f"Failed to read Python requirement from {whl_path}: {e}")
-    
+        logger.debug(f"Failed to read metadata from {whl_path}: {e}")
+
     return None
+
+
+def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
+    """
+    Extract Python version requirement from whl file metadata
+
+    Args:
+        whl_path: Path to whl file
+
+    Returns:
+        Python version requirement string (e.g., ">=3.10, <=3.13") or None if not found
+    """
+    metadata = get_metadata_from_whl(whl_path)
+    return metadata.get("requires_python") if metadata else None
+
+
+def get_installed_package_version(package_name: str) -> Optional[str]:
+    """
+    Get installed version of a package
+
+    Args:
+        package_name: Package name
+
+    Returns:
+        Installed version string, or None if not installed
+    """
+    cmd = [sys.executable, "-m", "pip", "show", package_name]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        for line in result.stdout.splitlines():
+            if line.startswith("Version:"):
+                return line.split(":", 1)[1].strip()
+    except subprocess.CalledProcessError:
+        # Package not installed
+        return None
+    return None
+
+
+def check_dependency_compatibility(
+    whl_path: Path, skip_version_check: bool = False
+) -> Tuple[bool, Optional[str]]:
+    """
+    Check if package dependencies are compatible with installed packages
+
+    Args:
+        whl_path: Path to whl file
+        skip_version_check: If True, skip version compatibility check
+
+    Returns:
+        (is_compatible, conflict_message)
+        is_compatible: True if compatible, False otherwise
+        conflict_message: Description of conflict if incompatible, None otherwise
+    """
+    if skip_version_check:
+        return True, None
+
+    metadata = get_metadata_from_whl(whl_path)
+    if not metadata or "requires_dist" not in metadata:
+        return True, None
+
+    # Key packages to check compatibility
+    key_packages = {
+        "opentelemetry-instrumentation",
+        "opentelemetry-semantic-conventions",
+    }
+
+    conflicts = []
+    for req_str in metadata.get("requires_dist", []):
+        try:
+            req = Requirement(req_str)
+            if req.name.lower() in key_packages:
+                installed_version = get_installed_package_version(req.name)
+                if installed_version:
+                    # Check if installed version satisfies requirement
+                    if not req.specifier.contains(installed_version):
+                        conflicts.append(
+                            f"{req.name} {installed_version} does not satisfy {req_str}"
+                        )
+        except Exception as e:
+            logger.debug(f"Failed to parse requirement '{req_str}': {e}")
+            # If parsing fails, assume compatible to avoid false positives
+            continue
+
+    if conflicts:
+        conflict_msg = "; ".join(conflicts)
+        return False, conflict_msg
+
+    return True, None
 
 
 def check_python_version_compatibility(
@@ -120,22 +222,22 @@ def check_python_version_compatibility(
 ) -> Tuple[bool, Optional[str]]:
     """
     Check if current Python version is compatible with whl file requirements
-    
+
     Args:
         whl_path: Path to whl file
         current_version: Current Python version as (major, minor) tuple
-        
+
     Returns:
         (is_compatible, requirement_string)
         is_compatible: True if compatible, False otherwise
         requirement_string: Python requirement string if found, None otherwise
     """
     requirement_str = get_python_requirement_from_whl(whl_path)
-    
+
     if not requirement_str:
         # If no requirement found, assume compatible
         return True, None
-    
+
     try:
         # Parse the requirement string
         spec = SpecifierSet(requirement_str)
@@ -145,7 +247,9 @@ def check_python_version_compatibility(
         is_compatible = spec.contains(current_version_str)
         return is_compatible, requirement_str
     except Exception as e:
-        logger.debug(f"Failed to parse Python requirement '{requirement_str}': {e}")
+        logger.debug(
+            f"Failed to parse Python requirement '{requirement_str}': {e}"
+        )
         # If parsing fails, assume compatible to avoid false positives
         return True, requirement_str
 
@@ -181,9 +285,17 @@ def filter_packages(
     whl_files: List[Path],
     blacklist: Optional[Set[str]] = None,
     whitelist: Optional[Set[str]] = None,
+    skip_version_check: bool = False,
 ) -> Tuple[List[Path], List[Path]]:
     """
-    Filter packages based on blacklist/whitelist and Python version compatibility
+    Filter packages based on blacklist/whitelist, Python version compatibility,
+    and dependency version compatibility
+
+    Args:
+        whl_files: List of whl file paths
+        blacklist: blacklist (do not install these packages)
+        whitelist: whitelist (only install these packages if specified)
+        skip_version_check: If True, skip dependency version compatibility check
 
     Returns:
         (base dependency packages list, instrumentation packages list)
@@ -193,7 +305,7 @@ def filter_packages(
 
     blacklist = blacklist or set()
     whitelist = whitelist or set()
-    
+
     # Get current Python version
     current_version = (sys.version_info.major, sys.version_info.minor)
     current_version_str = f"{current_version[0]}.{current_version[1]}"
@@ -217,11 +329,23 @@ def filter_packages(
         is_compatible, requirement_str = check_python_version_compatibility(
             whl_file, current_version
         )
-        
+
         if not is_compatible:
             logger.warning(
                 f"Skipping package (Python version incompatible): {package_name} "
                 f"(requires Python {requirement_str}, current: {current_version_str})"
+            )
+            continue
+
+        # Check dependency version compatibility
+        is_dep_compatible, conflict_msg = check_dependency_compatibility(
+            whl_file, skip_version_check
+        )
+
+        if not is_dep_compatible:
+            logger.warning(
+                f"Skipping package (dependency version incompatible): {package_name} "
+                f"({conflict_msg})"
             )
             continue
 
@@ -266,48 +390,183 @@ def install_packages(
         raise
 
 
+def get_installed_loongsuite_packages() -> List[str]:
+    """
+    Get list of installed loongsuite and opentelemetry packages to uninstall
+
+    Excludes:
+    - loongsuite-distro
+    - opentelemetry-api
+    - opentelemetry-sdk
+    - opentelemetry-instrumentation
+
+    Returns:
+        List of installed package names to uninstall
+    """
+    # Packages to exclude from uninstallation
+    EXCLUDED_PACKAGES = {
+        "loongsuite-distro",
+        "opentelemetry-api",
+        "opentelemetry-sdk",
+        "opentelemetry-instrumentation",
+    }
+
+    cmd = [sys.executable, "-m", "pip", "list", "--format=json"]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        installed_packages = json_lib.loads(result.stdout)
+
+        # Filter packages to uninstall
+        packages_to_uninstall = []
+        for pkg in installed_packages:
+            name = pkg.get("name", "")
+            name_lower = name.lower()
+
+            # Skip excluded packages
+            if name_lower in EXCLUDED_PACKAGES:
+                continue
+
+            # Include loongsuite-* packages (except loongsuite-distro)
+            if name_lower.startswith("loongsuite-"):
+                packages_to_uninstall.append(name)
+            # Include opentelemetry-* packages (except opentelemetry-api and opentelemetry-sdk)
+            elif name_lower.startswith("opentelemetry-"):
+                packages_to_uninstall.append(name)
+
+        return packages_to_uninstall
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to get installed packages: {e}")
+        raise
+    except json_lib.JSONDecodeError as e:
+        logger.error(f"Failed to parse pip list output: {e}")
+        raise
+
+
+def uninstall_packages(package_names: List[str], yes: bool = False):
+    """Uninstall packages using pip"""
+    if not package_names:
+        logger.warning("No packages to uninstall")
+        return
+
+    cmd = [
+        sys.executable,
+        "-m",
+        "pip",
+        "uninstall",
+    ]
+
+    if yes:
+        cmd.append("-y")
+
+    # Add all package names
+    cmd.extend(package_names)
+
+    logger.info(f"Executing uninstall command: {' '.join(cmd)}")
+    try:
+        subprocess.run(cmd, check=True)
+        logger.info("Uninstallation completed")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Uninstallation failed: {e}")
+        raise
+
+
+def resolve_tar_path(tar_path: Union[Path, str]) -> Tuple[Path, Optional[Path]]:
+    """
+    Resolve tar path, downloading from URI if necessary
+
+    Args:
+        tar_path: tar file path or URI (can be Path or str)
+
+    Returns:
+        (local_tar_path, temp_dir_to_cleanup)
+        local_tar_path: Path to local tar file
+        temp_dir_to_cleanup: Path to temporary directory to clean up (None if not downloaded)
+    """
+    tar_path_str = str(tar_path)
+    if tar_path_str.startswith(("http://", "https://")):
+        # Download from URI
+        temp_dir = Path(tempfile.mkdtemp(prefix="loongsuite-download-"))
+        temp_tar = temp_dir / "loongsuite.tar.gz"
+        download_file(tar_path_str, temp_tar)
+        return temp_tar, temp_dir
+    else:
+        tar_path = Path(tar_path)
+        if not tar_path.exists():
+            raise FileNotFoundError(f"Tar file does not exist: {tar_path}")
+        return tar_path, None
+
+
+def get_package_names_from_tar(
+    tar_path: Path,
+    blacklist: Optional[Set[str]] = None,
+    whitelist: Optional[Set[str]] = None,
+) -> List[str]:
+    """
+    Extract package names from tar file
+
+    Args:
+        tar_path: Path to tar file
+        blacklist: blacklist (do not include these packages)
+        whitelist: whitelist (only include these packages if specified)
+
+    Returns:
+        List of package names
+    """
+    temp_dir = Path(tempfile.mkdtemp(prefix="loongsuite-"))
+    try:
+        whl_files = extract_tar(tar_path, temp_dir)
+        if not whl_files:
+            raise ValueError("No whl files found in tar file")
+
+        base_packages, instrumentation_packages = filter_packages(
+            whl_files, blacklist, whitelist
+        )
+
+        # Get package names
+        package_names = []
+        for whl in base_packages + instrumentation_packages:
+            package_name = get_package_name_from_whl(whl)
+            package_names.append(package_name)
+
+        return package_names
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
 def install_from_tar(
     tar_path: Union[Path, str],
     blacklist: Optional[Set[str]] = None,
     whitelist: Optional[Set[str]] = None,
     upgrade: bool = False,
     keep_temp: bool = False,
+    skip_version_check: bool = False,
 ):
     """
     Install loongsuite packages from tar package
 
     Args:
-        tar_path: tar file path or URL (can be Path or str)
+        tar_path: tar file path or URI (can be Path or str)
         blacklist: blacklist (do not install these packages)
         whitelist: whitelist (only install these packages if specified)
         upgrade: whether to upgrade already installed packages
         keep_temp: whether to keep temporary directory
     """
-    # If it's a URL, download first
-    tar_path_str = str(tar_path)
-    if tar_path_str.startswith(("http://", "https://")):
-        temp_tar = Path(tempfile.mkdtemp()) / "loongsuite.tar.gz"
-        download_file(tar_path_str, temp_tar)
-        tar_path = temp_tar
-    else:
-        tar_path = Path(tar_path)
+    # Resolve tar path (download from URI if necessary)
+    local_tar_path, temp_tar_dir = resolve_tar_path(tar_path)
 
-    if not tar_path.exists():
-        raise FileNotFoundError(f"Tar file does not exist: {tar_path}")
-
-    # Create temporary directory
+    # Create temporary directory for extraction
     temp_dir = Path(tempfile.mkdtemp(prefix="loongsuite-"))
 
     try:
         # Extract tar file
-        whl_files = extract_tar(tar_path, temp_dir)
+        whl_files = extract_tar(local_tar_path, temp_dir)
 
         if not whl_files:
             raise ValueError("No whl files found in tar file")
 
         # Filter packages
         base_packages, instrumentation_packages = filter_packages(
-            whl_files, blacklist, whitelist
+            whl_files, blacklist, whitelist, skip_version_check
         )
 
         # Ensure base dependencies must be installed
@@ -332,8 +591,62 @@ def install_from_tar(
     finally:
         if not keep_temp:
             shutil.rmtree(temp_dir, ignore_errors=True)
+            if temp_tar_dir and temp_tar_dir.exists():
+                shutil.rmtree(temp_tar_dir, ignore_errors=True)
         else:
             logger.info(f"Temporary directory kept at: {temp_dir}")
+            if temp_tar_dir:
+                logger.info(f"Downloaded tar file kept at: {local_tar_path}")
+
+
+def uninstall_loongsuite_packages(
+    blacklist: Optional[Set[str]] = None,
+    whitelist: Optional[Set[str]] = None,
+    yes: bool = False,
+):
+    """
+    Uninstall installed loongsuite packages
+
+    Args:
+        blacklist: blacklist (do not uninstall these packages)
+        whitelist: whitelist (only uninstall these packages if specified)
+        yes: automatically confirm uninstallation
+    """
+    # Get installed loongsuite packages
+    installed_packages = get_installed_loongsuite_packages()
+
+    if not installed_packages:
+        logger.warning("No loongsuite packages found installed")
+        return
+
+    # Apply blacklist/whitelist filters
+    blacklist = blacklist or set()
+    whitelist = whitelist or set()
+
+    package_names = []
+    for pkg in installed_packages:
+        # Check blacklist
+        if blacklist and pkg in blacklist:
+            logger.debug(f"Skipping package (blacklist): {pkg}")
+            continue
+
+        # Check whitelist
+        if whitelist and pkg not in whitelist:
+            logger.debug(f"Skipping package (not in whitelist): {pkg}")
+            continue
+
+        package_names.append(pkg)
+
+    if not package_names:
+        logger.warning("No packages to uninstall after filtering")
+        return
+
+    logger.info(f"Will uninstall {len(package_names)} packages:")
+    for name in package_names:
+        logger.info(f"  - {name}")
+
+    # Uninstall
+    uninstall_packages(package_names, yes)
 
 
 def get_latest_release_url(
@@ -361,70 +674,78 @@ def get_latest_release_url(
 def main():
     parser = argparse.ArgumentParser(
         description="""
-        LoongSuite Bootstrap - Install loongsuite Python Agent from tar package
+        LoongSuite Bootstrap - Install/Uninstall loongsuite Python Agent from tar package
 
-        This tool installs all loongsuite components from tar.gz file.
-        Supports blacklist/whitelist to control which instrumentations to install.
+        This tool installs or uninstalls all loongsuite components from tar.gz file.
+        Supports blacklist/whitelist to control which instrumentations to install/uninstall.
         """
     )
 
     parser.add_argument(
-        "-t",
-        "--tar",
-        type=Path,
-        help="tar package path or GitHub Releases URL",
+        "-a",
+        "--action",
+        choices=["install", "uninstall"],
+        required=True,
+        help="action type: install to install packages, uninstall to uninstall packages",
     )
-    parser.add_argument(
-        "-v",
-        "--version",
-        type=str,
-        help="version number, download from GitHub Releases (e.g., 1.0.0)",
-    )
-    parser.add_argument(
-        "--latest",
-        action="store_true",
-        help="install latest version (from GitHub Releases)",
-    )
+
+    # Common arguments
     parser.add_argument(
         "--blacklist",
         type=Path,
-        help="blacklist file path (one package name per line, do not install these packages)",
+        help="blacklist file path (one package name per line, do not install/uninstall these packages)",
     )
     parser.add_argument(
         "--whitelist",
         type=Path,
-        help="whitelist file path (one package name per line, only install these packages)",
+        help="whitelist file path (one package name per line, only install/uninstall these packages)",
     )
-    parser.add_argument(
+
+    # Install-specific arguments
+    install_group = parser.add_argument_group("install options")
+    install_group.add_argument(
+        "-t",
+        "--tar",
+        type=str,
+        help="tar package path or URI (required for install action, supports http:// and https://)",
+    )
+    install_group.add_argument(
+        "-v",
+        "--version",
+        type=str,
+        help="version number, download from GitHub Releases (e.g., 1.0.0) (for install action)",
+    )
+    install_group.add_argument(
+        "--latest",
+        action="store_true",
+        help="install latest version (from GitHub Releases) (for install action)",
+    )
+    install_group.add_argument(
         "--upgrade",
         action="store_true",
-        help="upgrade already installed packages",
+        help="upgrade already installed packages (for install action)",
     )
-    parser.add_argument(
+    install_group.add_argument(
         "--keep-temp",
         action="store_true",
         help="keep temporary directory (for debugging)",
     )
-    parser.add_argument(
-        "-a",
-        "--action",
-        choices=["install", "requirements"],
-        default="install",
-        help="action type: install to install packages, requirements to output package list",
+    install_group.add_argument(
+        "--force",
+        action="store_true",
+        help="force installation even if dependency versions are incompatible",
+    )
+
+    # Uninstall-specific arguments
+    uninstall_group = parser.add_argument_group("uninstall options")
+    uninstall_group.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="automatically confirm uninstallation (for uninstall action)",
     )
 
     args = parser.parse_args()
-
-    # Determine tar file path
-    tar_path = None
-    if args.tar:
-        tar_path = args.tar
-    elif args.version:
-        tar_path = f"https://github.com/alibaba/loongsuite-python-agent/releases/download/v{args.version}/loongsuite-python-agent-{args.version}.tar.gz"
-    elif args.latest:
-        tar_path = get_latest_release_url()
-    else:
-        parser.error("Must specify one of --tar, --version, or --latest")
 
     # Load blacklist/whitelist
     blacklist = load_list_file(args.blacklist) if args.blacklist else None
@@ -435,36 +756,18 @@ def main():
     if whitelist:
         logger.info(f"Whitelist: {len(whitelist)} packages")
 
-    if args.action == "requirements":
-        # Output package list
-        tar_path_str = str(tar_path)
-        if tar_path_str.startswith(("http://", "https://")):
-            temp_tar = Path(tempfile.mkdtemp()) / "loongsuite.tar.gz"
-            download_file(tar_path_str, temp_tar)
-            tar_path = temp_tar
+    if args.action == "install":
+        # Determine tar file path
+        tar_path = None
+        if args.tar:
+            tar_path = args.tar
+        elif args.version:
+            tar_path = f"https://github.com/alibaba/loongsuite-python-agent/releases/download/v{args.version}/loongsuite-python-agent-{args.version}.tar.gz"
+        elif args.latest:
+            tar_path = get_latest_release_url()
         else:
-            tar_path = Path(tar_path)
+            parser.error("For install action, must specify one of --tar, --version, or --latest")
 
-        temp_dir = Path(tempfile.mkdtemp(prefix="loongsuite-"))
-        try:
-            whl_files = extract_tar(tar_path, temp_dir)
-            base_packages, instrumentation_packages = filter_packages(
-                whl_files, blacklist, whitelist
-            )
-
-            print("# LoongSuite Python Agent Package List")
-            print("# Base dependency packages (must be installed):")
-            for whl in base_packages:
-                package_name = get_package_name_from_whl(whl)
-                print(f"{package_name}")
-
-            print("\n# Instrumentation packages:")
-            for whl in instrumentation_packages:
-                package_name = get_package_name_from_whl(whl)
-                print(f"{package_name}")
-        finally:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-    else:
         # Install
         install_from_tar(
             tar_path,
@@ -472,6 +775,15 @@ def main():
             whitelist=whitelist,
             upgrade=args.upgrade,
             keep_temp=args.keep_temp,
+            skip_version_check=args.force,
+        )
+
+    elif args.action == "uninstall":
+        # Uninstall installed loongsuite packages
+        uninstall_loongsuite_packages(
+            blacklist=blacklist,
+            whitelist=whitelist,
+            yes=args.yes,
         )
 
 
