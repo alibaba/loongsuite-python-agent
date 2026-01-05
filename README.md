@@ -15,11 +15,11 @@ Loongsuite Python Agent is also a customized distribution of upstream [OTel Pyth
 The implementation follows the latest GenAI [semantic conventions](https://github.com/open-telemetry/semantic-conventions).
 
 ## Supported AI Frameworks and components
-* [AgentScope](https://github.com/agentscope-ai/agentscope): [Guide](instrumentation-genai/opentelemetry-instrumentation-agentscope/README.md)
-* [Dify](https://github.com/langgenius/dify): [Guide](instrumentation-genai/opentelemetry-instrumentation-dify/README.md)
+* [AgentScope](https://github.com/agentscope-ai/agentscope): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-agentscope/README.md)
+* [Dify](https://github.com/langgenius/dify): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-dify/README.md)
 * [LangChain](https://github.com/langchain-ai/langchain): [Guide](instrumentation-genai/opentelemetry-instrumentation-langchain/README.md)
 * [MCP Client](https://github.com/modelcontextprotocol/python-sdk)
-* [Agno](https://github.com/agno-agi/agno): [Guide](instrumentation-genai/opentelemetry-instrumentation-agno/README.md)
+* [Agno](https://github.com/agno-agi/agno): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-agno/README.md)
 * [OpenAI](https://github.com/openai/openai-python): [Guide](instrumentation-genai/opentelemetry-instrumentation-openai-v2/README.rst)
 
 ## Quick start
@@ -41,7 +41,7 @@ pip install agentscope
 #AgentScopeInstrumentor
 git clone https://github.com/alibaba/loongsuite-python-agent.git
 cd loongsuite-python-agent
-pip install ./instrumentation-genai/opentelemetry-instrumentation-agentscope
+pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
 ```
 
 ### RUN
