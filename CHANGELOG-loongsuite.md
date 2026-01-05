@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix incorrect instrumentation paths in root README.md for AgentScope, Dify, and Agno
+  ([#97](https://github.com/alibaba/loongsuite-python-agent/pull/97))
+
 - `loongsuite-instrumentation-mem0`: use memory handler
   ([#89](https://github.com/alibaba/loongsuite-python-agent/pull/89))
 
