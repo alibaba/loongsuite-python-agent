@@ -50,6 +50,100 @@ BASE_DEPENDENCIES = {
     "opentelemetry-semantic-conventions",
 }
 
+# Packages to exclude from uninstallation
+UNINSTALL_EXCLUDED_PACKAGES = {
+    "loongsuite-distro",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation",
+}
+
+
+def normalize_package_name(package_name: str) -> str:
+    """
+    Normalize package name by converting underscores to hyphens.
+    
+    Package names in PyPI use hyphens, but wheel filenames may use underscores.
+    This function ensures consistent package name format.
+    
+    Args:
+        package_name: Package name (may contain underscores or hyphens)
+        
+    Returns:
+        Normalized package name with hyphens
+    """
+    return package_name.replace("_", "-")
+
+
+def get_package_name_variants(package_name: str) -> List[str]:
+    """
+    Get all possible variants of a package name for lookup.
+    
+    This is useful when checking if a package is installed, as package names
+    may be stored with either underscores or hyphens.
+    
+    Args:
+        package_name: Package name
+        
+    Returns:
+        List of package name variants to try
+    """
+    variants = [package_name]
+    normalized = normalize_package_name(package_name)
+    if normalized != package_name:
+        variants.append(normalized)
+    # Also try reverse (hyphens to underscores) for completeness
+    reverse = package_name.replace("-", "_")
+    if reverse != package_name and reverse not in variants:
+        variants.append(reverse)
+    return variants
+
+
+def extract_package_name_from_requirement(req_str: str) -> str:
+    """
+    Extract package name from a requirement string.
+    
+    Examples:
+        "redis >= 2.6" -> "redis"
+        "opentelemetry-instrumentation==0.60b1" -> "opentelemetry-instrumentation"
+        "package-name~=1.0" -> "package-name"
+    
+    Args:
+        req_str: Requirement string
+        
+    Returns:
+        Package name extracted from requirement
+    """
+    try:
+        return Requirement(req_str).name
+    except Exception:
+        # Fallback: manual parsing if Requirement parsing fails
+        for op in ["==", ">=", "<=", "~=", "!=", ">", "<"]:
+            if op in req_str:
+                return req_str.split(op)[0].strip()
+        return req_str.strip()
+
+
+def package_names_match(name1: str, name2: str) -> bool:
+    """
+    Check if two package names match (considering normalization).
+    
+    Args:
+        name1: First package name
+        name2: Second package name
+        
+    Returns:
+        True if names match (after normalization), False otherwise
+    """
+    normalized1 = normalize_package_name(name1)
+    normalized2 = normalize_package_name(name2)
+    return (
+        normalized1 == normalized2
+        or name1 == name2
+        or normalized1 == name2
+        or name1 == normalized2
+    )
+
 
 def load_list_file(file_path: Path) -> Set[str]:
     """Load list from file (one package name per line)"""
@@ -204,17 +298,16 @@ def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
     return metadata.get("requires_python") if metadata else None
 
 
-def get_installed_package_version(package_name: str) -> Optional[str]:
+def _try_get_package_version(package_name: str) -> Optional[str]:
     """
-    Get installed version of a package
-
+    Try to get version of a package using pip show.
+    
     Args:
-        package_name: Package name (may contain hyphens or underscores)
-
+        package_name: Package name to check
+        
     Returns:
-        Installed version string, or None if not installed
+        Version string if found, None otherwise
     """
-    # Try original name first
     cmd = [sys.executable, "-m", "pip", "show", package_name]
     try:
         result = subprocess.run(
@@ -223,57 +316,39 @@ def get_installed_package_version(package_name: str) -> Optional[str]:
         for line in result.stdout.splitlines():
             if line.startswith("Version:"):
                 return line.split(":", 1)[1].strip()
-    except (
-        subprocess.CalledProcessError,
-        subprocess.TimeoutExpired,
-        Exception,
-    ):
-        pass
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        logger.debug(f"Failed to get version for {package_name}: {e}")
+    except Exception as e:
+        logger.warning(f"Unexpected error getting version for {package_name}: {e}")
+    return None
 
-    # Try with underscores replaced by hyphens
-    normalized = package_name.replace("_", "-")
-    if normalized != package_name:
-        cmd = [sys.executable, "-m", "pip", "show", normalized]
-        try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, check=True, timeout=5
-            )
-            for line in result.stdout.splitlines():
-                if line.startswith("Version:"):
-                    return line.split(":", 1)[1].strip()
-        except (
-            subprocess.CalledProcessError,
-            subprocess.TimeoutExpired,
-            Exception,
-        ):
-            pass
 
-    # Try with hyphens replaced by underscores
-    normalized = package_name.replace("-", "_")
-    if normalized != package_name:
-        cmd = [sys.executable, "-m", "pip", "show", normalized]
-        try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, check=True, timeout=5
-            )
-            for line in result.stdout.splitlines():
-                if line.startswith("Version:"):
-                    return line.split(":", 1)[1].strip()
-        except (
-            subprocess.CalledProcessError,
-            subprocess.TimeoutExpired,
-            Exception,
-        ):
-            pass
+def get_installed_package_version(package_name: str) -> Optional[str]:
+    """
+    Get installed version of a package.
+    
+    Tries multiple name variants (with underscores/hyphens) to handle
+    different naming conventions.
 
+    Args:
+        package_name: Package name (may contain hyphens or underscores)
+
+    Returns:
+        Installed version string, or None if not installed
+    """
+    variants = get_package_name_variants(package_name)
+    for variant in variants:
+        version = _try_get_package_version(variant)
+        if version:
+            return version
     return None
 
 
 def _is_library_installed(req_str: str) -> bool:
     """
-    Check if a library is installed and version satisfies requirement
+    Check if a library is installed and version satisfies requirement.
 
-    Similar to opentelemetry-bootstrap's _is_installed function
+    Similar to opentelemetry-bootstrap's _is_installed function.
 
     Args:
         req_str: Requirement string (e.g., "redis >= 2.6")
@@ -285,32 +360,22 @@ def _is_library_installed(req_str: str) -> bool:
         req = Requirement(req_str)
         package_name = req.name
 
-        # Try original name first
+        # get_installed_package_version already tries multiple variants
         dist_version = get_installed_package_version(package_name)
-
-        # If not found, try normalized versions (handle underscores vs hyphens)
-        if dist_version is None:
-            normalized = package_name.replace("_", "-")
-            if normalized != package_name:
-                dist_version = get_installed_package_version(normalized)
-
-        if dist_version is None:
-            normalized = package_name.replace("-", "_")
-            if normalized != package_name:
-                dist_version = get_installed_package_version(normalized)
 
         if dist_version is None:
             return False
 
         # Check if installed version satisfies requirement
         return req.specifier.contains(dist_version)
-    except Exception:
+    except Exception as e:
+        logger.debug(f"Failed to check if library is installed for {req_str}: {e}")
         return False
 
 
 def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
     """
-    Check if a package is an instrumentation listed in bootstrap_gen.py
+    Check if a package is an instrumentation listed in bootstrap_gen.py.
 
     Args:
         package_name: Package name to check
@@ -321,41 +386,19 @@ def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
     if not package_name:
         return False
 
-    normalized_name = package_name.replace("_", "-")
-
     # Check default instrumentations
     for default_instr in gen_default_instrumentations:
         if isinstance(default_instr, str):
-            default_pkg_name = (
-                default_instr.split("==")[0]
-                .split(">=")[0]
-                .split("<=")[0]
-                .split("~=")[0]
-                .split("!=")[0]
-                .strip()
-            )
-            if (
-                default_pkg_name == normalized_name
-                or default_pkg_name == package_name
-            ):
+            default_pkg_name = extract_package_name_from_requirement(default_instr)
+            if package_names_match(default_pkg_name, package_name):
                 return True
 
     # Check libraries mapping
     for lib_mapping in gen_libraries:
         instrumentation = lib_mapping.get("instrumentation", "")
         if isinstance(instrumentation, str):
-            instr_pkg_name = (
-                instrumentation.split("==")[0]
-                .split(">=")[0]
-                .split("<=")[0]
-                .split("~=")[0]
-                .split("!=")[0]
-                .strip()
-            )
-            if (
-                instr_pkg_name == normalized_name
-                or instr_pkg_name == package_name
-            ):
+            instr_pkg_name = extract_package_name_from_requirement(instrumentation)
+            if package_names_match(instr_pkg_name, package_name):
                 return True
 
     return False
@@ -365,7 +408,7 @@ def get_target_libraries_from_bootstrap_gen(
     package_name: str,
 ) -> Tuple[List[str], bool]:
     """
-    Get target library requirements from bootstrap_gen.py
+    Get target library requirements from bootstrap_gen.py.
 
     This function uses the pre-generated bootstrap_gen.py file to get
     target library information, similar to opentelemetry-bootstrap.
@@ -382,24 +425,11 @@ def get_target_libraries_from_bootstrap_gen(
     if not package_name:
         return [], False
 
-    # Normalize package name: convert underscores to hyphens for matching
-    normalized_name = package_name.replace("_", "-")
-
     # Check if it's a default instrumentation
     for default_instr in gen_default_instrumentations:
         if isinstance(default_instr, str):
-            default_pkg_name = (
-                default_instr.split("==")[0]
-                .split(">=")[0]
-                .split("<=")[0]
-                .split("~=")[0]
-                .split("!=")[0]
-                .strip()
-            )
-            if (
-                default_pkg_name == normalized_name
-                or default_pkg_name == package_name
-            ):
+            default_pkg_name = extract_package_name_from_requirement(default_instr)
+            if package_names_match(default_pkg_name, package_name):
                 return [], True
 
     # Look up in libraries mapping
@@ -407,18 +437,8 @@ def get_target_libraries_from_bootstrap_gen(
     for lib_mapping in gen_libraries:
         instrumentation = lib_mapping.get("instrumentation", "")
         if isinstance(instrumentation, str):
-            instr_pkg_name = (
-                instrumentation.split("==")[0]
-                .split(">=")[0]
-                .split("<=")[0]
-                .split("~=")[0]
-                .split("!=")[0]
-                .strip()
-            )
-            if (
-                instr_pkg_name == normalized_name
-                or instr_pkg_name == package_name
-            ):
+            instr_pkg_name = extract_package_name_from_requirement(instrumentation)
+            if package_names_match(instr_pkg_name, package_name):
                 target_lib = lib_mapping.get("library", "")
                 if target_lib and isinstance(target_lib, str):
                     target_libraries.append(target_lib)
@@ -718,14 +738,6 @@ def get_installed_loongsuite_packages() -> List[str]:
     Returns:
         List of installed package names to uninstall
     """
-    # Packages to exclude from uninstallation
-    EXCLUDED_PACKAGES = {
-        "loongsuite-distro",
-        "opentelemetry-api",
-        "opentelemetry-sdk",
-        "opentelemetry-instrumentation",
-    }
-
     cmd = [sys.executable, "-m", "pip", "list", "--format=json"]
     try:
         result = subprocess.run(
@@ -740,7 +752,7 @@ def get_installed_loongsuite_packages() -> List[str]:
             name_lower = name.lower()
 
             # Skip excluded packages
-            if name_lower in EXCLUDED_PACKAGES:
+            if name_lower in UNINSTALL_EXCLUDED_PACKAGES:
                 continue
 
             # Include loongsuite-* packages (except loongsuite-distro)
