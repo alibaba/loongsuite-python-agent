@@ -432,14 +432,7 @@ def convert_agentscope_messages_to_genai_format(
         if isinstance(msg, Msg):
             msg_dict = _format_msg_to_parts(msg)
         elif isinstance(msg, dict):
-            if provider_name:
-                try:
-                    converted = get_message_converter(provider_name)([msg])
-                    msg_dict = converted[0] if converted else msg
-                except Exception:
-                    msg_dict = msg
-            else:
-                msg_dict = msg
+            msg_dict = msg
         else:
             continue
 
