@@ -90,13 +90,13 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 ## Visualization
 
 Export telemetry data to:
-- [Aliyun XTrace](https://www.aliyun.com/product/xtrace)
+- [Alibaba Cloud Managed Service for OpenTelemetry](https://www.aliyun.com/product/xtrace)
 - [AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio)
 - Any OpenTelemetry-compatible backend (Jaeger, Zipkin, etc.)
 
 ## Examples
 
-See the [examples directory](../../examples/) for complete usage examples.
+See the [main README](https://github.com/alibaba/loongsuite-python-agent/blob/main/README.md) for complete usage examples.
 
 ## License
 
