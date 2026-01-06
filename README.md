@@ -241,7 +241,26 @@ Start the AgentScope Studio server:
 as_studio
 ```
 
-This will launch a web interface where you can view and analyze the tracing data collected from your AgentScope applications.
+AgentScope Studio will start and display the OTLP endpoint URL (typically `http://127.0.0.1:31415`).
+
+#### Export AgentScope Data to AgentScope Studio
+
+Configure your AgentScope application to export telemetry data to AgentScope Studio using OTLP:
+
+```shell
+export OTEL_SERVICE_NAME=my-agentscope-app
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:31415
+export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://127.0.0.1:31415
+
+loongsuite-instrument \
+    --traces_exporter otlp \
+    --metrics_exporter otlp \
+    --service_name demo \
+    python demo.py
+```
+
+The web interface will display the collected traces and metrics, allowing you to view and analyze the tracing data from your AgentScope applications.
 
 For more details, please refer to the [AgentScope Studio documentation](https://github.com/agentscope-ai/agentscope-studio).
 
