@@ -144,7 +144,7 @@ If everything is working correctly, you should see logs similar to th
 }
 ```
 
-### Forwarding OTLP Data to Jaeger via LoongCollector
+### (Optional) Forwarding OTLP Data to Jaeger via LoongCollector
 
 #### Launch Jaeger
 
@@ -220,6 +220,30 @@ python demo.py
 Access the Jaeger UI to view the collected trace data. You should now see trace information being properly received.
 
 ![image.png](docs/_assets/img/quickstart-results.png)
+
+### Using AgentScope Studio to View Tracing Data
+
+[AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio) provides a web-based interface for visualizing and analyzing tracing data from AgentScope applications.
+
+#### Installation
+
+Install AgentScope Studio:
+
+```shell
+pip install agentscope-studio
+```
+
+#### Launch AgentScope Studio
+
+Start the AgentScope Studio server:
+
+```shell
+as_studio
+```
+
+This will launch a web interface where you can view and analyze the tracing data collected from your AgentScope applications.
+
+For more details, please refer to the [AgentScope Studio documentation](https://github.com/agentscope-ai/agentscope-studio).
 
 ## Community
 
