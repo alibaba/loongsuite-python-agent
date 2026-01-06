@@ -248,7 +248,7 @@ AgentScope Studio will start and display the OTLP endpoint URL (typically `http:
 Configure your AgentScope application to export telemetry data to AgentScope Studio using OTLP:
 
 ```shell
-export OTEL_SERVICE_NAME=my-agentscope-app
+export OTEL_SERVICE_NAME=demo
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:31415
 export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://127.0.0.1:31415
