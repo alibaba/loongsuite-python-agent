@@ -1,0 +1,159 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Patch functions for DashScope MultiModalConversation API."""
+
+from __future__ import annotations
+
+import logging
+
+from opentelemetry.util.genai.types import Error
+
+from ..utils import (
+    _create_accumulated_response,
+    _create_invocation_from_multimodal_conversation,
+    _get_parameter,
+    _update_invocation_from_multimodal_response,
+)
+from .common import _is_streaming_response
+
+logger = logging.getLogger(__name__)
+
+
+def wrap_multimodal_conversation_call(
+    wrapped, instance, args, kwargs, handler=None
+):
+    """Wrapper for MultiModalConversation.call.
+
+    Supports both streaming and non-streaming responses.
+
+    Args:
+        wrapped: The original function being wrapped
+        instance: The instance the method is bound to (if any)
+        args: Positional arguments
+        kwargs: Keyword arguments
+        handler: ExtendedTelemetryHandler instance (created during instrumentation)
+    """
+    # Extract model from kwargs
+    model = kwargs.get("model")
+    if not model:
+        logger.warning("Model not found in kwargs, skipping instrumentation")
+        return wrapped(*args, **kwargs)
+
+    if handler is None:
+        logger.warning("Handler not provided, skipping instrumentation")
+        return wrapped(*args, **kwargs)
+
+    try:
+        # Create invocation object
+        invocation = _create_invocation_from_multimodal_conversation(
+            kwargs, model
+        )
+
+        # Start LLM invocation (creates span)
+        handler.start_llm(invocation)
+
+        try:
+            # Execute the wrapped call
+            result = wrapped(*args, **kwargs)
+
+            # Handle streaming response
+            if _is_streaming_response(result):
+                # Check incremental_output parameter
+                incremental_output = _get_parameter(
+                    kwargs, "incremental_output"
+                )
+                return _wrap_multimodal_sync_generator(
+                    result,
+                    handler,
+                    invocation,
+                    incremental_output=incremental_output,
+                )
+
+            # Handle non-streaming response
+            _update_invocation_from_multimodal_response(invocation, result)
+            handler.stop_llm(invocation)
+            return result
+
+        except Exception as e:
+            error = Error(message=str(e), type=type(e))
+            handler.fail_llm(invocation, error)
+            raise
+
+    except Exception as e:
+        logger.exception(
+            "Error in multimodal conversation instrumentation wrapper: %s", e
+        )
+        return wrapped(*args, **kwargs)
+
+
+def _wrap_multimodal_sync_generator(
+    generator, handler, invocation, incremental_output=None
+):
+    """Wrap a synchronous generator for MultiModalConversation streaming.
+
+    Args:
+        generator: The generator to wrap
+        handler: TelemetryHandler instance
+        invocation: LLMInvocation object
+        incremental_output: If True, chunks contain only incremental text
+    """
+    last_response = None
+    accumulated_text = ""
+
+    try:
+        for chunk in generator:
+            last_response = chunk
+
+            # If incremental_output is True, accumulate text
+            if incremental_output:
+                try:
+                    output = getattr(chunk, "output", None)
+                    if output:
+                        choices = getattr(output, "choices", None)
+                        if choices and len(choices) > 0:
+                            message = getattr(choices[0], "message", None)
+                            if message:
+                                content = getattr(message, "content", None)
+                                if isinstance(content, list):
+                                    for item in content:
+                                        if (
+                                            isinstance(item, dict)
+                                            and "text" in item
+                                        ):
+                                            accumulated_text += item["text"]
+                                elif isinstance(content, str):
+                                    accumulated_text += content
+                except (KeyError, AttributeError):
+                    pass
+
+            yield chunk
+
+        # After generator completes, update invocation
+        if last_response:
+            if incremental_output and accumulated_text:
+                last_response = _create_accumulated_response(
+                    last_response, accumulated_text
+                )
+
+            _update_invocation_from_multimodal_response(
+                invocation, last_response
+            )
+        handler.stop_llm(invocation)
+
+    except Exception as e:
+        error = Error(message=str(e), type=type(e))
+        handler.fail_llm(invocation, error)
+        raise
+

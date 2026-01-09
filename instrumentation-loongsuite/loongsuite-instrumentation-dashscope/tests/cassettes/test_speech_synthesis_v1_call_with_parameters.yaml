@@ -1,0 +1,36 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Connection:
+      - Upgrade
+      Sec-WebSocket-Key:
+      - GnLNvuQv8AGXXpN9uwmneA==
+      Sec-WebSocket-Version:
+      - '13'
+      Upgrade:
+      - websocket
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: wss://dashscope.aliyuncs.com/api-ws/v1/inference
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - upgrade
+      Date:
+      - Wed, 07 Jan 2026 12:42:58 GMT
+      Sec-WebSocket-Accept:
+      - aPMwYv4M0itT5rSU4FkNfKS3j2A=
+      Server:
+      - istio-envoy
+      Upgrade:
+      - websocket
+    status:
+      code: 101
+      message: Switching Protocols
+version: 1
