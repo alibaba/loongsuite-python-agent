@@ -8,6 +8,7 @@ OpenTelemetry Util for GenAI - LoongSuite 扩展
 
 LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative AI 操作支持，包括：
 
+- **llm**: 增强了多模态数据处理，支持异步上传图片、音频、视频等多模态内容到配置的存储后端
 - **invoke_agent**: Agent 调用操作，支持消息、工具定义和系统指令
 - **create_agent**: Agent 创建操作
 - **embedding**: 向量嵌入生成操作
@@ -46,6 +47,27 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 - ``true``: 启用事件发出（当内容捕获模式为 ``EVENT_ONLY`` 或 ``SPAN_AND_EVENT`` 时）
 - ``false``: 禁用事件发出（默认）
 
+多模态上传控制
+~~~~~~~~~~~~~~
+
+设置环境变量 ``OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH`` 来启用多模态数据上传功能。
+支持的存储协议包括：
+
+- ``file:///path/to/dir``: 本地文件系统
+- ``oss://bucket-name/prefix``: 阿里云 OSS
+- ``sls://project/logstore``: 阿里云 SLS
+- 其他 fsspec 支持的协议
+
+相关环境变量：
+
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE``: 控制处理哪些消息（``input`` / ``output`` / ``both``，默认 ``both``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否下载远程 URI（``true`` / ``false``，默认 ``true``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY``: 是否验证 SSL 证书（``true`` / ``false``，默认 ``true``）
+
+依赖要求:
+  多模态上传功能需要安装 ``fsspec`` 和 ``httpx`` 包（必需），以及 ``numpy`` 和 ``soundfile`` 包（可选，用于音频格式转换）。
+  可以通过 ``pip install opentelemetry-util-genai[multimodal]`` 安装所有依赖。
+
 示例配置
 ~~~~~~~~
 
@@ -54,12 +76,60 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
     export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
     export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_AND_EVENT
     export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
-
+    export OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH=file:///var/log/genai/multimodal
+    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
+    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED=true
 
 支持的操作
 ----------
 
-1. Agent 调用 (invoke_agent)
+1. LLM 调用 (llm)
+~~~~~~~~~~~~~~~~~~
+
+用于跟踪大语言模型（LLM）的聊天补全调用操作。LoongSuite 扩展增强了多模态数据处理能力，支持图片、音频、视频等多模态内容的自动上传和管理。
+
+**支持的多模态 Part 类型:**
+
+消息中的 ``parts`` 字段支持以下类型：
+
+- ``Text``: 文本内容
+- ``Base64Blob``: Base64 编码的二进制数据（图片、音频、视频）
+- ``Blob``: 原始二进制数据
+- ``Uri``: 引用远程资源的 URI（http/https URL 或已上传的文件路径）
+
+多模态数据处理流程：
+
+1. ``Base64Blob`` 和 ``Blob`` 会被自动解码并上传到配置的存储后端
+2. ``Uri`` 中的 http/https URL 会被下载并上传（如启用下载功能）
+3. 上传后，原始的 ``Base64Blob``/``Blob``/``Uri`` 会被替换为指向新存储位置的 ``Uri``
+4. 消息内容在 span/event 中序列化时会包含替换后的 ``Uri``
+
+**增强的属性:**
+
+消息内容（受内容捕获模式控制）:
+  - ``gen_ai.input.messages``: 输入消息（包含多模态 parts，经过上传处理后的内容）
+  - ``gen_ai.output.messages``: 输出消息（包含多模态 parts，经过上传处理后的内容）
+
+多模态元数据（LoongSuite 扩展属性）:
+  - ``gen_ai.input.multimodal_metadata``: 输入消息的多模态元数据，记录处理的多模态内容信息（JSON 格式）
+  - ``gen_ai.output.multimodal_metadata``: 输出消息的多模态元数据，记录处理的多模态内容信息（JSON 格式）
+
+**多模态元数据示例:**
+
+当处理包含多模态内容的消息时，会自动生成元数据记录处理信息::
+
+    # gen_ai.input.multimodal_metadata 属性值示例
+    [
+        {
+            "modality": "image",
+            "mime_type": "image/png",
+            "uri": "oss://bucket/20260107/abc123.png",  # 上传后的路径
+            "type": "uri"  # 类型
+        }
+    ]
+
+
+2. Agent 调用 (invoke_agent)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪 AI Agent 的调用操作，支持完整的消息流、工具定义和系统指令。
@@ -139,7 +209,7 @@ Token 使用:
         invocation.output_tokens = 20
 
 
-2. Agent 创建 (create_agent)
+3. Agent 创建 (create_agent)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪 AI Agent 的创建操作。
@@ -166,7 +236,7 @@ Token 使用:
         invocation.request_model = "gpt-4"
 
 
-3. 向量嵌入 (embedding)
+4. 向量嵌入 (embedding)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪向量嵌入生成操作。
@@ -197,7 +267,7 @@ Token 使用:
         invocation.input_tokens = 50
 
 
-4. 工具执行 (execute_tool)
+5. 工具执行 (execute_tool)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪工具或函数的执行操作。
@@ -226,7 +296,7 @@ Token 使用:
         invocation.tool_call_result = result
 
 
-5. 文档检索 (retrieve)
+6. 文档检索 (retrieve)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪从向量数据库或搜索系统检索文档的操作。
@@ -255,7 +325,7 @@ Token 使用:
         ]
 
 
-6. 文档重排序 (rerank)
+7. 文档重排序 (rerank)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪文档重排序操作，支持基于模型和基于 LLM 的重排序器。
@@ -312,7 +382,7 @@ Token 使用:
         invocation.rerank_output_documents = [...]
 
 
-7. 记忆操作 (memory)
+8. 记忆操作 (memory)
 ~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪 AI Agent 的记忆操作，支持记忆的增删改查、搜索和历史查询等功能。

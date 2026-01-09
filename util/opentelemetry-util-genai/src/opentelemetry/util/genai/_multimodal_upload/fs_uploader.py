@@ -73,13 +73,39 @@ class _Task:
 
 
 class FsUploader(Uploader):
-    """fsspec-based generic file uploader.
+    """An fsspec-based generic file uploader for multimodal data
 
-    Supports multiple storage backends: local filesystem, OSS, SLS, etc.
+    This class handles actual file upload operations for upload items derived from
+    :class:`~opentelemetry.util.genai._multimodal_upload.PreUploader`
 
+    Supports multiple storage backends via fsspec protocols:
+    - Local filesystem (file://)
+    - Alibaba Cloud OSS (oss://)
+    - Alibaba Cloud SLS (sls://)
+    - Other fsspec-compatible backends
+
+    Both the ``fsspec`` and ``httpx`` packages should be installed for full functionality.
+    For SSL verification control, set :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY`
+    to ``false`` to disable SSL verification (default is ``true``).
+
+    Features:
     - Enqueue via upload(path, content, skip_if_exists=True)
-    - Background pool writes to fsspec filesystem.
-    - LRU cache avoids re-upload when filename already derived from content hash.
+    - Background thread pool writes to fsspec filesystem
+    - LRU cache avoids re-upload when filename already derived from content hash
+    - Supports download-and-upload mode for remote URIs
+    - Automatic retry on upload failure
+
+    Args:
+        base_path: Complete base path including protocol (e.g., 'oss://bucket', 'sls://project/logstore', 'file:///path')
+        max_workers: Maximum number of concurrent upload workers (default: 4)
+        max_queue_size: Maximum number of tasks in upload queue (default: 1024)
+        max_queue_bytes: Maximum total bytes in queue, 0 for unlimited (default: 0)
+        lru_cache_max_size: Maximum size of LRU cache for uploaded files (default: 2048)
+        auto_mkdirs: Automatically create parent directories (default: True)
+        content_type: Default content type for uploaded files (default: None)
+        storage_options: Additional options passed to fsspec (e.g., credentials) (default: None)
+        max_upload_retries: Maximum retry attempts for failed uploads, 0 for infinite (default: 10)
+        upload_retry_delay: Delay in seconds between retries (default: 1.0)
     """
 
     def __init__(
