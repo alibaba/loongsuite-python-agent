@@ -203,6 +203,18 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Patched setup_tracing")
         except Exception as e:
             logger.warning(f"Failed to patch setup_tracing: {e}")
+        
+        # Patch _check_tracing_enabled to return False
+        # We always want to disable tracing in native AgentScope library
+        try:
+            wrap_function_wrapper(
+                module="agentscope.tracing._trace",
+                name="_check_tracing_enabled",
+                wrapper=self._check_tracing_enabled_patch,
+            )
+            logger.debug("Patched _check_tracing_enabled")
+        except Exception as e:
+            logger.warning(f"Failed to patch _check_tracing_enabled: {e}")
 
         # Patch _check_tracing_enabled to return False
         # We always want to disable tracing in native AgentScope library

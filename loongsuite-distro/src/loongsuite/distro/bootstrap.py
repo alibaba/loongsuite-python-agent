@@ -105,7 +105,7 @@ def extract_package_name_from_requirement(req_str: str) -> str:
     
     Examples:
         "redis >= 2.6" -> "redis"
-        "opentelemetry-instrumentation==0.60b1" -> "opentelemetry-instrumentation"
+        "opentelemetry-instrumentation==0.60b0" -> "opentelemetry-instrumentation"
         "package-name~=1.0" -> "package-name"
     
     Args:
