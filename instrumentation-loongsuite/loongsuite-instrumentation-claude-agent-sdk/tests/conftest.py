@@ -97,7 +97,7 @@ def instrument_no_content(tracer_provider):
     os.environ.update(
         {
             OTEL_SEMCONV_STABILITY_OPT_IN: "gen_ai_latest_experimental",
-            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "NO_CONTENT",
+            OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "false",
         }
     )
 

@@ -93,7 +93,7 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
         logger_provider = kwargs.get("logger_provider")
 
         # Create ExtendedTelemetryHandler
-        self._handler = ExtendedTelemetryHandler(
+        ClaudeAgentSDKInstrumentor._handler = ExtendedTelemetryHandler(
             tracer_provider=tracer_provider,
             meter_provider=meter_provider,
             logger_provider=logger_provider,
@@ -108,7 +108,7 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 instance,
                 args,
                 kwargs: wrap_claude_client_init(
-                    wrapped, instance, args, kwargs, handler=self._handler
+                    wrapped, instance, args, kwargs, handler=ClaudeAgentSDKInstrumentor._handler
                 ),
             )
         except Exception as e:
@@ -125,7 +125,7 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 instance,
                 args,
                 kwargs: wrap_claude_client_query(
-                    wrapped, instance, args, kwargs, handler=self._handler
+                    wrapped, instance, args, kwargs, handler=ClaudeAgentSDKInstrumentor._handler
                 ),
             )
         except Exception as e:
@@ -140,7 +140,7 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 instance,
                 args,
                 kwargs: wrap_claude_client_receive_response(
-                    wrapped, instance, args, kwargs, handler=self._handler
+                    wrapped, instance, args, kwargs, handler=ClaudeAgentSDKInstrumentor._handler
                 ),
             )
         except Exception as e:
@@ -154,7 +154,7 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 module="claude_agent_sdk",
                 name="query",
                 wrapper=lambda wrapped, instance, args, kwargs: wrap_query(
-                    wrapped, instance, args, kwargs, handler=self._handler
+                    wrapped, instance, args, kwargs, handler=ClaudeAgentSDKInstrumentor._handler
                 ),
             )
         except Exception as e:
