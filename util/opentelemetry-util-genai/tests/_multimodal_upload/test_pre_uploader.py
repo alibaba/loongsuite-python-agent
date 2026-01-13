@@ -9,13 +9,9 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import httpx
 import pytest
 import respx
-
 from opentelemetry.util.genai._multimodal_upload.pre_uploader import (
-    _MAX_MULTIMODAL_DATA_SIZE,
-    _MAX_MULTIMODAL_PARTS,
-    MultimodalPreUploader,
-    UriMetadata,
-)
+    _MAX_MULTIMODAL_DATA_SIZE, _MAX_MULTIMODAL_PARTS, MultimodalPreUploader,
+    UriMetadata)
 from opentelemetry.util.genai.types import Blob, InputMessage, Uri
 
 # Test audio file directory for integration tests
@@ -800,3 +796,114 @@ class TestMultimodalUploadSwitch:
             # Only processed Blob
             assert len(uploads) == 1
             assert uploads[0].data is not None  # Blob has data
+
+
+class TestMultimodalPreUploaderShutdown:
+    """MultimodalPreUploader shutdown 相关测试"""
+
+    def setup_method(self):
+        """每个测试前重置类级别状态（使用 _at_fork_reinit 确保一致性）"""
+        MultimodalPreUploader._at_fork_reinit()
+
+    def test_shutdown_waits_for_active_tasks(self):
+        """测试 shutdown 等待活跃任务完成（通过真实 _run_async 调用）"""
+        import asyncio
+        import threading
+
+        # 确保事件循环启动
+        loop = MultimodalPreUploader._ensure_loop()
+        assert loop is not None
+        
+        task_started = threading.Event()
+        task_can_complete = threading.Event()
+        task_completed = threading.Event()
+        
+        # 创建一个可控的协程
+        async def controlled_coro():
+            task_started.set()
+            # 等待允许完成的信号
+            while not task_can_complete.is_set():
+                await asyncio.sleep(0.01)
+            task_completed.set()
+            return {}
+        
+        # 在另一个线程中调用真实的 _run_async
+        uploader = MultimodalPreUploader(base_path="file:///tmp/test")
+        
+        def run_real_async():
+            uploader._run_async(controlled_coro(), timeout=5.0)
+        
+        task_thread = threading.Thread(target=run_real_async)
+        task_thread.start()
+        
+        # 等待任务真正开始
+        assert task_started.wait(timeout=1.0), "Task should have started"
+        assert MultimodalPreUploader._active_tasks == 1, "Active tasks should be 1"
+        
+        # 在另一个线程中调用 shutdown（它会等待任务完成）
+        shutdown_started = threading.Event()
+        shutdown_done = threading.Event()
+        
+        def run_shutdown():
+            shutdown_started.set()
+            MultimodalPreUploader.shutdown(timeout=5.0)
+            shutdown_done.set()
+        
+        shutdown_thread = threading.Thread(target=run_shutdown)
+        shutdown_thread.start()
+        
+        # 等待 shutdown 开始
+        assert shutdown_started.wait(timeout=1.0)
+        import time
+        time.sleep(0.05)  # 确保 shutdown 进入等待
+        
+        # 此时 shutdown 应该还在等待
+        assert not shutdown_done.is_set(), "Shutdown should still be waiting"
+        
+        # 允许任务完成
+        task_can_complete.set()
+        
+        # shutdown 应该很快完成
+        assert shutdown_done.wait(timeout=2.0), "Shutdown should complete"
+        assert task_completed.is_set(), "Task should have completed"
+        
+        # 幂等性：再次调用不报错
+        MultimodalPreUploader.shutdown(timeout=1.0)
+        
+        task_thread.join(timeout=1.0)
+        shutdown_thread.join(timeout=1.0)
+
+    def test_shutdown_timeout_exits(self):
+        """测试超时后 shutdown 直接退出"""
+        import time
+
+        # 确保事件循环启动
+        loop = MultimodalPreUploader._ensure_loop()
+        assert loop is not None
+        
+        # 模拟有活跃任务但永不完成（直接设置计数器）
+        with MultimodalPreUploader._active_cond:
+            MultimodalPreUploader._active_tasks = 1
+        
+        start = time.time()
+        timeout = 0.3
+        MultimodalPreUploader.shutdown(timeout=timeout)
+        elapsed = time.time() - start
+        
+        # 验证超时后返回（不可能短于 timeout）
+        assert elapsed < timeout + 0.2, f"shutdown took {elapsed:.2f}s"
+        assert elapsed >= timeout, f"shutdown too fast: {elapsed:.2f}s"
+
+    def test_at_fork_reinit_resets_state(self):
+        """测试 _at_fork_reinit 正确重置类级别状态"""
+        MultimodalPreUploader._shutdown_called = True
+        MultimodalPreUploader._loop = "fake_loop"
+        MultimodalPreUploader._loop_thread = "fake_thread"
+        MultimodalPreUploader._active_tasks = 5
+        
+        MultimodalPreUploader._at_fork_reinit()
+        
+        assert MultimodalPreUploader._shutdown_called is False
+        assert MultimodalPreUploader._loop is None
+        assert MultimodalPreUploader._loop_thread is None
+        assert MultimodalPreUploader._active_tasks == 0

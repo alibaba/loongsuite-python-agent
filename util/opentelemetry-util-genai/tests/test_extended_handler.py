@@ -21,30 +21,25 @@ import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
 
+import pytest  # [Aliyun-Python-Agent]
 from opentelemetry import trace
 from opentelemetry.instrumentation._semconv import (
-    OTEL_SEMCONV_STABILITY_OPT_IN,
-    _OpenTelemetrySemanticConventionStability,
-)
+    OTEL_SEMCONV_STABILITY_OPT_IN, _OpenTelemetrySemanticConventionStability)
 from opentelemetry.sdk._logs import LoggerProvider
-from opentelemetry.sdk._logs.export import (  # pylint: disable=no-name-in-module
-    InMemoryLogRecordExporter,
-    SimpleLogRecordProcessor,
-)
+from opentelemetry.sdk._logs.export import \
+    InMemoryLogExporter as \
+    InMemoryLogRecordExporter  # pylint: disable=no-name-in-module; [Aliyun Python Agent] This api is changed to InMemoryLogRecordExporter in 0.59b0
+from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
 from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
-    InMemorySpanExporter,
-)
-from opentelemetry.semconv._incubating.attributes import (
-    gen_ai_attributes as GenAI,
-)
-from opentelemetry.semconv.attributes import (
-    error_attributes as ErrorAttributes,
-)
-from opentelemetry.semconv.attributes import (
-    server_attributes as ServerAttributes,
-)
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import \
+    InMemorySpanExporter
+from opentelemetry.semconv._incubating.attributes import \
+    gen_ai_attributes as GenAI
+from opentelemetry.semconv.attributes import \
+    error_attributes as ErrorAttributes
+from opentelemetry.semconv.attributes import \
+    server_attributes as ServerAttributes
 from opentelemetry.trace.status import StatusCode
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
@@ -56,35 +51,22 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_USAGE_TOTAL_TOKENS,
 )
 from opentelemetry.util.genai._multimodal_processing import (
-    MultimodalProcessingMixin,
-    _MultimodalAsyncTask,
-)
+    MultimodalProcessingMixin, _MultimodalAsyncTask)
 from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
-    OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
-)
-from opentelemetry.util.genai.extended_handler import (
-    get_extended_telemetry_handler,
-)
-from opentelemetry.util.genai.extended_types import (
-    CreateAgentInvocation,
-    EmbeddingInvocation,
-    ExecuteToolInvocation,
-    InvokeAgentInvocation,
-    RerankInvocation,
-    RetrieveInvocation,
-)
-from opentelemetry.util.genai.types import (
-    Base64Blob,
-    Blob,
-    Error,
-    FunctionToolDefinition,
-    InputMessage,
-    LLMInvocation,
-    OutputMessage,
-    Text,
-    Uri,
-)
+    OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT)
+from opentelemetry.util.genai.extended_handler import \
+    get_extended_telemetry_handler
+from opentelemetry.util.genai.extended_types import (CreateAgentInvocation,
+                                                     EmbeddingInvocation,
+                                                     ExecuteToolInvocation,
+                                                     InvokeAgentInvocation,
+                                                     RerankInvocation,
+                                                     RetrieveInvocation)
+from opentelemetry.util.genai.types import (Base64Blob, Blob, Error,
+                                            FunctionToolDefinition,
+                                            InputMessage, LLMInvocation,
+                                            OutputMessage, Text, Uri)
 
 
 def patch_env_vars(stability_mode, content_capturing=None, emit_event=None):
@@ -138,6 +120,10 @@ def _assert_span_attributes(
 
 class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-many-public-methods
     def setUp(self):
+        # [Aliyun Python Agent] Reset ArmsCommonServiceMetrics singleton to avoid test interference
+        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
+        SingletonMeta.reset()
+        
         self.span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
         tracer_provider.add_span_processor(
@@ -153,7 +139,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Clear singleton if exists to avoid test interference
         if hasattr(get_extended_telemetry_handler, "_default_handler"):
             delattr(get_extended_telemetry_handler, "_default_handler")
-
         self.telemetry_handler = get_extended_telemetry_handler(
             tracer_provider=tracer_provider,
             logger_provider=logger_provider,
@@ -393,6 +378,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.assertIn(GEN_AI_TOOL_CALL_ARGUMENTS, span_attrs)
         self.assertIn(GEN_AI_TOOL_CALL_RESULT, span_attrs)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_execute_tool_without_sensitive_data(self):
         # Without experimental mode, sensitive data should not be recorded
         with self.telemetry_handler.execute_tool() as invocation:
@@ -598,6 +584,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_invoke_agent_without_content_capturing(self):
         """Test that messages are NOT captured when content capturing is disabled."""
         with self.telemetry_handler.invoke_agent() as invocation:
@@ -682,6 +669,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Verify system instruction is captured
         self.assertIn(GenAI.GEN_AI_SYSTEM_INSTRUCTIONS, span_attrs)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_invoke_agent_with_system_instruction_without_content_capturing(
         self,
     ):
@@ -699,6 +687,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Verify system instruction is NOT captured
         self.assertNotIn(GenAI.GEN_AI_SYSTEM_INSTRUCTIONS, span_attrs)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="EVENT_ONLY",
@@ -742,6 +731,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, attrs)
         self.assertIn(GenAI.GEN_AI_OUTPUT_MESSAGES, attrs)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_AND_EVENT",
@@ -778,6 +768,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         )
         self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, log_record.attributes)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="EVENT_ONLY",
@@ -868,6 +859,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Documents should be present with opt-in
         self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
+    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_retrieve_without_sensitive_data(self):
         # Without experimental mode, documents should not be recorded
         documents = [{"id": "123", "content": "sensitive data"}]
@@ -1598,3 +1590,110 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         handler._separate_and_upload(
             mock_span2, inv, mock_uploader, mock_pre_uploader
         )  # Should not raise
+
+
+class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
+    """ExtendedTelemetryHandler shutdown 相关测试
+
+    设计：使用真实 worker loop，通过 mock task.handler._async_stop_llm 来控制任务执行
+    """
+
+    def test_shutdown_waits_for_slow_task(self):
+        """测试 shutdown 等待慢任务完成（poison pill 模式）"""
+        import threading
+        import time
+
+        # 重置状态
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+        # 跟踪任务处理
+        task_started = threading.Event()
+        task_completed = threading.Event()
+
+        try:
+            # 确保 worker 启动
+            MultimodalProcessingMixin._ensure_async_worker()
+
+            # 创建一个带慢处理的 mock handler
+            mock_handler = MagicMock()
+
+            def slow_stop(task):
+                task_started.set()
+                time.sleep(0.15)
+                task_completed.set()
+
+            mock_handler._async_stop_llm = slow_stop
+
+            mock_task = _MultimodalAsyncTask(
+                invocation=MagicMock(), method="stop", handler=mock_handler
+            )
+            MultimodalProcessingMixin._async_queue.put(mock_task)
+
+            # 等待任务开始
+            self.assertTrue(
+                task_started.wait(timeout=1.0), "Task did not start"
+            )
+
+            # shutdown 应该等待任务完成（poison pill 排在后面）
+            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=5.0)
+
+            # 验证任务完成了
+            self.assertTrue(task_completed.is_set(), "Task should have completed")
+            # 幂等性：再次调用不报错
+            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=1.0)
+        finally:
+            MultimodalProcessingMixin._async_queue = None
+            MultimodalProcessingMixin._async_worker = None
+
+    def test_shutdown_timeout_exits(self):
+        """测试超时后 shutdown 直接退出"""
+        import threading
+        import time
+
+        # 重置状态
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+        block_event = threading.Event()
+        task_started = threading.Event()
+
+        try:
+            MultimodalProcessingMixin._ensure_async_worker()
+
+            mock_handler = MagicMock()
+
+            def blocking_stop(task):
+                task_started.set()
+                block_event.wait(timeout=5.0)
+
+            mock_handler._async_stop_llm = blocking_stop
+
+            mock_task = _MultimodalAsyncTask(
+                invocation=MagicMock(), method="stop", handler=mock_handler
+            )
+            MultimodalProcessingMixin._async_queue.put(mock_task)
+
+            # 等待任务开始
+            self.assertTrue(
+                task_started.wait(timeout=1.0), "Task did not start"
+            )
+
+            # shutdown timeout=0.3s，任务阻塞 5s
+            start = time.time()
+            timeout = 0.3
+            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=timeout)
+            elapsed = time.time() - start
+
+            # 验证超时后返回（不可能短于 timeout）
+            self.assertLess(
+                elapsed, timeout + 0.2, f"shutdown took {elapsed:.2f}s"
+            )
+            self.assertGreaterEqual(
+                elapsed, timeout, f"shutdown too fast: {elapsed:.2f}s"
+            )
+        finally:
+            block_event.set()
+            time.sleep(0.1)
+            MultimodalProcessingMixin._async_queue = None
+            MultimodalProcessingMixin._async_worker = None
