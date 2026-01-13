@@ -17,6 +17,7 @@
 import os
 import queue
 import threading
+import time
 import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
@@ -121,9 +122,11 @@ def _assert_span_attributes(
 class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-many-public-methods
     def setUp(self):
         # [Aliyun Python Agent] Reset ArmsCommonServiceMetrics singleton to avoid test interference
-        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
-        SingletonMeta.reset()
-        
+        from aliyun.sdk.extension.arms.semconv.metrics import \
+            MetricsSingletonMeta  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+
+        MetricsSingletonMeta.reset()
+
         self.span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
         tracer_provider.add_span_processor(
@@ -1048,7 +1051,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
                 self._multimodal_enabled = enabled
                 self._logger = MagicMock()
 
-            def _get_uploader_and_pre_uploader(self):
+            def _get_uploader_and_pre_uploader(self):  # pylint: disable=no-self-use
                 return MagicMock(), MagicMock()
 
             def _record_llm_metrics(self, *args, **kwargs):
@@ -1235,7 +1238,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         """Test _init_multimodal with mode=none."""
 
         class Handler(MultimodalProcessingMixin):
-            def _get_uploader_and_pre_uploader(self):
+            def _get_uploader_and_pre_uploader(self):  # pylint: disable=no-self-use
                 return MagicMock(), MagicMock()
 
         handler = Handler()
@@ -1250,7 +1253,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         """Test _init_multimodal enabled when uploader available, disabled when None."""
 
         class HandlerWithUploader(MultimodalProcessingMixin):
-            def _get_uploader_and_pre_uploader(self):
+            def _get_uploader_and_pre_uploader(self):  # pylint: disable=no-self-use
                 return MagicMock(), MagicMock()
 
         h1 = HandlerWithUploader()
@@ -1258,7 +1261,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         self.assertTrue(h1._multimodal_enabled)
 
         class HandlerWithoutUploader(MultimodalProcessingMixin):
-            def _get_uploader_and_pre_uploader(self):
+            def _get_uploader_and_pre_uploader(self):  # pylint: disable=no-self-use
                 return None, None
 
         h2 = HandlerWithoutUploader()
@@ -1509,7 +1512,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
             def __init__(self):
                 self.called = False
 
-            def _async_stop_llm(self, task):
+            def _async_stop_llm(self, task):  # pylint: disable=no-self-use
                 self.called = True
 
         handler1 = Handler1()
@@ -1540,7 +1543,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
 
         # Test 3: Handles exception and ends span
         class Handler2(mixin):
-            def _async_stop_llm(self, task):
+            def _async_stop_llm(self, task):  # pylint: disable=no-self-use
                 raise RuntimeError("error")
 
         mock_span = MagicMock()
@@ -1600,9 +1603,6 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
 
     def test_shutdown_waits_for_slow_task(self):
         """测试 shutdown 等待慢任务完成（poison pill 模式）"""
-        import threading
-        import time
-
         # 重置状态
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
@@ -1639,7 +1639,9 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=5.0)
 
             # 验证任务完成了
-            self.assertTrue(task_completed.is_set(), "Task should have completed")
+            self.assertTrue(
+                task_completed.is_set(), "Task should have completed"
+            )
             # 幂等性：再次调用不报错
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=1.0)
         finally:
@@ -1648,9 +1650,6 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
 
     def test_shutdown_timeout_exits(self):
         """测试超时后 shutdown 直接退出"""
-        import threading
-        import time
-
         # 重置状态
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
@@ -1682,7 +1681,9 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             # shutdown timeout=0.3s，任务阻塞 5s
             start = time.time()
             timeout = 0.3
-            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=timeout)
+            MultimodalProcessingMixin.shutdown_multimodal_worker(
+                timeout=timeout
+            )
             elapsed = time.time() - start
 
             # 验证超时后返回（不可能短于 timeout）
