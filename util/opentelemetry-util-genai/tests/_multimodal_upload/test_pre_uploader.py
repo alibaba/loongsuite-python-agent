@@ -12,9 +12,13 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import httpx
 import pytest
 import respx
+
 from opentelemetry.util.genai._multimodal_upload.pre_uploader import (
-    _MAX_MULTIMODAL_DATA_SIZE, _MAX_MULTIMODAL_PARTS, MultimodalPreUploader,
-    UriMetadata)
+    _MAX_MULTIMODAL_DATA_SIZE,
+    _MAX_MULTIMODAL_PARTS,
+    MultimodalPreUploader,
+    UriMetadata,
+)
 from opentelemetry.util.genai.types import Blob, InputMessage, Uri
 
 # Test audio file directory for integration tests
