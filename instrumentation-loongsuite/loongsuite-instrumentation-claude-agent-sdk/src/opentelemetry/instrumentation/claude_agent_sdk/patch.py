@@ -24,6 +24,7 @@ from claude_agent_sdk.types import ClaudeAgentOptions
 from opentelemetry import context as otel_context
 from opentelemetry.instrumentation.claude_agent_sdk.context import (
     clear_parent_invocation,
+    get_parent_invocation,
     set_parent_invocation,
 )
 from opentelemetry.instrumentation.claude_agent_sdk.hooks import (
@@ -106,6 +107,7 @@ def _create_tool_spans_from_message(
             )
             handler.start_execute_tool(tool_invocation)
             _client_managed_runs[tool_use_id] = tool_invocation
+
         except Exception as e:
             logger.warning(f"Failed to create tool span for {tool_name}: {e}")
 
@@ -135,7 +137,7 @@ def _close_tool_spans_from_message(
 
                 tool_invocation.tool_call_result = tool_content
 
-                # Complete span
+                # Complete tool span
                 if is_error:
                     error_msg = (
                         str(tool_content)
@@ -185,8 +187,6 @@ def _process_assistant_message(
     turn_tracker: "AssistantTurnTracker",
     handler: ExtendedTelemetryHandler,
     collected_messages: List[Dict[str, Any]],
-    process_subagents: bool = False,
-    subagent_sessions: Optional[Dict[str, InvokeAgentInvocation]] = None,
 ) -> None:
     """Process AssistantMessage: create LLM turn, extract parts, create tool spans."""
     parts = _extract_message_parts(msg)
@@ -230,15 +230,7 @@ def _process_assistant_message(
 
         turn_tracker.close_llm_turn()
 
-    if process_subagents and subagent_sessions is not None:
-        _handle_task_subagents(
-            msg, agent_invocation, subagent_sessions, handler
-        )
-
-    exclude_tools = ["Task"] if process_subagents else []
-    _create_tool_spans_from_message(
-        msg, handler, exclude_tool_names=exclude_tools
-    )
+    _create_tool_spans_from_message(msg, handler)
 
 
 def _process_user_message(
@@ -272,6 +264,88 @@ def _process_result_message(
             )
 
     _update_token_usage(agent_invocation, turn_tracker, msg)
+
+
+async def _process_agent_invocation_stream(
+    wrapped_stream,
+    handler: ExtendedTelemetryHandler,
+    model: str,
+    prompt: str,
+) -> Any:
+    """Unified handler for processing agent invocation stream.
+
+    Yields:
+        Messages from the wrapped stream
+    """
+    agent_invocation = InvokeAgentInvocation(
+        provider=infer_provider_from_base_url(),
+        agent_name="claude-agent",
+        request_model=model,
+        conversation_id="",
+        input_messages=[
+            InputMessage(role="user", parts=[Text(content=prompt)])
+        ]
+        if prompt
+        else [],
+    )
+
+    # Clear context to create a new root trace for each independent query
+    otel_context.attach(otel_context.Context())
+    handler.start_invoke_agent(agent_invocation)
+    set_parent_invocation(agent_invocation)
+
+    query_start_time = time.time()
+    turn_tracker = AssistantTurnTracker(
+        handler, query_start_time=query_start_time
+    )
+
+    collected_messages: List[Dict[str, Any]] = []
+
+    try:
+        async for msg in wrapped_stream:
+            msg_type = type(msg).__name__
+
+            if msg_type == "AssistantMessage":
+                _process_assistant_message(
+                    msg,
+                    model,
+                    prompt,
+                    agent_invocation,
+                    turn_tracker,
+                    handler,
+                    collected_messages,
+                )
+            elif msg_type == "UserMessage":
+                _process_user_message(
+                    msg,
+                    turn_tracker,
+                    handler,
+                    collected_messages,
+                )
+            elif msg_type == "ResultMessage":
+                _process_result_message(msg, agent_invocation, turn_tracker)
+
+            yield msg
+
+        # Handle successful completion
+        handler.stop_invoke_agent(agent_invocation)
+
+    except Exception as e:
+        # Handle error
+        error_msg = str(e)
+        if agent_invocation.span:
+            agent_invocation.span.set_attribute("error.type", type(e).__name__)
+            agent_invocation.span.set_attribute("error.message", error_msg)
+        handler.fail_invoke_agent(
+            agent_invocation, error=Error(message=error_msg, type=type(e))
+        )
+
+        raise
+    finally:
+        # Cleanup
+        turn_tracker.close()
+        clear_active_tool_runs()
+        clear_parent_invocation()
 
 
 class AssistantTurnTracker:
@@ -452,72 +526,6 @@ def wrap_claude_client_query(wrapped, instance, args, kwargs, handler=None):
     return wrapped(*args, **kwargs)
 
 
-def _handle_task_subagents(
-    msg: Any,
-    agent_invocation: InvokeAgentInvocation,
-    subagent_sessions: Dict[str, InvokeAgentInvocation],
-    handler: ExtendedTelemetryHandler,
-) -> None:
-    """Process Task tool uses (subagents) in an assistant message."""
-    if not hasattr(msg, "content"):
-        return
-
-    parent_tool_use_id = getattr(msg, "parent_tool_use_id", None)
-
-    for block in msg.content:
-        if type(block).__name__ != "ToolUseBlock":
-            continue
-
-        try:
-            tool_use_id = getattr(block, "id", None)
-            tool_name = getattr(block, "name", "unknown_tool")
-            tool_input = getattr(block, "input", {})
-
-            if not tool_use_id:
-                continue
-
-            # Only handle Task subagents here (Regular tools are handled by hooks)
-            if tool_name == "Task" and not parent_tool_use_id:
-                # Extract subagent name from input
-                subagent_name = (
-                    tool_input.get("subagent_type")
-                    or (
-                        tool_input.get("description", "").split()[0]
-                        if tool_input.get("description")
-                        else None
-                    )
-                    or "unknown-agent"
-                )
-
-                # Create subagent session span
-                subagent_invocation = InvokeAgentInvocation(
-                    provider=infer_provider_from_base_url(),
-                    agent_name=subagent_name,
-                    request_model=agent_invocation.request_model,
-                    conversation_id="",
-                    input_messages=[
-                        InputMessage(
-                            role="user", parts=[Text(content=str(tool_input))]
-                        )
-                    ],
-                    attributes={
-                        "subagent_type": tool_input.get("subagent_type", ""),
-                        "parent_tool_use_id": parent_tool_use_id or "",
-                    },
-                )
-
-                handler.start_invoke_agent(subagent_invocation)
-                subagent_sessions[tool_use_id] = subagent_invocation
-
-                # Mark as client-managed so hooks don't duplicate it
-                _client_managed_runs[tool_use_id] = ExecuteToolInvocation(
-                    tool_name="Task",
-                    tool_call_id=tool_use_id,
-                    tool_call_arguments=tool_input,
-                )
-
-        except Exception as e:
-            logger.warning(f"Failed to create subagent session: {e}")
 
 
 async def wrap_claude_client_receive_response(
@@ -538,79 +546,13 @@ async def wrap_claude_client_receive_response(
     if hasattr(instance, "options") and instance.options:
         model = getattr(instance.options, "model", "unknown")
 
-    agent_invocation = InvokeAgentInvocation(
-        provider=infer_provider_from_base_url(),
-        agent_name="claude-agent",
-        request_model=model,
-        conversation_id="",
-        input_messages=[
-            InputMessage(role="user", parts=[Text(content=prompt)])
-        ]
-        if prompt
-        else [],
-    )
-
-    # Clear context to create a new root trace for each independent query
-    otel_context.attach(otel_context.Context())
-    handler.start_invoke_agent(agent_invocation)
-    set_parent_invocation(agent_invocation)
-
-    query_start_time = time.time()
-    turn_tracker = AssistantTurnTracker(
-        handler, query_start_time=query_start_time
-    )
-
-    collected_messages: List[Dict[str, Any]] = []
-    subagent_sessions: Dict[str, InvokeAgentInvocation] = {}
-
-    try:
-        async for msg in wrapped(*args, **kwargs):
-            msg_type = type(msg).__name__
-
-            if msg_type == "AssistantMessage":
-                _process_assistant_message(
-                    msg,
-                    model,
-                    prompt,
-                    agent_invocation,
-                    turn_tracker,
-                    handler,
-                    collected_messages,
-                    process_subagents=True,
-                    subagent_sessions=subagent_sessions,
-                )
-
-            elif msg_type == "UserMessage":
-                _process_user_message(
-                    msg, turn_tracker, handler, collected_messages
-                )
-
-            elif msg_type == "ResultMessage":
-                _process_result_message(msg, agent_invocation, turn_tracker)
-
-            yield msg
-
-        handler.stop_invoke_agent(agent_invocation)
-
-        for subagent_invocation in subagent_sessions.values():
-            try:
-                handler.stop_invoke_agent(subagent_invocation)
-            except Exception as e:
-                logger.warning(f"Failed to complete subagent session: {e}")
-
-    except Exception as e:
-        error_msg = str(e)
-        if agent_invocation.span:
-            agent_invocation.span.set_attribute("error.type", type(e).__name__)
-            agent_invocation.span.set_attribute("error.message", error_msg)
-        handler.fail_invoke_agent(
-            agent_invocation, error=Error(message=error_msg, type=type(e))
-        )
-        raise
-    finally:
-        turn_tracker.close()
-        clear_active_tool_runs()
-        clear_parent_invocation()
+    async for msg in _process_agent_invocation_stream(
+        wrapped(*args, **kwargs),
+        handler=handler,
+        model=model,
+        prompt=prompt,
+    ):
+        yield msg
 
 
 async def wrap_query(wrapped, instance, args, kwargs, handler=None):
@@ -635,73 +577,12 @@ async def wrap_query(wrapped, instance, args, kwargs, handler=None):
             logger.warning(f"Failed to create ClaudeAgentOptions: {e}")
 
     model = get_model_from_options_or_env(options)
-
     prompt_str = str(prompt) if isinstance(prompt, str) else ""
-    agent_invocation = InvokeAgentInvocation(
-        provider=infer_provider_from_base_url(),
-        agent_name="claude-agent",
-        request_model=model,
-        conversation_id="",
-        input_messages=[
-            InputMessage(role="user", parts=[Text(content=prompt_str)])
-        ]
-        if prompt_str
-        else [],
-    )
 
-    # Clear context to create a new root trace for each independent query
-    otel_context.attach(otel_context.Context())
-    handler.start_invoke_agent(agent_invocation)
-    set_parent_invocation(agent_invocation)
-
-    query_start_time = time.time()
-    turn_tracker = AssistantTurnTracker(
-        handler, query_start_time=query_start_time
-    )
-
-    collected_messages: List[Dict[str, Any]] = []
-
-    try:
-        async for message in wrapped(*args, **kwargs):
-            msg_type = type(message).__name__
-
-            if msg_type == "AssistantMessage":
-                _process_assistant_message(
-                    message,
-                    model,
-                    prompt_str,
-                    agent_invocation,
-                    turn_tracker,
-                    handler,
-                    collected_messages,
-                    process_subagents=False,
-                    subagent_sessions=None,
-                )
-
-            elif msg_type == "UserMessage":
-                _process_user_message(
-                    message, turn_tracker, handler, collected_messages
-                )
-
-            elif msg_type == "ResultMessage":
-                _process_result_message(
-                    message, agent_invocation, turn_tracker
-                )
-
-            yield message
-
-        handler.stop_invoke_agent(agent_invocation)
-
-    except Exception as e:
-        error_msg = str(e)
-        if agent_invocation.span:
-            agent_invocation.span.set_attribute("error.type", type(e).__name__)
-            agent_invocation.span.set_attribute("error.message", error_msg)
-        handler.fail_invoke_agent(
-            agent_invocation, error=Error(message=error_msg, type=type(e))
-        )
-        raise
-    finally:
-        turn_tracker.close()
-        clear_active_tool_runs()
-        clear_parent_invocation()
+    async for message in _process_agent_invocation_stream(
+        wrapped(*args, **kwargs),
+        handler=handler,
+        model=model,
+        prompt=prompt_str,
+    ):
+        yield message
