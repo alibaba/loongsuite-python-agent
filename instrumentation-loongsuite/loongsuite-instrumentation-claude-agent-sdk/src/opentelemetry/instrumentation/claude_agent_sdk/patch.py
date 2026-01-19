@@ -105,7 +105,48 @@ def _create_tool_spans_from_message(
                 tool_call_arguments=tool_input,
                 tool_description=tool_name,
             )
-            handler.start_execute_tool(tool_invocation)
+            
+            # Ensure we're in parent context before starting tool span
+            parent_invocation = get_parent_invocation()
+            parent_token = None
+            if parent_invocation and parent_invocation.span:
+                from opentelemetry.trace import set_span_in_context
+                ctx = set_span_in_context(parent_invocation.span)
+                parent_token = otel_context.attach(ctx)
+            
+            try:
+                handler.start_execute_tool(tool_invocation)
+                
+                # For Task tool: keep tool context active so subagent spans can be children
+                # For other tools: immediately detach tool context to restore parent context
+                # This ensures subsequent spans (LLM, other tools) are created
+                # as siblings of tool span, not children (except for Task tool)
+                if tool_name != "Task":
+                    # Immediately detach tool context for non-Task tools
+                    if tool_invocation.context_token is not None:
+                        try:
+                            otel_context.detach(tool_invocation.context_token)
+                            tool_invocation.context_token = None
+                        except (ValueError, RuntimeError):
+                            # Token already detached or from different context, ignore
+                            tool_invocation.context_token = None
+                        except Exception:
+                            # Other errors: set to None to prevent handler from trying to detach again
+                            # This ensures handler.stop_execute_tool won't fail
+                            tool_invocation.context_token = None
+                # For Task tool, keep context_token attached so subagent spans can be children
+            finally:
+                # Restore context after starting tool span
+                if parent_token is not None:
+                    try:
+                        otel_context.detach(parent_token)
+                    except (ValueError, RuntimeError):
+                        # Token already detached or from different context, ignore
+                        pass
+                    except Exception as e:
+                        # Other errors, log but don't raise
+                        logger.debug(f"Failed to detach parent_token: {e}", exc_info=True)
+            
             _client_managed_runs[tool_use_id] = tool_invocation
 
         except Exception as e:
@@ -130,6 +171,10 @@ def _close_tool_spans_from_message(
             if tool_use_id and tool_use_id in _client_managed_runs:
                 tool_invocation = _client_managed_runs.pop(tool_use_id)
 
+                # For Task tool: let stop_execute_tool/fail_execute_tool handle detach
+                # They will check if context_token is None and handle it properly
+                # We don't need to manually detach here, as the handler methods will do it
+
                 # Set tool response
                 tool_content = getattr(block, "content", None)
                 is_error_value = getattr(block, "is_error", None)
@@ -138,6 +183,8 @@ def _close_tool_spans_from_message(
                 tool_invocation.tool_call_result = tool_content
 
                 # Complete tool span
+                # For non-Task tools: context_token was already set to None in _create_tool_spans_from_message
+                # For Task tools: context_token is still valid, handler will detach it
                 if is_error:
                     error_msg = (
                         str(tool_content)
@@ -411,7 +458,28 @@ class AssistantTurnTracker:
             input_messages=input_messages,
         )
 
-        self.handler.start_llm(llm_invocation)
+        # Ensure we're in parent context before starting LLM span
+        # This prevents LLM span from being created as child of tool span
+        parent_invocation = get_parent_invocation()
+        parent_token = None
+        if parent_invocation and parent_invocation.span:
+            from opentelemetry.trace import set_span_in_context
+            ctx = set_span_in_context(parent_invocation.span)
+            parent_token = otel_context.attach(ctx)
+
+        try:
+            self.handler.start_llm(llm_invocation)
+        finally:
+            # Restore context after starting LLM span
+            if parent_token is not None:
+                try:
+                    otel_context.detach(parent_token)
+                except (ValueError, RuntimeError):
+                    # Token already detached or from different context, ignore
+                    pass
+                except Exception as e:
+                    # Other errors, log but don't raise
+                    logger.debug(f"Failed to detach parent_token: {e}", exc_info=True)
 
         # Override span start time
         if llm_invocation.span and start_time:
@@ -542,9 +610,11 @@ async def wrap_claude_client_receive_response(
         return
 
     prompt = getattr(instance, "_otel_prompt", "") or ""
-    model = "unknown"
-    if hasattr(instance, "options") and instance.options:
-        model = getattr(instance.options, "model", "unknown")
+    
+    # Use get_model_from_options_or_env to get model from options or environment variables
+    # This ensures consistency with wrap_query and follows Claude CLI behavior
+    options = getattr(instance, "options", None)
+    model = get_model_from_options_or_env(options)
 
     async for msg in _process_agent_invocation_stream(
         wrapped(*args, **kwargs),
