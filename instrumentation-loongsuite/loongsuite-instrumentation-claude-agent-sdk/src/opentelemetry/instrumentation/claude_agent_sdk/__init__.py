@@ -92,14 +92,12 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
         meter_provider = kwargs.get("meter_provider")
         logger_provider = kwargs.get("logger_provider")
 
-        # Create ExtendedTelemetryHandler
         ClaudeAgentSDKInstrumentor._handler = ExtendedTelemetryHandler(
             tracer_provider=tracer_provider,
             meter_provider=meter_provider,
             logger_provider=logger_provider,
         )
 
-        # Wrap ClaudeSDKClient.__init__
         try:
             wrap_function_wrapper(
                 module="claude_agent_sdk",
@@ -120,7 +118,6 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 f"Failed to instrument ClaudeSDKClient.__init__: {e}"
             )
 
-        # Wrap ClaudeSDKClient.query
         try:
             wrap_function_wrapper(
                 module="claude_agent_sdk",
@@ -139,7 +136,6 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
         except Exception as e:
             logger.warning(f"Failed to instrument ClaudeSDKClient.query: {e}")
 
-        # Wrap ClaudeSDKClient.receive_response
         try:
             wrap_function_wrapper(
                 module="claude_agent_sdk",
@@ -160,7 +156,6 @@ class ClaudeAgentSDKInstrumentor(BaseInstrumentor):
                 f"Failed to instrument ClaudeSDKClient.receive_response: {e}"
             )
 
-        # Wrap standalone query() function
         try:
             wrap_function_wrapper(
                 module="claude_agent_sdk",
