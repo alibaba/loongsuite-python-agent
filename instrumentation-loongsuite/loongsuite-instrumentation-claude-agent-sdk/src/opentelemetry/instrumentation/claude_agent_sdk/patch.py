@@ -411,13 +411,19 @@ class AssistantTurnTracker:
         )
 
         self.handler.start_llm(llm_invocation)
-
-        # Override span start time
+        # Override span start time.
+        # TODO(telemetry): Avoid relying on the private `_start_time` attribute.
+        # The long-term fix is to plumb a public `start_time` parameter through
+        # ExtendedTelemetryHandler.start_llm and the underlying span creation,
+        # so the desired start time can be set via a supported API instead of
+        # mutating internal span state here. Until that is available, we perform
+        # a best-effort adjustment guarded by hasattr and try/except so that
+        # failures do not break tracing.
         if llm_invocation.span and start_time:
             start_time_ns = int(start_time * 1_000_000_000)
             try:
                 if hasattr(llm_invocation.span, "_start_time"):
-                    llm_invocation.span._start_time = start_time_ns  # type: ignore
+                    setattr(llm_invocation.span, "_start_time", start_time_ns)
             except Exception as e:
                 logger.warning(f"Failed to set span start time: {e}")
 

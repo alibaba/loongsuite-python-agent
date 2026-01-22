@@ -19,7 +19,10 @@ async def test_query_with_api_error(instrument, span_exporter):
         async for _ in query(prompt="", options=options):
             pass
     except Exception:
-        pass  # Expected to fail
+        # Expected to fail with empty prompt. This test verifies that instrumentation
+        # creates spans even when the SDK raises exceptions, ensuring telemetry
+        # doesn't break on edge cases.
+        pass
 
     # Get spans
     spans = span_exporter.get_finished_spans()
@@ -47,6 +50,8 @@ async def test_query_with_empty_prompt(instrument, span_exporter):
             if count > 5:  # Prevent infinite loop
                 break
     except Exception:
+        # Ignore exceptions here; this test only verifies that instrumentation
+        # can handle an empty prompt without crashing the test suite.
         pass
 
 
@@ -329,7 +334,9 @@ async def test_query_with_very_long_prompt(instrument, span_exporter):
             if count > 5:
                 break
     except Exception:
-        pass  # May fail due to token limits
+        # May fail due to token limits or rate limiting. This test verifies
+        # that instrumentation creates spans regardless of API errors.
+        pass
 
     # Should still create spans
     spans = span_exporter.get_finished_spans()
@@ -350,4 +357,6 @@ def test_patch_with_missing_module():
         instrumentor.instrument(tracer_provider=TracerProvider())
         instrumentor.uninstrument()
     except Exception:
-        pass  # Expected if SDK is not installed
+        # Expected if SDK is not installed or import fails. This test verifies
+        # graceful handling when the instrumented library is missing.
+        pass

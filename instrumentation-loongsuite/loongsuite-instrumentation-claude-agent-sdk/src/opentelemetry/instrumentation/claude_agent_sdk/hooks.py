@@ -109,7 +109,9 @@ async def pre_tool_use_hook(
                 try:
                     otel_context.detach(token)
                 except Exception:
-                    pass  # Ignore detach errors
+                    # Ignore detach errors - context may already be invalid or detached.
+                    # Failing to detach here should not prevent tool execution from proceeding.
+                    pass
         else:
             # Fallback to auto-parenting (may not work due to broken context)
             handler.start_execute_tool(tool_invocation)
@@ -226,6 +228,9 @@ def clear_active_tool_runs() -> None:
     try:
         handler = get_extended_telemetry_handler()
     except Exception:
+        # If we can't get the handler (e.g., instrumentation not initialized),
+        # we still need to clear the tracking dictionaries to prevent memory leaks.
+        # Without a handler, we can't properly end spans, so just clean up state.
         _active_tool_runs.clear()
         _client_managed_runs.clear()
         return
@@ -241,6 +246,9 @@ def clear_active_tool_runs() -> None:
                 ),
             )
         except Exception:
+            # Ignore errors when failing orphaned tools during cleanup.
+            # If the span is already ended or invalid, we don't want to crash.
+            # Best effort cleanup: continue processing remaining tools.
             pass
 
     # End any orphaned tool runs
@@ -254,6 +262,9 @@ def clear_active_tool_runs() -> None:
                 ),
             )
         except Exception:
+            # Ignore errors when failing orphaned tools during cleanup.
+            # If the span is already ended or invalid, we don't want to crash.
+            # Best effort cleanup: continue processing remaining tools.
             pass
 
     _active_tool_runs.clear()
