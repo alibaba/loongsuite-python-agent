@@ -39,13 +39,24 @@ from opentelemetry.instrumentation.crewai.utils import (
     to_output_message,
 )
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from opentelemetry.util.genai.completion_hook import load_completion_hook
 
+try:
+    import crewai.agent
+    import crewai.crew
+    import crewai.flow.flow
+    import crewai.task
+    import crewai.tools.tool_usage
+
+    _CREWAI_LOADED = True
+except (ImportError, Exception):
+    _CREWAI_LOADED = False
+
 logger = logging.getLogger(__name__)
 
-MAX_MESSAGE_SIZE = 10000  # characters
 
 # Context keys for tracking
 _CREWAI_SPAN_KEY = context_api.create_key("crewai_span")
@@ -128,7 +139,21 @@ class CrewAIInstrumentor(BaseInstrumentor):
             logger.debug(f"Could not wrap ToolUsage._use: {e}")
 
     def _uninstrument(self, **kwargs: Any) -> None:
-        pass
+        """Uninstrument CrewAI framework."""
+        if not _CREWAI_LOADED:
+            logger.debug(
+                "CrewAI modules were not available for uninstrumentation."
+            )
+            return
+        try:
+            unwrap(crewai.crew.Crew, "kickoff")
+            unwrap(crewai.flow.flow.Flow, "kickoff_async")
+            unwrap(crewai.agent.Agent, "execute_task")
+            unwrap(crewai.task.Task, "execute_sync")
+            unwrap(crewai.tools.tool_usage.ToolUsage, "_use")
+
+        except Exception as e:
+            logger.debug(f"Error during uninstrumenting: {e}")
 
 
 class _CrewKickoffWrapper:

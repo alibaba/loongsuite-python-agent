@@ -17,18 +17,22 @@ Test cases for streaming LLM calls in CrewAI.
 
 Business Demo Description:
 This test suite uses CrewAI framework to create Agents that perform streaming
-LLM calls. The demo enables streaming output from CrewAI and verifies that
-streaming-specific attributes like time_to_first_token are captured correctly.
+LLM calls. It verifies the capture of OpenTelemetry GenAI attributes for
+streaming scenarios and proper hierarchy preservation in asynchronous execution.
 """
-import pysqlite3
-import sys
-sys.modules["sqlite3"] = pysqlite3
+
+import json
 import os
-from crewai import Agent, Task, Crew
-from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
+import sys
+
+import pysqlite3
+from crewai import Agent, Crew, Task
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
+from opentelemetry.trace import StatusCode
+
+sys.modules["sqlite3"] = pysqlite3
 
 
 class TestStreamingLLMCalls(TestBase):
@@ -38,43 +42,47 @@ class TestStreamingLLMCalls(TestBase):
         """Setup test resources."""
         super().setUp()
         # Set up environment variables
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-openai-key-placeholder")
-        os.environ["DASHSCOPE_API_KEY"] = os.getenv("DASHSCOPE_API_KEY", "test-dashscope-key-placeholder")
-        os.environ["OPENAI_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        os.environ["DASHSCOPE_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        
+        os.environ["OPENAI_API_KEY"] = os.environ.get(
+            "OPENAI_API_KEY", "fake-key"
+        )
+        os.environ["DASHSCOPE_API_KEY"] = os.environ.get(
+            "DASHSCOPE_API_KEY", "fake-key"
+        )
+        os.environ["OPENAI_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+        os.environ["DASHSCOPE_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+
+        os.environ["CREWAI_TRACING_ENABLED"] = "false"
         self.instrumentor = CrewAIInstrumentor()
-        self.instrumentor.instrument()
-        self.litellm_instrumentor = LiteLLMInstrumentor()
-        self.litellm_instrumentor.instrument()
-        
+        self.instrumentor.instrument(tracer_provider=self.tracer_provider)
+
         # Test data
-        self.model_name = "dashscope/qwen-turbo"
-        
+        self.model_name = "openai/qwen-turbo"
+
     def tearDown(self):
         """Cleanup test resources."""
         with self.disable_logging():
             self.instrumentor.uninstrument()
-            self.litellm_instrumentor.uninstrument()
         super().tearDown()
-        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
-        SingletonMeta.reset()
 
     def test_streaming_crew_execution(self):
         """
         Test streaming Crew execution with LLM streaming enabled.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent
         - Executes 1 Task with streaming enabled
         - Performs 1 streaming LLM call
         - Consumes streaming chunks
-        
+
         Verification:
-        - LLM span has gen_ai.request.is_stream=true
-        - LLM span has gen_ai.response.time_to_first_token attribute
-        - Metrics: genai_calls_duration_seconds includes full stream duration
-        - Metrics: genai_llm_usage_tokens accumulates tokens from stream
+        - LLM/Agent spans reflect streaming configuration
+        - Task span captures final output messages from stream
+        - Trace hierarchy (Crew -> Task -> Agent) correctly maintained
+        - Standard attributes (gen_ai.system, gen_ai.operation.name, etc.)
         """
         # Create Agent with streaming
         agent = Agent(
@@ -103,59 +111,94 @@ class TestStreamingLLMCalls(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        llm_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "LLM"]
 
-        if llm_spans:
-            llm_span = llm_spans[0]
-            
-            # Verify streaming attributes
-            # Note: gen_ai.request.is_stream should be set if streaming is detected
-            # Note: gen_ai.response.time_to_first_token should be present for streaming
-            self.assertEqual(llm_span.attributes.get("gen_ai.span.kind"), "LLM")
-            
-            # Verify token usage is captured even in streaming mode
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.input_tokens"), 0)
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.output_tokens"), 0)
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.total_tokens"), 0)
+        # 1. Verify existence of all levels in hierarchy
+        crew_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "crew.kickoff"
+        ]
+        task_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "task.execute"
+        ]
+        agent_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "agent.execute"
+        ]
 
-        # Verify metrics
-        metrics = self.memory_metrics_reader.get_metrics_data()
-        
-        duration_found = False
-        token_usage_found = False
-        
-        for resource_metrics in metrics.resource_metrics:
-            for scope_metrics in resource_metrics.scope_metrics:
-                for metric in scope_metrics.metrics:
-                    if metric.name == "genai_calls_duration_seconds":
-                        duration_found = True
-                        # Verify duration includes full streaming time
-                        for data_point in metric.data.data_points:
-                            self.assertGreaterEqual(data_point.count, 1)
-                    
-                    elif metric.name == "genai_llm_usage_tokens":
-                        token_usage_found = True
-                        # Verify tokens are accumulated from stream
-                        for data_point in metric.data.data_points:
-                            usage_type = data_point.attributes.get("usageType")
-                            self.assertIn(usage_type, ["input", "output", "total"])
+        self.assertGreaterEqual(
+            len(crew_spans), 1, "Should capture crew.kickoff"
+        )
+        self.assertGreaterEqual(
+            len(task_spans), 1, "Should capture task.execute"
+        )
+        self.assertGreaterEqual(
+            len(agent_spans), 1, "Should capture agent.execute"
+        )
 
-        self.assertTrue(duration_found, "genai_calls_duration_seconds metric not found")
-        self.assertTrue(token_usage_found, "genai_llm_usage_tokens metric not found")
+        # 2. Verify Span Hierarchy and Trace Continuity
+        crew_span = crew_spans[0]
+        task_span = task_spans[0]
+        agent_span = agent_spans[0]
+
+        # All spans must share the same Trace ID
+        trace_id = crew_span.context.trace_id
+        for s in spans:
+            self.assertEqual(
+                s.context.trace_id,
+                trace_id,
+                "Trace ID must be consistent across all spans",
+            )
+
+        # Verify parent-child relationship (Crew -> Task -> Agent)
+        self.assertEqual(
+            task_span.parent.span_id,
+            crew_span.context.span_id,
+            "Task should be child of Crew",
+        )
+        self.assertEqual(
+            agent_span.parent.span_id,
+            task_span.context.span_id,
+            "Agent should be child of Task",
+        )
+
+        # 3. Verify OpenTelemetry GenAI Attributes
+        for s in [crew_span, task_span, agent_span]:
+            self.assertEqual(s.attributes.get("gen_ai.system"), "crewai")
+            self.assertIsNotNone(s.attributes.get("gen_ai.operation.name"))
+
+        # 4. Verify Content Capture (JSON formatted messages)
+        output_messages_json = task_span.attributes.get(
+            "gen_ai.output.messages"
+        )
+        self.assertIsNotNone(
+            output_messages_json, "Task should capture output messages"
+        )
+        output_messages = json.loads(output_messages_json)
+        self.assertGreater(len(output_messages), 0)
+        self.assertEqual(output_messages[0]["role"], "assistant")
+        self.assertIn(
+            "content",
+            output_messages[0]["parts"][0],
+            "Output should contain message parts",
+        )
 
     def test_streaming_with_error(self):
         """
         Test streaming with error during stream consumption.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent
         - Executes 1 Task with streaming
         - Stream fails mid-way
-        
+
         Verification:
-        - LLM span has ERROR status
-        - Metrics: genai_calls_error_count incremented
-        - Metrics: genai_calls_duration_seconds still recorded
+        - Spans marked with StatusCode.ERROR status
+        - Exception events recorded with type and message
+        - Input messages captured for diagnostic context even on failure
         """
         # Use invalid model name to trigger error
         agent = Agent(
@@ -184,19 +227,46 @@ class TestStreamingLLMCalls(TestBase):
         except Exception:
             pass  # Expected
 
-        # Verify error metrics
-        metrics = self.memory_metrics_reader.get_metrics_data()
-        
-        error_count_found = False
-        
-        for resource_metrics in metrics.resource_metrics:
-            for scope_metrics in resource_metrics.scope_metrics:
-                for metric in scope_metrics.metrics:
-                    if metric.name == "genai_calls_error_count":
-                        error_count_found = True
-                        # Verify error was counted
-                        for data_point in metric.data.data_points:
-                            self.assertGreaterEqual(data_point.value, 1)
+        # Verify spans for error state
+        spans = self.memory_exporter.get_finished_spans()
 
-        # Note: error_count may not be found if LLM.call wrapper didn't execute
-        # This is acceptable as the test validates the error handling path
+        # Filter agent span (where error usually originated in this case)
+        error_spans = [
+            s for s in spans if s.status.status_code == StatusCode.ERROR
+        ]
+        self.assertGreaterEqual(
+            len(error_spans), 1, "At least one span should be marked as ERROR"
+        )
+
+        for span in error_spans:
+            # 1. Verify Status
+            self.assertEqual(span.status.status_code, StatusCode.ERROR)
+
+            # 2. Verify Exception Events
+            self.assertGreater(
+                len(span.events),
+                0,
+                "Span should have recorded exception events",
+            )
+            exception_events = [
+                e for e in span.events if e.name == "exception"
+            ]
+            self.assertGreater(
+                len(exception_events), 0, "Should contain 'exception' event"
+            )
+
+            # 3. Verify Exception Metadata
+            event_attrs = exception_events[0].attributes
+            self.assertIn("exception.type", event_attrs)
+            self.assertIn("exception.message", event_attrs)
+
+            # 4. Verify Input Capture (even on failure)
+            # Input messages might be empty for the top-level crew if no inputs were provided,
+            # but task and agent spans should always have them.
+            op_name = span.attributes.get("gen_ai.operation.name")
+            if op_name in ["task.execute", "agent.execute"]:
+                input_messages = span.attributes.get("gen_ai.input.messages")
+                self.assertIsNotNone(
+                    input_messages,
+                    f"Span {op_name} should capture inputs even on failure",
+                )
