@@ -116,17 +116,19 @@ def _create_tool_spans_from_message(
 ) -> None:
     """Create tool execution spans from ToolUseBlocks in an AssistantMessage.
 
-    Tool spans are children of the active Task span (if any), otherwise agent span.
-    When a Task tool is created, it's pushed onto active_task_stack.
+    Tool spans are children of the active SubAgent span (if any), otherwise agent span.
+    When a Task tool is created, it's pushed onto active_task_stack along with a SubAgent span.
+
+    The stack structure is: [{"task": ExecuteToolInvocation, "subagent": InvokeAgentInvocation}, ...]
     """
     if not hasattr(msg, "content"):
         return
 
     exclude_tool_names = exclude_tool_names or []
 
-    # Determine parent span: use active Task span if exists, otherwise agent span
+    # Determine parent span: use active SubAgent span if exists, otherwise agent span
     parent_span = (
-        active_task_stack[-1].span
+        active_task_stack[-1]["subagent"].span
         if active_task_stack
         else agent_invocation.span
     )
@@ -162,12 +164,64 @@ def _create_tool_spans_from_message(
                 handler.start_execute_tool(tool_invocation)
                 _client_managed_runs[tool_use_id] = tool_invocation
 
-                # If this is a Task tool, push it onto the stack
+                # If this is a Task tool, create a SubAgent span under it
+                # https://platform.claude.com/docs/en/agent-sdk/python#task
                 if tool_name == "Task":
-                    active_task_stack.append(tool_invocation)
-                    logger.debug(
-                        f"Task span created and pushed: {tool_use_id}, stack depth: {len(active_task_stack)}"
-                    )
+                    # Extract subagent_type from tool input
+                    subagent_type = tool_input.get("subagent_type", "unknown")
+                    task_description = tool_input.get("description", "")
+                    task_prompt = tool_input.get("prompt", "")
+
+                    # Create SubAgent span as child of Task Tool span
+                    subagent_context_token = None
+                    if tool_invocation.span:
+                        try:
+                            subagent_context_token = otel_context.attach(
+                                set_span_in_context(tool_invocation.span)
+                            )
+                        except Exception:
+                            pass
+
+                    try:
+                        # Create input message from task prompt
+                        input_messages = []
+                        if task_prompt:
+                            input_messages.append(
+                                InputMessage(
+                                    role="user",
+                                    parts=[Text(content=task_prompt)],
+                                )
+                            )
+
+                        # Create SubAgent invocation
+                        subagent_invocation = InvokeAgentInvocation(
+                            provider=infer_provider_from_base_url(),
+                            agent_name=subagent_type,
+                            agent_description=task_description,
+                            input_messages=input_messages,
+                        )
+
+                        # Start SubAgent span
+                        handler.start_invoke_agent(subagent_invocation)
+
+                        # Push both Task and SubAgent onto stack as a dict
+                        active_task_stack.append(
+                            {
+                                "task": tool_invocation,
+                                "subagent": subagent_invocation,
+                                "tool_use_id": tool_use_id,
+                            }
+                        )
+
+                        logger.debug(
+                            f"Task span created with SubAgent '{subagent_type}': {tool_use_id}, stack depth: {len(active_task_stack)}"
+                        )
+                    finally:
+                        if subagent_context_token is not None:
+                            try:
+                                otel_context.detach(subagent_context_token)
+                            except Exception:
+                                pass
 
             except Exception as e:
                 logger.warning(
@@ -260,9 +314,13 @@ def _process_assistant_message(
             else:
                 turn_tracker.add_assistant_output(parts)
                 output_msg = OutputMessage(
-                    role="assistant", parts=list(parts), finish_reason="tool_calls"
+                    role="assistant",
+                    parts=list(parts),
+                    finish_reason="tool_calls",
                 )
-                turn_tracker.current_llm_invocation.output_messages.append(output_msg)
+                turn_tracker.current_llm_invocation.output_messages.append(
+                    output_msg
+                )
 
         # Only add to collected_messages if not inside a Task
         if not is_inside_task:
@@ -318,11 +376,76 @@ def _process_user_message(
 
                     # Set tool response
                     tool_content = getattr(block, "content", None)
+                    tool_use_result = getattr(block, "tool_use_result", None)
                     is_error_value = getattr(block, "is_error", None)
                     is_error = is_error_value is True
 
                     tool_invocation.tool_call_result = tool_content
 
+                    # Check if this is a Task tool result - if so, close SubAgent FIRST
+                    # BEFORE closing the Task tool span
+                    # https://platform.claude.com/docs/en/agent-sdk/python#task
+                    is_task_result = (
+                        active_task_stack
+                        and active_task_stack[-1]["tool_use_id"] == tool_use_id
+                    )
+                    if is_task_result:
+                        task_entry = active_task_stack.pop()
+
+                        # Extract information from tool_use_result (official Task tool output format)
+                        # Output format: {"result": str, "usage": dict | None, "total_cost_usd": float | None, "duration_ms": int | None}
+                        if tool_use_result and isinstance(
+                            tool_use_result, dict
+                        ):
+                            # Extract result (str) for output_messages
+                            result_text = tool_use_result.get("result")
+                            if result_text and isinstance(result_text, str):
+                                task_entry["subagent"].output_messages.append(
+                                    OutputMessage(
+                                        role="assistant",
+                                        parts=[Text(content=result_text)],
+                                        finish_reason="stop",
+                                    )
+                                )
+
+                            # Extract usage from tool_use_result
+                            # Always record usage info from official SDK, even if values are 0
+                            usage = tool_use_result.get("usage")
+                            if usage and isinstance(usage, dict):
+                                if "input_tokens" in usage:
+                                    task_entry[
+                                        "subagent"
+                                    ].input_tokens = usage["input_tokens"]
+                                if "output_tokens" in usage:
+                                    task_entry[
+                                        "subagent"
+                                    ].output_tokens = usage["output_tokens"]
+
+                            # Extract additional attributes
+                            if "total_cost_usd" in tool_use_result:
+                                task_entry["subagent"].attributes[
+                                    "total_cost_usd"
+                                ] = tool_use_result["total_cost_usd"]
+                            if "duration_ms" in tool_use_result:
+                                task_entry["subagent"].attributes[
+                                    "duration_ms"
+                                ] = tool_use_result["duration_ms"]
+
+                        # Close SubAgent span first (detach SubAgent context)
+                        # This restores context to Task Tool span level
+                        try:
+                            handler.stop_invoke_agent(task_entry["subagent"])
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to close SubAgent span: {e}"
+                            )
+
+                        logger.debug(
+                            f"Task span closed: {tool_use_id}, stack depth: {len(active_task_stack)}"
+                        )
+
+                    # Now close the tool span (Task or regular tool)
+                    # For Task: this detaches Task Tool context, restoring to Agent context
                     if is_error:
                         error_msg = (
                             str(tool_content)
@@ -335,18 +458,6 @@ def _process_user_message(
                         )
                     else:
                         handler.stop_execute_tool(tool_invocation)
-
-                    # Check if this is a Task tool result - if so, pop from stack
-                    # BEFORE we check is_inside_task for message filtering
-                    is_task_result = (
-                        active_task_stack
-                        and active_task_stack[-1].tool_call_id == tool_use_id
-                    )
-                    if is_task_result:
-                        active_task_stack.pop()
-                        logger.debug(
-                            f"Task span closed and popped: {tool_use_id}, stack depth: {len(active_task_stack)}"
-                        )
 
                 if tool_use_id:
                     tool_parts.append(
@@ -493,10 +604,15 @@ async def _process_agent_invocation_stream(
 
         # Clean up any remaining Task spans in stack (shouldn't happen in normal flow)
         while active_task_stack:
-            task_invocation = active_task_stack.pop()
+            task_entry = active_task_stack.pop()
             logger.warning(
-                f"Unclosed Task span at end of invocation: {task_invocation.tool_call_id}"
+                f"Unclosed Task span at end of invocation: {task_entry['tool_use_id']}"
             )
+            # Close SubAgent span if it exists
+            try:
+                handler.stop_invoke_agent(task_entry["subagent"])
+            except Exception:
+                pass
 
         # Detach empty context token to restore the original context.
         # Note: stop_invoke_agent/fail_invoke_agent already detached invocation.context_token,

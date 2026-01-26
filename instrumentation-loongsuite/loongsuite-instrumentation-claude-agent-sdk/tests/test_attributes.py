@@ -304,4 +304,3 @@ async def test_span_attributes_no_sensitive_data(
             if isinstance(attr_value, str):
                 # Sensitive content should not be in attributes
                 assert "secret123" not in attr_value.lower()
-

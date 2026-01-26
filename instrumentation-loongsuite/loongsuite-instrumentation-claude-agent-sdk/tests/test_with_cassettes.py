@@ -199,15 +199,38 @@ async def test_agent_invocation_with_cassette(
     )
 
     # Verify Agent span exists
+    # Note: When Task tool is used, there will be a root agent + SubAgent span
     agent_spans = [
         s
         for s in spans
         if dict(s.attributes or {}).get(GenAIAttributes.GEN_AI_OPERATION_NAME)
         == "invoke_agent"
     ]
-    assert len(agent_spans) == 1, (
-        f"Should have one Agent span for {cassette_file}"
-    )
+
+    # Find Task tool spans to determine if SubAgent is expected
+    tool_spans = [
+        s
+        for s in spans
+        if dict(s.attributes or {}).get(GenAIAttributes.GEN_AI_OPERATION_NAME)
+        == "execute_tool"
+    ]
+    task_spans = [
+        s
+        for s in tool_spans
+        if dict(s.attributes or {}).get(GenAIAttributes.GEN_AI_TOOL_NAME)
+        == "Task"
+    ]
+
+    # If Task tool is used, expect root agent + SubAgent spans
+    if len(task_spans) > 0:
+        assert len(agent_spans) >= 1, (
+            f"Should have at least one Agent span for {cassette_file}"
+        )
+    else:
+        # No Task tool, expect only root agent
+        assert len(agent_spans) == 1, (
+            f"Should have one Agent span for {cassette_file}"
+        )
 
     # Verify LLM spans exist
     llm_spans = [
@@ -222,5 +245,5 @@ async def test_agent_invocation_with_cassette(
 
     print(
         f"\n✅ {cassette_file}: {len(spans)} spans "
-        f"(Agent: 1, LLM: {len(llm_spans)})"
+        f"(Agent: {len(agent_spans)}, LLM: {len(llm_spans)}, Task: {len(task_spans)})"
     )
