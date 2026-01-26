@@ -1,6 +1,5 @@
 """Mock-based tests for Claude Agent SDK instrumentation."""
 
-import threading
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,16 +7,10 @@ import pytest
 from opentelemetry.instrumentation.claude_agent_sdk import (
     ClaudeAgentSDKInstrumentor,
 )
-from opentelemetry.instrumentation.claude_agent_sdk.context import (
-    clear_parent_invocation,
-    get_parent_invocation,
-    set_parent_invocation,
-)
 from opentelemetry.instrumentation.claude_agent_sdk.utils import (
     extract_usage_from_result_message,
     extract_usage_metadata,
     sum_anthropic_tokens,
-    truncate_value,
 )
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
@@ -133,57 +126,6 @@ def test_utils_sum_tokens_with_cache_details(instrument):
     result2 = sum_anthropic_tokens(usage2)
     assert result2["input_tokens"] == 115  # 100 + 10 + 5
     assert result2["output_tokens"] == 50
-
-
-def test_utils_smart_truncate_edge_cases(instrument):
-    """Test smart truncate with various edge cases."""
-    # Empty string
-    assert truncate_value("") == ""
-
-    # None
-    assert truncate_value(None) == "None"
-
-    # Numbers
-    assert truncate_value(42) == "42"
-    assert truncate_value(3.14) == "3.14"
-
-    # Boolean
-    assert truncate_value(True) == "True"
-
-    # Empty list
-    assert truncate_value([]) == "[]"
-
-    # Empty dict
-    assert truncate_value({}) == "{}"
-
-    # Nested structures
-    nested = {"a": {"b": {"c": [1, 2, 3]}}}
-    result = truncate_value(nested)
-    assert isinstance(result, str)
-    assert "{" in result
-
-
-def test_context_thread_safety(instrument):
-    """Test context operations are thread-safe."""
-    results = []
-
-    def thread_func(value):
-        set_parent_invocation(value)
-        retrieved = get_parent_invocation()
-        results.append(retrieved == value)
-        clear_parent_invocation()
-
-    threads = []
-    for i in range(5):
-        t = threading.Thread(target=thread_func, args=(f"invocation_{i}",))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
-
-    # Each thread should have retrieved its own value
-    assert all(results)
 
 
 def test_instrumentor_double_instrument(instrument, tracer_provider):

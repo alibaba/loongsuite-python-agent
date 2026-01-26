@@ -5,16 +5,10 @@ import os
 from opentelemetry.instrumentation.claude_agent_sdk import (
     ClaudeAgentSDKInstrumentor,
 )
-from opentelemetry.instrumentation.claude_agent_sdk.context import (
-    clear_parent_invocation,
-    get_parent_invocation,
-    set_parent_invocation,
-)
 from opentelemetry.instrumentation.claude_agent_sdk.utils import (
     extract_usage_metadata,
     infer_provider_from_base_url,
     sum_anthropic_tokens,
-    truncate_value,
 )
 from opentelemetry.sdk.trace import TracerProvider
 
@@ -45,47 +39,6 @@ def test_instrumentation_dependencies():
     assert deps is not None
     assert len(deps) > 0
     assert "claude-agent-sdk" in deps[0]
-
-
-def test_utils_safe_truncate():
-    """Test truncate_value utility function."""
-    # Test short string
-    result = truncate_value("hello")
-    assert result == "hello"
-
-    # Test long string
-    long_str = "a" * 200
-    result = truncate_value(long_str, max_length=150)
-    assert len(result) <= 153  # 150 + "..."
-    assert result.endswith("...")
-
-    # Test list
-    result = truncate_value([1, 2, 3])
-    assert "[" in result
-    assert "]" in result
-
-    # Test dict
-    result = truncate_value({"key": "value"})
-    assert "{" in result
-    assert "}" in result
-
-
-def test_context_operations():
-    """Test thread-local context operations."""
-    # Initially should be None
-    assert get_parent_invocation() is None
-
-    # Set a mock invocation
-    mock_invocation = {"test": "value"}
-    set_parent_invocation(mock_invocation)
-
-    # Should retrieve the same object
-    retrieved = get_parent_invocation()
-    assert retrieved == mock_invocation
-
-    # Clear should remove it
-    clear_parent_invocation()
-    assert get_parent_invocation() is None
 
 
 def test_usage_extraction():

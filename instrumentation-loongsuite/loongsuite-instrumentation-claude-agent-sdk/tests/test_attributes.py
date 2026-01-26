@@ -318,5 +318,4 @@ def test_hooks_are_exported():
 def test_utils_are_internal():
     """Test that utils are properly organized."""
     # Utils should have the helper functions
-    assert hasattr(utils, "truncate_value")
     assert hasattr(utils, "extract_usage_metadata")

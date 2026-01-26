@@ -12,19 +12,9 @@ import pytest
 from opentelemetry.instrumentation.claude_agent_sdk import (
     ClaudeAgentSDKInstrumentor,
 )
-from opentelemetry.instrumentation.claude_agent_sdk.context import (
-    clear_parent_invocation,
-    get_parent_invocation,
-    set_parent_invocation,
-)
-from opentelemetry.instrumentation.claude_agent_sdk.hooks import (
-    post_tool_use_hook,
-    pre_tool_use_hook,
-)
 from opentelemetry.instrumentation.claude_agent_sdk.utils import (
     extract_usage_metadata,
     sum_anthropic_tokens,
-    truncate_value,
 )
 from opentelemetry.sdk.metrics import MeterProvider
 
@@ -101,50 +91,6 @@ def test_utils_work_with_mock_data(instrument):
     summed = sum_anthropic_tokens(usage_data)
     assert summed["input_tokens"] == 100
     assert summed["output_tokens"] == 50
-
-    # Test truncation
-    truncated = truncate_value("test" * 100, max_length=50)
-    assert len(truncated) <= 53  # 50 + "..."
-
-
-def test_context_operations_isolated(instrument):
-    """Test context operations work in isolated test environment."""
-    # Set and retrieve
-    test_value = "test_invocation_123"
-    set_parent_invocation(test_value)
-    assert get_parent_invocation() == test_value
-
-    # Clear
-    clear_parent_invocation()
-    assert get_parent_invocation() is None
-
-
-def test_hooks_can_be_called_directly(instrument):
-    """Test that hooks can be called directly without crashing."""
-    # Call pre hook
-    tool_data = {
-        "tool_name": "TestTool",
-        "tool_input": {"param": "value"},
-    }
-
-    try:
-        result = asyncio.run(pre_tool_use_hook(tool_data, "tool_123", {}))
-        assert isinstance(result, dict)
-    except Exception as e:
-        # Hook might need full context, but shouldn't crash hard
-        print(f"Hook raised: {e}")
-
-    # Call post hook
-    result_data = {
-        "tool_name": "TestTool",
-        "tool_response": "success",
-    }
-
-    try:
-        result = asyncio.run(post_tool_use_hook(result_data, "tool_123", {}))
-        assert isinstance(result, dict)
-    except Exception as e:
-        print(f"Hook raised: {e}")
 
 
 def test_instrumentor_lifecycle_complete(tracer_provider):

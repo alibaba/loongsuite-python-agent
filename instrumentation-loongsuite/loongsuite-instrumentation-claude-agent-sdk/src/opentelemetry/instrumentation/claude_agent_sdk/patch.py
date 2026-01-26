@@ -18,26 +18,17 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from claude_agent_sdk import HookMatcher
-from claude_agent_sdk.types import ClaudeAgentOptions
-
 from opentelemetry import context as otel_context
-from opentelemetry.instrumentation.claude_agent_sdk.context import (
-    clear_parent_invocation,
-    set_parent_invocation,
-)
-from opentelemetry.instrumentation.claude_agent_sdk.hooks import (
-    _client_managed_runs,
-    clear_active_tool_runs,
-    post_tool_use_hook,
-    pre_tool_use_hook,
-)
+from opentelemetry.trace import set_span_in_context
 from opentelemetry.instrumentation.claude_agent_sdk.utils import (
     extract_usage_from_result_message,
     get_model_from_options_or_env,
     infer_provider_from_base_url,
 )
-from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
+from opentelemetry.util.genai.extended_handler import (
+    ExtendedTelemetryHandler,
+    get_extended_telemetry_handler,
+)
 from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
@@ -46,12 +37,53 @@ from opentelemetry.util.genai.types import (
     Error,
     InputMessage,
     LLMInvocation,
+    MessagePart,
     OutputMessage,
     Text,
     ToolCall,
+    ToolCallResponse,
 )
 
 logger = logging.getLogger(__name__)
+
+# Storage for tool runs managed by client (created from response stream)
+# Key: tool_use_id, Value: tool_invocation
+_client_managed_runs: Dict[str, ExecuteToolInvocation] = {}
+
+
+def _clear_client_managed_runs() -> None:
+    """Clear all client-managed tool runs.
+    
+    This should be called when a conversation ends to avoid memory leaks
+    and to clean up any orphaned tool runs.
+    """
+    global _client_managed_runs
+
+    try:
+        handler = get_extended_telemetry_handler()
+    except Exception:
+        # If we can't get the handler (e.g., instrumentation not initialized),
+        # we still need to clear the tracking dictionary to prevent memory leaks.
+        _client_managed_runs.clear()
+        return
+
+    # End any orphaned tool runs
+    for tool_use_id, tool_invocation in list(_client_managed_runs.items()):
+        try:
+            handler.fail_execute_tool(
+                tool_invocation,
+                Error(
+                    message="Tool run not completed (conversation ended)",
+                    type=RuntimeError,
+                ),
+            )
+        except Exception:
+            # Ignore errors when failing orphaned tools during cleanup.
+            # If the span is already ended or invalid, we don't want to crash.
+            # Best effort cleanup: continue processing remaining tools.
+            pass
+
+    _client_managed_runs.clear()
 
 
 def _extract_message_parts(msg: Any) -> List[Any]:
@@ -78,82 +110,67 @@ def _extract_message_parts(msg: Any) -> List[Any]:
 def _create_tool_spans_from_message(
     msg: Any,
     handler: ExtendedTelemetryHandler,
+    agent_invocation: InvokeAgentInvocation,
+    active_task_stack: List[Any],
     exclude_tool_names: Optional[List[str]] = None,
 ) -> None:
-    """Create tool execution spans from ToolUseBlocks in an AssistantMessage."""
+    """Create tool execution spans from ToolUseBlocks in an AssistantMessage.
+    
+    Tool spans are children of the active Task span (if any), otherwise agent span.
+    When a Task tool is created, it's pushed onto active_task_stack.
+    """
     if not hasattr(msg, "content"):
         return
 
     exclude_tool_names = exclude_tool_names or []
 
-    for block in msg.content:
-        if type(block).__name__ != "ToolUseBlock":
-            continue
-
-        tool_use_id = getattr(block, "id", None)
-        tool_name = getattr(block, "name", "unknown_tool")
-        tool_input = getattr(block, "input", {})
-
-        if not tool_use_id or tool_name in exclude_tool_names:
-            continue
-
+    # Determine parent span: use active Task span if exists, otherwise agent span
+    parent_span = active_task_stack[-1].span if active_task_stack else agent_invocation.span
+    
+    parent_context_token = None
+    if parent_span:
         try:
-            tool_invocation = ExecuteToolInvocation(
-                tool_name=tool_name,
-                tool_call_id=tool_use_id,
-                tool_call_arguments=tool_input,
-                tool_description=tool_name,
+            parent_context_token = otel_context.attach(
+                set_span_in_context(parent_span)
             )
-            handler.start_execute_tool(tool_invocation)
-            _client_managed_runs[tool_use_id] = tool_invocation
+        except Exception:
+            pass
 
-        except Exception as e:
-            logger.warning(f"Failed to create tool span for {tool_name}: {e}")
+    try:
+        for block in msg.content:
+            if type(block).__name__ != "ToolUseBlock":
+                continue
+            
+            tool_use_id = getattr(block, "id", None)
+            tool_name = getattr(block, "name", "unknown_tool")
+            tool_input = getattr(block, "input", {})
 
+            if not tool_use_id or tool_name in exclude_tool_names:
+                continue
 
-def _close_tool_spans_from_message(
-    msg: Any,
-    handler: ExtendedTelemetryHandler,
-) -> List[str]:
-    """Close tool execution spans from ToolResultBlocks in a UserMessage."""
-    user_text_parts = []
+            try:
+                tool_invocation = ExecuteToolInvocation(
+                    tool_name=tool_name,
+                    tool_call_id=tool_use_id,
+                    tool_call_arguments=tool_input,
+                    tool_description=tool_name,
+                )
+                handler.start_execute_tool(tool_invocation)
+                _client_managed_runs[tool_use_id] = tool_invocation
+                
+                # If this is a Task tool, push it onto the stack
+                if tool_name == "Task":
+                    active_task_stack.append(tool_invocation)
+                    logger.debug(f"Task span created and pushed: {tool_use_id}, stack depth: {len(active_task_stack)}")
 
-    if not hasattr(msg, "content"):
-        return user_text_parts
-
-    for block in msg.content:
-        block_type = type(block).__name__
-
-        if block_type == "ToolResultBlock":
-            tool_use_id = getattr(block, "tool_use_id", None)
-            if tool_use_id and tool_use_id in _client_managed_runs:
-                tool_invocation = _client_managed_runs.pop(tool_use_id)
-
-                # Set tool response
-                tool_content = getattr(block, "content", None)
-                is_error_value = getattr(block, "is_error", None)
-                is_error = is_error_value is True
-
-                tool_invocation.tool_call_result = tool_content
-
-                # Complete tool span
-                if is_error:
-                    error_msg = (
-                        str(tool_content)
-                        if tool_content
-                        else "Tool execution error"
-                    )
-                    handler.fail_execute_tool(
-                        tool_invocation,
-                        Error(message=error_msg, type=RuntimeError),
-                    )
-                else:
-                    handler.stop_execute_tool(tool_invocation)
-
-        elif block_type == "TextBlock":
-            user_text_parts.append(getattr(block, "text", ""))
-
-    return user_text_parts
+            except Exception as e:
+                logger.warning(f"Failed to create tool span for {tool_name}: {e}")
+    finally:
+        if parent_context_token is not None:
+            try:
+                otel_context.detach(parent_context_token)
+            except Exception:
+                pass
 
 
 def _update_token_usage(
@@ -186,13 +203,20 @@ def _process_assistant_message(
     turn_tracker: "AssistantTurnTracker",
     handler: ExtendedTelemetryHandler,
     collected_messages: List[Dict[str, Any]],
+    active_task_stack: List[Any],
 ) -> None:
     """Process AssistantMessage: create LLM turn, extract parts, create tool spans."""
     parts = _extract_message_parts(msg)
     has_text_content = any(isinstance(p, Text) for p in parts)
+    has_tool_calls = any(isinstance(p, ToolCall) for p in parts)
+    
+    # Check if we're inside a Task
+    is_inside_task = len(active_task_stack) > 0
 
     if has_text_content:
-        # This is the start of a new LLM response (with text content)
+        if turn_tracker.current_llm_invocation:
+            turn_tracker.close_llm_turn()
+        
         message_arrival_time = time.time()
 
         turn_tracker.start_llm_turn(
@@ -207,29 +231,47 @@ def _process_assistant_message(
         if parts:
             turn_tracker.add_assistant_output(parts)
             output_msg = OutputMessage(
-                role="assistant", parts=parts, finish_reason="stop"
+                role="assistant", parts=list(parts), finish_reason="stop"
             )
             agent_invocation.output_messages.append(output_msg)
-
-            text_parts = [p.content for p in parts if isinstance(p, Text)]
-            if text_parts:
+            
+            # Only add to collected_messages if not inside a Task
+            if not is_inside_task:
                 collected_messages.append(
-                    {"role": "assistant", "content": " ".join(text_parts)}
+                    {"role": "assistant", "parts": list(parts)}
                 )
 
-    else:
-        # This is a tool-only message, part of the current LLM turn
-        # Append it to the current LLM invocation's output
+    elif has_tool_calls:
         if parts and turn_tracker.current_llm_invocation:
-            turn_tracker.add_assistant_output(parts)
-            output_msg = OutputMessage(
-                role="assistant", parts=parts, finish_reason="stop"
-            )
-            agent_invocation.output_messages.append(output_msg)
+            if turn_tracker.current_llm_invocation.output_messages:
+                last_output_msg = turn_tracker.current_llm_invocation.output_messages[-1]
+                last_output_msg.parts.extend(parts)
+            else:
+                turn_tracker.add_assistant_output(parts)
 
+        # Only add to collected_messages if not inside a Task
+        if not is_inside_task:
+            if parts and collected_messages:
+                last_msg = collected_messages[-1]
+                if (last_msg.get("role") == "assistant" and 
+                    turn_tracker.current_llm_invocation):
+                    last_parts = last_msg.get("parts", [])
+                    last_parts.extend(parts)
+                    last_msg["parts"] = last_parts
+                else:
+                    collected_messages.append(
+                        {"role": "assistant", "parts": list(parts)}
+                    )
+            elif parts:
+                collected_messages.append(
+                    {"role": "assistant", "parts": list(parts)}
+                )
+
+    # Close LLM turn before creating tool spans to ensure correct timeline
+    if has_tool_calls and turn_tracker.current_llm_invocation:
         turn_tracker.close_llm_turn()
 
-    _create_tool_spans_from_message(msg, handler)
+    _create_tool_spans_from_message(msg, handler, agent_invocation, active_task_stack)
 
 
 def _process_user_message(
@@ -237,14 +279,85 @@ def _process_user_message(
     turn_tracker: "AssistantTurnTracker",
     handler: ExtendedTelemetryHandler,
     collected_messages: List[Dict[str, Any]],
+    active_task_stack: List[Any],
 ) -> None:
     """Process UserMessage: close tool spans, collect message content, mark next LLM start."""
-    user_text_parts = _close_tool_spans_from_message(msg, handler)
+    user_parts: List[MessagePart] = []
+    tool_parts: List[MessagePart] = []
+    
+    # Check if we're inside a Task
+    is_inside_task = len(active_task_stack) > 0
+    
+    if hasattr(msg, "content"):
+        for block in msg.content:
+            block_type = type(block).__name__
+            
+            if block_type == "ToolResultBlock":
+                tool_use_id = getattr(block, "tool_use_id", None)
+                if tool_use_id and tool_use_id in _client_managed_runs:
+                    tool_invocation = _client_managed_runs.pop(tool_use_id)
 
-    if user_text_parts:
-        user_content = " ".join(user_text_parts)
-        collected_messages.append({"role": "user", "content": user_content})
+                    # Set tool response
+                    tool_content = getattr(block, "content", None)
+                    is_error_value = getattr(block, "is_error", None)
+                    is_error = is_error_value is True
 
+                    tool_invocation.tool_call_result = tool_content
+
+                    if is_error:
+                        error_msg = (
+                            str(tool_content)
+                            if tool_content
+                            else "Tool execution error"
+                        )
+                        handler.fail_execute_tool(
+                            tool_invocation,
+                            Error(message=error_msg, type=RuntimeError),
+                        )
+                    else:
+                        handler.stop_execute_tool(tool_invocation)
+                    
+                    # Check if this is a Task tool result - if so, pop from stack
+                    # BEFORE we check is_inside_task for message filtering
+                    is_task_result = active_task_stack and active_task_stack[-1].tool_call_id == tool_use_id
+                    if is_task_result:
+                        active_task_stack.pop()
+                        logger.debug(f"Task span closed and popped: {tool_use_id}, stack depth: {len(active_task_stack)}")
+                
+                if tool_use_id:
+                    tool_parts.append(
+                        ToolCallResponse(
+                            id=tool_use_id,
+                            response=tool_content if tool_content else "",
+                        )
+                    )
+            
+            elif block_type == "TextBlock":
+                text_content = getattr(block, "text", "")
+                if text_content:
+                    user_parts.append(Text(content=text_content))
+
+    # Re-check if we're inside a Task AFTER popping Task results
+    # This ensures Task tool results are NOT filtered out
+    is_inside_task = len(active_task_stack) > 0
+    
+    # Only add to collected_messages if not inside a Task
+    if not is_inside_task:
+        if user_parts:
+            collected_messages.append({"role": "user", "parts": user_parts})
+        
+        if tool_parts:
+            if collected_messages:
+                last_msg = collected_messages[-1]
+                if (last_msg.get("role") == "tool" and 
+                    turn_tracker.current_llm_invocation):
+                    last_parts = last_msg.get("parts", [])
+                    last_parts.extend(tool_parts)
+                    last_msg["parts"] = last_parts
+                else:
+                    collected_messages.append({"role": "tool", "parts": tool_parts})
+            else:
+                collected_messages.append({"role": "tool", "parts": tool_parts})    
     # Always mark next LLM start when UserMessage arrives
     turn_tracker.mark_next_llm_start()
 
@@ -254,15 +367,14 @@ def _process_result_message(
     agent_invocation: InvokeAgentInvocation,
     turn_tracker: "AssistantTurnTracker",
 ) -> None:
-    """Process ResultMessage: update session_id and token usage."""
+    """Process ResultMessage: update session_id, token usage, and close any open LLM turn."""
     if hasattr(msg, "session_id") and msg.session_id:
         agent_invocation.conversation_id = msg.session_id
-        if agent_invocation.span:
-            agent_invocation.span.set_attribute(
-                "gen_ai.conversation.id", msg.session_id
-            )
 
     _update_token_usage(agent_invocation, turn_tracker, msg)
+    
+    if turn_tracker.current_llm_invocation:
+        turn_tracker.close_llm_turn()
 
 
 async def _process_agent_invocation_stream(
@@ -288,10 +400,11 @@ async def _process_agent_invocation_stream(
         else [],
     )
 
-    # Clear context to create a new root trace for each independent query
-    otel_context.attach(otel_context.Context())
+    # Attach empty context to clear any previous context, ensuring each query
+    # creates an independent root trace. This is important for scenarios where
+    # multiple queries are called in the same script - each should have its own trace_id.
+    empty_context_token = otel_context.attach(otel_context.Context())
     handler.start_invoke_agent(agent_invocation)
-    set_parent_invocation(agent_invocation)
 
     query_start_time = time.time()
     turn_tracker = AssistantTurnTracker(
@@ -299,6 +412,11 @@ async def _process_agent_invocation_stream(
     )
 
     collected_messages: List[Dict[str, Any]] = []
+    
+    # Stack to track active Task tool invocations
+    # When a Task tool is created, it's pushed here
+    # When its ToolResultBlock is received, it's popped
+    active_task_stack: List[Any] = []
 
     try:
         async for msg in wrapped_stream:
@@ -313,6 +431,7 @@ async def _process_agent_invocation_stream(
                     turn_tracker,
                     handler,
                     collected_messages,
+                    active_task_stack,
                 )
             elif msg_type == "UserMessage":
                 _process_user_message(
@@ -320,17 +439,16 @@ async def _process_agent_invocation_stream(
                     turn_tracker,
                     handler,
                     collected_messages,
+                    active_task_stack,
                 )
             elif msg_type == "ResultMessage":
                 _process_result_message(msg, agent_invocation, turn_tracker)
 
             yield msg
 
-        # Handle successful completion
         handler.stop_invoke_agent(agent_invocation)
 
     except Exception as e:
-        # Handle error
         error_msg = str(e)
         if agent_invocation.span:
             agent_invocation.span.set_attribute("error.type", type(e).__name__)
@@ -341,10 +459,18 @@ async def _process_agent_invocation_stream(
 
         raise
     finally:
-        # Cleanup
         turn_tracker.close()
-        clear_active_tool_runs()
-        clear_parent_invocation()
+        
+        # Clean up any remaining Task spans in stack (shouldn't happen in normal flow)
+        while active_task_stack:
+            task_invocation = active_task_stack.pop()
+            logger.warning(f"Unclosed Task span at end of invocation: {task_invocation.tool_call_id}")
+        
+        # Detach empty context token to restore the original context.
+        # Note: stop_invoke_agent/fail_invoke_agent already detached invocation.context_token,
+        # which restored to empty context. Now we detach empty_context_token to restore further.
+        otel_context.detach(empty_context_token)
+        _clear_client_managed_runs()
 
 
 class AssistantTurnTracker:
@@ -388,7 +514,6 @@ class AssistantTurnTracker:
 
         self.next_llm_start_time = None
 
-        # Build input_messages from prompt + collected messages
         input_messages = []
 
         if prompt:
@@ -398,11 +523,19 @@ class AssistantTurnTracker:
 
         for hist_msg in collected_messages:
             role = hist_msg.get("role", "user")
-            content = hist_msg.get("content", "")
-            if isinstance(content, str) and content:
-                input_messages.append(
-                    InputMessage(role=role, parts=[Text(content=content)])
-                )
+            
+            if "parts" in hist_msg:
+                parts = hist_msg["parts"]
+                if parts:
+                    input_messages.append(
+                        InputMessage(role=role, parts=parts)
+                    )
+            elif "content" in hist_msg:
+                content = hist_msg["content"]
+                if isinstance(content, str) and content:
+                    input_messages.append(
+                        InputMessage(role=role, parts=[Text(content=content)])
+                    )
 
         llm_invocation = LLMInvocation(
             provider=provider,
@@ -411,14 +544,7 @@ class AssistantTurnTracker:
         )
 
         self.handler.start_llm(llm_invocation)
-        # Override span start time.
-        # TODO(telemetry): Avoid relying on the private `_start_time` attribute.
-        # The long-term fix is to plumb a public `start_time` parameter through
-        # ExtendedTelemetryHandler.start_llm and the underlying span creation,
-        # so the desired start time can be set via a supported API instead of
-        # mutating internal span state here. Until that is available, we perform
-        # a best-effort adjustment guarded by hasattr and try/except so that
-        # failures do not break tracing.
+        # TODO(telemetry): Use public API for setting span start time
         if llm_invocation.span and start_time:
             start_time_ns = int(start_time * 1_000_000_000)
             try:
@@ -436,13 +562,9 @@ class AssistantTurnTracker:
             return
 
         output_msg = OutputMessage(
-            role="assistant", parts=parts, finish_reason="stop"
+            role="assistant", parts=list(parts), finish_reason="stop"
         )
         self.current_llm_invocation.output_messages.append(output_msg)
-
-    def add_user_message(self, content: str) -> None:
-        """Mark next LLM start time."""
-        self.mark_next_llm_start()
 
     def mark_next_llm_start(self) -> None:
         """Mark the start time for the next LLM invocation."""
@@ -477,41 +599,11 @@ class AssistantTurnTracker:
             self.current_llm_invocation = None
 
 
-def _inject_tracing_hooks(options: Any) -> None:
-    """Inject OpenTelemetry tracing hooks into ClaudeAgentOptions."""
-    if not hasattr(options, "hooks"):
-        return
-
-    if options.hooks is None:
-        options.hooks = {}
-
-    if "PreToolUse" not in options.hooks:
-        options.hooks["PreToolUse"] = []
-
-    if "PostToolUse" not in options.hooks:
-        options.hooks["PostToolUse"] = []
-
-    try:
-        otel_pre_matcher = HookMatcher(matcher=None, hooks=[pre_tool_use_hook])
-        otel_post_matcher = HookMatcher(
-            matcher=None, hooks=[post_tool_use_hook]
-        )
-
-        options.hooks["PreToolUse"].insert(0, otel_pre_matcher)
-        options.hooks["PostToolUse"].insert(0, otel_post_matcher)
-    except Exception as e:
-        logger.warning(f"Failed to inject tracing hooks: {e}")
-
-
 def wrap_claude_client_init(wrapped, instance, args, kwargs, handler=None):
     """Wrapper for ClaudeSDKClient.__init__ to inject tracing hooks."""
     if handler is None:
         logger.warning("Handler not provided, skipping instrumentation")
         return wrapped(*args, **kwargs)
-
-    options = kwargs.get("options") or (args[0] if args else None)
-    if options:
-        _inject_tracing_hooks(options)
 
     result = wrapped(*args, **kwargs)
 
@@ -547,7 +639,7 @@ async def wrap_claude_client_receive_response(
     prompt = getattr(instance, "_otel_prompt", "") or ""
     model = "unknown"
     if hasattr(instance, "options") and instance.options:
-        model = getattr(instance.options, "model", "unknown")
+        model = get_model_from_options_or_env(instance.options)
 
     async for msg in _process_agent_invocation_stream(
         wrapped(*args, **kwargs),
@@ -568,16 +660,6 @@ async def wrap_query(wrapped, instance, args, kwargs, handler=None):
 
     prompt = kwargs.get("prompt") or (args[0] if args else "")
     options = kwargs.get("options")
-
-    if options:
-        _inject_tracing_hooks(options)
-    elif options is None:
-        try:
-            options = ClaudeAgentOptions()
-            _inject_tracing_hooks(options)
-            kwargs["options"] = options
-        except Exception as e:
-            logger.warning(f"Failed to create ClaudeAgentOptions: {e}")
 
     model = get_model_from_options_or_env(options)
     prompt_str = str(prompt) if isinstance(prompt, str) else ""
