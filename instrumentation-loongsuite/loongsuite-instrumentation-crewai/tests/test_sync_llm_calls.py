@@ -16,21 +16,24 @@
 Test cases for synchronous LLM calls in CrewAI.
 
 Business Demo Description:
-This test suite uses CrewAI framework to create a simple Agent that performs
-synchronous LLM calls. The demo creates a single Agent with a specific role
-and executes a Task that requires LLM inference. This covers the basic
-functionality of CrewAI's Agent-Task-LLM interaction pattern.
+This test suite uses CrewAI framework to create Agents that perform synchronous
+LLM calls. It verifies the proper creation of OpenTelemetry GenAI spans for
+Crew, Task, and Agent operations, ensuring consistent trace hierarchy and
+standardized attribute capture.
 """
-import pysqlite3
-import sys
-sys.modules["sqlite3"] = pysqlite3
+
+import json
 import os
-from unittest.mock import Mock
-from crewai import Agent, Task, Crew
-from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
+import sys
+
+import pysqlite3
+from crewai import Agent, Crew, Task
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
+from opentelemetry.trace import StatusCode
+
+sys.modules["sqlite3"] = pysqlite3
 
 
 class TestSyncLLMCalls(TestBase):
@@ -40,46 +43,50 @@ class TestSyncLLMCalls(TestBase):
         """Setup test resources."""
         super().setUp()
         # Set up environment variables
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-openai-key-placeholder")
-        os.environ["DASHSCOPE_API_KEY"] = os.getenv("DASHSCOPE_API_KEY", "test-dashscope-key-placeholder")
-        os.environ["OPENAI_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        os.environ["DASHSCOPE_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        
-        # Initialize instrumentor
-        self.instrumentor = CrewAIInstrumentor()
-        self.instrumentor.instrument()
+        os.environ["OPENAI_API_KEY"] = os.environ.get(
+            "OPENAI_API_KEY", "fake-key"
+        )
+        os.environ["DASHSCOPE_API_KEY"] = os.environ.get(
+            "DASHSCOPE_API_KEY", "fake-key"
+        )
+        os.environ["OPENAI_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+        os.environ["DASHSCOPE_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
 
-        self.litellm_instrumentor = LiteLLMInstrumentor()
-        self.litellm_instrumentor.instrument()
-        
+        # Disable CrewAI's built-in tracing to avoid interference with OTel spans hierarchy during tests
+        os.environ["CREWAI_TRACING_ENABLED"] = "false"
+        self.instrumentor = CrewAIInstrumentor()
+        self.instrumentor.instrument(tracer_provider=self.tracer_provider)
+
         # Test data
-        self.model_name = "dashscope/qwen-turbo"
+        self.model_name = "openai/qwen-turbo"
+
     def tearDown(self):
         """Cleanup test resources."""
         # Uninstrument to avoid affecting other tests
         with self.disable_logging():
             self.instrumentor.uninstrument()
-            self.litellm_instrumentor.uninstrument()
         super().tearDown()
-        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
-        SingletonMeta.reset()
 
     def test_basic_sync_crew_execution(self):
         """
         Test basic synchronous Crew execution with a single Agent and Task.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent (Data Analyst role)
         - Executes 1 Task (analyze AI trends)
         - Performs 1 synchronous LLM call
         - Uses OpenAI GPT-4o-mini model
-        
+
         Verification:
-        - CHAIN span for Crew.kickoff with input/output
-        - AGENT span for Agent.execute_task
-        - TASK span for Task execution
-        - LLM span with model, tokens, and messages
-        - Metrics: genai_calls_count=1, genai_calls_duration_seconds, genai_llm_usage_tokens
+        - CHAIN span for Crew.kickoff (gen_ai.operation.name="crew.kickoff")
+        - TASK span for Task execution (gen_ai.operation.name="task.execute")
+        - AGENT span for Agent.execute_task (gen_ai.operation.name="agent.execute")
+        - Verified parent-child relationship (Crew -> Task -> Agent)
+        - Standardized OpenTelemetry GenAI attributes (gen_ai.system, gen_ai.input.messages, etc.)
         """
         # Create Agent
         agent = Agent(
@@ -108,83 +115,82 @@ class TestSyncLLMCalls(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        self.assertGreaterEqual(len(spans), 3, f"Expected at least 3 spans, got {len(spans)}")
 
-        # Find spans by kind
-        chain_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "CHAIN"]
-        agent_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "AGENT"]
-        task_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TASK"]
-        llm_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "LLM"]
+        # 1. Verify existence of all levels in hierarchy
+        crew_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "crew.kickoff"
+        ]
+        task_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "task.execute"
+        ]
+        agent_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "agent.execute"
+        ]
 
-        # Verify CHAIN span
-        self.assertGreaterEqual(len(chain_spans), 1, "Expected at least 1 CHAIN span")
-        chain_span = chain_spans[0]
-        self.assertEqual(chain_span.attributes.get("gen_ai.span.kind"), "CHAIN")
-        self.assertIsNotNone(chain_span.attributes.get("gen_ai.operation.name"))
-        self.assertIsNotNone(chain_span.attributes.get("output.value"))
+        self.assertGreaterEqual(
+            len(crew_spans), 1, "Should capture crew.kickoff"
+        )
+        self.assertGreaterEqual(
+            len(task_spans), 1, "Should capture task.execute"
+        )
+        self.assertGreaterEqual(
+            len(agent_spans), 1, "Should capture agent.execute"
+        )
 
-        # Verify AGENT span
-        self.assertGreaterEqual(len(agent_spans), 1, "Expected at least 1 AGENT span")
-        agent_span = agent_spans[0]
-        self.assertEqual(agent_span.attributes.get("gen_ai.span.kind"), "AGENT")
-        self.assertIsNotNone(agent_span.attributes.get("input.value"))
-        self.assertIsNotNone(agent_span.attributes.get("output.value"))
-
-        # Verify TASK span
-        self.assertGreaterEqual(len(task_spans), 1, "Expected at least 1 TASK span")
+        # 2. Verify Span Hierarchy and Trace Continuity
+        crew_span = crew_spans[0]
         task_span = task_spans[0]
-        self.assertEqual(task_span.attributes.get("gen_ai.span.kind"), "TASK")
-        self.assertIsNotNone(task_span.attributes.get("input.value"))
+        agent_span = agent_spans[0]
 
-        # Verify LLM span (if wrapped successfully)
-        if llm_spans:
-            llm_span = llm_spans[0]
-            self.assertEqual(llm_span.attributes.get("gen_ai.span.kind"), "LLM")
-            self.assertEqual(llm_span.attributes.get("gen_ai.system"), "dashscope")
-            self.assertIsNotNone(llm_span.attributes.get("gen_ai.request.model"))
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.input_tokens"), 0)
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.output_tokens"), 0)
-            self.assertGreater(llm_span.attributes.get("gen_ai.usage.total_tokens"), 0)
+        # All spans must share the same Trace ID
+        trace_id = crew_span.context.trace_id
+        for s in spans:
+            self.assertEqual(
+                s.context.trace_id,
+                trace_id,
+                "Trace ID must be consistent across all spans",
+            )
 
-        # Verify metrics
-        metrics = self.memory_metrics_reader.get_metrics_data()
+        # Verify parent-child relationship (Crew -> Task -> Agent)
+        self.assertEqual(
+            task_span.parent.span_id,
+            crew_span.context.span_id,
+            "Task should be child of Crew",
+        )
+        self.assertEqual(
+            agent_span.parent.span_id,
+            task_span.context.span_id,
+            "Agent should be child of Task",
+        )
 
-        # Check for genai_calls_count
-        calls_count_found = False
-        duration_found = False
-        token_usage_found = False
+        # 3. Verify OpenTelemetry GenAI Attributes
+        for s in [crew_span, task_span, agent_span]:
+            self.assertEqual(s.attributes.get("gen_ai.system"), "crewai")
+            self.assertIsNotNone(s.attributes.get("gen_ai.operation.name"))
 
-        for resource_metrics in metrics.resource_metrics:
-            for scope_metrics in resource_metrics.scope_metrics:
-                for metric in scope_metrics.metrics:
-                    if metric.name == "genai_calls_count":
-                        calls_count_found = True
-                        # Verify at least 1 call was recorded
-                        for data_point in metric.data.data_points:
-                            self.assertGreaterEqual(data_point.value, 1)
-                            self.assertIsNotNone(data_point.attributes.get("modelName"))
-                            self.assertEqual(data_point.attributes.get("spanKind"), "LLM")
+        # 4. Verify Content Capture (JSON formatted messages)
+        # Verify inputs in task span
+        input_messages_json = task_span.attributes.get("gen_ai.input.messages")
+        self.assertIsNotNone(input_messages_json)
+        input_messages = json.loads(input_messages_json)
+        self.assertGreater(len(input_messages), 0)
+        self.assertIn("AI trends", input_messages[0]["parts"][0]["content"])
 
-                    elif metric.name == "genai_calls_duration_seconds":
-                        duration_found = True
-                        # Verify duration was recorded
-                        for data_point in metric.data.data_points:
-                            self.assertGreaterEqual(data_point.count, 1)
-                            self.assertIsNotNone(data_point.attributes.get("modelName"))
-                            self.assertEqual(data_point.attributes.get("spanKind"), "LLM")
+        # Verify outputs in task span
+        output_messages_json = task_span.attributes.get(
+            "gen_ai.output.messages"
+        )
+        self.assertIsNotNone(output_messages_json)
+        output_messages = json.loads(output_messages_json)
+        self.assertGreater(len(output_messages), 0)
+        self.assertEqual(output_messages[0]["role"], "assistant")
 
-                    elif metric.name == "genai_llm_usage_tokens":
-                        token_usage_found = True
-                        # Verify token usage was recorded
-                        for data_point in metric.data.data_points:
-                            usage_type = data_point.attributes.get("usageType")
-                            self.assertIn(usage_type, ["input", "output", "total"])
-                            self.assertIsNotNone(data_point.attributes.get("modelName"))
-                            self.assertEqual(data_point.attributes.get("spanKind"), "LLM")
-
-        self.assertTrue(calls_count_found, "genai_calls_count metric not found")
-        self.assertTrue(duration_found, "genai_calls_duration_seconds metric not found")
-        self.assertTrue(token_usage_found, "genai_llm_usage_tokens metric not found")
     def test_crew_with_multiple_tasks(self):
         """
         Test Crew execution with multiple sequential tasks.
@@ -196,10 +202,10 @@ class TestSyncLLMCalls(TestBase):
 
         Verification:
         - 1 CHAIN span for Crew.kickoff
-        - 2 AGENT spans (one per task execution)
         - 2 TASK spans
-        - 2 LLM spans
-        - Metrics: genai_calls_count=2
+        - 2 AGENT spans (one per task execution)
+        - Trace continuity: all spans share the same Trace ID
+        - Hierarchical consistency: Tasks belong to the Crew trace
         """
         # Create Agent
         agent = Agent(
@@ -235,20 +241,110 @@ class TestSyncLLMCalls(TestBase):
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
 
-        chain_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "CHAIN"]
-        task_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TASK"]
+        chain_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "crew.kickoff"
+        ]
+        task_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "task.execute"
+        ]
 
-        # Should have 1 CHAIN span and 2 TASK spans
-        self.assertGreaterEqual(len(chain_spans), 1, "Expected at least 1 CHAIN span")
-        self.assertGreaterEqual(len(task_spans), 2, f"Expected at least 2 TASK spans, got {len(task_spans)}")
+        self.assertGreaterEqual(len(chain_spans), 1)
+        self.assertEqual(len(task_spans), 2)
 
-        # Verify metrics show 2 LLM calls
-        metrics = self.memory_metrics_reader.get_metrics_data()
+        # Verify Trace Continuity
+        trace_id = chain_spans[0].context.trace_id
+        for s in spans:
+            self.assertEqual(
+                s.context.trace_id,
+                trace_id,
+                "Trace ID must be consistent across multiple tasks",
+            )
 
-        for resource_metrics in metrics.resource_metrics:
-            for scope_metrics in resource_metrics.scope_metrics:
-                for metric in scope_metrics.metrics:
-                    if metric.name == "genai_calls_count":
-                        for data_point in metric.data.data_points:
-                            # Should have at least 2 calls
-                            self.assertGreaterEqual(data_point.value, 2, f"Expected at least 2 LLM calls, got {data_point.value}")
+        # Verify structure: Tasks should belong to the same trace and have a parent
+        # Note: Depending on CrewAI internal logic, tasks might be direct or indirect children of Crew
+        for t_span in task_spans:
+            self.assertIsNotNone(
+                t_span.parent, "All tasks should have a parent"
+            )
+            self.assertEqual(
+                t_span.context.trace_id,
+                trace_id,
+                "Tasks should belong to the Crew trace",
+            )
+
+    def test_sync_call_with_error(self):
+        """
+        Test synchronous Crew execution with error during LLM call.
+
+        Verification:
+        - At least one span has ERROR status
+        - Exception events recorded
+        - Inputs captured even on failure
+        """
+        # Use invalid model name to trigger error
+        agent = Agent(
+            role="Content Writer",
+            goal="Write content",
+            backstory="Expert writer",
+            verbose=False,
+            llm="invalid-model-name",
+        )
+
+        task = Task(
+            description="Write a message",
+            expected_output="A message",
+            agent=agent,
+        )
+
+        crew = Crew(
+            agents=[agent],
+            tasks=[task],
+            verbose=False,
+        )
+
+        # Expect error during execution
+        try:
+            crew.kickoff()
+        except Exception:
+            pass  # Expected
+
+        # Verify spans for error state
+        spans = self.memory_exporter.get_finished_spans()
+
+        # Filter agent span (where error usually originated in this case)
+        error_spans = [
+            s for s in spans if s.status.status_code == StatusCode.ERROR
+        ]
+        self.assertGreaterEqual(
+            len(error_spans), 1, "At least one span should be marked as ERROR"
+        )
+
+        for span in error_spans:
+            # 1. Verify Status
+            self.assertEqual(span.status.status_code, StatusCode.ERROR)
+
+            # 2. Verify Exception Events
+            self.assertGreater(
+                len(span.events),
+                0,
+                "Span should have recorded exception events",
+            )
+            exception_events = [
+                e for e in span.events if e.name == "exception"
+            ]
+            self.assertGreater(
+                len(exception_events), 0, "Should contain 'exception' event"
+            )
+
+            # 3. Verify Input Capture (even on failure)
+            op_name = span.attributes.get("gen_ai.operation.name")
+            if op_name in ["task.execute", "agent.execute"]:
+                input_messages = span.attributes.get("gen_ai.input.messages")
+                self.assertIsNotNone(
+                    input_messages,
+                    f"Span {op_name} should capture inputs even on failure",
+                )
