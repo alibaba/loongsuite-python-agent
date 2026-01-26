@@ -256,8 +256,13 @@ def _process_assistant_message(
                     turn_tracker.current_llm_invocation.output_messages[-1]
                 )
                 last_output_msg.parts.extend(parts)
+                last_output_msg.finish_reason = "tool_calls"
             else:
                 turn_tracker.add_assistant_output(parts)
+                output_msg = OutputMessage(
+                    role="assistant", parts=list(parts), finish_reason="tool_calls"
+                )
+                turn_tracker.current_llm_invocation.output_messages.append(output_msg)
 
         # Only add to collected_messages if not inside a Task
         if not is_inside_task:

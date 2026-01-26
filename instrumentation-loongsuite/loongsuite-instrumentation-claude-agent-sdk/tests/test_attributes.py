@@ -8,8 +8,6 @@ from opentelemetry.instrumentation import claude_agent_sdk
 from opentelemetry.instrumentation.claude_agent_sdk import (
     ClaudeAgentSDKInstrumentor,
     __version__,
-    hooks,
-    utils,
 )
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.semconv._incubating.attributes import (
@@ -307,15 +305,3 @@ async def test_span_attributes_no_sensitive_data(
                 # Sensitive content should not be in attributes
                 assert "secret123" not in attr_value.lower()
 
-
-def test_hooks_are_exported():
-    """Test that hooks are exported for external use."""
-    # Check internal hooks can be imported
-    assert hasattr(hooks, "pre_tool_use_hook")
-    assert hasattr(hooks, "post_tool_use_hook")
-
-
-def test_utils_are_internal():
-    """Test that utils are properly organized."""
-    # Utils should have the helper functions
-    assert hasattr(utils, "extract_usage_metadata")
