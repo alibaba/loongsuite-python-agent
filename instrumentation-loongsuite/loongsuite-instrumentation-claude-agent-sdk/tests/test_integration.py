@@ -4,7 +4,6 @@ These tests mock the Claude Agent SDK at a lower level to simulate
 realistic scenarios without requiring API keys.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -57,12 +56,12 @@ async def test_client_with_mocked_response(instrument, span_exporter):
 @pytest.mark.asyncio
 async def test_instrumentor_doesnt_crash_with_mocks(instrument, span_exporter):
     """Test that instrumentor doesn't crash even with mock objects."""
-    # This test验证instrumentation可以安全处理mock对象
+    # This test verifies instrumentation can safely handle mock objects
     mock_msg = Mock()
     mock_msg.content = []
     mock_msg.usage = None
 
-    # 使用instrumented环境处理mock对象不应该崩溃
+    # Using instrumented environment should not crash when handling mock objects
     try:
         # Simulate what instrumentation might do
         if hasattr(mock_msg, "usage") and mock_msg.usage:

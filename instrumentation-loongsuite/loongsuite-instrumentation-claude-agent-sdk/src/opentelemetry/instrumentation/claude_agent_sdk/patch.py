@@ -19,12 +19,12 @@ import time
 from typing import Any, Dict, List, Optional
 
 from opentelemetry import context as otel_context
-from opentelemetry.trace import set_span_in_context
 from opentelemetry.instrumentation.claude_agent_sdk.utils import (
     extract_usage_from_result_message,
     get_model_from_options_or_env,
     infer_provider_from_base_url,
 )
+from opentelemetry.trace import set_span_in_context
 from opentelemetry.util.genai.extended_handler import (
     ExtendedTelemetryHandler,
     get_extended_telemetry_handler,
@@ -53,7 +53,7 @@ _client_managed_runs: Dict[str, ExecuteToolInvocation] = {}
 
 def _clear_client_managed_runs() -> None:
     """Clear all client-managed tool runs.
-    
+
     This should be called when a conversation ends to avoid memory leaks
     and to clean up any orphaned tool runs.
     """
@@ -115,7 +115,7 @@ def _create_tool_spans_from_message(
     exclude_tool_names: Optional[List[str]] = None,
 ) -> None:
     """Create tool execution spans from ToolUseBlocks in an AssistantMessage.
-    
+
     Tool spans are children of the active Task span (if any), otherwise agent span.
     When a Task tool is created, it's pushed onto active_task_stack.
     """
@@ -125,8 +125,12 @@ def _create_tool_spans_from_message(
     exclude_tool_names = exclude_tool_names or []
 
     # Determine parent span: use active Task span if exists, otherwise agent span
-    parent_span = active_task_stack[-1].span if active_task_stack else agent_invocation.span
-    
+    parent_span = (
+        active_task_stack[-1].span
+        if active_task_stack
+        else agent_invocation.span
+    )
+
     parent_context_token = None
     if parent_span:
         try:
@@ -140,7 +144,7 @@ def _create_tool_spans_from_message(
         for block in msg.content:
             if type(block).__name__ != "ToolUseBlock":
                 continue
-            
+
             tool_use_id = getattr(block, "id", None)
             tool_name = getattr(block, "name", "unknown_tool")
             tool_input = getattr(block, "input", {})
@@ -157,14 +161,18 @@ def _create_tool_spans_from_message(
                 )
                 handler.start_execute_tool(tool_invocation)
                 _client_managed_runs[tool_use_id] = tool_invocation
-                
+
                 # If this is a Task tool, push it onto the stack
                 if tool_name == "Task":
                     active_task_stack.append(tool_invocation)
-                    logger.debug(f"Task span created and pushed: {tool_use_id}, stack depth: {len(active_task_stack)}")
+                    logger.debug(
+                        f"Task span created and pushed: {tool_use_id}, stack depth: {len(active_task_stack)}"
+                    )
 
             except Exception as e:
-                logger.warning(f"Failed to create tool span for {tool_name}: {e}")
+                logger.warning(
+                    f"Failed to create tool span for {tool_name}: {e}"
+                )
     finally:
         if parent_context_token is not None:
             try:
@@ -209,14 +217,14 @@ def _process_assistant_message(
     parts = _extract_message_parts(msg)
     has_text_content = any(isinstance(p, Text) for p in parts)
     has_tool_calls = any(isinstance(p, ToolCall) for p in parts)
-    
+
     # Check if we're inside a Task
     is_inside_task = len(active_task_stack) > 0
 
     if has_text_content:
         if turn_tracker.current_llm_invocation:
             turn_tracker.close_llm_turn()
-        
+
         message_arrival_time = time.time()
 
         turn_tracker.start_llm_turn(
@@ -234,7 +242,7 @@ def _process_assistant_message(
                 role="assistant", parts=list(parts), finish_reason="stop"
             )
             agent_invocation.output_messages.append(output_msg)
-            
+
             # Only add to collected_messages if not inside a Task
             if not is_inside_task:
                 collected_messages.append(
@@ -244,7 +252,9 @@ def _process_assistant_message(
     elif has_tool_calls:
         if parts and turn_tracker.current_llm_invocation:
             if turn_tracker.current_llm_invocation.output_messages:
-                last_output_msg = turn_tracker.current_llm_invocation.output_messages[-1]
+                last_output_msg = (
+                    turn_tracker.current_llm_invocation.output_messages[-1]
+                )
                 last_output_msg.parts.extend(parts)
             else:
                 turn_tracker.add_assistant_output(parts)
@@ -253,8 +263,10 @@ def _process_assistant_message(
         if not is_inside_task:
             if parts and collected_messages:
                 last_msg = collected_messages[-1]
-                if (last_msg.get("role") == "assistant" and 
-                    turn_tracker.current_llm_invocation):
+                if (
+                    last_msg.get("role") == "assistant"
+                    and turn_tracker.current_llm_invocation
+                ):
                     last_parts = last_msg.get("parts", [])
                     last_parts.extend(parts)
                     last_msg["parts"] = last_parts
@@ -271,7 +283,9 @@ def _process_assistant_message(
     if has_tool_calls and turn_tracker.current_llm_invocation:
         turn_tracker.close_llm_turn()
 
-    _create_tool_spans_from_message(msg, handler, agent_invocation, active_task_stack)
+    _create_tool_spans_from_message(
+        msg, handler, agent_invocation, active_task_stack
+    )
 
 
 def _process_user_message(
@@ -284,14 +298,14 @@ def _process_user_message(
     """Process UserMessage: close tool spans, collect message content, mark next LLM start."""
     user_parts: List[MessagePart] = []
     tool_parts: List[MessagePart] = []
-    
+
     # Check if we're inside a Task
     is_inside_task = len(active_task_stack) > 0
-    
+
     if hasattr(msg, "content"):
         for block in msg.content:
             block_type = type(block).__name__
-            
+
             if block_type == "ToolResultBlock":
                 tool_use_id = getattr(block, "tool_use_id", None)
                 if tool_use_id and tool_use_id in _client_managed_runs:
@@ -316,14 +330,19 @@ def _process_user_message(
                         )
                     else:
                         handler.stop_execute_tool(tool_invocation)
-                    
+
                     # Check if this is a Task tool result - if so, pop from stack
                     # BEFORE we check is_inside_task for message filtering
-                    is_task_result = active_task_stack and active_task_stack[-1].tool_call_id == tool_use_id
+                    is_task_result = (
+                        active_task_stack
+                        and active_task_stack[-1].tool_call_id == tool_use_id
+                    )
                     if is_task_result:
                         active_task_stack.pop()
-                        logger.debug(f"Task span closed and popped: {tool_use_id}, stack depth: {len(active_task_stack)}")
-                
+                        logger.debug(
+                            f"Task span closed and popped: {tool_use_id}, stack depth: {len(active_task_stack)}"
+                        )
+
                 if tool_use_id:
                     tool_parts.append(
                         ToolCallResponse(
@@ -331,7 +350,7 @@ def _process_user_message(
                             response=tool_content if tool_content else "",
                         )
                     )
-            
+
             elif block_type == "TextBlock":
                 text_content = getattr(block, "text", "")
                 if text_content:
@@ -340,24 +359,30 @@ def _process_user_message(
     # Re-check if we're inside a Task AFTER popping Task results
     # This ensures Task tool results are NOT filtered out
     is_inside_task = len(active_task_stack) > 0
-    
+
     # Only add to collected_messages if not inside a Task
     if not is_inside_task:
         if user_parts:
             collected_messages.append({"role": "user", "parts": user_parts})
-        
+
         if tool_parts:
             if collected_messages:
                 last_msg = collected_messages[-1]
-                if (last_msg.get("role") == "tool" and 
-                    turn_tracker.current_llm_invocation):
+                if (
+                    last_msg.get("role") == "tool"
+                    and turn_tracker.current_llm_invocation
+                ):
                     last_parts = last_msg.get("parts", [])
                     last_parts.extend(tool_parts)
                     last_msg["parts"] = last_parts
                 else:
-                    collected_messages.append({"role": "tool", "parts": tool_parts})
+                    collected_messages.append(
+                        {"role": "tool", "parts": tool_parts}
+                    )
             else:
-                collected_messages.append({"role": "tool", "parts": tool_parts})    
+                collected_messages.append(
+                    {"role": "tool", "parts": tool_parts}
+                )
     # Always mark next LLM start when UserMessage arrives
     turn_tracker.mark_next_llm_start()
 
@@ -372,7 +397,7 @@ def _process_result_message(
         agent_invocation.conversation_id = msg.session_id
 
     _update_token_usage(agent_invocation, turn_tracker, msg)
-    
+
     if turn_tracker.current_llm_invocation:
         turn_tracker.close_llm_turn()
 
@@ -412,7 +437,7 @@ async def _process_agent_invocation_stream(
     )
 
     collected_messages: List[Dict[str, Any]] = []
-    
+
     # Stack to track active Task tool invocations
     # When a Task tool is created, it's pushed here
     # When its ToolResultBlock is received, it's popped
@@ -460,12 +485,14 @@ async def _process_agent_invocation_stream(
         raise
     finally:
         turn_tracker.close()
-        
+
         # Clean up any remaining Task spans in stack (shouldn't happen in normal flow)
         while active_task_stack:
             task_invocation = active_task_stack.pop()
-            logger.warning(f"Unclosed Task span at end of invocation: {task_invocation.tool_call_id}")
-        
+            logger.warning(
+                f"Unclosed Task span at end of invocation: {task_invocation.tool_call_id}"
+            )
+
         # Detach empty context token to restore the original context.
         # Note: stop_invoke_agent/fail_invoke_agent already detached invocation.context_token,
         # which restored to empty context. Now we detach empty_context_token to restore further.
@@ -523,13 +550,11 @@ class AssistantTurnTracker:
 
         for hist_msg in collected_messages:
             role = hist_msg.get("role", "user")
-            
+
             if "parts" in hist_msg:
                 parts = hist_msg["parts"]
                 if parts:
-                    input_messages.append(
-                        InputMessage(role=role, parts=parts)
-                    )
+                    input_messages.append(InputMessage(role=role, parts=parts))
             elif "content" in hist_msg:
                 content = hist_msg["content"]
                 if isinstance(content, str) and content:
