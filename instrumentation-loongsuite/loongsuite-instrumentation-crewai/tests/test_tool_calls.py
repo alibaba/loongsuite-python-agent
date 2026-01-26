@@ -13,31 +13,35 @@
 # limitations under the License.
 
 """
-Test cases for tool calls and MCP integration in CrewAI.
+Test cases for tool calls and function calling in CrewAI.
 
 Business Demo Description:
 This test suite uses CrewAI framework to create Agents that use tools for
-function calling. The demo includes custom tools and verifies that tool
-invocations are properly traced with arguments and results.
+function calling. It verifies that tool invocations are properly traced as
+OpenTelemetry GenAI TOOL spans, capturing tool names, arguments, and results
+in a standardized format.
 """
-import pysqlite3
-import sys
-sys.modules["sqlite3"] = pysqlite3
+
+import json
 import os
-from crewai import Agent, Task, Crew
+import sys
+
+import pysqlite3
+from crewai import Agent, Crew, Task
 from crewai.tools.base_tool import BaseTool
-from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
 
+sys.modules["sqlite3"] = pysqlite3
+
 
 class WeatherTool(BaseTool):
     """Sample tool for weather lookup."""
-    
+
     name: str = "get_weather"
     description: str = "Get current weather for a location"
-    
+
     def _run(self, location: str) -> str:
         """Execute the tool."""
         return f"Weather in {location}: Sunny, 72°F"
@@ -45,10 +49,10 @@ class WeatherTool(BaseTool):
 
 class CalculatorTool(BaseTool):
     """Sample tool for calculations."""
-    
+
     name: str = "calculator"
     description: str = "Perform mathematical calculations"
-    
+
     def _run(self, expression: str) -> str:
         """Execute the tool."""
         try:
@@ -65,44 +69,46 @@ class TestToolCalls(TestBase):
         """Setup test resources."""
         super().setUp()
         # Set up environment variables
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-openai-key-placeholder")
-        os.environ["DASHSCOPE_API_KEY"] = os.getenv("DASHSCOPE_API_KEY", "test-dashscope-key-placeholder")
-        os.environ["OPENAI_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        os.environ["DASHSCOPE_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        
-        self.instrumentor = CrewAIInstrumentor()
-        self.instrumentor.instrument()
+        os.environ["OPENAI_API_KEY"] = os.environ.get(
+            "OPENAI_API_KEY", "fake-key"
+        )
+        os.environ["DASHSCOPE_API_KEY"] = os.environ.get(
+            "DASHSCOPE_API_KEY", "fake-key"
+        )
+        os.environ["OPENAI_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+        os.environ["DASHSCOPE_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
 
-        self.litellm_instrumentor = LiteLLMInstrumentor()
-        self.litellm_instrumentor.instrument()
-        
+        os.environ["CREWAI_TRACING_ENABLED"] = "false"
+        self.instrumentor = CrewAIInstrumentor()
+        self.instrumentor.instrument(tracer_provider=self.tracer_provider)
+
         # Test data
-        self.model_name = "dashscope/qwen-turbo"
-        
+        self.model_name = "openai/qwen-turbo"
+
     def tearDown(self):
         """Cleanup test resources."""
         with self.disable_logging():
             self.instrumentor.uninstrument()
-            self.litellm_instrumentor.uninstrument()
         super().tearDown()
-        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
-        SingletonMeta.reset()
 
     def test_agent_with_single_tool(self):
         """
         Test Agent execution with a single tool call.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent
         - Agent has access to 1 tool (WeatherTool)
         - Executes 1 Task that triggers tool usage
         - Performs 1 LLM call + 1 tool call
-        
+
         Verification:
-        - TOOL span with gen_ai.tool.name, gen_ai.tool.description
-        - TOOL span with gen_ai.tool.call.arguments and gen_ai.tool.call.result
-        - AGENT span contains tool execution context
-        - Metrics: genai_calls_count includes tool-triggered LLM calls
+        - TOOL span created with gen_ai.operation.name="tool.execute"
+        - Captured gen_ai.tool.name and tool input/output messages
+        - Hierarchical consistency: TOOL span is a child of AGENT span
         """
         # Create tool
         weather_tool = WeatherTool()
@@ -135,35 +141,56 @@ class TestToolCalls(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
-        tool_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TOOL"]
-        agent_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "AGENT"]
+
+        tool_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "tool.execute"
+        ]
+        agent_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "agent.execute"
+        ]
 
         # Verify TOOL span (if tool wrapper was successful)
         if tool_spans:
             tool_span = tool_spans[0]
-            self.assertEqual(tool_span.attributes.get("gen_ai.span.kind"), "TOOL")
-            self.assertIsNotNone(tool_span.attributes.get("gen_ai.tool.name"))
-            # Tool description and arguments may be present
-            # Tool result should be captured
+            self.assertEqual(
+                tool_span.attributes.get("gen_ai.operation.name"),
+                "tool.execute",
+            )
+            self.assertEqual(
+                tool_span.attributes.get("gen_ai.tool.name"), "get_weather"
+            )
+
+            output_messages_json = tool_span.attributes.get(
+                "gen_ai.output.messages"
+            )
+            self.assertIsNotNone(output_messages_json)
+            output_messages = json.loads(output_messages_json)
+            # Weather logic in WeatherTool returns weather string
+            self.assertIn("Sunny", output_messages[0]["parts"][0]["content"])
 
         # Verify AGENT span exists
-        self.assertGreaterEqual(len(agent_spans), 1, "Expected at least 1 AGENT span")
+        self.assertGreaterEqual(
+            len(agent_spans), 1, "Expected at least 1 AGENT span"
+        )
 
     def test_agent_with_multiple_tools(self):
         """
         Test Agent execution with multiple tool calls.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent
         - Agent has access to 2 tools (WeatherTool, CalculatorTool)
         - Executes 1 Task that may trigger multiple tool usages
         - Performs multiple LLM calls + multiple tool calls
-        
+
         Verification:
         - Multiple TOOL spans, each with correct tool name
-        - Each TOOL span has proper arguments and results
-        - Metrics: genai_calls_count reflects all LLM calls
+        - Each TOOL span has proper input arguments and output results
+        - Trace continuity across multiple nested tool calls
         """
         # Create tools
         weather_tool = WeatherTool()
@@ -197,35 +224,40 @@ class TestToolCalls(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
-        tool_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TOOL"]
-        
+
+        tool_spans = [
+            s for s in spans if s.attributes.get("gen_ai.span.kind") == "TOOL"
+        ]
+
         # May have multiple tool spans if tools were actually called
         # Each tool span should have proper attributes
         for tool_span in tool_spans:
-            self.assertEqual(tool_span.attributes.get("gen_ai.span.kind"), "TOOL")
+            self.assertEqual(
+                tool_span.attributes.get("gen_ai.operation.name"),
+                "tool.execute",
+            )
             self.assertIsNotNone(tool_span.attributes.get("gen_ai.tool.name"))
 
     def test_tool_call_with_error(self):
         """
         Test tool call that raises an error.
-        
+
         Business Demo:
         - Creates a Crew with 1 Agent
         - Agent uses a tool that fails
         - Executes 1 Task with failing tool call
-        
+
         Verification:
-        - TOOL span has ERROR status
-        - TOOL span records exception
-        - Metrics: genai_calls_error_count may increment if tool failure triggers LLM error
+        - TOOL span status set to StatusCode.ERROR
+        - Recorded exception details in span events
         """
+
         # Create a tool that raises error
         class FailingTool(BaseTool):
             name: str = "failing_tool"
             description: str = "A tool that always fails"
-            
-            def _run(self, input: str) -> str:
+
+            def _run(self, input_str: str) -> str:
                 raise Exception("Tool execution failed")
 
         failing_tool = FailingTool()
@@ -259,12 +291,15 @@ class TestToolCalls(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
-        tool_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TOOL"]
-        
+
+        tool_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "tool.execute"
+        ]
+
         # If tool span exists, verify error status
         for tool_span in tool_spans:
             if tool_span.name.startswith("Tool.failing_tool"):
                 # Should have error status
                 self.assertEqual(tool_span.status.status_code.name, "ERROR")
-

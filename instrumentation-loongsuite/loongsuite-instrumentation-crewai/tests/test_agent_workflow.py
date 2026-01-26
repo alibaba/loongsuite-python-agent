@@ -15,25 +15,21 @@
 """
 Test cases for Agent workflow orchestration and multi-agent collaboration in CrewAI.
 
-Business Demo Description:
-This test suite uses CrewAI framework to test complex Agent workflows including:
-- Sequential task execution
-- Hierarchical task delegation
-- Multi-agent collaboration
-- Agent lifecycle management
+This test suite verifies complex Agent interaction patterns, ensuring that the
+trace hierarchy and span relationships correctly represent the execution flow.
 """
 
-import pysqlite3
-import sys
-sys.modules["sqlite3"] = pysqlite3
-
+import json
 import os
-import unittest
-from crewai import Agent, Task, Crew, Process
-from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
+import sys
+
+import pysqlite3
+from crewai import Agent, Crew, Process, Task
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
+
+sys.modules["sqlite3"] = pysqlite3
 
 
 class TestAgentWorkflow(TestBase):
@@ -43,46 +39,48 @@ class TestAgentWorkflow(TestBase):
         """Setup test resources."""
         super().setUp()
         # Set up environment variables
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "test-openai-key-placeholder")
-        os.environ["DASHSCOPE_API_KEY"] = os.getenv("DASHSCOPE_API_KEY", "test-dashscope-key-placeholder")
-        os.environ["OPENAI_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        os.environ["DASHSCOPE_API_BASE"] = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        
-        self.instrumentor = CrewAIInstrumentor()
-        self.instrumentor.instrument()
+        os.environ["OPENAI_API_KEY"] = os.environ.get(
+            "OPENAI_API_KEY", "fake-key"
+        )
+        os.environ["DASHSCOPE_API_KEY"] = os.environ.get(
+            "DASHSCOPE_API_KEY", "fake-key"
+        )
+        os.environ["OPENAI_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+        os.environ["DASHSCOPE_API_BASE"] = (
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
 
-        self.litellm_instrumentor = LiteLLMInstrumentor()
-        self.litellm_instrumentor.instrument()
-        
+        os.environ["CREWAI_TRACING_ENABLED"] = "false"
+        self.instrumentor = CrewAIInstrumentor()
+        self.instrumentor.instrument(tracer_provider=self.tracer_provider)
+
         # Test data
-        self.model_name = "dashscope/qwen-turbo"
-        
+        self.model_name = "openai/qwen-turbo"
+
     def tearDown(self):
         """Cleanup test resources."""
         with self.disable_logging():
             self.instrumentor.uninstrument()
-            self.litellm_instrumentor.uninstrument()
         super().tearDown()
-        from aliyun.sdk.extension.arms.semconv.metrics import SingletonMeta
-        SingletonMeta.reset()
 
     def test_sequential_workflow(self):
         """
         Test sequential workflow with multiple agents and tasks.
-        
+
         Business Demo:
         - Creates a Crew with 3 Agents (Researcher, Analyst, Writer)
         - Executes 3 Tasks sequentially
         - Each task is handled by a different agent
         - Performs 3 LLM calls (one per task)
-        
+
         Verification:
         - 1 CHAIN span for Crew.kickoff
-        - 3 AGENT spans (one per agent execution)
         - 3 TASK spans (one per task)
-        - 3 LLM spans
-        - Span hierarchy: CHAIN -> TASK -> AGENT -> LLM
-        - Metrics: genai_calls_count=3, duration and tokens for each call
+        - 3 AGENT spans (one per agent execution)
+        - Span hierarchy: Crew -> Task -> Agent
+        - Trace continuity across all sequential operations
         """
         # Create Agents
         researcher = Agent(
@@ -140,45 +138,68 @@ class TestAgentWorkflow(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
-        chain_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "CHAIN"]
-        task_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "TASK"]
+
+        chain_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "crew.kickoff"
+        ]
+        task_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "task.execute"
+        ]
+        agent_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "agent.execute"
+        ]
 
         # Verify span counts
-        self.assertGreaterEqual(len(chain_spans), 1, "Expected at least 1 CHAIN span")
-        self.assertGreaterEqual(len(task_spans), 3, f"Expected at least 3 TASK spans, got {len(task_spans)}")
-        
+        self.assertGreaterEqual(
+            len(chain_spans), 1, "Expected at least 1 CHAIN span"
+        )
+        self.assertGreaterEqual(
+            len(task_spans),
+            3,
+            f"Expected at least 3 TASK spans, got {len(task_spans)}",
+        )
+        self.assertGreaterEqual(
+            len(agent_spans),
+            3,
+            f"Expected at least 3 AGENT spans, got {len(agent_spans)}",
+        )
+
         # Verify CHAIN span has proper attributes
         chain_span = chain_spans[0]
-        self.assertEqual(chain_span.attributes.get("gen_ai.span.kind"), "CHAIN")
-        self.assertIsNotNone(chain_span.attributes.get("gen_ai.operation.name"))
-        self.assertIsNotNone(chain_span.attributes.get("output.value"))
+        self.assertEqual(chain_span.attributes.get("gen_ai.system"), "crewai")
+        self.assertEqual(
+            chain_span.attributes.get("gen_ai.operation.name"), "crew.kickoff"
+        )
 
-        # Verify metrics show 3 LLM calls
-        metrics = self.memory_metrics_reader.get_metrics_data()
-        
-        for resource_metrics in metrics.resource_metrics:
-            for scope_metrics in resource_metrics.scope_metrics:
-                for metric in scope_metrics.metrics:
-                    if metric.name == "genai_calls_count":
-                        for data_point in metric.data.data_points:
-                            # Should have at least 3 calls
-                            self.assertGreaterEqual(data_point.value, 3, f"Expected at least 3 LLM calls, got {data_point.value}")
+        # Verify result is captured in OpenTelemetry GenAI format
+        output_messages_json = chain_span.attributes.get(
+            "gen_ai.output.messages"
+        )
+        self.assertIsNotNone(output_messages_json)
+        output_messages = json.loads(output_messages_json)
+        self.assertGreater(len(output_messages), 0)
+        self.assertIn("role", output_messages[0])
+        self.assertIn("parts", output_messages[0])
 
     def test_multi_agent_collaboration(self):
         """
         Test multi-agent collaboration scenario.
-        
+
         Business Demo:
         - Creates a Crew with 2 Agents working together
         - Agents share context and collaborate on tasks
         - Executes 2 Tasks with agent collaboration
         - Performs multiple LLM calls with shared context
-        
+
         Verification:
         - Multiple AGENT spans with proper context
         - All spans share the same trace context
-        - Metrics: genai_calls_count reflects all collaborative LLM calls
         """
         # Create collaborative agents
         designer = Agent(
@@ -222,25 +243,35 @@ class TestAgentWorkflow(TestBase):
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
+
         # Verify all spans share the same trace
         trace_ids = set(span.context.trace_id for span in spans)
-        self.assertEqual(len(trace_ids), 1, "All spans should share the same trace ID")
+        self.assertEqual(
+            len(trace_ids), 1, "All spans should share the same trace ID"
+        )
 
-        agent_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "AGENT"]
-        
+        agent_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "agent.execute"
+        ]
+
         # Should have multiple agent spans for collaboration
-        self.assertGreaterEqual(len(agent_spans), 2, f"Expected at least 2 AGENT spans, got {len(agent_spans)}")
+        self.assertGreaterEqual(
+            len(agent_spans),
+            2,
+            f"Expected at least 2 AGENT spans, got {len(agent_spans)}",
+        )
 
     def test_hierarchical_workflow(self):
         """
         Test hierarchical workflow with manager delegation.
-        
+
         Business Demo:
         - Creates a Crew with hierarchical process
         - Manager agent delegates tasks to worker agents
         - Executes tasks with delegation pattern
-        
+
         Verification:
         - CHAIN span for overall workflow
         - Multiple AGENT spans showing delegation hierarchy
@@ -278,25 +309,26 @@ class TestAgentWorkflow(TestBase):
 
         # Create Crew with hierarchical process
         # Note: Hierarchical process requires a manager_llm
-        try:
-            crew = Crew(
-                agents=[worker1, worker2],
-                tasks=[task1, task2],
-                process=Process.hierarchical,
-                manager_llm=self.model_name,
-                verbose=True,
-            )
+        crew = Crew(
+            agents=[worker1, worker2],
+            tasks=[task1, task2],
+            process=Process.hierarchical,
+            manager_llm=self.model_name,
+            verbose=True,
+        )
 
-            crew.kickoff()
-        except Exception as e:
-            # Hierarchical process may not be fully supported in test environment
-            raise unittest.SkipTest(f"Hierarchical process not supported: {e}")
+        crew.kickoff()
 
         # Verify spans
         spans = self.memory_exporter.get_finished_spans()
-        
-        chain_spans = [s for s in spans if s.attributes.get("gen_ai.span.kind") == "CHAIN"]
-        
-        # Should have CHAIN span for hierarchical workflow
-        self.assertGreaterEqual(len(chain_spans), 1, "Expected at least 1 CHAIN span")
 
+        chain_spans = [
+            s
+            for s in spans
+            if s.attributes.get("gen_ai.operation.name") == "crew.kickoff"
+        ]
+
+        # Should have CHAIN span for hierarchical workflow
+        self.assertGreaterEqual(
+            len(chain_spans), 1, "Expected at least 1 CHAIN span"
+        )

@@ -1,7 +1,7 @@
 import dataclasses
 import json
+import logging
 from base64 import b64encode
-from functools import partial
 from typing import Any, Dict, List, Optional
 
 from opentelemetry.trace import Span
@@ -14,6 +14,10 @@ from opentelemetry.util.genai.types import (
     ToolCall,
 )
 
+logger = logging.getLogger(__name__)
+
+MAX_MESSAGE_SIZE = 10000
+
 
 class _GenAiJsonEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
@@ -22,9 +26,36 @@ class _GenAiJsonEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-gen_ai_json_dumps = partial(
-    json.dumps, separators=(",", ":"), cls=_GenAiJsonEncoder
-)
+def _safe_json_dumps(
+    obj: Any, default: str = "", max_size: int = MAX_MESSAGE_SIZE
+) -> str:
+    """
+    Safely serialize object to JSON string with size limit.
+    """
+    if obj is None:
+        return default
+
+    # Fast path for simple types
+    if isinstance(obj, (str, int, float, bool)):
+        result = str(obj)
+    else:
+        try:
+            result = json.dumps(
+                obj,
+                separators=(",", ":"),
+                cls=_GenAiJsonEncoder,
+                ensure_ascii=False,
+            )
+        except Exception as e:
+            logger.debug(f"Failed to serialize to JSON: {e}")
+            result = str(obj)
+
+    if len(result) > max_size:
+        return result[:max_size] + "...[truncated]"
+    return result
+
+
+gen_ai_json_dumps = _safe_json_dumps
 
 GEN_AI_INPUT_MESSAGES = "gen_ai.input.messages"
 GEN_AI_OUTPUT_MESSAGES = "gen_ai.output.messages"
