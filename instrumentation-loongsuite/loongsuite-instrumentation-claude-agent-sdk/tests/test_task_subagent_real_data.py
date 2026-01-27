@@ -24,7 +24,6 @@ from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
 
-
 # ============================================================================
 # Helper Functions - Load Real Message Data from Cassettes
 # ============================================================================
@@ -80,9 +79,6 @@ def create_mock_message_from_data(message_data: Dict[str, Any]) -> Any:
                 mock_block.tool_use_id = block_data["tool_use_id"]
                 mock_block.content = block_data["content"]
                 mock_block.is_error = block_data["is_error"]
-                # Support tool_use_result for Task tools
-                if "tool_use_result" in block_data:
-                    mock_block.tool_use_result = block_data["tool_use_result"]
             elif block_data["type"] == "TextBlock":
                 mock_block.text = block_data.get("text", "")
 
@@ -90,6 +86,7 @@ def create_mock_message_from_data(message_data: Dict[str, Any]) -> Any:
 
         mock_msg.uuid = message_data.get("uuid")
         mock_msg.parent_tool_use_id = message_data.get("parent_tool_use_id")
+        mock_msg.tool_use_result = message_data.get("tool_use_result")
 
     elif msg_type == "ResultMessage":
         mock_msg.subtype = message_data["subtype"]
@@ -242,10 +239,6 @@ async def test_subagent_span_creation_from_task_tool(
     attrs = dict(subagent_span.attributes or {})
     assert attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "invoke_agent"
 
-    print("\n✅ SubAgent span creation test passed (real cassette data)")
-    print(f"  - Task span: {task_span.name}")
-    print(f"  - SubAgent span: {subagent_span.name}")
-
 
 @pytest.mark.asyncio
 async def test_subagent_span_name_from_task_input(
@@ -286,8 +279,6 @@ async def test_subagent_span_name_from_task_input(
     assert expected_subagent_type in subagent_span.name, (
         f"SubAgent span name should contain '{expected_subagent_type}', got: {subagent_span.name}"
     )
-
-    print(f"\n✅ SubAgent span name test passed: {subagent_span.name}")
 
 
 @pytest.mark.asyncio
@@ -338,11 +329,6 @@ async def test_subagent_span_input_attributes(
     # Verify provider name is set
     assert GenAIAttributes.GEN_AI_PROVIDER_NAME in attrs
 
-    print("\n✅ SubAgent input attributes test passed")
-    print(f"  - Agent name: {attrs[GenAIAttributes.GEN_AI_AGENT_NAME]}")
-    print(f"  - Description: {attrs[GenAIAttributes.GEN_AI_AGENT_DESCRIPTION]}")
-    print(f"  - Provider: {attrs[GenAIAttributes.GEN_AI_PROVIDER_NAME]}")
-
 
 @pytest.mark.asyncio
 async def test_subagent_span_output_attributes_with_tool_use_result(
@@ -352,12 +338,16 @@ async def test_subagent_span_output_attributes_with_tool_use_result(
 
     The real data includes tool_use_result with:
     - usage: {input_tokens, output_tokens}
-    - totalDurationMs
-    - totalCostUsd (in test data this is 0, but structure is validated)
+    - agentId
+    - content (output messages)
 
     Validates:
     1. Span completes successfully (has end_time)
-    2. Duration and cost attributes are present
+    2. Token usage attributes are present (from tool_use_result.usage)
+    3. Agent ID is captured
+
+    Note: SubAgent span does NOT record duration_ms or cost attributes.
+    These are managed at the parent Agent level via ResultMessage.
     """
     from opentelemetry.instrumentation.claude_agent_sdk.patch import (  # noqa: PLC0415
         _process_agent_invocation_stream,
@@ -389,19 +379,21 @@ async def test_subagent_span_output_attributes_with_tool_use_result(
     assert subagent_span.end_time is not None
     assert subagent_span.end_time > subagent_span.start_time
 
-    # Verify duration_ms attribute from tool_use_result
-    assert "duration_ms" in attrs
-    assert attrs["duration_ms"] == 33079
+    # Verify agent ID was captured from tool_use_result
+    assert "gen_ai.agent.id" in attrs
+    assert attrs["gen_ai.agent.id"] == "ada4edf"
 
-    # Verify token usage attributes (even if 0, they should be recorded)
-    # Note: These may not always appear in the span depending on OTel exporter behavior
-    # but we verify the structure is correct
+    # Verify token usage attributes (from tool_use_result.usage)
+    # In this test case, both are 0, but they should be present in attributes
+    assert "gen_ai.usage.input_tokens" in attrs
+    assert attrs["gen_ai.usage.input_tokens"] == 0
+    assert "gen_ai.usage.output_tokens" in attrs
+    assert attrs["gen_ai.usage.output_tokens"] == 0
 
-    print("\n✅ SubAgent output attributes test passed")
-    print(f"  - Span duration: {(subagent_span.end_time - subagent_span.start_time) / 1e9:.3f}s")
-    print(f"  - Task duration (ms): {attrs.get('duration_ms', 'N/A')}")
-    if "total_cost_usd" in attrs:
-        print(f"  - Total cost: ${attrs['total_cost_usd']}")
+    # Verify basic agent attributes are present
+    assert "gen_ai.agent.name" in attrs
+    assert "gen_ai.operation.name" in attrs
+    assert attrs["gen_ai.operation.name"] == "invoke_agent"
 
 
 @pytest.mark.asyncio
@@ -462,15 +454,12 @@ async def test_subagent_span_hierarchy_and_context(
 
     # Find tool spans that are children of SubAgent (Grep, Read)
     subagent_child_tools = [
-        s for s in tool_spans
+        s
+        for s in tool_spans
         if s.parent and s.parent.span_id == subagent_span.context.span_id
     ]
 
     # Should have internal tool calls (Grep, Read)
-    assert len(subagent_child_tools) >= 2, "SubAgent should have child tool spans (Grep, Read)"
-
-    print("\n✅ SubAgent hierarchy test passed")
-    print(f"  - Root agent: {root_agent.name}")
-    print(f"  - Task span: {task_span.name} (child of root)")
-    print(f"  - SubAgent span: {subagent_span.name} (child of Task)")
-    print(f"  - SubAgent child tools: {len(subagent_child_tools)}")
+    assert len(subagent_child_tools) >= 2, (
+        "SubAgent should have child tool spans (Grep, Read)"
+    )

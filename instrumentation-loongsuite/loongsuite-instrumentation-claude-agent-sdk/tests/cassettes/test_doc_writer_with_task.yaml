@@ -131,21 +131,21 @@ messages:
     - type: text
       text: "agentId: ada4edf (for resuming to continue this agent's work if needed)"
     is_error: false
-    tool_use_result:
-      status: completed
-      prompt: "Explain what AgentDefinition is used for in the context of Claude Agent SDK. Provide a clear, concise explanation of its purpose, when it's used, and what it typically contains."
-      agentId: ada4edf
-      content:
-      - type: text
-        text: "Based on my analysis of the Claude Agent SDK codebase, here's a clear explanation..."
-      totalDurationMs: 33079
-      totalTokens: 0
-      totalToolUseCount: 5
-      usage:
-        input_tokens: 0
-        output_tokens: 0
   uuid: 9c09e979-6d8a-4f7f-80b5-4852305cfa92
   parent_tool_use_id: null
+  tool_use_result:
+    status: completed
+    prompt: "Explain what AgentDefinition is used for in the context of Claude Agent SDK. Provide a clear, concise explanation of its purpose, when it's used, and what it typically contains."
+    agentId: ada4edf
+    content:
+    - type: text
+      text: "Based on my analysis of the Claude Agent SDK codebase, here's a clear explanation..."
+    totalDurationMs: 33079
+    totalTokens: 0
+    totalToolUseCount: 5
+    usage:
+      input_tokens: 0
+      output_tokens: 0
 
 - type: AssistantMessage
   model: qwen-plus

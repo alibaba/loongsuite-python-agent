@@ -242,8 +242,3 @@ async def test_agent_invocation_with_cassette(
     assert len(llm_spans) > 0, (
         f"Should have at least one LLM span for {cassette_file}"
     )
-
-    print(
-        f"\n✅ {cassette_file}: {len(spans)} spans "
-        f"(Agent: {len(agent_spans)}, LLM: {len(llm_spans)}, Task: {len(task_spans)})"
-    )

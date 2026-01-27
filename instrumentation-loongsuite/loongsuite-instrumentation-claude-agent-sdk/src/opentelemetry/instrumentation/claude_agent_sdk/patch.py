@@ -288,6 +288,7 @@ def _process_assistant_message(
             collected_messages,
             provider=infer_provider_from_base_url(),
             message_arrival_time=message_arrival_time,
+            agent_invocation=agent_invocation,
         )
 
         if parts:
@@ -365,6 +366,8 @@ def _process_user_message(
     # Check if we're inside a Task
     is_inside_task = len(active_task_stack) > 0
 
+    msg_tool_use_result = getattr(msg, "tool_use_result", None)
+
     if hasattr(msg, "content"):
         for block in msg.content:
             block_type = type(block).__name__
@@ -376,7 +379,8 @@ def _process_user_message(
 
                     # Set tool response
                     tool_content = getattr(block, "content", None)
-                    tool_use_result = getattr(block, "tool_use_result", None)
+                    # tool_use_result is on the UserMessage, not on ToolResultBlock!
+                    tool_use_result = msg_tool_use_result
                     is_error_value = getattr(block, "is_error", None)
                     is_error = is_error_value is True
 
@@ -393,20 +397,39 @@ def _process_user_message(
                         task_entry = active_task_stack.pop()
 
                         # Extract information from tool_use_result (official Task tool output format)
-                        # Output format: {"result": str, "usage": dict | None, "total_cost_usd": float | None, "duration_ms": int | None}
                         if tool_use_result and isinstance(
                             tool_use_result, dict
                         ):
-                            # Extract result (str) for output_messages
-                            result_text = tool_use_result.get("result")
-                            if result_text and isinstance(result_text, str):
-                                task_entry["subagent"].output_messages.append(
-                                    OutputMessage(
-                                        role="assistant",
-                                        parts=[Text(content=result_text)],
-                                        finish_reason="stop",
+                            agent_id = tool_use_result.get("agentId")
+                            if agent_id:
+                                task_entry["subagent"].agent_id = agent_id
+
+                            # Extract result for output_messages
+                            content_blocks = tool_use_result.get("content")
+                            if content_blocks and isinstance(
+                                content_blocks, list
+                            ):
+                                # Convert content blocks to Text parts
+                                text_parts = []
+                                for block in content_blocks:
+                                    if isinstance(block, dict):
+                                        if block.get("type") == "text":
+                                            text_content = block.get("text")
+                                            if text_content:
+                                                text_parts.append(
+                                                    Text(content=text_content)
+                                                )
+
+                                if text_parts:
+                                    task_entry[
+                                        "subagent"
+                                    ].output_messages.append(
+                                        OutputMessage(
+                                            role="assistant",
+                                            parts=text_parts,
+                                            finish_reason="stop",
+                                        )
                                     )
-                                )
 
                             # Extract usage from tool_use_result
                             # Always record usage info from official SDK, even if values are 0
@@ -420,16 +443,10 @@ def _process_user_message(
                                     task_entry[
                                         "subagent"
                                     ].output_tokens = usage["output_tokens"]
-
-                            # Extract additional attributes
-                            if "total_cost_usd" in tool_use_result:
-                                task_entry["subagent"].attributes[
-                                    "total_cost_usd"
-                                ] = tool_use_result["total_cost_usd"]
-                            if "duration_ms" in tool_use_result:
-                                task_entry["subagent"].attributes[
-                                    "duration_ms"
-                                ] = tool_use_result["duration_ms"]
+                        else:
+                            logger.warning(
+                                f"[SubAgent] tool_use_result is not a dict: {type(tool_use_result)}, value: {tool_use_result}"
+                            )
 
                         # Close SubAgent span first (detach SubAgent context)
                         # This restores context to Task Tool span level
@@ -439,10 +456,6 @@ def _process_user_message(
                             logger.warning(
                                 f"Failed to close SubAgent span: {e}"
                             )
-
-                        logger.debug(
-                            f"Task span closed: {tool_use_id}, stack depth: {len(active_task_stack)}"
-                        )
 
                     # Now close the tool span (Task or regular tool)
                     # For Task: this detaches Task Tool context, restoring to Agent context
@@ -503,14 +516,29 @@ def _process_user_message(
     turn_tracker.mark_next_llm_start()
 
 
+def _process_system_message(
+    msg: Any,
+    agent_invocation: InvokeAgentInvocation,
+) -> None:
+    """Process SystemMessage: extract session_id early in the stream.
+
+    SystemMessage appears at the beginning of the message stream and contains
+    the session_id in its data field. We extract it here so that it's available
+    for all subsequent LLM spans.
+    """
+    if hasattr(msg, "subtype") and msg.subtype == "init":
+        if hasattr(msg, "data") and isinstance(msg.data, dict):
+            session_id = msg.data.get("session_id")
+            if session_id:
+                agent_invocation.conversation_id = session_id
+
+
 def _process_result_message(
     msg: Any,
     agent_invocation: InvokeAgentInvocation,
     turn_tracker: "AssistantTurnTracker",
 ) -> None:
-    """Process ResultMessage: update session_id, token usage, and close any open LLM turn."""
-    if hasattr(msg, "session_id") and msg.session_id:
-        agent_invocation.conversation_id = msg.session_id
+    """Process ResultMessage: update session_id (fallback), token usage, and close any open LLM turn."""
 
     _update_token_usage(agent_invocation, turn_tracker, msg)
 
@@ -563,7 +591,9 @@ async def _process_agent_invocation_stream(
         async for msg in wrapped_stream:
             msg_type = type(msg).__name__
 
-            if msg_type == "AssistantMessage":
+            if msg_type == "SystemMessage":
+                _process_system_message(msg, agent_invocation)
+            elif msg_type == "AssistantMessage":
                 _process_assistant_message(
                     msg,
                     model,
@@ -642,6 +672,7 @@ class AssistantTurnTracker:
         collected_messages: List[Dict[str, Any]],
         provider: str = "anthropic",
         message_arrival_time: Optional[float] = None,
+        agent_invocation: Optional[InvokeAgentInvocation] = None,
     ) -> Optional[LLMInvocation]:
         """Start a new LLM invocation span with pre-recorded start time.
 
@@ -649,6 +680,7 @@ class AssistantTurnTracker:
             message_arrival_time: The time when the AssistantMessage arrived.
                 If next_llm_start_time is set (from previous UserMessage), use that.
                 Otherwise, use message_arrival_time or fall back to current time.
+            agent_invocation: The parent agent invocation, used to extract conversation_id.
         """
         # Priority: next_llm_start_time > message_arrival_time > current time
         start_time = (
@@ -688,6 +720,13 @@ class AssistantTurnTracker:
             request_model=model,
             input_messages=input_messages,
         )
+
+        # Add conversation_id (session_id) to LLM span attributes
+        # This is a custom extension beyond standard GenAI semantic conventions
+        if agent_invocation and agent_invocation.conversation_id:
+            llm_invocation.attributes["gen_ai.conversation.id"] = (
+                agent_invocation.conversation_id
+            )
 
         self.handler.start_llm(llm_invocation)
         # TODO(telemetry): Use public API for setting span start time

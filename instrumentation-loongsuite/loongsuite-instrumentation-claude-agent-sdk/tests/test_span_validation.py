@@ -257,15 +257,6 @@ async def test_agent_span_correctness(
         "Should have output_tokens"
     )
 
-    print(f"\n✅ Agent span validation passed ({cassette_file})")
-    print(f"  - Span name: {agent_span.name}")
-    print(
-        f"  - Input tokens: {attrs.get(GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS)}"
-    )
-    print(
-        f"  - Output tokens: {attrs.get(GenAIAttributes.GEN_AI_USAGE_OUTPUT_TOKENS)}"
-    )
-
 
 # ============================================================================
 # Tests - LLM Span
@@ -361,9 +352,6 @@ async def test_llm_span_correctness(
                                     )
                                     tool_call_ids.append(tool_call_id)
 
-    print(f"\n✅ LLM span validation passed ({cassette_file})")
-    print(f"  - LLM span count: {len(llm_spans)}")
-
 
 # ============================================================================
 # Tests - Tool Span
@@ -445,9 +433,6 @@ async def test_tool_span_correctness(
             "Should have tool.call.id"
         )
 
-    print(f"\n✅ Tool span validation passed ({cassette_file})")
-    print(f"  - Tool span count: {len(tool_spans)}")
-
 
 # ============================================================================
 # Tests - Span Hierarchy
@@ -523,8 +508,3 @@ async def test_span_hierarchy_correctness(
             assert tool_span.parent.span_id != llm_span.context.span_id, (
                 "Tool span should not be a child of LLM span"
             )
-
-    print(f"\n✅ Span hierarchy validation passed ({cassette_file})")
-    print(f"  - Agent span: {agent_span.name} (root span)")
-    print(f"  - LLM spans: {len(llm_spans)} (children of Agent)")
-    print(f"  - Tool spans: {len(tool_spans)} (children of Agent)")
