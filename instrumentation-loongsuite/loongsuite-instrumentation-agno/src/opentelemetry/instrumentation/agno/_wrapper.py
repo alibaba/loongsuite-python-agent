@@ -494,20 +494,8 @@ class AgnoModelWrapper(_WithTracer):
                 instance, arguments
             ),
         ) as with_span:
+            responses = []
             try:
-                response = wrapped(*args, **kwargs)
-            except Exception as exception:
-                with_span.record_exception(exception)
-                status = trace_api.Status(
-                    status_code=trace_api.StatusCode.ERROR,
-                    # Follow the format in OTEL SDK for description, see:
-                    # https://github.com/open-telemetry/opentelemetry-python/blob/2b9dcfc5d853d1c10176937a6bcaade54cda1a31/opentelemetry-api/src/opentelemetry/trace/__init__.py#L588  # noqa E501
-                    description=f"{type(exception).__name__}: {exception}",
-                )
-                with_span.finish_tracing(status=status)
-                raise
-            try:
-                responses = []
                 for response in wrapped(*args, **kwargs):
                     responses.append(response)
                     yield response
@@ -521,11 +509,14 @@ class AgnoModelWrapper(_WithTracer):
                     attributes=dict(resp_attr),
                     extra_attributes=dict(resp_attr),
                 )
-            except Exception:
-                logger.exception(
-                    f"Failed to finalize response of type {type(response)}"
+            except Exception as exception:
+                with_span.record_exception(exception)
+                status = trace_api.Status(
+                    status_code=trace_api.StatusCode.ERROR,
+                    description=f"{type(exception).__name__}: {exception}",
                 )
-                with_span.finish_tracing()
+                with_span.finish_tracing(status=status)
+                raise
 
     async def aresponse(
         self,
@@ -536,7 +527,7 @@ class AgnoModelWrapper(_WithTracer):
     ) -> Any:
         arguments = bind_arguments(wrapped, *args, **kwargs)
         if not self._enable_genai_capture() or instance is None:
-            return wrapped(*args, **kwargs)
+            return await wrapped(*args, **kwargs)
         with self._start_as_current_span(
             span_name="Model.aresponse",
             attributes=self._request_attributes_extractor.extract(
@@ -597,20 +588,8 @@ class AgnoModelWrapper(_WithTracer):
                 instance, arguments
             ),
         ) as with_span:
+            responses = []
             try:
-                response = wrapped(*args, **kwargs)
-            except Exception as exception:
-                with_span.record_exception(exception)
-                status = trace_api.Status(
-                    status_code=trace_api.StatusCode.ERROR,
-                    # Follow the format in OTEL SDK for description, see:
-                    # https://github.com/open-telemetry/opentelemetry-python/blob/2b9dcfc5d853d1c10176937a6bcaade54cda1a31/opentelemetry-api/src/opentelemetry/trace/__init__.py#L588  # noqa E501
-                    description=f"{type(exception).__name__}: {exception}",
-                )
-                with_span.finish_tracing(status=status)
-                raise
-            try:
-                responses = []
                 async for response in wrapped(*args, **kwargs):
                     responses.append(response)
                     yield response
@@ -624,8 +603,11 @@ class AgnoModelWrapper(_WithTracer):
                     attributes=dict(resp_attr),
                     extra_attributes=dict(resp_attr),
                 )
-            except Exception:
-                logger.exception(
-                    f"Failed to finalize response of type {type(response)}"
+            except Exception as exception:
+                with_span.record_exception(exception)
+                status = trace_api.Status(
+                    status_code=trace_api.StatusCode.ERROR,
+                    description=f"{type(exception).__name__}: {exception}",
                 )
-                with_span.finish_tracing()
+                with_span.finish_tracing(status=status)
+                raise

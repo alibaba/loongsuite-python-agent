@@ -59,6 +59,9 @@ _build/
 .mypy_cache/
 target
 
+# pyright local config
+pyrightconfig.json
+
 # Benchmark result files
 *-benchmark.json
 
