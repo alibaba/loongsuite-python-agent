@@ -18,6 +18,7 @@
 claude-agent-sdk>=0.1.0
 pytest==7.4.4
 pytest-asyncio==0.21.0
+pyyaml>=6.0
 wrapt==1.17.3
 opentelemetry-exporter-otlp-proto-http
 
