@@ -1,6 +1,7 @@
 """
 Unit tests for _wrapper.py
 """
+
 import asyncio
 from typing import AsyncIterator, Iterator
 from unittest.mock import MagicMock
@@ -26,8 +27,9 @@ class TestAresponse:
             result = await wrapper.aresponse(
                 mock_wrapped, mock_instance, (), {"messages": []}
             )
-            assert not asyncio.iscoroutine(result), \
+            assert not asyncio.iscoroutine(result), (
                 "aresponse() returned coroutine instead of awaited result"
+            )
 
         asyncio.run(run_test())
 
@@ -46,7 +48,10 @@ class TestResponseStream:
             def counting_wrapped(*a, **kw):
                 call_count[0] += 1
                 return original_wrapped(*a, **kw)
-            return original_method(self, counting_wrapped, instance, args, kwargs)
+
+            return original_method(
+                self, counting_wrapped, instance, args, kwargs
+            )
 
         AgnoModelWrapper.response_stream = patched_method
         try:
@@ -68,14 +73,19 @@ class TestResponseStream:
             with_span_mock.__enter__ = MagicMock(return_value=with_span_mock)
             with_span_mock.__exit__ = MagicMock(return_value=False)
             with_span_mock.finish_tracing = MagicMock()
-            wrapper._start_as_current_span = MagicMock(return_value=with_span_mock)
+            wrapper._start_as_current_span = MagicMock(
+                return_value=with_span_mock
+            )
 
-            results = list(wrapper.response_stream(
-                mock_generator, mock_instance, (), {"messages": []}
-            ))
+            results = list(
+                wrapper.response_stream(
+                    mock_generator, mock_instance, (), {"messages": []}
+                )
+            )
 
-            assert call_count[0] == 1, \
+            assert call_count[0] == 1, (
                 f"wrapped() called {call_count[0]} times, expected 1"
+            )
             assert results == ["chunk1", "chunk2"]
         finally:
             AgnoModelWrapper.response_stream = original_method
@@ -95,6 +105,7 @@ class TestAresponseStream:
             def counting_wrapped(*a, **kw):
                 call_count[0] += 1
                 return original_wrapped(*a, **kw)
+
             async for item in original_method(
                 self, counting_wrapped, instance, args, kwargs
             ):
@@ -105,7 +116,9 @@ class TestAresponseStream:
             mock_instance = MagicMock()
             mock_instance.id = "test-model"
 
-            async def mock_async_generator(*args, **kwargs) -> AsyncIterator[str]:
+            async def mock_async_generator(
+                *args, **kwargs
+            ) -> AsyncIterator[str]:
                 yield "async_chunk1"
                 yield "async_chunk2"
 
@@ -118,10 +131,14 @@ class TestAresponseStream:
                 wrapper._response_attributes_extractor.extract.return_value = {}
 
                 with_span_mock = MagicMock()
-                with_span_mock.__enter__ = MagicMock(return_value=with_span_mock)
+                with_span_mock.__enter__ = MagicMock(
+                    return_value=with_span_mock
+                )
                 with_span_mock.__exit__ = MagicMock(return_value=False)
                 with_span_mock.finish_tracing = MagicMock()
-                wrapper._start_as_current_span = MagicMock(return_value=with_span_mock)
+                wrapper._start_as_current_span = MagicMock(
+                    return_value=with_span_mock
+                )
 
                 results = []
                 async for chunk in wrapper.aresponse_stream(
@@ -132,8 +149,9 @@ class TestAresponseStream:
 
             results = asyncio.run(run_test())
 
-            assert call_count[0] == 1, \
+            assert call_count[0] == 1, (
                 f"wrapped() called {call_count[0]} times, expected 1"
+            )
             assert results == ["async_chunk1", "async_chunk2"]
         finally:
             AgnoModelWrapper.aresponse_stream = original_method
