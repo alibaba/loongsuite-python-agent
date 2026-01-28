@@ -6,7 +6,7 @@ messages:
   data:
     type: system
     subtype: init
-    cwd: /Users/sipercai/project/pyins/extend/claude-agent-sdk-python
+    cwd: /path/to/claude-agent-sdk
     session_id: 397137cf-3ade-4272-a0bf-aecf66956d1b
     tools:
     - Task
@@ -108,7 +108,7 @@ messages:
     id: call_c51d222a2f1049b5b3fd7d
     name: Read
     input:
-      file_path: /Users/sipercai/project/pyins/extend/claude-agent-sdk-python/src/claude_agent_sdk/types.py
+      file_path: /path/to/claude-agent-sdk/src/claude_agent_sdk/types.py
   parent_tool_use_id: call_a1e29785a6c94856bfc3e5
   error: null
 

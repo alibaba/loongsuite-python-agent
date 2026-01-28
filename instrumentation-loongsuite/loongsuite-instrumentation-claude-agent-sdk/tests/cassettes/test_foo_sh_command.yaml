@@ -6,7 +6,7 @@ messages:
   data:
     type: system
     subtype: init
-    cwd: /Users/sipercai/project/pyins/extend/claude-agent-sdk-python/examples
+    cwd: /path/to/claude-agent-sdk/examples
     session_id: cf630075-3251-4f84-a57d-4274afed0c46
     tools:
     - Task
@@ -107,15 +107,15 @@ messages:
     tool_use_id: call_2066d7694fd9488096cd3e
     content: 'total 432
 
-      drwxr-xr-x@ 41 sipercai  staff   1312 Jan 23 12:33 .
+      drwxr-xr-x@ 41 user  staff   1312 Jan 23 12:33 .
 
-      drwxr-xr-x@ 23 sipercai  staff    736 Jan 12 18:02 ..
+      drwxr-xr-x@ 23 user  staff    736 Jan 12 18:02 ..
 
-      drwxr-xr-x@ 14 sipercai  staff    448 Jan  9 16:12 __pycache__
+      drwxr-xr-x@ 14 user  staff    448 Jan  9 16:12 __pycache__
 
-      -rw-r--r--@  1 sipercai  staff   4708 Dec 25 17:18 agents.py
+      -rw-r--r--@  1 user  staff   4708 Dec 25 17:18 agents.py
 
-      -rw-r--r--@  1 sipercai  staff   2189 Jan 23 12:34 code_reviewer_example.py
+      -rw-r--r--@  1 user  staff   2189 Jan 23 12:34 code_reviewer_example.py
 
       ...'
     is_error: false

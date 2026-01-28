@@ -6,7 +6,7 @@ messages:
   data:
     type: system
     subtype: init
-    cwd: /Users/sipercai/project/pyins/extend/claude-agent-sdk-python/examples
+    cwd: /path/to/claude-agent-sdk/examples
     session_id: cf630075-3251-4f84-a57d-4274afed0c46
     tools:
     - Task

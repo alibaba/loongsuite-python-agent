@@ -140,6 +140,8 @@ def _create_tool_spans_from_message(
                 set_span_in_context(parent_span)
             )
         except Exception:
+            # If attaching the parent context fails, continue without it.
+            # Instrumentation must not break the host application.
             pass
 
     try:
@@ -180,6 +182,7 @@ def _create_tool_spans_from_message(
                                 set_span_in_context(tool_invocation.span)
                             )
                         except Exception:
+                            # Context attachment failure should not break instrumentation
                             pass
 
                     try:
@@ -221,6 +224,7 @@ def _create_tool_spans_from_message(
                             try:
                                 otel_context.detach(subagent_context_token)
                             except Exception:
+                                # Context detachment failure should not break instrumentation
                                 pass
 
             except Exception as e:
@@ -232,6 +236,7 @@ def _create_tool_spans_from_message(
             try:
                 otel_context.detach(parent_context_token)
             except Exception:
+                # Context detachment failure should not break instrumentation
                 pass
 
 
@@ -363,9 +368,6 @@ def _process_user_message(
     user_parts: List[MessagePart] = []
     tool_parts: List[MessagePart] = []
 
-    # Check if we're inside a Task
-    is_inside_task = len(active_task_stack) > 0
-
     msg_tool_use_result = getattr(msg, "tool_use_result", None)
 
     if hasattr(msg, "content"):
@@ -411,10 +413,12 @@ def _process_user_message(
                             ):
                                 # Convert content blocks to Text parts
                                 text_parts = []
-                                for block in content_blocks:
-                                    if isinstance(block, dict):
-                                        if block.get("type") == "text":
-                                            text_content = block.get("text")
+                                for content_block in content_blocks:
+                                    if isinstance(content_block, dict):
+                                        if content_block.get("type") == "text":
+                                            text_content = content_block.get(
+                                                "text"
+                                            )
                                             if text_content:
                                                 text_parts.append(
                                                     Text(content=text_content)
@@ -485,7 +489,6 @@ def _process_user_message(
                 if text_content:
                     user_parts.append(Text(content=text_content))
 
-    # Re-check if we're inside a Task AFTER popping Task results
     # This ensures Task tool results are NOT filtered out
     is_inside_task = len(active_task_stack) > 0
 
@@ -642,6 +645,7 @@ async def _process_agent_invocation_stream(
             try:
                 handler.stop_invoke_agent(task_entry["subagent"])
             except Exception:
+                # Span closure failure should not break the application
                 pass
 
         # Detach empty context token to restore the original context.
