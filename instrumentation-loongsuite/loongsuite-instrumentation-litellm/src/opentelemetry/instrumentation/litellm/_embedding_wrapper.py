@@ -94,6 +94,31 @@ class EmbeddingWrapper:
                     response.usage, "total_tokens", None
                 )
 
+            # Extract embedding dimension count
+            if (
+                hasattr(response, "data")
+                and response.data
+                and len(response.data) > 0
+            ):
+                try:
+                    first_embedding = response.data[0]
+                    # Handle dict response
+                    if (
+                        isinstance(first_embedding, dict)
+                        and "embedding" in first_embedding
+                    ):
+                        embedding_vector = first_embedding["embedding"]
+                        if isinstance(embedding_vector, list):
+                            invocation.dimension_count = len(embedding_vector)
+                    # Handle object response
+                    elif hasattr(first_embedding, "embedding"):
+                        embedding_vector = first_embedding.embedding
+                        if isinstance(embedding_vector, list):
+                            invocation.dimension_count = len(embedding_vector)
+                except (IndexError, AttributeError, KeyError, TypeError):
+                    # If we can't extract dimension, just skip it
+                    pass
+
             # End Embedding invocation successfully
             self._handler.stop_embedding(invocation)
 
@@ -169,6 +194,31 @@ class AsyncEmbeddingWrapper:
                 invocation.output_tokens = getattr(
                     response.usage, "total_tokens", None
                 )
+
+            # Extract embedding dimension count
+            if (
+                hasattr(response, "data")
+                and response.data
+                and len(response.data) > 0
+            ):
+                try:
+                    first_embedding = response.data[0]
+                    # Handle dict response
+                    if (
+                        isinstance(first_embedding, dict)
+                        and "embedding" in first_embedding
+                    ):
+                        embedding_vector = first_embedding["embedding"]
+                        if isinstance(embedding_vector, list):
+                            invocation.dimension_count = len(embedding_vector)
+                    # Handle object response
+                    elif hasattr(first_embedding, "embedding"):
+                        embedding_vector = first_embedding.embedding
+                        if isinstance(embedding_vector, list):
+                            invocation.dimension_count = len(embedding_vector)
+                except (IndexError, AttributeError, KeyError, TypeError):
+                    # If we can't extract dimension, just skip it
+                    pass
 
             # End Embedding invocation successfully
             self._handler.stop_embedding(invocation)
