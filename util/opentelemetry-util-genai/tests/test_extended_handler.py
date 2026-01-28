@@ -53,6 +53,7 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_RETRIEVAL_QUERY,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
+    GEN_AI_USAGE_TOTAL_TOKENS,
 )
 from opentelemetry.util.genai._multimodal_processing import (
     MultimodalProcessingMixin,
@@ -318,6 +319,25 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
+    def test_embedding_with_total_tokens(self):
+        """Test that total_tokens is calculated when both input and output tokens are present."""
+        with self.telemetry_handler.embedding() as invocation:
+            invocation.request_model = "text-embedding-ada-002"
+            invocation.provider = "openai"
+            invocation.input_tokens = 15
+            invocation.output_tokens = 5
+
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_USAGE_INPUT_TOKENS: 15,
+                GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 5,
+                GEN_AI_USAGE_TOTAL_TOKENS: 20,
+            },
+        )
+
     def test_embedding_error_handling(self):
         class EmbeddingError(RuntimeError):
             pass
@@ -470,6 +490,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_REQUEST_MAX_TOKENS: 1000,
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 50,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 200,
+                GEN_AI_USAGE_TOTAL_TOKENS: 250,
                 GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("stop",),
                 GenAI.GEN_AI_RESPONSE_ID: "resp_456",
                 "custom": "agent_attr",
@@ -514,6 +535,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 100,
             },
         )
+        # Note: total_tokens is not set when only input_tokens is available
 
     def test_invoke_agent_error_handling(self):
         class AgentInvocationError(RuntimeError):
@@ -574,6 +596,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_AGENT_NAME: "MessageAgent",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 10,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 20,
+                GEN_AI_USAGE_TOTAL_TOKENS: 30,
             },
         )
 

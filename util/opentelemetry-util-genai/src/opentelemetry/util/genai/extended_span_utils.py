@@ -52,6 +52,7 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
+    GEN_AI_USAGE_TOTAL_TOKENS,
     GenAiExtendedOperationNameValues,
     GenAiSpanKindValues,
 )
@@ -178,6 +179,15 @@ def _get_invoke_agent_response_attributes(
         attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
     if invocation.output_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
+
+    # Calculate total_tokens as sum of input and output tokens when both are available
+    if (
+        invocation.input_tokens is not None
+        and invocation.output_tokens is not None
+    ):
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = (
+            invocation.input_tokens + invocation.output_tokens
+        )
 
     return attributes
 
@@ -362,6 +372,18 @@ def _apply_embedding_finish_attributes(
         )
     if invocation.input_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
+    if invocation.output_tokens is not None:
+        attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
+
+    # Calculate total_tokens as sum of input and output tokens when both are available
+    if (
+        invocation.input_tokens is not None
+        and invocation.output_tokens is not None
+    ):
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = (
+            invocation.input_tokens + invocation.output_tokens
+        )
+
     if invocation.server_address is not None:
         attributes[ServerAttributes.SERVER_ADDRESS] = invocation.server_address
 
