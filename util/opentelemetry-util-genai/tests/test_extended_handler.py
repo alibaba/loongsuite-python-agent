@@ -325,7 +325,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             invocation.request_model = "text-embedding-ada-002"
             invocation.provider = "openai"
             invocation.input_tokens = 15
-            invocation.output_tokens = 5
 
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
@@ -333,8 +332,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             span_attrs,
             {
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 15,
-                GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 5,
-                GEN_AI_USAGE_TOTAL_TOKENS: 20,
+                GEN_AI_USAGE_TOTAL_TOKENS: 15,
             },
         )
 

@@ -181,13 +181,13 @@ def _get_invoke_agent_response_attributes(
         attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
 
     # Calculate total_tokens as sum of input and output tokens when both are available
-    if (
-        invocation.input_tokens is not None
-        and invocation.output_tokens is not None
-    ):
-        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = (
-            invocation.input_tokens + invocation.output_tokens
-        )
+    total_tokens = 0
+    if invocation.input_tokens is not None:
+        total_tokens += invocation.input_tokens
+    if invocation.output_tokens is not None:
+        total_tokens += invocation.output_tokens
+    if total_tokens > 0:
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
 
     return attributes
 
@@ -372,17 +372,13 @@ def _apply_embedding_finish_attributes(
         )
     if invocation.input_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
-    if invocation.output_tokens is not None:
-        attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
 
     # Calculate total_tokens as sum of input and output tokens when both are available
-    if (
-        invocation.input_tokens is not None
-        and invocation.output_tokens is not None
-    ):
-        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = (
-            invocation.input_tokens + invocation.output_tokens
-        )
+    total_tokens = 0
+    if invocation.input_tokens is not None:
+        total_tokens += invocation.input_tokens
+    if total_tokens > 0:
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
 
     if invocation.server_address is not None:
         attributes[ServerAttributes.SERVER_ADDRESS] = invocation.server_address
