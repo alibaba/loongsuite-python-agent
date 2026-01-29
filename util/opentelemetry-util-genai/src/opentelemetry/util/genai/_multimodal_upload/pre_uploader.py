@@ -52,7 +52,7 @@ from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
 
 # Try importing audio processing libraries (optional dependencies)
 try:
-    import numpy as np
+    import numpy as np  # pyright: ignore[reportMissingImports]
     import soundfile as sf  # pyright: ignore[reportMissingImports]
 
     _audio_libs_available = True

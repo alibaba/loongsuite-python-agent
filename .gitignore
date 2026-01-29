@@ -64,3 +64,5 @@ target
 
 # LoongSuite Extension
 .cursor/
+upload/
+upload_*_test/
