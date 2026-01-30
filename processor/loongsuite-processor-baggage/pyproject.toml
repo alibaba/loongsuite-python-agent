@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "loongsuite-instrumentation-dashscope"
+name = "loongsuite-processor-baggage"
 dynamic = ["version"]
-description = "LoongSuite DashScope instrumentation"
+description = "LoongSuite Baggage Span Processor with prefix matching and stripping"
 readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "LoongSuite Python Agent Authors", email = "zmh405877@alibaba-inc.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -25,25 +25,16 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "opentelemetry-api ~= 1.37",
-  "opentelemetry-instrumentation >= 0.58b0",
-  "opentelemetry-semantic-conventions >= 0.58b0",
-  "opentelemetry-util-genai > 0.2b0",
+  "opentelemetry-api ~= 1.5",
+  "opentelemetry-sdk ~= 1.5",
 ]
-
-[project.optional-dependencies]
-instruments = [
-  "dashscope >= 1.0.0",
-]
-
-[project.entry-points.opentelemetry_instrumentor]
-dashscope = "opentelemetry.instrumentation.dashscope:DashScopeInstrumentor"
 
 [project.urls]
 Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
-path = "src/opentelemetry/instrumentation/dashscope/version.py"
+path = "src/loongsuite/processor/baggage/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -52,5 +43,4 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/opentelemetry"]
-
+packages = ["src/loongsuite"]
