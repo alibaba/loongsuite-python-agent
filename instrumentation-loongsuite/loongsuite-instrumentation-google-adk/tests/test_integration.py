@@ -50,7 +50,7 @@ def calculate_sum(a: int, b: int) -> int:
     return a + b
 
 
-class TestGoogleAdkRealSDKIntegration:
+class TestGoogleAdkSDKIntegration:
     """Integration tests using real Google ADK SDK."""
 
     @pytest.fixture(scope="function")
