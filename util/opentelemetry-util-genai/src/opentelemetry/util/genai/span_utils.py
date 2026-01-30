@@ -35,6 +35,7 @@ from opentelemetry.util.genai._extended_semconv import (
 )
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_SPAN_KIND,  # LoongSuite Extension
+    GEN_AI_USAGE_TOTAL_TOKENS,  # LoongSuite Extension
     GenAiSpanKindValues,  # LoongSuite Extension
 )
 from opentelemetry.util.genai.types import (
@@ -358,6 +359,15 @@ def _get_llm_response_attributes(
         attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
     if invocation.output_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
+
+    # LoongSuite Extension: Calculate total_tokens as sum of input and output tokens when both are available
+    total_tokens = 0
+    if invocation.input_tokens is not None:
+        total_tokens += invocation.input_tokens
+    if invocation.output_tokens is not None:
+        total_tokens += invocation.output_tokens
+    if total_tokens > 0:
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
 
     return attributes
 

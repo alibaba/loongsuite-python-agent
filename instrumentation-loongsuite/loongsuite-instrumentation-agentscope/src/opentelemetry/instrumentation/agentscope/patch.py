@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import logging
+import timeit
 
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
@@ -114,7 +115,7 @@ async def _trace_async_generator_wrapper(
                 _apply_error_attributes(span, error_obj)
                 # Record metrics with error
                 if handler._metrics_recorder is not None:
-                    handler._metrics_recorder.record(
+                    handler._metrics_recorder.record_extended(
                         span,
                         invocation,
                         error_type=error_obj.type.__qualname__,
@@ -122,7 +123,7 @@ async def _trace_async_generator_wrapper(
             else:
                 # Record metrics without error
                 if handler._metrics_recorder is not None:
-                    handler._metrics_recorder.record(span, invocation)
+                    handler._metrics_recorder.record_extended(span, invocation)
         except Exception:
             # Don't let finalization errors break the generator
             pass
@@ -164,6 +165,7 @@ async def wrap_tool_call(wrapped, instance, args, kwargs, handler):
         tool_description=tool_description,
         tool_call_arguments=tool_args,
     )
+    invocation.monotonic_start_s = timeit.default_timer()
 
     span_name = f"{GenAIAttributes.GenAiOperationNameValues.EXECUTE_TOOL.value} {tool_name}"
     with handler._tracer.start_as_current_span(
@@ -185,7 +187,7 @@ async def wrap_tool_call(wrapped, instance, args, kwargs, handler):
 
             # Record metrics with error
             if handler._metrics_recorder is not None:
-                handler._metrics_recorder.record(
+                handler._metrics_recorder.record_extended(
                     span, invocation, error_type=error_obj.type.__qualname__
                 )
 

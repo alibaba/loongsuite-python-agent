@@ -16,31 +16,19 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from functools import wraps
 from typing import Any, AsyncGenerator
 
-from agentscope.message import Msg
-
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
-from opentelemetry.util.genai.extended_types import (
-    EmbeddingInvocation,
-    InvokeAgentInvocation,
-)
-from opentelemetry.util.genai.types import (
-    Error,
-    LLMInvocation,
-    Text,
-)
+from opentelemetry.util.genai.types import Error, LLMInvocation
 
 from .utils import (
     convert_agent_response_to_output_messages,
-    convert_agentscope_messages_to_genai_format,
     convert_chatresponse_to_output_messages,
-    extract_agent_attributes,
-    extract_embedding_attributes,
-    extract_llm_attributes,
+    create_agent_invocation,
+    create_embedding_invocation,
+    create_llm_invocation,
 )
 
 logger = logging.getLogger(__name__)
@@ -126,51 +114,9 @@ class AgentScopeChatModelWrapper:
             call_self: Any, *call_args: Any, **call_kwargs: Any
         ) -> Any:
             """Async wrapper for ChatModelBase.__call__."""
-            attrs = extract_llm_attributes(call_self, call_args, call_kwargs)
-
-            input_messages_objects = []
-            try:
-                input_messages_list = json.loads(attrs["input_messages"])
-                provider_name = attrs.get("provider_name")
-                input_messages_objects = (
-                    convert_agentscope_messages_to_genai_format(
-                        input_messages_list, provider_name=provider_name
-                    )
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to convert input messages: {e}", exc_info=True
-                )
-
-            invocation = LLMInvocation(
-                request_model=attrs["request_model"],
-                provider=attrs["provider_name"],
-                input_messages=input_messages_objects,
+            invocation = create_llm_invocation(
+                call_self, call_args, call_kwargs
             )
-
-            if attrs.get("request_max_tokens"):
-                invocation.request_max_tokens = attrs["request_max_tokens"]
-            if attrs.get("request_temperature"):
-                invocation.request_temperature = attrs["request_temperature"]
-            if attrs.get("request_top_p"):
-                invocation.request_top_p = attrs["request_top_p"]
-            if attrs.get("request_tool_definitions"):
-                invocation.attributes["gen_ai.request.tool_definitions"] = (
-                    attrs["request_tool_definitions"]
-                )
-
-            if attrs.get("system_instructions"):
-                sys_instructions = attrs.get("system_instructions")
-                if isinstance(sys_instructions, list):
-                    invocation.system_instruction = [
-                        Text(content=content)
-                        for content in sys_instructions
-                        if content
-                    ]
-                elif isinstance(sys_instructions, str):
-                    invocation.system_instruction = [
-                        Text(content=sys_instructions)
-                    ]
 
             self._handler.start_llm(invocation)
 
@@ -197,7 +143,7 @@ class AgentScopeChatModelWrapper:
                         result.usage, "output_tokens", None
                     )
 
-                invocation.response_model = attrs["request_model"]
+                invocation.response_model = invocation.request_model
                 invocation.response_finish_reasons = ["stop"]
 
                 if hasattr(result, "id"):
@@ -266,106 +212,9 @@ class AgentScopeAgentWrapper:
         ) -> Any:
             """Async wrapper for AgentBase.__call__."""
             try:
-                attrs = extract_agent_attributes(
+                invocation = create_agent_invocation(
                     call_self, call_args, call_kwargs
                 )
-
-                input_messages_list = []
-                try:
-                    msg = None
-                    if call_args and len(call_args) > 0:
-                        msg = call_args[0]
-                    elif "msg" in call_kwargs:
-                        msg = call_kwargs["msg"]
-
-                    if msg:
-                        if isinstance(msg, Msg):
-                            input_messages_list = (
-                                convert_agentscope_messages_to_genai_format(
-                                    [msg]
-                                )
-                            )
-                        elif isinstance(msg, list):
-                            input_messages_list = (
-                                convert_agentscope_messages_to_genai_format(
-                                    msg
-                                )
-                            )
-                        else:
-                            logger.debug(
-                                f"Agent msg is not Msg or list, type: {type(msg)}"
-                            )
-                    else:
-                        logger.debug(
-                            "No msg found in call_args or call_kwargs for agent invocation"
-                        )
-                        msg_raw = attrs.get("input_msg_raw")
-                        if msg_raw:
-                            if isinstance(msg_raw, Msg):
-                                input_messages_list = convert_agentscope_messages_to_genai_format(
-                                    [msg_raw]
-                                )
-                            elif isinstance(msg_raw, list):
-                                input_messages_list = convert_agentscope_messages_to_genai_format(
-                                    msg_raw
-                                )
-                        else:
-                            input_messages_raw = attrs.get(
-                                "input_messages", []
-                            )
-                            if isinstance(input_messages_raw, str):
-                                input_messages_raw = json.loads(
-                                    input_messages_raw
-                                )
-                            if isinstance(input_messages_raw, list):
-                                input_messages_list = convert_agentscope_messages_to_genai_format(
-                                    input_messages_raw
-                                )
-
-                    if not input_messages_list:
-                        logger.debug(
-                            f"Failed to convert agent input messages. msg type: {type(msg) if msg else None}, attrs keys: {list(attrs.keys())}"
-                        )
-                except (
-                    json.JSONDecodeError,
-                    TypeError,
-                    KeyError,
-                    AttributeError,
-                ) as e:
-                    logger.warning(
-                        f"Failed to parse agent input messages: {e}",
-                        exc_info=True,
-                    )
-                    input_messages_list = []
-
-                provider_name = attrs.get("provider_name")
-
-                invocation = InvokeAgentInvocation(
-                    provider=provider_name,
-                    agent_name=attrs.get("agent_name", "unknown"),
-                    request_model=attrs.get("request_model"),
-                    input_messages=input_messages_list,
-                )
-
-                if attrs.get("agent_id"):
-                    invocation.agent_id = attrs.get("agent_id")
-
-                if attrs.get("agent_description"):
-                    invocation.agent_description = attrs.get(
-                        "agent_description"
-                    )
-
-                if attrs.get("conversation_id"):
-                    invocation.conversation_id = attrs.get("conversation_id")
-
-                if attrs.get("system_instructions"):
-                    sys_prompt = attrs.get("system_instructions")
-                    if isinstance(sys_prompt, str):
-                        invocation.system_instruction = [
-                            Text(content=sys_prompt)
-                        ]
-                    elif isinstance(sys_prompt, list):
-                        invocation.system_instruction = sys_prompt
 
                 self._handler.start_invoke_agent(invocation)
 
@@ -450,18 +299,9 @@ class AgentScopeEmbeddingModelWrapper:
             call_self: Any, *call_args: Any, **call_kwargs: Any
         ) -> Any:
             """Async wrapper for EmbeddingModelBase.__call__."""
-
-            attrs = extract_embedding_attributes(
+            invocation = create_embedding_invocation(
                 call_self, call_args, call_kwargs
             )
-
-            invocation = EmbeddingInvocation(
-                request_model=attrs["request_model"],
-                provider=attrs["provider_name"],
-            )
-
-            if attrs.get("request_encoding_formats"):
-                invocation.encoding_formats = attrs["request_encoding_formats"]
 
             self._handler.start_embedding(invocation)
 
@@ -477,7 +317,7 @@ class AgentScopeEmbeddingModelWrapper:
                     if tokens is not None:
                         invocation.input_tokens = tokens
 
-                invocation.response_model_name = attrs["request_model"]
+                invocation.response_model_name = invocation.request_model
 
                 self._handler.stop_embedding(invocation)
                 return result

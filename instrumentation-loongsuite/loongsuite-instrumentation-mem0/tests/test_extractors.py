@@ -347,6 +347,67 @@ class TestMemoryOperationAttributeExtractor(unittest.TestCase):
 
     # update/batch_update input message coverage merged into test_extract_invocation_content_input_messages
 
+    def test_compact_exception_branches(self):
+        """
+        Compact coverage test to hit rarely-triggered exception branches:
+        - _extract_input_content exception path
+        - batch size extraction exception path
+        - result_count extraction exception path
+        - op-specific extractor exception path
+        """
+
+        # 1) _extract_input_content exception: kwargs.get raises
+        class BadKwargs(dict):
+            def get(self, *a, **k):  # type: ignore[override]
+                raise RuntimeError("boom")
+
+        input_msg, _ = self.extractor.extract_invocation_content(
+            "search", BadKwargs(), None
+        )
+        self.assertIsNone(input_msg)
+
+        # 2) batch size extraction exception: list type but __len__ raises
+        class BadList(list):
+            def __len__(self):  # pragma: no cover
+                raise RuntimeError("boom")
+
+        # 3) result_count extraction exception + 4) op-specific extractor exception
+        from unittest.mock import patch  # noqa: PLC0415
+
+        def bad_specific(
+            kwargs: Dict[str, Any], result: Any
+        ) -> Dict[str, Any]:
+            raise RuntimeError("boom")
+
+        setattr(
+            MemoryOperationAttributeExtractor,
+            "extract_search_attributes",
+            staticmethod(bad_specific),
+        )
+        try:
+            with patch(
+                "opentelemetry.instrumentation.mem0.internal._extractors.extract_result_count",
+                side_effect=RuntimeError("boom"),
+            ):
+                attrs = self.extractor.extract_invocation_attributes(
+                    "search",
+                    {
+                        "memories": BadList([{"id": 1}]),
+                        "infer": True,
+                        "metadata": {"k": "v"},
+                        "filters": {"f": 1},
+                        "fields": ["a"],
+                        "categories": ["c"],
+                    },
+                    result={"results": [1, 2, 3]},
+                )
+                self.assertIsInstance(attrs, dict)
+        finally:
+            # cleanup dynamic method
+            delattr(
+                MemoryOperationAttributeExtractor, "extract_search_attributes"
+            )
+
 
 class TestVectorOperationAttributeExtractor(unittest.TestCase):
     """Tests Vector operation attribute extractor"""

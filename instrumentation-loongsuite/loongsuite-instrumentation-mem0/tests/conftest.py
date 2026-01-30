@@ -423,16 +423,6 @@ def vcr_config(request):
         "decode_compressed_response": True,
         "before_record_response": scrub_response_headers,
         "record_mode": record_mode,
-        # Match requests by body content to distinguish different requests with same URL
-        "match_on": [
-            "method",
-            "scheme",
-            "host",
-            "port",
-            "path",
-            "query",
-            "body",
-        ],
         # Ignore analytics/telemetry domains to avoid playback failures
         "ignore_hosts": ["us.i.posthog.com", "app.posthog.com"],
     }

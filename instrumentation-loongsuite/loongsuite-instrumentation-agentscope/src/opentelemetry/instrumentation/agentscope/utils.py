@@ -8,9 +8,11 @@ import enum
 import inspect
 import json
 import logging
+import mimetypes
 from dataclasses import is_dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 from agentscope import _config
 from agentscope.agent import AgentBase
@@ -22,9 +24,15 @@ from pydantic import BaseModel
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
+from opentelemetry.util.genai.extended_types import (
+    EmbeddingInvocation,
+    InvokeAgentInvocation,
+)
 from opentelemetry.util.genai.types import (
     InputMessage,
+    LLMInvocation,
     OutputMessage,
+    Reasoning,
     Text,
     ToolCall,
     ToolCallResponse,
@@ -203,21 +211,37 @@ def _convert_block_to_part(block: Dict[str, Any]) -> Dict[str, Any] | None:
             "result": result,
         }
 
-    elif block_type == "image":
+    elif block_type in ["image", "audio", "video"]:
         source = block.get("source", {})
         source_type = source.get("type")
+        media_type = source.get("media_type")
+
         if source_type == "url":
-            return {"type": "image", "url": source.get("url", "")}
+            url = source.get("url", "")
+            # Infer mime_type from URL extension if not provided
+            if not media_type:
+                parsed_url = urlparse(url)
+                media_type, _ = mimetypes.guess_type(parsed_url.path)
+            return {
+                "type": "uri",
+                "uri": url,
+                "modality": block_type,
+                "mime_type": media_type,
+            }
         elif source_type == "base64":
-            data = source.get("data", "")
-            media_type = source.get("media_type", "image/jpeg")
-            return {"type": "image", "url": f"data:{media_type};base64,{data}"}
-
-    elif block_type == "audio":
-        return {"type": "audio", "source": block.get("source", {})}
-
-    elif block_type == "video":
-        return {"type": "video", "source": block.get("source", {})}
+            if not media_type:
+                default_media_types = {
+                    "image": "image/jpeg",
+                    "audio": "audio/wav",
+                    "video": "video/mp4",
+                }
+                media_type = default_media_types.get(block_type, "unknown")
+            return {
+                "type": "blob",
+                "content": source.get("data", ""),
+                "media_type": media_type,
+                "modality": block_type,
+            }
 
     return None
 
@@ -250,129 +274,128 @@ def _format_msg_to_parts(msg: Msg) -> dict[str, Any]:
         }
 
 
-def extract_llm_attributes(
+def create_llm_invocation(
     call_instance: ChatModelBase,
     call_args: Tuple[Any, ...],
     call_kwargs: Dict[str, Any],
-) -> Dict[str, Any]:
-    """Extract LLM call attributes"""
+) -> LLMInvocation:
+    """Create LLM invocation from call context."""
     provider_name = get_provider_name(call_instance)
+    request_model = getattr(call_instance, "model_name", "unknown_model")
 
+    # Convert input messages
+    input_messages = []
     messages = call_args[0] if call_args else call_kwargs.get("messages")
-
     if messages:
         try:
-            input_messages = get_message_converter(provider_name)(messages)
+            converted_messages = get_message_converter(provider_name)(messages)
+            input_messages = convert_agentscope_messages_to_genai_format(
+                converted_messages, provider_name=provider_name
+            )
         except Exception as e:
             logger.warning(
                 f"Failed to convert input messages: {e}", exc_info=True
             )
-            input_messages = {"args": call_args, "kwargs": call_kwargs}
-    else:
-        logger.debug("No messages provided for LLM call")
-        input_messages = {"args": call_args, "kwargs": call_kwargs}
 
-    tool_definitions = None
+    invocation = LLMInvocation(
+        request_model=request_model,
+        provider=provider_name,
+        input_messages=input_messages,
+    )
+
+    # Set optional request parameters if present
+    if call_kwargs.get("max_tokens"):
+        invocation.max_tokens = call_kwargs["max_tokens"]
+    if call_kwargs.get("temperature"):
+        invocation.temperature = call_kwargs["temperature"]
+    if call_kwargs.get("top_p"):
+        invocation.top_p = call_kwargs["top_p"]
+
+    # Set tool definitions if applicable
     if not call_kwargs.get("structured_model", False):
         tool_definitions = _get_tool_definitions(
             call_kwargs.get("tools"), call_kwargs.get("tool_choice")
         )
+        if tool_definitions:
+            invocation.attributes["gen_ai.request.tool_definitions"] = (
+                tool_definitions
+            )
 
-    return {
-        "operation_name": GenAIAttributes.GenAiOperationNameValues.CHAT.value,
-        "provider_name": provider_name,
-        "request_model": getattr(call_instance, "model_name", "unknown_model"),
-        "request_max_tokens": call_kwargs.get("max_tokens"),
-        "request_temperature": call_kwargs.get("temperature"),
-        "request_top_p": call_kwargs.get("top_p"),
-        "request_top_k": call_kwargs.get("top_k"),
-        "request_stop_sequences": call_kwargs.get("stop_sequences"),
-        "request_tool_definitions": tool_definitions,
-        "input_messages": _serialize_to_str(input_messages),
-    }
+    return invocation
 
 
-def extract_embedding_attributes(
+def create_embedding_invocation(
     call_instance: EmbeddingModelBase,
     call_args: Tuple[Any, ...],
     call_kwargs: Dict[str, Any],
-) -> Dict[str, Any]:
-    """Extract Embedding call attributes"""
+) -> EmbeddingInvocation:
+    """Create Embedding invocation from call context."""
     provider_name = get_embedding_provider_name(call_instance)
+    request_model = getattr(call_instance, "model_name", "unknown_model")
 
-    text_for_embedding = call_args[0] if call_args else call_kwargs.get("text")
+    invocation = EmbeddingInvocation(
+        request_model=request_model,
+        provider=provider_name,
+    )
 
-    if text_for_embedding:
-        input_message = []
-        for text_item in text_for_embedding:
-            input_message.append(
-                {
-                    "role": "user",
-                    "content": [{"type": "text", "text": text_item}],
-                }
-            )
-        input_messages = input_message
-    else:
-        logger.debug("No text provided for embedding call")
-        input_messages = {"args": call_args, "kwargs": call_kwargs}
+    # Set encoding formats if present
+    if call_kwargs.get("encoding_formats"):
+        invocation.encoding_formats = call_kwargs["encoding_formats"]
 
-    return {
-        "operation_name": GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
-        "provider_name": provider_name,
-        "request_model": getattr(call_instance, "model_name", "unknown_model"),
-        "request_encoding_formats": call_kwargs.get("encoding_formats"),
-        "input_messages": _serialize_to_str(input_messages),
-    }
+    return invocation
 
 
-def extract_agent_attributes(
+def create_agent_invocation(
     reply_instance: AgentBase,
     reply_args: Tuple[Any, ...],
     reply_kwargs: Dict[str, Any],
-) -> Dict[str, Any]:
-    """Extract Agent reply call attributes"""
-    msg = reply_args[0] if reply_args else reply_kwargs.get("msg")
-
-    if msg:
-        try:
-            if isinstance(msg, Msg):
-                input_messages = _format_msg_to_parts(msg)
-            elif isinstance(msg, list):
-                input_messages = [
-                    _format_msg_to_parts(m) for m in msg if isinstance(m, Msg)
-                ]
-            else:
-                input_messages = []
-        except Exception as e:
-            logger.debug(f"Error formatting agent messages: {e}")
-            input_messages = []
-    else:
-        logger.debug("No msg provided for agent reply")
-        input_messages = {"args": reply_args, "kwargs": reply_kwargs}
-
-    request_model = None
+) -> InvokeAgentInvocation:
+    """Create Agent invocation from reply call context."""
+    # Get provider and model info
     provider_name = None
+    request_model = None
     if hasattr(reply_instance, "model") and reply_instance.model:
         model = reply_instance.model
-        # Only set request_model if model has a model_name attribute
         request_model = getattr(model, "model_name", None)
         if isinstance(model, ChatModelBase):
             provider_name = get_provider_name(model)
 
-    return {
-        "operation_name": GenAIAttributes.GenAiOperationNameValues.INVOKE_AGENT.value,
-        "agent_id": getattr(reply_instance, "id", "unknown"),
-        "agent_name": getattr(reply_instance, "name", "unknown_agent"),
-        "agent_description": inspect.getdoc(reply_instance.__class__)
+    # Convert input messages
+    input_messages = []
+    msg = reply_args[0] if reply_args else reply_kwargs.get("msg")
+    if msg:
+        try:
+            if isinstance(msg, Msg):
+                input_messages = convert_agentscope_messages_to_genai_format(
+                    [msg]
+                )
+            elif isinstance(msg, list):
+                input_messages = convert_agentscope_messages_to_genai_format(
+                    msg
+                )
+        except Exception as e:
+            logger.debug(f"Error converting agent input messages: {e}")
+
+    invocation = InvokeAgentInvocation(
+        provider=provider_name,
+        agent_name=getattr(reply_instance, "name", "unknown_agent"),
+        agent_id=getattr(reply_instance, "id", "unknown"),
+        agent_description=inspect.getdoc(reply_instance.__class__)
         or "No description available",
-        "system_instructions": reply_instance.sys_prompt
-        if hasattr(reply_instance, "sys_prompt")
-        else None,
-        "request_model": request_model,
-        "provider_name": provider_name,
-        "conversation_id": _config.run_id,
-        "input_messages": _serialize_to_str(input_messages),
-    }
+        conversation_id=_config.run_id,
+        request_model=request_model,
+        input_messages=input_messages,
+    )
+
+    # Set system instruction if available
+    if hasattr(reply_instance, "sys_prompt") and reply_instance.sys_prompt:
+        sys_prompt = reply_instance.sys_prompt
+        if isinstance(sys_prompt, str):
+            invocation.system_instruction = [Text(content=sys_prompt)]
+        elif isinstance(sys_prompt, list):
+            invocation.system_instruction = sys_prompt
+
+    return invocation
 
 
 def get_chatmodel_output_messages(chat_response: Any) -> List[Dict[str, Any]]:
@@ -432,14 +455,7 @@ def convert_agentscope_messages_to_genai_format(
         if isinstance(msg, Msg):
             msg_dict = _format_msg_to_parts(msg)
         elif isinstance(msg, dict):
-            if provider_name:
-                try:
-                    converted = get_message_converter(provider_name)([msg])
-                    msg_dict = converted[0] if converted else msg
-                except Exception:
-                    msg_dict = msg
-            else:
-                msg_dict = msg
+            msg_dict = msg
         else:
             continue
 
@@ -466,6 +482,12 @@ def convert_agentscope_messages_to_genai_format(
                         response=part.get("result", ""),
                     )
                 )
+            elif part_type == "reasoning":
+                converted_parts.append(
+                    Reasoning(content=part.get("content", ""))
+                )
+            elif part_type in ("uri", "blob"):
+                converted_parts.append(part)
             else:
                 # Keep other types as-is
                 converted_parts.append(part)
@@ -539,6 +561,10 @@ def convert_agent_response_to_output_messages(
             part_type = part.get("type")
             if part_type == "text":
                 converted_parts.append(Text(content=part.get("content", "")))
+            elif part_type == "reasoning":
+                converted_parts.append(
+                    Reasoning(content=part.get("content", ""))
+                )
             elif part_type == "tool_call":
                 converted_parts.append(
                     ToolCall(
@@ -547,6 +573,8 @@ def convert_agent_response_to_output_messages(
                         arguments=part.get("arguments", {}),
                     )
                 )
+            elif part_type in ("uri", "blob"):
+                converted_parts.append(part)
             else:
                 converted_parts.append(Text(content=str(part)))
 

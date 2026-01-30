@@ -15,11 +15,11 @@ Loongsuite Python Agent is also a customized distribution of upstream [OTel Pyth
 The implementation follows the latest GenAI [semantic conventions](https://github.com/open-telemetry/semantic-conventions).
 
 ## Supported AI Frameworks and components
-* [AgentScope](https://github.com/agentscope-ai/agentscope): [Guide](instrumentation-genai/opentelemetry-instrumentation-agentscope/README.md)
-* [Dify](https://github.com/langgenius/dify): [Guide](instrumentation-genai/opentelemetry-instrumentation-dify/README.md)
+* [AgentScope](https://github.com/agentscope-ai/agentscope): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-agentscope/README.md)
+* [Dify](https://github.com/langgenius/dify): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-dify/README.md)
 * [LangChain](https://github.com/langchain-ai/langchain): [Guide](instrumentation-genai/opentelemetry-instrumentation-langchain/README.md)
 * [MCP Client](https://github.com/modelcontextprotocol/python-sdk)
-* [Agno](https://github.com/agno-agi/agno): [Guide](instrumentation-genai/opentelemetry-instrumentation-agno/README.md)
+* [Agno](https://github.com/agno-agi/agno): [Guide](instrumentation-loongsuite/loongsuite-instrumentation-agno/README.md)
 * [OpenAI](https://github.com/openai/openai-python): [Guide](instrumentation-genai/opentelemetry-instrumentation-openai-v2/README.rst)
 
 ## Quick start
@@ -41,7 +41,7 @@ pip install agentscope
 #AgentScopeInstrumentor
 git clone https://github.com/alibaba/loongsuite-python-agent.git
 cd loongsuite-python-agent
-pip install ./instrumentation-genai/opentelemetry-instrumentation-agentscope
+pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
 ```
 
 ### RUN
@@ -144,7 +144,7 @@ If everything is working correctly, you should see logs similar to th
 }
 ```
 
-### Forwarding OTLP Data to Jaeger via LoongCollector
+### (Optional) Forwarding OTLP Data to Jaeger via LoongCollector
 
 #### Launch Jaeger
 
@@ -220,6 +220,60 @@ python demo.py
 Access the Jaeger UI to view the collected trace data. You should now see trace information being properly received.
 
 ![image.png](docs/_assets/img/quickstart-results.png)
+
+### Using AgentScope Studio to View Tracing Data
+
+[AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio) provides a web-based interface for visualizing and analyzing tracing data from AgentScope applications.
+
+#### Installation
+
+Install AgentScope Studio:
+
+```shell
+pip install agentscope-studio
+```
+
+#### Launch AgentScope Studio
+
+Start the AgentScope Studio server:
+
+```shell
+as_studio
+```
+
+AgentScope Studio will start and display the OTLP endpoint URL (typically `http://127.0.0.1:31415`).
+
+#### Export AgentScope Data to AgentScope Studio
+
+Configure your AgentScope application to export telemetry data to AgentScope Studio using OTLP. Use the endpoint URL displayed by AgentScope Studio when it starts:
+
+```shell
+loongsuite-instrument \
+    --traces_exporter otlp \
+    --metrics_exporter otlp \
+    --exporter_otlp_protocol http/protobuf \
+    --exporter_otlp_endpoint http://127.0.0.1:31415 \
+    --service_name demo \
+    python demo.py
+```
+
+Alternatively, you can use environment variables:
+
+```shell
+export OTEL_SERVICE_NAME=demo
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:31415
+export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://127.0.0.1:31415
+
+loongsuite-instrument \
+    --traces_exporter otlp \
+    --metrics_exporter otlp \
+    python demo.py
+```
+
+The web interface will display the collected traces and metrics, allowing you to view and analyze the tracing data from your AgentScope applications.
+
+For more details, please refer to the [AgentScope Studio documentation](https://github.com/agentscope-ai/agentscope-studio).
 
 ## Community
 

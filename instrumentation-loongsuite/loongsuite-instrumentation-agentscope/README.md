@@ -20,6 +20,9 @@ pip install agentscope
 
 # Install this instrumentation
 pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
+
+# Note: This instrumentation uses ExtendedTelemetryHandler from opentelemetry-util-genai
+pip install ./util/opentelemetry-util-genai
 ```
 
 ## Usage
@@ -67,6 +70,9 @@ opentelemetry-instrument python your_app.py
 Control message content capture using environment variables:
 
 ```bash
+# Enable experimental GenAI semantic conventions
+export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
+
 # Capture content in spans only
 export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_ONLY
 
@@ -90,13 +96,13 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 ## Visualization
 
 Export telemetry data to:
-- [Aliyun XTrace](https://www.aliyun.com/product/xtrace)
+- [Alibaba Cloud Managed Service for OpenTelemetry](https://www.aliyun.com/product/xtrace)
 - [AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio)
 - Any OpenTelemetry-compatible backend (Jaeger, Zipkin, etc.)
 
 ## Examples
 
-See the [examples directory](../../examples/) for complete usage examples.
+See the [main README](https://github.com/alibaba/loongsuite-python-agent/blob/main/README.md) for complete usage examples.
 
 ## License
 

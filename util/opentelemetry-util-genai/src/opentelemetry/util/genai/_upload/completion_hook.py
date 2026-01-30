@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import posixpath
 import threading
@@ -30,9 +29,15 @@ from uuid import uuid4
 
 import fsspec
 
+# LoongSuite Extension: For Python 3.8 Compatibility
+from typing_extensions import TypeAlias
+
 from opentelemetry._logs import LogRecord
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import Span
+
+# LoongSuite Extension: For Python 3.8 Compatibility
+from opentelemetry.util.genai import compatible_hashlib as hashlib
 from opentelemetry.util.genai import types
 from opentelemetry.util.genai.completion_hook import CompletionHook
 from opentelemetry.util.genai.utils import gen_ai_json_dump
@@ -72,10 +77,12 @@ class CompletionRefs:
     system_instruction_ref: str
 
 
-JsonEncodeable = list[dict[str, Any]]
+# LoongSuite Extension: Use TypeAlias with string annotation for Python 3.8 compatibility
+JsonEncodeable: TypeAlias = "list[dict[str, Any]]"
 
 # mapping of upload path and whether the contents were hashed to the filename to function computing upload data dict
-UploadData = dict[tuple[str, bool], Callable[[], JsonEncodeable]]
+# LoongSuite Extension: Use TypeAlias with string annotation for Python 3.8 compatibility
+UploadData: TypeAlias = "dict[tuple[str, bool], Callable[[], JsonEncodeable]]"
 
 
 def is_system_instructions_hashable(

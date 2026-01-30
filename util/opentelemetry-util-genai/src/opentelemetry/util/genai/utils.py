@@ -95,13 +95,19 @@ class _GenAiJsonEncoder(json.JSONEncoder):
 
 
 gen_ai_json_dump = partial(
-    json.dump, separators=(",", ":"), cls=_GenAiJsonEncoder
+    json.dump,
+    separators=(",", ":"),
+    cls=_GenAiJsonEncoder,
+    ensure_ascii=False,  # LoongSuite Extension
 )
 """Should be used by GenAI instrumentations when serializing objects that may contain
 bytes, datetimes, etc. for GenAI observability."""
 
 gen_ai_json_dumps = partial(
-    json.dumps, separators=(",", ":"), cls=_GenAiJsonEncoder
+    json.dumps,
+    separators=(",", ":"),
+    cls=_GenAiJsonEncoder,
+    ensure_ascii=False,  # LoongSuite Extension
 )
 """Should be used by GenAI instrumentations when serializing objects that may contain
 bytes, datetimes, etc. for GenAI observability."""

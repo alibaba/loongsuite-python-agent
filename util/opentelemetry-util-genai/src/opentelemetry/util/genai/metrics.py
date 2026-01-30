@@ -90,7 +90,10 @@ class InvocationMetricsRecorder:
         for token_count, token_type in token_counts:
             self._token_histogram.record(
                 token_count,
-                attributes=attributes | {GenAI.GEN_AI_TOKEN_TYPE: token_type},
+                attributes={
+                    **attributes,
+                    GenAI.GEN_AI_TOKEN_TYPE: token_type,
+                },  # LoongSuite Extension: For Python 3.8 Compatibility
                 context=span_context,
             )
 
