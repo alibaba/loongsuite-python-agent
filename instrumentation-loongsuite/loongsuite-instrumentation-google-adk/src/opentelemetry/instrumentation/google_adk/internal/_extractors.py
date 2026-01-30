@@ -357,6 +357,11 @@ class AdkAttributeExtractors:
             # ✅ finish_reasons (复数数组)
             if hasattr(llm_response, "finish_reason"):
                 finish_reason = llm_response.finish_reason or "stop"
+                # Convert enum to string if necessary (OpenTelemetry only accepts primitive types)
+                if hasattr(finish_reason, "value"):
+                    finish_reason = finish_reason.value
+                elif not isinstance(finish_reason, (str, int, float, bool)):
+                    finish_reason = str(finish_reason)
                 attrs["gen_ai.response.finish_reasons"] = [
                     finish_reason
                 ]  # 必须是数组
