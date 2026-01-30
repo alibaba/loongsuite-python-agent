@@ -374,6 +374,158 @@ jobs:
       - name: Run tests
         run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-dashscope-latest -- -ra
 
+  py310-test-loongsuite-instrumentation-claude-agent-sdk-oldest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-oldest 3.10 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py310-test-loongsuite-instrumentation-claude-agent-sdk-oldest -- -ra
+
+  py310-test-loongsuite-instrumentation-claude-agent-sdk-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-latest 3.10 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py310-test-loongsuite-instrumentation-claude-agent-sdk-latest -- -ra
+
+  py311-test-loongsuite-instrumentation-claude-agent-sdk-oldest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-oldest 3.11 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py311-test-loongsuite-instrumentation-claude-agent-sdk-oldest -- -ra
+
+  py311-test-loongsuite-instrumentation-claude-agent-sdk-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-latest 3.11 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py311-test-loongsuite-instrumentation-claude-agent-sdk-latest -- -ra
+
+  py312-test-loongsuite-instrumentation-claude-agent-sdk-oldest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-oldest 3.12 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-claude-agent-sdk-oldest -- -ra
+
+  py312-test-loongsuite-instrumentation-claude-agent-sdk-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-latest 3.12 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-claude-agent-sdk-latest -- -ra
+
+  py313-test-loongsuite-instrumentation-claude-agent-sdk-oldest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-oldest 3.13 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-claude-agent-sdk-oldest -- -ra
+
+  py313-test-loongsuite-instrumentation-claude-agent-sdk-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-claude-agent-sdk-latest 3.13 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-claude-agent-sdk-latest -- -ra
+
   py310-test-loongsuite-instrumentation-mem0-oldest_ubuntu-latest:
     name: LoongSuite loongsuite-instrumentation-mem0-oldest 3.10 Ubuntu
     runs-on: ubuntu-latest
