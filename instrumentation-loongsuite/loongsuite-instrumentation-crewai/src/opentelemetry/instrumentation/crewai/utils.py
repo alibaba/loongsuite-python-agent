@@ -5,7 +5,6 @@ from base64 import b64encode
 from typing import Any, Dict, List, Optional
 
 from opentelemetry.trace import Span
-from opentelemetry.util.genai.completion_hook import CompletionHook
 from opentelemetry.util.genai.types import (
     InputMessage,
     MessagePart,
@@ -55,8 +54,6 @@ def _safe_json_dumps(
     return result
 
 
-gen_ai_json_dumps = _safe_json_dumps
-
 GEN_AI_INPUT_MESSAGES = "gen_ai.input.messages"
 GEN_AI_OUTPUT_MESSAGES = "gen_ai.output.messages"
 GEN_AI_SYSTEM_INSTRUCTIONS = "gen_ai.system_instructions"
@@ -68,10 +65,7 @@ OP_NAME_TOOL = "tool.execute"
 
 
 class GenAIHookHelper:
-    def __init__(
-        self, completion_hook: CompletionHook, capture_content: bool = True
-    ):
-        self.completion_hook = completion_hook
+    def __init__(self, capture_content: bool = True):
         self.capture_content = capture_content
 
     def on_completion(
@@ -86,19 +80,17 @@ class GenAIHookHelper:
             if inputs:
                 span.set_attribute(
                     GEN_AI_INPUT_MESSAGES,
-                    gen_ai_json_dumps([dataclasses.asdict(i) for i in inputs]),
+                    _safe_json_dumps([dataclasses.asdict(i) for i in inputs]),
                 )
             if outputs:
                 span.set_attribute(
                     GEN_AI_OUTPUT_MESSAGES,
-                    gen_ai_json_dumps(
-                        [dataclasses.asdict(o) for o in outputs]
-                    ),
+                    _safe_json_dumps([dataclasses.asdict(o) for o in outputs]),
                 )
             if system_instructions:
                 span.set_attribute(
                     GEN_AI_SYSTEM_INSTRUCTIONS,
-                    gen_ai_json_dumps(
+                    _safe_json_dumps(
                         [dataclasses.asdict(i) for i in system_instructions]
                     ),
                 )
