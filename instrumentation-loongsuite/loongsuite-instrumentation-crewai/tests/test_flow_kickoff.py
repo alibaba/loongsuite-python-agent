@@ -24,9 +24,8 @@ This test suite validates the _FlowKickoffAsyncWrapper functionality including:
 
 import json
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
-from opentelemetry import trace as trace_api
 from opentelemetry.instrumentation.crewai import (
     GenAIHookHelper,
     _FlowKickoffAsyncWrapper,
@@ -40,10 +39,9 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
 from opentelemetry.trace import SpanKind, StatusCode
-from opentelemetry.util.genai.completion_hook import load_completion_hook
 
 
-class TestFlowKickoffAsyncWrapper(unittest.TestCase):
+class TestFlowKickoffAsyncWrapper(unittest.IsolatedAsyncioTestCase):
     """Test _FlowKickoffAsyncWrapper class."""
 
     def setUp(self):
@@ -52,28 +50,12 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         self.memory_exporter = InMemorySpanExporter()
         self.tracer_provider = TracerProvider()
         self.tracer_provider.add_span_processor(
-            trace_api.get_tracer_provider()
-            .get_tracer(__name__)
-            .__class__.__bases__[0]
-            .__subclasses__()[0](self.memory_exporter)
-            if hasattr(
-                trace_api.get_tracer_provider()
-                .get_tracer(__name__)
-                .__class__.__bases__[0],
-                "__subclasses__",
-            )
-            else None
-        )
-
-        self.tracer_provider = TracerProvider()
-        self.tracer_provider.add_span_processor(
             SimpleSpanProcessor(self.memory_exporter)
         )
         self.tracer = self.tracer_provider.get_tracer(__name__)
 
         # Create wrapper instance
-        completion_hook = load_completion_hook()
-        self.helper = GenAIHookHelper(completion_hook=completion_hook)
+        self.helper = GenAIHookHelper()
         self.wrapper = _FlowKickoffAsyncWrapper(self.tracer, self.helper)
 
     def tearDown(self):
@@ -86,7 +68,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         self.assertEqual(wrapper._tracer, self.tracer)
         self.assertEqual(wrapper._helper, self.helper)
 
-    def test_basic_flow_kickoff(self):
+    async def test_basic_flow_kickoff(self):
         """
         Test basic flow kickoff creates CHAIN span with correct attributes.
 
@@ -98,14 +80,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Status is OK
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="flow result")
+        mock_wrapped = AsyncMock(return_value="flow result")
 
         # Create mock flow instance with name
         mock_instance = MagicMock()
         mock_instance.name = "test_flow"
 
         # Call wrapper
-        result = self.wrapper(mock_wrapped, mock_instance, (), {})
+        result = await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify wrapped function was called
         mock_wrapped.assert_called_once_with()
@@ -129,7 +111,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         self.assertIn("flow result", output_messages[0]["parts"][0]["content"])
         self.assertEqual(span.status.status_code, StatusCode.OK)
 
-    def test_flow_kickoff_without_name(self):
+    async def test_flow_kickoff_without_name(self):
         """
         Test flow kickoff when instance has no name attribute.
 
@@ -138,13 +120,13 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Span is created with default name
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="result")
+        mock_wrapped = AsyncMock(return_value="result")
 
         # Create mock flow instance without name
         mock_instance = MagicMock(spec=[])  # No name attribute
 
         # Call wrapper
-        self.wrapper(mock_wrapped, mock_instance, (), {})
+        await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify span was created with default name
         spans = self.memory_exporter.get_finished_spans()
@@ -156,7 +138,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
             span.attributes.get("gen_ai.operation.name"), "crew.kickoff"
         )
 
-    def test_flow_kickoff_with_inputs(self):
+    async def test_flow_kickoff_with_inputs(self):
         """
         Test flow kickoff with input parameters.
 
@@ -165,7 +147,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Inputs are properly serialized to JSON
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="processed result")
+        mock_wrapped = AsyncMock(return_value="processed result")
 
         # Create mock flow instance
         mock_instance = MagicMock()
@@ -173,7 +155,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
 
         # Call wrapper with inputs
         inputs = {"query": "test query", "count": 10}
-        self.wrapper(mock_wrapped, mock_instance, (), {"inputs": inputs})
+        await self.wrapper(mock_wrapped, mock_instance, (), {"inputs": inputs})
 
         # Verify wrapped function was called with correct kwargs
         mock_wrapped.assert_called_once_with(inputs=inputs)
@@ -192,7 +174,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         self.assertIn("test query", content)
         self.assertIn("10", content)
 
-    def test_flow_kickoff_with_args(self):
+    async def test_flow_kickoff_with_args(self):
         """
         Test flow kickoff with positional arguments.
 
@@ -200,14 +182,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Args are passed to wrapped function
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="result with args")
+        mock_wrapped = AsyncMock(return_value="result with args")
 
         # Create mock flow instance
         mock_instance = MagicMock()
         mock_instance.name = "args_flow"
 
         # Call wrapper with args
-        result = self.wrapper(
+        result = await self.wrapper(
             mock_wrapped, mock_instance, ("arg1", "arg2"), {}
         )
 
@@ -215,7 +197,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         mock_wrapped.assert_called_once_with("arg1", "arg2")
         self.assertEqual(result, "result with args")
 
-    def test_flow_kickoff_exception_handling(self):
+    async def test_flow_kickoff_exception_handling(self):
         """
         Test flow kickoff exception handling.
 
@@ -226,7 +208,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         """
         # Create mock wrapped function that raises exception
         test_exception = ValueError("Test error in flow")
-        mock_wrapped = MagicMock(side_effect=test_exception)
+        mock_wrapped = AsyncMock(side_effect=test_exception)
 
         # Create mock flow instance
         mock_instance = MagicMock()
@@ -234,7 +216,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
 
         # Call wrapper and expect exception
         with self.assertRaises(ValueError) as context:
-            self.wrapper(mock_wrapped, mock_instance, (), {})
+            await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         self.assertEqual(str(context.exception), "Test error in flow")
 
@@ -251,7 +233,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         exception_event = span.events[0]
         self.assertEqual(exception_event.name, "exception")
 
-    def test_flow_kickoff_with_none_name(self):
+    async def test_flow_kickoff_with_none_name(self):
         """
         Test flow kickoff when instance.name is None.
 
@@ -259,14 +241,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Uses default name "flow.kickoff" when name is None
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="result")
+        mock_wrapped = AsyncMock(return_value="result")
 
         # Create mock flow instance with None name
         mock_instance = MagicMock()
         mock_instance.name = None
 
         # Call wrapper
-        self.wrapper(mock_wrapped, mock_instance, (), {})
+        await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify span was created with default name
         spans = self.memory_exporter.get_finished_spans()
@@ -278,7 +260,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
             span.attributes.get("gen_ai.operation.name"), "crew.kickoff"
         )
 
-    def test_flow_kickoff_with_complex_result(self):
+    async def test_flow_kickoff_with_complex_result(self):
         """
         Test flow kickoff with complex result object.
 
@@ -292,14 +274,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
             "data": {"items": [1, 2, 3]},
             "message": "Flow completed",
         }
-        mock_wrapped = MagicMock(return_value=complex_result)
+        mock_wrapped = AsyncMock(return_value=complex_result)
 
         # Create mock flow instance
         mock_instance = MagicMock()
         mock_instance.name = "complex_flow"
 
         # Call wrapper
-        result = self.wrapper(mock_wrapped, mock_instance, (), {})
+        result = await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify result is returned correctly
         self.assertEqual(result, complex_result)
@@ -317,7 +299,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         self.assertIn("success", content)
         self.assertIn("Flow completed", content)
 
-    def test_flow_kickoff_with_none_result(self):
+    async def test_flow_kickoff_with_none_result(self):
         """
         Test flow kickoff when wrapped function returns None.
 
@@ -326,14 +308,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - output.value is set appropriately
         """
         # Create mock wrapped function returning None
-        mock_wrapped = MagicMock(return_value=None)
+        mock_wrapped = AsyncMock(return_value=None)
 
         # Create mock flow instance
         mock_instance = MagicMock()
         mock_instance.name = "none_result_flow"
 
         # Call wrapper
-        result = self.wrapper(mock_wrapped, mock_instance, (), {})
+        result = await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify result is None
         self.assertIsNone(result)
@@ -345,7 +327,7 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         span = spans[0]
         self.assertEqual(span.status.status_code, StatusCode.OK)
 
-    def test_flow_kickoff_span_kind(self):
+    async def test_flow_kickoff_span_kind(self):
         """
         Test that flow kickoff span has correct SpanKind.
 
@@ -353,14 +335,14 @@ class TestFlowKickoffAsyncWrapper(unittest.TestCase):
         - Span kind is INTERNAL
         """
         # Create mock wrapped function
-        mock_wrapped = MagicMock(return_value="result")
+        mock_wrapped = AsyncMock(return_value="result")
 
         # Create mock flow instance
         mock_instance = MagicMock()
         mock_instance.name = "kind_test_flow"
 
         # Call wrapper
-        self.wrapper(mock_wrapped, mock_instance, (), {})
+        await self.wrapper(mock_wrapped, mock_instance, (), {})
 
         # Verify span kind
         spans = self.memory_exporter.get_finished_spans()

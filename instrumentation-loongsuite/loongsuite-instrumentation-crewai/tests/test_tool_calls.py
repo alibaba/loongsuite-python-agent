@@ -56,7 +56,10 @@ class CalculatorTool(BaseTool):
     def _run(self, expression: str) -> str:
         """Execute the tool."""
         try:
-            result = eval(expression)
+            # Safely evaluate mathematical expressions by restricting builtins
+            # In a real tool, use a library like numexpr or simpleeval
+            safe_dict = {"__builtins__": None}
+            result = eval(expression, safe_dict, {})
             return f"Result: {result}"
         except Exception as e:
             return f"Error: {str(e)}"
