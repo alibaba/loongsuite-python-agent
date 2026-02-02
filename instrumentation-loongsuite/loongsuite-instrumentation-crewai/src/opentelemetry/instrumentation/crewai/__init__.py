@@ -338,6 +338,7 @@ class _ToolUseWrapper:
 
                 self._helper.on_completion(span, genai_inputs, genai_outputs)
 
+                is_error = False
                 if instance:
                     _run_attempts = getattr(instance, "_run_attempts", None)
                     _max_parsing_attempts = getattr(
@@ -349,6 +350,10 @@ class _ToolUseWrapper:
                         and _run_attempts > _max_parsing_attempts
                     ):
                         span.set_status(Status(StatusCode.ERROR))
+                        is_error = True
+
+                if not is_error:
+                    span.set_status(Status(StatusCode.OK))
 
                 return result
             except Exception as e:
