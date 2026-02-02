@@ -4,6 +4,9 @@ OpenTelemetry Instrumentation for Google ADK.
 This package provides OpenTelemetry instrumentation for Google Agent Development Kit (ADK)
 applications, following the OpenTelemetry GenAI semantic conventions.
 
+This implementation uses ExtendedTelemetryHandler from opentelemetry-util-genai
+for standard span and metrics management.
+
 Usage:
     # Manual instrumentation
     from opentelemetry.instrumentation.google_adk import GoogleAdkInstrumentor
@@ -18,11 +21,9 @@ from typing import Collection, Optional
 
 from wrapt import wrap_function_wrapper
 
-from opentelemetry import metrics as metrics_api
-from opentelemetry import trace as trace_api
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
-from opentelemetry.semconv.schemas import Schemas
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
 from .internal._plugin import GoogleAdkObservabilityPlugin
 from .version import __version__
@@ -33,9 +34,12 @@ _logger = logging.getLogger(__name__)
 # This ensures the plugin persists across different instrumentor instances
 # and supports both manual and auto instrumentation modes
 _global_plugin: Optional[GoogleAdkObservabilityPlugin] = None
+_global_handler: Optional[ExtendedTelemetryHandler] = None
 
 
-def _create_plugin_if_needed(tracer_provider=None, meter_provider=None):
+def _create_plugin_if_needed(
+    tracer_provider=None, meter_provider=None, logger_provider=None
+):
     """
     Create or get the global plugin instance.
 
@@ -46,29 +50,23 @@ def _create_plugin_if_needed(tracer_provider=None, meter_provider=None):
     Args:
         tracer_provider: Optional tracer provider
         meter_provider: Optional meter provider
+        logger_provider: Optional logger provider
 
     Returns:
         GoogleAdkObservabilityPlugin instance
     """
-    global _global_plugin
+    global _global_plugin, _global_handler
 
     if _global_plugin is None:
-        # Get tracer and meter
-        tracer = trace_api.get_tracer(
-            __name__,
-            __version__,
-            tracer_provider,
-            schema_url=Schemas.V1_28_0.value,
+        # Create ExtendedTelemetryHandler with provided providers
+        _global_handler = ExtendedTelemetryHandler(
+            tracer_provider=tracer_provider,
+            meter_provider=meter_provider,
+            logger_provider=logger_provider,
         )
 
-        meter = metrics_api.get_meter(
-            __name__,
-            __version__,
-            meter_provider,
-            schema_url=Schemas.V1_28_0.value,
-        )
-
-        _global_plugin = GoogleAdkObservabilityPlugin(tracer, meter)
+        # Create plugin with handler
+        _global_plugin = GoogleAdkObservabilityPlugin(_global_handler)
         _logger.debug("Created global GoogleAdkObservabilityPlugin instance")
 
     return _global_plugin
@@ -119,6 +117,11 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
     This instrumentor automatically injects observability into Google ADK applications
     following OpenTelemetry GenAI semantic conventions.
 
+    Uses ExtendedTelemetryHandler from opentelemetry-util-genai for:
+    - Automatic span lifecycle management
+    - Automatic metrics recording
+    - Standard GenAI semantic conventions
+
     Supports both manual and auto instrumentation modes:
     - Manual: GoogleAdkInstrumentor().instrument()
     - Auto: opentelemetry-instrument python your_app.py
@@ -162,6 +165,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
             **kwargs: Optional keyword arguments:
                 - tracer_provider: Custom tracer provider
                 - meter_provider: Custom meter provider
+                - logger_provider: Custom logger provider
         """
         # Check if google-adk is installed
         import importlib.util
@@ -174,9 +178,10 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
 
         tracer_provider = kwargs.get("tracer_provider")
         meter_provider = kwargs.get("meter_provider")
+        logger_provider = kwargs.get("logger_provider")
 
         # Create or get the global plugin instance
-        _create_plugin_if_needed(tracer_provider, meter_provider)
+        _create_plugin_if_needed(tracer_provider, meter_provider, logger_provider)
 
         # Wrap the Runner initialization to auto-inject our plugin
         try:
@@ -196,7 +201,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
         Args:
             **kwargs: Optional keyword arguments
         """
-        global _global_plugin
+        global _global_plugin, _global_handler
 
         try:
             # Unwrap the Runner initialization
@@ -204,8 +209,9 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
 
             unwrap(Runner, "__init__")
 
-            # Clear the global plugin
+            # Clear the global plugin and handler
             _global_plugin = None
+            _global_handler = None
 
             _logger.info("Google ADK instrumentation disabled")
         except Exception as e:

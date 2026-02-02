@@ -3,10 +3,13 @@ OpenTelemetry ADK Observability Plugin.
 
 This module implements the core observability plugin using Google ADK's
 plugin mechanism with OpenTelemetry GenAI semantic conventions.
+
+This implementation uses ExtendedTelemetryHandler from opentelemetry-util-genai
+for standard span and metrics management.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.callback_context import CallbackContext
@@ -19,16 +22,24 @@ from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
-from opentelemetry import trace as trace_api
-from opentelemetry.metrics import Meter
-from opentelemetry.trace import SpanKind
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
+from opentelemetry.util.genai.extended_types import (
+    ExecuteToolInvocation,
+    InvokeAgentInvocation,
+)
+from opentelemetry.util.genai.types import (
+    Error,
+    InputMessage,
+    LLMInvocation,
+    OutputMessage,
+    Text,
+)
 
 from ._extractors import AdkAttributeExtractors
-from ._metrics import AdkMetricsCollector
 from ._utils import (
     extract_content_safely_for_input_output,
     process_content,
-    safe_json_dumps_for_input_output,
+    safe_json_dumps,
     should_capture_content,
 )
 
@@ -41,23 +52,27 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
 
     Implements comprehensive observability for Google ADK applications
     following OpenTelemetry GenAI semantic conventions.
+
+    Uses ExtendedTelemetryHandler for standard span lifecycle management
+    and automatic metrics recording.
     """
 
-    def __init__(self, tracer: trace_api.Tracer, meter: Meter):
+    def __init__(self, handler: ExtendedTelemetryHandler):
         """
         Initialize the observability plugin.
 
         Args:
-            tracer: OpenTelemetry tracer instance
-            meter: OpenTelemetry meter instance
+            handler: ExtendedTelemetryHandler instance for span/metrics management
         """
         super().__init__(name="opentelemetry_adk_observability")
-        self._tracer = tracer
-        self._metrics = AdkMetricsCollector(meter)
+        self._handler = handler
         self._extractors = AdkAttributeExtractors()
 
-        # Track active spans for proper nesting
-        self._active_spans: Dict[str, trace_api.Span] = {}
+        # Track active invocations for proper callback matching
+        self._active_runner_invocations: Dict[str, InvokeAgentInvocation] = {}
+        self._active_agent_invocations: Dict[str, InvokeAgentInvocation] = {}
+        self._active_llm_invocations: Dict[str, LLMInvocation] = {}
+        self._active_tool_invocations: Dict[str, ExecuteToolInvocation] = {}
 
         # Track user messages and final responses for Runner spans
         self._runner_inputs: Dict[str, types.Content] = {}
@@ -75,44 +90,55 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         Start Runner execution - create top-level invoke_agent span.
 
         According to OTel GenAI conventions, Runner is treated as a top-level agent.
-        Span name: "invoke_agent {app_name}"
         """
         try:
-            # ✅ Span name follows GenAI conventions
-            span_name = f"invoke_agent {invocation_context.app_name}"
-            attributes = self._extractors.extract_runner_attributes(
-                invocation_context
+            # Extract conversation_id and user_id
+            conversation_id = None
+            user_id = None
+
+            if invocation_context.session:
+                conversation_id = invocation_context.session.id
+            user_id = getattr(invocation_context, "user_id", None)
+
+            # Create invocation object
+            invocation = InvokeAgentInvocation(
+                provider="google_adk",
+                agent_name=invocation_context.app_name,
             )
 
-            # ✅ Use CLIENT span kind (recommended for GenAI)
-            span = self._tracer.start_span(
-                name=span_name, kind=SpanKind.CLIENT, attributes=attributes
-            )
+            # Set conversation_id if available
+            if conversation_id:
+                invocation.conversation_id = conversation_id
 
-            # Store span for later use
-            self._active_spans[
-                f"runner_{invocation_context.invocation_id}"
-            ] = span
+            # Set custom attributes
+            if hasattr(invocation_context, "app_name"):
+                invocation.attributes["google_adk.runner.app_name"] = (
+                    invocation_context.app_name
+                )
+
+            if hasattr(invocation_context, "invocation_id"):
+                invocation.attributes["google_adk.runner.invocation_id"] = (
+                    invocation_context.invocation_id
+                )
 
             # Check if we already have a stored user message
             runner_key = f"runner_{invocation_context.invocation_id}"
             if runner_key in self._runner_inputs and should_capture_content():
                 user_message = self._runner_inputs[runner_key]
-                input_messages = self._convert_user_message_to_genai_format(
+                input_messages = self._convert_user_message_to_input_messages(
                     user_message
                 )
+                invocation.input_messages = input_messages
 
-                if input_messages:
-                    # For Agent spans, use input.value
-                    span.set_attribute(
-                        "input.value",
-                        safe_json_dumps_for_input_output(input_messages),
-                    )
-                    _logger.debug(
-                        f"Set input.value on Agent span: {invocation_context.invocation_id}"
-                    )
+            # Start invocation (creates span)
+            self._handler.start_invoke_agent(invocation)
 
-            _logger.debug(f"Started Runner span: {span_name}")
+            # Store invocation for later use
+            self._active_runner_invocations[runner_key] = invocation
+
+            _logger.debug(
+                f"Started Runner invocation: invoke_agent {invocation_context.app_name}"
+            )
 
         except Exception as e:
             _logger.exception(f"Error in before_run_callback: {e}")
@@ -135,19 +161,13 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             runner_key = f"runner_{invocation_context.invocation_id}"
             self._runner_inputs[runner_key] = user_message
 
-            # Set input messages on active Runner span if it exists and content capture is enabled
-            span = self._active_spans.get(runner_key)
-            if span and should_capture_content():
-                input_messages = self._convert_user_message_to_genai_format(
+            # Update active Runner invocation if it exists and content capture is enabled
+            invocation = self._active_runner_invocations.get(runner_key)
+            if invocation and should_capture_content():
+                input_messages = self._convert_user_message_to_input_messages(
                     user_message
                 )
-
-                if input_messages:
-                    # For Agent spans, use input.value
-                    span.set_attribute(
-                        "input.value",
-                        safe_json_dumps_for_input_output(input_messages),
-                    )
+                invocation.input_messages = input_messages
 
             _logger.debug(
                 f"Captured user message for Runner: {invocation_context.invocation_id}"
@@ -189,29 +209,23 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                     self._runner_outputs[runner_key] = ""
                 self._runner_outputs[runner_key] += event_content
 
-                # Set output on active Runner span
-                span = self._active_spans.get(runner_key)
-                if span:
+                # Update active Runner invocation
+                invocation = self._active_runner_invocations.get(runner_key)
+                if invocation:
                     output_messages = [
-                        {
-                            "role": "assistant",
-                            "parts": [
-                                {
-                                    "type": "text",
-                                    "content": process_content(
+                        OutputMessage(
+                            role="assistant",
+                            parts=[
+                                Text(
+                                    content=process_content(
                                         self._runner_outputs[runner_key]
-                                    ),
-                                }
+                                    )
+                                )
                             ],
-                            "finish_reason": "stop",
-                        }
+                            finish_reason="stop",
+                        )
                     ]
-
-                    # For Agent spans, use output.value
-                    span.set_attribute(
-                        "output.value",
-                        safe_json_dumps_for_input_output(output_messages),
-                    )
+                    invocation.output_messages = output_messages
 
             _logger.debug(
                 f"Captured event for Runner: {invocation_context.invocation_id}"
@@ -229,37 +243,17 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         End Runner execution - finish top-level invoke_agent span.
         """
         try:
-            span_key = f"runner_{invocation_context.invocation_id}"
-            span = self._active_spans.pop(span_key, None)
+            runner_key = f"runner_{invocation_context.invocation_id}"
+            invocation = self._active_runner_invocations.pop(runner_key, None)
 
-            if span:
-                # Record metrics
-                duration = self._calculate_span_duration(span)
-
-                # Extract conversation_id and user_id
-                conversation_id = (
-                    invocation_context.session.id
-                    if invocation_context.session
-                    else None
-                )
-                user_id = getattr(invocation_context, "user_id", None)
-
-                self._metrics.record_agent_call(
-                    operation_name="invoke_agent",
-                    agent_name=invocation_context.app_name,
-                    duration=duration,
-                    error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                )
-
-                span.end()
+            if invocation:
+                # Stop invocation (ends span and records metrics automatically)
+                self._handler.stop_invoke_agent(invocation)
                 _logger.debug(
-                    f"Finished Runner span for {invocation_context.app_name}"
+                    f"Finished Runner invocation for {invocation_context.app_name}"
                 )
 
             # Clean up stored data
-            runner_key = f"runner_{invocation_context.invocation_id}"
             self._runner_inputs.pop(runner_key, None)
             self._runner_outputs.pop(runner_key, None)
 
@@ -273,26 +267,44 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
     ) -> None:
         """
         Start Agent execution - create invoke_agent span.
-
-        Span name: "invoke_agent {agent.name}"
         """
         try:
-            # ✅ Span name follows GenAI conventions
-            span_name = f"invoke_agent {agent.name}"
-            attributes = self._extractors.extract_agent_attributes(
-                agent, callback_context
+            # Extract conversation_id and user_id
+            conversation_id = None
+            user_id = None
+
+            if callback_context._invocation_context.session:
+                conversation_id = (
+                    callback_context._invocation_context.session.id
+                )
+            user_id = getattr(
+                callback_context._invocation_context, "user_id", None
             )
 
-            # ✅ Use CLIENT span kind
-            span = self._tracer.start_span(
-                name=span_name, kind=SpanKind.CLIENT, attributes=attributes
+            # Create invocation object
+            invocation = InvokeAgentInvocation(
+                provider="google_adk",
+                agent_name=agent.name,
             )
 
-            # Store span
-            agent_key = f"agent_{id(agent)}_{callback_context._invocation_context.session.id}"
-            self._active_spans[agent_key] = span
+            # Set agent attributes
+            if hasattr(agent, "id") and agent.id:
+                invocation.agent_id = agent.id
 
-            _logger.debug(f"Started Agent span: {span_name}")
+            if hasattr(agent, "description") and agent.description:
+                invocation.agent_description = agent.description
+
+            if conversation_id:
+                invocation.conversation_id = conversation_id
+
+            # Start invocation (creates span)
+            self._handler.start_invoke_agent(invocation)
+
+            # Store invocation for later use
+            agent_key = f"agent_{id(agent)}_{conversation_id}"
+            self._active_agent_invocations[agent_key] = invocation
+
+            _logger.debug(f"Started Agent invocation: invoke_agent {agent.name}")
 
         except Exception as e:
             _logger.exception(f"Error in before_agent_callback: {e}")
@@ -301,39 +313,22 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         self, *, agent: BaseAgent, callback_context: CallbackContext
     ) -> None:
         """
-        End Agent execution - finish invoke_agent span and record metrics.
+        End Agent execution - finish invoke_agent span.
         """
         try:
-            agent_key = f"agent_{id(agent)}_{callback_context._invocation_context.session.id}"
-            span = self._active_spans.pop(agent_key, None)
-
-            if span:
-                # Record metrics
-                duration = self._calculate_span_duration(span)
-
-                # Extract conversation_id and user_id
-                conversation_id = None
-                user_id = None
-                if callback_context and callback_context._invocation_context:
-                    if callback_context._invocation_context.session:
-                        conversation_id = (
-                            callback_context._invocation_context.session.id
-                        )
-                    user_id = getattr(
-                        callback_context._invocation_context, "user_id", None
-                    )
-
-                self._metrics.record_agent_call(
-                    operation_name="invoke_agent",
-                    agent_name=agent.name,
-                    duration=duration,
-                    error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
+            conversation_id = None
+            if callback_context._invocation_context.session:
+                conversation_id = (
+                    callback_context._invocation_context.session.id
                 )
 
-                span.end()
-                _logger.debug(f"Finished Agent span for {agent.name}")
+            agent_key = f"agent_{id(agent)}_{conversation_id}"
+            invocation = self._active_agent_invocations.pop(agent_key, None)
+
+            if invocation:
+                # Stop invocation (ends span and records metrics automatically)
+                self._handler.stop_invoke_agent(invocation)
+                _logger.debug(f"Finished Agent invocation for {agent.name}")
 
         except Exception as e:
             _logger.exception(f"Error in after_agent_callback: {e}")
@@ -345,31 +340,64 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
     ) -> None:
         """
         Start LLM call - create chat span.
-
-        Span name: "chat {model}"
         """
         try:
-            # ✅ Span name follows GenAI conventions: "{operation_name} {request.model}"
-            span_name = f"chat {llm_request.model}"
-            attributes = self._extractors.extract_llm_request_attributes(
-                llm_request, callback_context
+            # Extract model name
+            model_name = llm_request.model if llm_request else "unknown"
+
+            # Create invocation object
+            invocation = LLMInvocation(
+                request_model=model_name,
+                provider=self._extractors._extract_provider_name(model_name),
             )
 
-            # ✅ Use CLIENT span kind for LLM calls
-            span = self._tracer.start_span(
-                name=span_name, kind=SpanKind.CLIENT, attributes=attributes
-            )
+            # Extract input messages if content capture is enabled
+            if should_capture_content() and llm_request.contents:
+                input_messages = self._convert_contents_to_input_messages(
+                    llm_request.contents
+                )
+                invocation.input_messages = input_messages
 
-            # Store span
+            # Extract request parameters
+            if llm_request.config:
+                config = llm_request.config
+                if hasattr(config, "max_tokens") and config.max_tokens:
+                    invocation.max_tokens = config.max_tokens
+                if (
+                    hasattr(config, "temperature")
+                    and config.temperature is not None
+                ):
+                    invocation.temperature = config.temperature
+                if hasattr(config, "top_p") and config.top_p is not None:
+                    invocation.top_p = config.top_p
+
+            # Extract conversation_id and user_id
+            if callback_context._invocation_context.session:
+                invocation.attributes["gen_ai.conversation.id"] = (
+                    callback_context._invocation_context.session.id
+                )
+            
+            user_id = getattr(callback_context, "user_id", None)
+            if not user_id:
+                user_id = getattr(
+                    callback_context._invocation_context, "user_id", None
+                )
+            if user_id:
+                invocation.attributes["enduser.id"] = user_id
+
+            # Start invocation (creates span)
+            self._handler.start_llm(invocation)
+
+            # Store invocation for later use
             session_id = callback_context._invocation_context.session.id
             request_key = f"llm_{id(llm_request)}_{session_id}"
-            self._active_spans[request_key] = span
+            self._active_llm_invocations[request_key] = invocation
 
             # Store the requested model for reliable retrieval later
             if hasattr(llm_request, "model") and llm_request.model:
                 self._llm_req_models[request_key] = llm_request.model
 
-            _logger.debug(f"Started LLM span: {span_name}")
+            _logger.debug(f"Started LLM invocation: chat {model_name}")
 
         except Exception as e:
             _logger.exception(f"Error in before_model_callback: {e}")
@@ -378,75 +406,66 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         self, *, callback_context: CallbackContext, llm_response: LlmResponse
     ) -> None:
         """
-        End LLM call - finish chat span and record metrics.
+        End LLM call - finish chat span.
         """
         try:
-            # Find the matching span
-            llm_span = None
-            request_key = None
+            # Find the matching invocation
             session_id = callback_context._invocation_context.session.id
-            for key, span in list(self._active_spans.items()):
+            llm_invocation = None
+            request_key = None
+
+            for key, invocation in list(self._active_llm_invocations.items()):
                 if key.startswith("llm_") and session_id in key:
-                    llm_span = self._active_spans.pop(key)
+                    llm_invocation = self._active_llm_invocations.pop(key)
                     request_key = key
                     break
 
-            if llm_span:
-                # Add response attributes
-                response_attrs = (
-                    self._extractors.extract_llm_response_attributes(
-                        llm_response
-                    )
-                )
-                for key, value in response_attrs.items():
-                    llm_span.set_attribute(key, value)
+            if llm_invocation:
+                # Update invocation with response data
+                if llm_response:
+                    # Set response model
+                    if hasattr(llm_response, "model") and llm_response.model:
+                        llm_invocation.response_model_name = llm_response.model
 
-                # Record metrics
-                duration = self._calculate_span_duration(llm_span)
+                    # Extract token usage
+                    if llm_response.usage_metadata:
+                        usage = llm_response.usage_metadata
+                        if hasattr(usage, "prompt_token_count"):
+                            llm_invocation.input_tokens = (
+                                usage.prompt_token_count
+                            )
+                        if hasattr(usage, "candidates_token_count"):
+                            llm_invocation.output_tokens = (
+                                usage.candidates_token_count
+                            )
 
-                # Resolve model name with robust fallbacks
-                model_name = self._resolve_model_name(
-                    llm_response, request_key, llm_span
-                )
+                    # Extract finish reason
+                    if hasattr(llm_response, "finish_reason"):
+                        finish_reason = llm_response.finish_reason or "stop"
+                        if hasattr(finish_reason, "value"):
+                            finish_reason = finish_reason.value
+                        elif not isinstance(
+                            finish_reason, (str, int, float, bool)
+                        ):
+                            finish_reason = str(finish_reason)
+                        llm_invocation.finish_reasons = [finish_reason]
 
-                # Extract conversation_id and user_id
-                conversation_id = None
-                user_id = None
-                if callback_context and callback_context._invocation_context:
-                    if callback_context._invocation_context.session:
-                        conversation_id = (
-                            callback_context._invocation_context.session.id
+                    # Extract output messages if content capture is enabled
+                    if should_capture_content():
+                        output_messages = (
+                            self._convert_llm_response_to_output_messages(
+                                llm_response
+                            )
                         )
-                    user_id = getattr(
-                        callback_context._invocation_context, "user_id", None
-                    )
+                        llm_invocation.output_messages = output_messages
 
-                # Extract token usage
-                prompt_tokens = 0
-                completion_tokens = 0
-                if llm_response and llm_response.usage_metadata:
-                    prompt_tokens = getattr(
-                        llm_response.usage_metadata, "prompt_token_count", 0
-                    )
-                    completion_tokens = getattr(
-                        llm_response.usage_metadata,
-                        "candidates_token_count",
-                        0,
-                    )
+                # Stop invocation (ends span and records metrics automatically)
+                self._handler.stop_llm(llm_invocation)
 
-                self._metrics.record_llm_call(
-                    operation_name="chat",
-                    model_name=model_name,
-                    duration=duration,
-                    error_type=None,
-                    prompt_tokens=prompt_tokens,
-                    completion_tokens=completion_tokens,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
+                model_name = self._resolve_model_name(
+                    llm_response, request_key, llm_invocation
                 )
-
-                llm_span.end()
-                _logger.debug(f"Finished LLM span for model {model_name}")
+                _logger.debug(f"Finished LLM invocation for model {model_name}")
 
         except Exception as e:
             _logger.exception(f"Error in after_model_callback: {e}")
@@ -462,57 +481,16 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         Handle LLM call errors.
         """
         try:
-            # Find and finish the span with error status
+            # Find and finish the invocation with error status
             session_id = callback_context._invocation_context.session.id
-            for key, span in list(self._active_spans.items()):
+            for key, invocation in list(self._active_llm_invocations.items()):
                 if key.startswith("llm_") and session_id in key:
-                    span = self._active_spans.pop(key)
+                    invocation = self._active_llm_invocations.pop(key)
 
-                    # Set error attributes
-                    error_type = type(error).__name__
-                    span.set_attribute("error.type", error_type)
-
-                    # Record error metrics
-                    duration = self._calculate_span_duration(span)
-                    model_name = (
-                        llm_request.model if llm_request else "unknown"
+                    # Fail invocation (sets error attributes and ends span)
+                    self._handler.fail_llm(
+                        invocation, Error(message=str(error), type=type(error))
                     )
-
-                    # Extract conversation_id and user_id
-                    conversation_id = None
-                    user_id = None
-                    if (
-                        callback_context
-                        and callback_context._invocation_context
-                    ):
-                        if callback_context._invocation_context.session:
-                            conversation_id = (
-                                callback_context._invocation_context.session.id
-                            )
-                        user_id = getattr(
-                            callback_context._invocation_context,
-                            "user_id",
-                            None,
-                        )
-
-                    self._metrics.record_llm_call(
-                        operation_name="chat",
-                        model_name=model_name,
-                        duration=duration,
-                        error_type=error_type,
-                        prompt_tokens=0,
-                        completion_tokens=0,
-                        conversation_id=conversation_id,
-                        user_id=user_id,
-                    )
-
-                    # ✅ Use standard OTel span status for errors
-                    span.set_status(
-                        trace_api.Status(
-                            trace_api.StatusCode.ERROR, description=str(error)
-                        )
-                    )
-                    span.end()
                     break
 
             _logger.debug(f"Handled LLM error: {error}")
@@ -533,26 +511,35 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
     ) -> None:
         """
         Start Tool execution - create execute_tool span.
-
-        Span name: "execute_tool {tool.name}"
         """
         try:
-            # ✅ Span name follows GenAI conventions
-            span_name = f"execute_tool {tool.name}"
-            attributes = self._extractors.extract_tool_attributes(
-                tool, tool_args, tool_context
+            # Create invocation object
+            invocation = ExecuteToolInvocation(
+                tool_name=tool.name,
+                provider="google_adk",
             )
 
-            # ✅ Use INTERNAL span kind for tool execution (as per spec)
-            span = self._tracer.start_span(
-                name=span_name, kind=SpanKind.INTERNAL, attributes=attributes
-            )
+            # Set tool attributes
+            if hasattr(tool, "description") and tool.description:
+                invocation.tool_description = tool.description
 
-            # Store span
+            invocation.tool_type = "function"
+
+            if hasattr(tool_context, "call_id") and tool_context.call_id:
+                invocation.tool_call_id = tool_context.call_id
+
+            # Set tool arguments if content capture is enabled
+            if should_capture_content() and tool_args:
+                invocation.tool_call_arguments = safe_json_dumps(tool_args)
+
+            # Start invocation (creates span)
+            self._handler.start_execute_tool(invocation)
+
+            # Store invocation for later use
             tool_key = f"tool_{id(tool)}_{id(tool_args)}"
-            self._active_spans[tool_key] = span
+            self._active_tool_invocations[tool_key] = invocation
 
-            _logger.debug(f"Started Tool span: {span_name}")
+            _logger.debug(f"Started Tool invocation: execute_tool {tool.name}")
 
         except Exception as e:
             _logger.exception(f"Error in before_tool_callback: {e}")
@@ -566,46 +553,20 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         result: dict,
     ) -> None:
         """
-        End Tool execution - finish execute_tool span and record metrics.
+        End Tool execution - finish execute_tool span.
         """
         try:
             tool_key = f"tool_{id(tool)}_{id(tool_args)}"
-            span = self._active_spans.pop(tool_key, None)
+            invocation = self._active_tool_invocations.pop(tool_key, None)
 
-            if span:
-                # ✅ Add tool result as gen_ai.tool.call.result (Opt-In)
+            if invocation:
+                # Set tool result if content capture is enabled
                 if should_capture_content() and result:
-                    result_json = safe_json_dumps_for_input_output(result)
-                    span.set_attribute("gen_ai.tool.call.result", result_json)
-                    span.set_attribute("output.value", result_json)
-                    span.set_attribute("output.mime_type", "application/json")
+                    invocation.tool_call_result = safe_json_dumps(result)
 
-                # Record metrics
-                duration = self._calculate_span_duration(span)
-
-                # Extract conversation_id and user_id from tool_context
-                conversation_id = (
-                    getattr(tool_context, "session_id", None)
-                    if tool_context
-                    else None
-                )
-                user_id = (
-                    getattr(tool_context, "user_id", None)
-                    if tool_context
-                    else None
-                )
-
-                self._metrics.record_tool_call(
-                    operation_name="execute_tool",
-                    tool_name=tool.name,
-                    duration=duration,
-                    error_type=None,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                )
-
-                span.end()
-                _logger.debug(f"Finished Tool span for {tool.name}")
+                # Stop invocation (ends span and records metrics automatically)
+                self._handler.stop_execute_tool(invocation)
+                _logger.debug(f"Finished Tool invocation for {tool.name}")
 
         except Exception as e:
             _logger.exception(f"Error in after_tool_callback: {e}")
@@ -623,44 +584,13 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         """
         try:
             tool_key = f"tool_{id(tool)}_{id(tool_args)}"
-            span = self._active_spans.pop(tool_key, None)
+            invocation = self._active_tool_invocations.pop(tool_key, None)
 
-            if span:
-                # Set error attributes
-                error_type = type(error).__name__
-                span.set_attribute("error.type", error_type)
-
-                # Record error metrics
-                duration = self._calculate_span_duration(span)
-
-                # Extract conversation_id and user_id
-                conversation_id = (
-                    getattr(tool_context, "session_id", None)
-                    if tool_context
-                    else None
+            if invocation:
+                # Fail invocation (sets error attributes and ends span)
+                self._handler.fail_execute_tool(
+                    invocation, Error(message=str(error), type=type(error))
                 )
-                user_id = (
-                    getattr(tool_context, "user_id", None)
-                    if tool_context
-                    else None
-                )
-
-                self._metrics.record_tool_call(
-                    operation_name="execute_tool",
-                    tool_name=tool.name,
-                    duration=duration,
-                    error_type=error_type,
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                )
-
-                # ✅ Use standard OTel span status for errors
-                span.set_status(
-                    trace_api.Status(
-                        trace_api.StatusCode.ERROR, description=str(error)
-                    )
-                )
-                span.end()
 
             _logger.debug(f"Handled Tool error: {error}")
 
@@ -671,27 +601,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
 
     # ===== Helper Methods =====
 
-    def _calculate_span_duration(self, span: trace_api.Span) -> float:
-        """
-        Calculate span duration in seconds.
-
-        Args:
-            span: OpenTelemetry span
-
-        Returns:
-            Duration in seconds
-        """
-        import time
-
-        if hasattr(span, "start_time") and span.start_time:
-            current_time_ns = time.time_ns()
-            return (
-                current_time_ns - span.start_time
-            ) / 1_000_000_000  # ns to s
-        return 0.0
-
     def _resolve_model_name(
-        self, llm_response: LlmResponse, request_key: str, span: trace_api.Span
+        self,
+        llm_response: LlmResponse,
+        request_key: str,
+        invocation: LLMInvocation,
     ) -> str:
         """
         Resolve model name with robust fallbacks.
@@ -699,7 +613,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         Args:
             llm_response: LLM response object
             request_key: Request key for stored models
-            span: Current span
+            invocation: LLMInvocation object
 
         Returns:
             Model name string
@@ -722,44 +636,27 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         ):
             model_name = self._llm_req_models.pop(request_key, None)
 
-        # 3) Try span attributes if accessible
-        if (
-            not model_name
-            and hasattr(span, "attributes")
-            and getattr(span, "attributes")
-        ):
-            model_name = span.attributes.get("gen_ai.request.model")
+        # 3) Use invocation request_model
+        if not model_name and invocation and invocation.request_model:
+            model_name = invocation.request_model
 
-        # 4) Parse from span name like "chat <model>"
-        if (
-            not model_name
-            and hasattr(span, "name")
-            and isinstance(span.name, str)
-        ):
-            try:
-                name = span.name
-                if name.startswith("chat ") and len(name) > 5:
-                    model_name = name[5:]  # Remove "chat " prefix
-            except Exception:
-                pass
-
-        # 5) Final fallback
+        # 4) Final fallback
         if not model_name:
             model_name = "unknown"
 
         return model_name
 
-    def _convert_user_message_to_genai_format(
+    def _convert_user_message_to_input_messages(
         self, user_message: types.Content
-    ) -> list:
+    ) -> List[InputMessage]:
         """
-        Convert ADK user message to GenAI message format.
+        Convert ADK user message to GenAI InputMessage format.
 
         Args:
             user_message: ADK Content object
 
         Returns:
-            List of GenAI formatted messages
+            List of InputMessage objects
         """
         input_messages = []
         if (
@@ -767,11 +664,93 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             and hasattr(user_message, "role")
             and hasattr(user_message, "parts")
         ):
-            message = {"role": user_message.role, "parts": []}
+            parts = []
             for part in user_message.parts:
                 if hasattr(part, "text"):
-                    message["parts"].append(
-                        {"type": "text", "content": process_content(part.text)}
-                    )
-            input_messages.append(message)
+                    parts.append(Text(content=process_content(part.text)))
+            if parts:
+                input_messages.append(
+                    InputMessage(role=user_message.role, parts=parts)
+                )
         return input_messages
+
+    def _convert_contents_to_input_messages(
+        self, contents: List[types.Content]
+    ) -> List[InputMessage]:
+        """
+        Convert ADK contents to GenAI InputMessage format.
+
+        Args:
+            contents: List of ADK Content objects
+
+        Returns:
+            List of InputMessage objects
+        """
+        input_messages = []
+        for content in contents:
+            if hasattr(content, "role") and hasattr(content, "parts"):
+                parts = []
+                for part in content.parts:
+                    if hasattr(part, "text"):
+                        parts.append(Text(content=process_content(part.text)))
+                if parts:
+                    input_messages.append(
+                        InputMessage(role=content.role, parts=parts)
+                    )
+        return input_messages
+
+    def _convert_llm_response_to_output_messages(
+        self, llm_response: LlmResponse
+    ) -> List[OutputMessage]:
+        """
+        Convert ADK LlmResponse to GenAI OutputMessage format.
+
+        Args:
+            llm_response: ADK LlmResponse object
+
+        Returns:
+            List of OutputMessage objects
+        """
+        output_messages = []
+
+        if not llm_response:
+            return output_messages
+
+        try:
+            # Extract finish reason
+            finish_reason = getattr(llm_response, "finish_reason", None) or "stop"
+            if hasattr(finish_reason, "value"):
+                finish_reason = finish_reason.value
+            elif not isinstance(finish_reason, (str, int, float, bool)):
+                finish_reason = str(finish_reason)
+
+            # Check if response has text content
+            if hasattr(llm_response, "text") and llm_response.text is not None:
+                extracted_text = extract_content_safely_for_input_output(
+                    llm_response.text
+                )
+                output_messages.append(
+                    OutputMessage(
+                        role="assistant",
+                        parts=[Text(content=process_content(extracted_text))],
+                        finish_reason=finish_reason,
+                    )
+                )
+            elif (
+                hasattr(llm_response, "content")
+                and llm_response.content is not None
+            ):
+                extracted_text = extract_content_safely_for_input_output(
+                    llm_response.content
+                )
+                output_messages.append(
+                    OutputMessage(
+                        role="assistant",
+                        parts=[Text(content=process_content(extracted_text))],
+                        finish_reason=finish_reason,
+                    )
+                )
+        except Exception as e:
+            _logger.debug(f"Failed to extract output messages: {e}")
+
+        return output_messages
