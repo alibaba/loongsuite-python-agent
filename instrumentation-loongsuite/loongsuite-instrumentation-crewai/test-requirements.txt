@@ -1,4 +1,4 @@
-crewai>=0.80.0
+crewai>=0.70.0
 litellm>=1.79.0
 openai>=2.0.0
 respx>=0.20.0

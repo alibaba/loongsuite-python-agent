@@ -22,7 +22,6 @@ from typing import Any, Collection
 
 from wrapt import wrap_function_wrapper
 
-from opentelemetry import context as context_api
 from opentelemetry import trace as trace_api
 
 # Import hook system for decoupled extensions
@@ -42,7 +41,6 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import SpanKind, Status, StatusCode
-from opentelemetry.util.genai.completion_hook import load_completion_hook
 
 try:
     import crewai.agent
@@ -56,14 +54,6 @@ except (ImportError, Exception):
     _CREWAI_LOADED = False
 
 logger = logging.getLogger(__name__)
-
-
-# Context keys for tracking
-_CREWAI_SPAN_KEY = context_api.create_key("crewai_span")
-_CREWAI_START_TIME_KEY = context_api.create_key("crewai_start_time")
-_CREWAI_LITELLM_RESPONSE_KEY = context_api.create_key(
-    "crewai_litellm_response"
-)
 
 
 class CrewAIInstrumentor(BaseInstrumentor):
@@ -84,9 +74,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             tracer_provider=tracer_provider,
         )
 
-        completion_hook = load_completion_hook()
-
-        genai_helper = GenAIHookHelper(completion_hook=completion_hook)
+        genai_helper = GenAIHookHelper()
 
         # Wrap Crew.kickoff (CHAIN span)
         try:
@@ -193,6 +181,7 @@ class _CrewKickoffWrapper:
                 return result
             except Exception as e:
                 span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR))
                 self._helper.on_completion(span, genai_inputs, [])
                 raise
 
@@ -204,7 +193,7 @@ class _FlowKickoffAsyncWrapper:
         self._tracer = tracer
         self._helper = helper
 
-    def __call__(self, wrapped, instance, args, kwargs):
+    async def __call__(self, wrapped, instance, args, kwargs):
         """Wrap Flow.kickoff_async to create CHAIN span."""
         inputs = kwargs.get("inputs", {})
         flow_name = getattr(instance, "name", None) or "flow.kickoff"
@@ -220,13 +209,14 @@ class _FlowKickoffAsyncWrapper:
             },
         ) as span:
             try:
-                result = wrapped(*args, **kwargs)
+                result = await wrapped(*args, **kwargs)
                 genai_outputs = to_output_message("assistant", result)
                 self._helper.on_completion(span, genai_inputs, genai_outputs)
                 span.set_status(Status(StatusCode.OK))
                 return result
             except Exception as e:
                 span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR))
                 self._helper.on_completion(span, genai_inputs, [])
                 raise
 
@@ -268,6 +258,7 @@ class _AgentExecuteTaskWrapper:
                 return result
             except Exception as e:
                 span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR))
                 self._helper.on_completion(span, genai_inputs, [])
                 raise
 
@@ -302,6 +293,7 @@ class _TaskExecuteSyncWrapper:
                 return result
             except Exception as e:
                 span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR))
                 self._helper.on_completion(span, genai_inputs, [])
                 raise
 
@@ -361,5 +353,6 @@ class _ToolUseWrapper:
                 return result
             except Exception as e:
                 span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR))
                 self._helper.on_completion(span, genai_inputs, [])
                 raise
