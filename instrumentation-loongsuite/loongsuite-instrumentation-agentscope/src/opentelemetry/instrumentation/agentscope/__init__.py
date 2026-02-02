@@ -203,7 +203,7 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Patched setup_tracing")
         except Exception as e:
             logger.warning(f"Failed to patch setup_tracing: {e}")
-        
+
         # Patch _check_tracing_enabled to return False
         # We always want to disable tracing in native AgentScope library
         try:
@@ -285,11 +285,13 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Uninstrumented setup_tracing")
         except Exception as e:
             logger.warning(f"Failed to uninstrument setup_tracing: {e}")
-        
+
         try:
             import agentscope.tracing  # noqa: PLC0415
 
             unwrap(agentscope.tracing, "_check_tracing_enabled")
             logger.debug("Uninstrumented _check_tracing_enabled")
         except Exception as e:
-            logger.warning(f"Failed to uninstrument _check_tracing_enabled: {e}")
+            logger.warning(
+                f"Failed to uninstrument _check_tracing_enabled: {e}"
+            )
