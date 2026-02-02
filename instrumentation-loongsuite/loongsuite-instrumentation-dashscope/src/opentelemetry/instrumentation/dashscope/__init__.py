@@ -39,6 +39,8 @@ Usage:
     response = Generation.call(model="qwen-turbo", prompt="Hello!")
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Collection
 

@@ -14,6 +14,8 @@
 
 """Patch functions for DashScope instrumentation."""
 
+from __future__ import annotations
+
 import inspect
 import logging
 
