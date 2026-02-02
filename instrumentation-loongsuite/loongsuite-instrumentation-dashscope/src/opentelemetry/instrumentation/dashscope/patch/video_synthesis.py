@@ -128,7 +128,6 @@ def wrap_video_synthesis_async_call(
     try:
         # Create invocation object
         invocation = _create_invocation_from_video_synthesis(kwargs, model)
-        invocation.attributes["gen_ai.request.async"] = True
 
         # Start LLM invocation (creates span)
         handler.start_llm(invocation)
@@ -191,7 +190,6 @@ def wrap_video_synthesis_wait(wrapped, instance, args, kwargs, handler=None):
         # Create invocation object
         invocation = _create_invocation_from_video_synthesis({}, "unknown")
         invocation.operation_name = "wait generate_content"
-        invocation.attributes["gen_ai.request.async"] = True
         invocation.response_id = task_id
 
         # Start LLM invocation (creates span)

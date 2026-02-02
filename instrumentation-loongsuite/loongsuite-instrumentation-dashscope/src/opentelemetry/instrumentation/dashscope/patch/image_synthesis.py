@@ -126,7 +126,6 @@ def wrap_image_synthesis_async_call(
     try:
         # Create invocation object
         invocation = _create_invocation_from_image_synthesis(kwargs, model)
-        invocation.attributes["gen_ai.request.async"] = True
 
         # Start LLM invocation (creates span)
         handler.start_llm(invocation)
@@ -196,7 +195,6 @@ def wrap_image_synthesis_wait(wrapped, instance, args, kwargs, handler=None):
         invocation = _create_invocation_from_image_synthesis({}, "unknown")
         # TODO: Add semantic conventions for wait operations
         invocation.operation_name = "wait generate_content"
-        invocation.attributes["gen_ai.request.async"] = True
         # Note: response_id will be set from response.output.task_id in _update_invocation_from_image_synthesis_response
         # We set task_id here as a fallback
         invocation.response_id = task_id

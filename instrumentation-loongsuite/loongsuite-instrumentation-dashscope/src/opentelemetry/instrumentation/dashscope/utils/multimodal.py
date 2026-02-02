@@ -24,9 +24,11 @@ This module contains utilities for:
 from __future__ import annotations
 
 import logging
+import base64
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
+    Base64Blob,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -714,15 +716,25 @@ def _update_invocation_from_speech_synthesis_response(
             invocation.response_id = request_id
 
         # For TTS, the output is audio data (bytes)
-        # We don't capture the actual audio, just record that it was generated
         audio_data = getattr(response, "get_audio_data", None)
         if callable(audio_data):
             audio_bytes = audio_data()
             if audio_bytes:
-                # Record audio size as attribute
-                invocation.attributes["gen_ai.response.audio_size"] = len(
-                    audio_bytes
-                )
+                # Encode audio as base64 and store in output_messages
+                audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+                invocation.output_messages = [
+                    OutputMessage(
+                        role="assistant",
+                        parts=[
+                            Base64Blob(
+                                mime_type="audio/wav",
+                                modality="audio",
+                                content=audio_base64,
+                            )
+                        ],
+                        finish_reason="stop",
+                    )
+                ]
 
     except (KeyError, AttributeError) as e:
         logger.debug("Failed to extract audio data from response: %s", e)
@@ -754,10 +766,6 @@ def _create_invocation_from_speech_synthesis_v2(
             )
         ]
 
-    # Record voice as attribute
-    if voice:
-        invocation.attributes["gen_ai.request.voice"] = voice
-
     return invocation
 
 
@@ -771,4 +779,18 @@ def _update_invocation_from_speech_synthesis_v2_response(
         audio_data: Audio data bytes
     """
     if audio_data:
-        invocation.attributes["gen_ai.response.audio_size"] = len(audio_data)
+        # Encode audio as base64 and store in output_messages
+        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
+        invocation.output_messages = [
+            OutputMessage(
+                role="assistant",
+                parts=[
+                    Base64Blob(
+                        mime_type="audio/mp3",  # V2 typically returns mp3
+                        modality="audio",
+                        content=audio_base64,
+                    )
+                ],
+                finish_reason="stop",
+            )
+        ]

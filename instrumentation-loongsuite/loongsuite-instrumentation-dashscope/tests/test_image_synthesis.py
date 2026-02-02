@@ -219,7 +219,9 @@ def test_image_synthesis_call_with_parameters(
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_async_call_basic(instrument_with_content, span_exporter):
+def test_image_synthesis_async_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test ImageSynthesis.async_call can be instrumented."""
     response = ImageSynthesis.async_call(
         model="wanx-v1",
@@ -243,12 +245,6 @@ def test_image_synthesis_async_call_basic(instrument_with_content, span_exporter
             task_id = output.get("task_id")
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
-
-    # Check async attribute
-    assert "gen_ai.request.async" in span.attributes, (
-        "Missing gen_ai.request.async"
-    )
-    assert span.attributes["gen_ai.request.async"] is True
 
     _assert_image_synthesis_span_attributes(
         span,
@@ -299,12 +295,6 @@ def test_image_synthesis_wait_basic(instrument_with_content, span_exporter):
             task_id = output.get("task_id")
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
-
-    # Check async attribute
-    assert "gen_ai.request.async" in wait_span.attributes, (
-        "Missing gen_ai.request.async"
-    )
-    assert wait_span.attributes["gen_ai.request.async"] is True
 
     _assert_image_synthesis_span_attributes(
         wait_span,
@@ -369,7 +359,6 @@ def test_image_synthesis_async_call_and_wait_separate_spans(
         for span in spans_after_async
         if span.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME)
         == "generate_content"
-        and span.attributes.get("gen_ai.request.async") is True
         and not span.name.startswith("wait generate_content")
     ]
     assert len(async_spans) == 1, (

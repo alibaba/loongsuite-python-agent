@@ -107,7 +107,9 @@ def _assert_multimodal_span_attributes(
 
 
 @pytest.mark.vcr()
-def test_multimodal_conversation_call_basic(instrument_with_content, span_exporter):
+def test_multimodal_conversation_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test synchronous MultiModalConversation.call can be instrumented."""
     messages = [
         {

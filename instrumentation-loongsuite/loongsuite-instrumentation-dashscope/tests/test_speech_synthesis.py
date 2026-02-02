@@ -25,12 +25,12 @@ from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
 
-
 # V2 SpeechSynthesizer uses WebSocket which VCR cannot record/replay.
 # These tests require a real API key to run.
-_has_real_api_key = os.environ.get(
-    "DASHSCOPE_API_KEY", ""
-) != "test_dashscope_api_key" and os.environ.get("DASHSCOPE_API_KEY", "") != ""
+_has_real_api_key = (
+    os.environ.get("DASHSCOPE_API_KEY", "") != "test_dashscope_api_key"
+    and os.environ.get("DASHSCOPE_API_KEY", "") != ""
+)
 
 skip_without_api_key = pytest.mark.skipif(
     not _has_real_api_key,
@@ -52,6 +52,7 @@ def _assert_speech_synthesis_span_attributes(
     response_model: Optional[str] = None,
     request_id: Optional[str] = None,
     expect_input_messages: bool = True,
+    expect_output_messages: bool = True,
 ):
     """Assert SpeechSynthesizer span attributes."""
     # Span name format
@@ -96,10 +97,26 @@ def _assert_speech_synthesis_span_attributes(
             f"{GenAIAttributes.GEN_AI_INPUT_MESSAGES} should not be present"
         )
 
+    # Assert output messages based on expectation
+    if expect_output_messages:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in span.attributes, (
+            f"Missing {GenAIAttributes.GEN_AI_OUTPUT_MESSAGES}"
+        )
+    else:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES not in span.attributes, (
+            f"{GenAIAttributes.GEN_AI_OUTPUT_MESSAGES} should not be present"
+        )
 
-@pytest.mark.vcr()
-def test_speech_synthesis_v1_call_basic(instrument_with_content, span_exporter):
-    """Test SpeechSynthesizer V1 call can be instrumented."""
+
+@skip_without_api_key
+def test_speech_synthesis_v1_call_basic(
+    instrument_with_content, span_exporter
+):
+    """Test SpeechSynthesizer V1 call can be instrumented.
+
+    Note: V1 also uses WebSocket internally, so VCR cannot record/replay audio data.
+    This test requires a real API key to run.
+    """
     result = SpeechSynthesizer.call(
         model="sambert-zhichu-v1",
         text="Hello, this is a test.",
@@ -118,16 +135,21 @@ def test_speech_synthesis_v1_call_basic(instrument_with_content, span_exporter):
         request_model="sambert-zhichu-v1",
         request_id=request_id,
         expect_input_messages=True,
+        expect_output_messages=True,
     )
 
     print("✓ SpeechSynthesizer V1 call (basic) completed successfully")
 
 
-@pytest.mark.vcr()
+@skip_without_api_key
 def test_speech_synthesis_v1_call_with_parameters(
     instrument_with_content, span_exporter
 ):
-    """Test SpeechSynthesizer V1 call with parameters."""
+    """Test SpeechSynthesizer V1 call with parameters.
+
+    Note: V1 also uses WebSocket internally, so VCR cannot record/replay audio data.
+    This test requires a real API key to run.
+    """
     result = SpeechSynthesizer.call(
         model="sambert-zhichu-v1",
         text="Hello, this is a test with parameters.",
@@ -148,9 +170,12 @@ def test_speech_synthesis_v1_call_with_parameters(
         request_model="sambert-zhichu-v1",
         request_id=request_id,
         expect_input_messages=True,
+        expect_output_messages=True,
     )
 
-    print("✓ SpeechSynthesizer V1 call (with parameters) completed successfully")
+    print(
+        "✓ SpeechSynthesizer V1 call (with parameters) completed successfully"
+    )
 
 
 # ============================================================================
@@ -164,6 +189,7 @@ def _assert_speech_synthesis_v2_span_attributes(
     operation_name: str = "generate_content",
     voice: Optional[str] = None,
     expect_input_messages: bool = True,
+    expect_output_messages: bool = True,
 ):
     """Assert SpeechSynthesizer V2 span attributes."""
     # Span name format
@@ -172,7 +198,8 @@ def _assert_speech_synthesis_v2_span_attributes(
     # Required attributes
     assert GenAIAttributes.GEN_AI_OPERATION_NAME in span.attributes
     assert (
-        span.attributes[GenAIAttributes.GEN_AI_OPERATION_NAME] == operation_name
+        span.attributes[GenAIAttributes.GEN_AI_OPERATION_NAME]
+        == operation_name
     )
 
     assert GenAIAttributes.GEN_AI_PROVIDER_NAME in span.attributes
@@ -182,11 +209,6 @@ def _assert_speech_synthesis_v2_span_attributes(
     assert (
         span.attributes[GenAIAttributes.GEN_AI_REQUEST_MODEL] == request_model
     )
-
-    # Optional voice attribute
-    if voice is not None:
-        assert "gen_ai.request.voice" in span.attributes
-        assert span.attributes["gen_ai.request.voice"] == voice
 
     # Assert input messages based on expectation
     if expect_input_messages:
@@ -198,9 +220,21 @@ def _assert_speech_synthesis_v2_span_attributes(
             f"{GenAIAttributes.GEN_AI_INPUT_MESSAGES} should not be present"
         )
 
+    # Assert output messages based on expectation
+    if expect_output_messages:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in span.attributes, (
+            f"Missing {GenAIAttributes.GEN_AI_OUTPUT_MESSAGES}"
+        )
+    else:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES not in span.attributes, (
+            f"{GenAIAttributes.GEN_AI_OUTPUT_MESSAGES} should not be present"
+        )
+
 
 @skip_without_api_key
-def test_speech_synthesis_v2_call_basic(instrument_with_content, span_exporter):
+def test_speech_synthesis_v2_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test SpeechSynthesizer V2 call can be instrumented.
 
     Note: V2 uses WebSocket internally, so VCR cannot record/replay.
@@ -227,12 +261,8 @@ def test_speech_synthesis_v2_call_basic(instrument_with_content, span_exporter):
         operation_name="generate_content",
         voice="longxiaochun",
         expect_input_messages=True,
+        expect_output_messages=True,
     )
-
-    # Check audio size attribute if audio was returned
-    if result:
-        assert "gen_ai.response.audio_size" in span.attributes
-        assert span.attributes["gen_ai.response.audio_size"] > 0
 
     print("✓ SpeechSynthesizer V2 call (basic) completed successfully")
 
@@ -330,7 +360,9 @@ def test_speech_synthesis_v2_streaming_call_basic(
             operation_name="streaming_call",
             voice="longxiaochun",
             expect_input_messages=True,
+            expect_output_messages=False,  # streaming_call doesn't return audio directly
         )
 
-    print("✓ SpeechSynthesizer V2 streaming_call (basic) completed successfully")
-
+    print(
+        "✓ SpeechSynthesizer V2 streaming_call (basic) completed successfully"
+    )
