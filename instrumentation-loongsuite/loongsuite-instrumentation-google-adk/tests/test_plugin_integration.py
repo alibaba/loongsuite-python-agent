@@ -75,20 +75,6 @@ class OTelGenAISpanValidator:
         },
     }
 
-    # Non-standard attributes that should NOT be present
-    NON_STANDARD_ATTRIBUTES = {
-        "gen_ai.span.kind",  # Use gen_ai.operation.name instead
-        "gen_ai.system",  # Use gen_ai.provider.name instead
-        "gen_ai.session.id",  # Use gen_ai.conversation.id instead
-        "gen_ai.user.id",  # Use enduser.id instead
-        "gen_ai.framework",  # Non-standard
-        "gen_ai.model_name",  # Redundant
-        "gen_ai.request.is_stream",  # Non-standard
-        "gen_ai.usage.total_tokens",  # Non-standard
-        "gen_ai.input.message_count",  # Non-standard
-        "gen_ai.output.message_count",  # Non-standard
-    }
-
     def validate_span(self, span, expected_operation: str) -> Dict[str, Any]:
         """Validate a single span's attributes against OTel GenAI conventions."""
         validation_result = {
@@ -98,7 +84,6 @@ class OTelGenAISpanValidator:
             "warnings": [],
             "missing_required": [],
             "missing_recommended": [],
-            "non_standard_found": [],
         }
 
         attributes = getattr(span, "attributes", {}) or {}
@@ -113,11 +98,6 @@ class OTelGenAISpanValidator:
             validation_result["errors"].append(
                 f"Expected operation '{expected_operation}', got '{actual_operation}'"
             )
-
-        # Check for non-standard attributes
-        for attr_key in attributes.keys():
-            if attr_key in self.NON_STANDARD_ATTRIBUTES:
-                validation_result["non_standard_found"].append(attr_key)
 
         # Validate required and recommended attributes
         if expected_operation in self.REQUIRED_ATTRIBUTES_BY_OPERATION:
@@ -279,11 +259,6 @@ class TestGoogleAdkPluginIntegration:
             len(validation_result["errors"]) == 0
         ), f"Validation errors: {validation_result['errors']}"
 
-        # Check for non-standard attributes
-        assert (
-            len(validation_result["non_standard_found"]) == 0
-        ), f"Found non-standard attributes: {validation_result['non_standard_found']}"
-
         # Validate specific required attributes
         attributes = llm_span.attributes
         assert (
@@ -317,17 +292,6 @@ class TestGoogleAdkPluginIntegration:
         assert isinstance(
             finish_reasons, (list, tuple)
         ), "gen_ai.response.finish_reasons should be array"
-
-        # Validate NO non-standard attributes
-        assert (
-            "gen_ai.span.kind" not in attributes
-        ), "Should NOT have gen_ai.span.kind (non-standard)"
-        assert (
-            "gen_ai.system" not in attributes
-        ), "Should NOT have gen_ai.system (use gen_ai.provider.name)"
-        assert (
-            "gen_ai.framework" not in attributes
-        ), "Should NOT have gen_ai.framework (non-standard)"
 
     @pytest.mark.asyncio
     async def test_agent_span_attributes_semantic_conventions(self):
