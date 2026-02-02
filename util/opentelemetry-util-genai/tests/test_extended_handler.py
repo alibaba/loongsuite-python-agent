@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=too-many-lines
+
 import os
+import queue
+import threading
 import unittest
 from typing import Any, Mapping
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from opentelemetry import trace
 from opentelemetry.instrumentation._semconv import (
@@ -49,6 +53,11 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_RETRIEVAL_QUERY,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
+    GEN_AI_USAGE_TOTAL_TOKENS,
+)
+from opentelemetry.util.genai._multimodal_processing import (
+    MultimodalProcessingMixin,
+    _MultimodalAsyncTask,
 )
 from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
@@ -66,10 +75,15 @@ from opentelemetry.util.genai.extended_types import (
     RetrieveInvocation,
 )
 from opentelemetry.util.genai.types import (
+    Base64Blob,
+    Blob,
+    Error,
     FunctionToolDefinition,
     InputMessage,
+    LLMInvocation,
     OutputMessage,
     Text,
+    Uri,
 )
 
 
@@ -136,17 +150,22 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             SimpleLogRecordProcessor(self.log_exporter)
         )
 
+        # Clear singleton if exists to avoid test interference
+        if hasattr(get_extended_telemetry_handler, "_default_handler"):
+            delattr(get_extended_telemetry_handler, "_default_handler")
+
         self.telemetry_handler = get_extended_telemetry_handler(
             tracer_provider=tracer_provider,
             logger_provider=logger_provider,
         )
 
     def tearDown(self):
+        # Clear singleton after test to avoid interference
+        if hasattr(get_extended_telemetry_handler, "_default_handler"):
+            delattr(get_extended_telemetry_handler, "_default_handler")
         # Clear spans, logs and reset the singleton telemetry handler so each test starts clean
         self.span_exporter.clear()
         self.log_exporter.clear()
-        if hasattr(get_extended_telemetry_handler, "_default_handler"):
-            delattr(get_extended_telemetry_handler, "_default_handler")
 
     # ==================== Create Agent Tests ====================
 
@@ -297,6 +316,23 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             {
                 GEN_AI_EMBEDDINGS_DIMENSION_COUNT: 768,
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 20,
+            },
+        )
+
+    def test_embedding_with_total_tokens(self):
+        """Test that total_tokens is calculated when both input and output tokens are present."""
+        with self.telemetry_handler.embedding() as invocation:
+            invocation.request_model = "text-embedding-ada-002"
+            invocation.provider = "openai"
+            invocation.input_tokens = 15
+
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_USAGE_INPUT_TOKENS: 15,
+                GEN_AI_USAGE_TOTAL_TOKENS: 15,
             },
         )
 
@@ -452,6 +488,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_REQUEST_MAX_TOKENS: 1000,
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 50,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 200,
+                GEN_AI_USAGE_TOTAL_TOKENS: 250,
                 GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("stop",),
                 GenAI.GEN_AI_RESPONSE_ID: "resp_456",
                 "custom": "agent_attr",
@@ -496,6 +533,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 100,
             },
         )
+        # Note: total_tokens is not set when only input_tokens is available
 
     def test_invoke_agent_error_handling(self):
         class AgentInvocationError(RuntimeError):
@@ -556,6 +594,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_AGENT_NAME: "MessageAgent",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 10,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 20,
+                GEN_AI_USAGE_TOTAL_TOKENS: 30,
             },
         )
 
@@ -990,3 +1029,572 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 ErrorAttributes.ERROR_TYPE: RerankError.__qualname__,
             },
         )
+
+
+class TestMultimodalProcessingMixin(unittest.TestCase):
+    """Tests for MultimodalProcessingMixin.
+
+    Uses orthogonal test design to maximize coverage with minimal test cases.
+    """
+
+    def setUp(self):
+        # Reset class-level state before each test
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+    def tearDown(self):
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+    @staticmethod
+    def _create_mock_handler(enabled=True):
+        """Helper to create a MockHandler."""
+        mixin = MultimodalProcessingMixin
+
+        class MockHandler(mixin):
+            def __init__(self):
+                self._multimodal_enabled = enabled
+                self._logger = MagicMock()
+
+            def _get_uploader_and_pre_uploader(self):
+                return MagicMock(), MagicMock()
+
+            def _record_llm_metrics(self, *args, **kwargs):
+                pass
+
+        return MockHandler()
+
+    @staticmethod
+    def _create_invocation_with_multimodal(with_context=False):
+        """Helper to create invocation with multimodal data."""
+        invocation = LLMInvocation(request_model="gpt-4")
+        invocation.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Base64Blob(
+                        mime_type="image/png", modality="image", content="data"
+                    )
+                ],
+            )
+        ]
+        if with_context:
+            invocation.context_token = MagicMock()
+            invocation.span = MagicMock()
+        return invocation
+
+    # ==================== Static Method Tests ====================
+
+    def test_quick_has_multimodal_orthogonal_cases(self):
+        """Test _quick_has_multimodal with all multimodal types and edge cases."""
+        mixin = MultimodalProcessingMixin
+
+        # No multimodal: Text only
+        inv_text = LLMInvocation(request_model="gpt-4")
+        inv_text.input_messages = [
+            InputMessage(role="user", parts=[Text(content="Hello")])
+        ]
+        self.assertFalse(mixin._quick_has_multimodal(inv_text))
+
+        # Edge cases: None, empty
+        inv_none = LLMInvocation(request_model="gpt-4")
+        inv_none.input_messages = None
+        self.assertFalse(mixin._quick_has_multimodal(inv_none))
+
+        inv_empty = LLMInvocation(request_model="gpt-4")
+        inv_empty.input_messages = [InputMessage(role="user", parts=[])]
+        self.assertFalse(mixin._quick_has_multimodal(inv_empty))
+
+        # Has multimodal: Base64Blob in input
+        inv_base64 = LLMInvocation(request_model="gpt-4")
+        inv_base64.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Base64Blob(
+                        mime_type="image/png", modality="image", content="x"
+                    )
+                ],
+            )
+        ]
+        self.assertTrue(mixin._quick_has_multimodal(inv_base64))
+
+        # Has multimodal: Blob in input
+        inv_blob = LLMInvocation(request_model="gpt-4")
+        inv_blob.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Blob(
+                        mime_type="image/jpeg",
+                        modality="image",
+                        content=b"\xff",
+                    )
+                ],
+            )
+        ]
+        self.assertTrue(mixin._quick_has_multimodal(inv_blob))
+
+        # Has multimodal: Uri in output only
+        inv_uri = LLMInvocation(request_model="gpt-4")
+        inv_uri.output_messages = [
+            OutputMessage(
+                role="assistant",
+                parts=[
+                    Uri(
+                        mime_type="audio/mp3", modality="audio", uri="http://x"
+                    )
+                ],
+                finish_reason="stop",
+            )
+        ]
+        self.assertTrue(mixin._quick_has_multimodal(inv_uri))
+
+    def test_compute_end_time_ns_all_branches(self):
+        """Test _compute_end_time_ns with all time availability combinations."""
+        mixin = MultimodalProcessingMixin
+
+        # No monotonic times → current time
+        inv1 = LLMInvocation(request_model="gpt-4")
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing.time_ns",
+            return_value=1000,
+        ):
+            self.assertEqual(mixin._compute_end_time_ns(inv1), 1000)
+
+        # Has monotonic but no span._start_time → current time
+        inv2 = LLMInvocation(request_model="gpt-4")
+        inv2.monotonic_start_s = 100.0
+        inv2.monotonic_end_s = 102.0
+        mock_span = MagicMock(spec=[])  # No _start_time attribute
+        inv2.span = mock_span
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing.time_ns",
+            return_value=2000,
+        ):
+            self.assertEqual(mixin._compute_end_time_ns(inv2), 2000)
+
+        # All times available → computed time
+        inv3 = LLMInvocation(request_model="gpt-4")
+        inv3.monotonic_start_s = 100.0
+        inv3.monotonic_end_s = 102.5
+        mock_span3 = MagicMock()
+        mock_span3._start_time = 5000000000000
+        inv3.span = mock_span3
+        self.assertEqual(mixin._compute_end_time_ns(inv3), 5002500000000)
+
+    def test_extract_multimodal_metadata_orthogonal(self):
+        """Test _extract_multimodal_metadata extracts only Uri parts."""
+        mixin = MultimodalProcessingMixin
+
+        # None/empty → empty lists
+        self.assertEqual(
+            mixin._extract_multimodal_metadata(None, None), ([], [])
+        )
+
+        # Text only → empty
+        input_text = [InputMessage(role="user", parts=[Text(content="Hi")])]
+        self.assertEqual(
+            mixin._extract_multimodal_metadata(input_text, None), ([], [])
+        )
+
+        # Uri in input → extracted
+        input_uri = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Uri(
+                        mime_type="image/png", modality="image", uri="http://x"
+                    )
+                ],
+            )
+        ]
+        meta, _ = mixin._extract_multimodal_metadata(input_uri, None)
+        self.assertEqual(len(meta), 1)
+        self.assertEqual(meta[0]["type"], "uri")
+
+        # Multiple Uris
+        input_multi = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Uri(
+                        mime_type="image/png", modality="image", uri="http://1"
+                    ),
+                    Text(content="desc"),
+                    Uri(
+                        mime_type="image/jpeg",
+                        modality="image",
+                        uri="http://2",
+                    ),
+                ],
+            )
+        ]
+        meta, _ = mixin._extract_multimodal_metadata(input_multi, None)
+        self.assertEqual(len(meta), 2)
+
+    # ==================== _init_multimodal Tests (via env vars) ====================
+
+    @patch.dict(
+        os.environ,
+        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "none"},
+    )
+    def test_init_multimodal_disabled_when_mode_none(self):
+        """Test _init_multimodal with mode=none."""
+
+        class Handler(MultimodalProcessingMixin):
+            def _get_uploader_and_pre_uploader(self):
+                return MagicMock(), MagicMock()
+
+        handler = Handler()
+        handler._init_multimodal()
+        self.assertFalse(handler._multimodal_enabled)
+
+    @patch.dict(
+        os.environ,
+        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    )
+    def test_init_multimodal_enabled_or_disabled_by_uploader(self):
+        """Test _init_multimodal enabled when uploader available, disabled when None."""
+
+        class HandlerWithUploader(MultimodalProcessingMixin):
+            def _get_uploader_and_pre_uploader(self):
+                return MagicMock(), MagicMock()
+
+        h1 = HandlerWithUploader()
+        h1._init_multimodal()
+        self.assertTrue(h1._multimodal_enabled)
+
+        class HandlerWithoutUploader(MultimodalProcessingMixin):
+            def _get_uploader_and_pre_uploader(self):
+                return None, None
+
+        h2 = HandlerWithoutUploader()
+        h2._init_multimodal()
+        self.assertFalse(h2._multimodal_enabled)
+
+    # ==================== process_multimodal_stop/fail Tests ====================
+
+    def test_process_multimodal_returns_false_on_precondition_failure(self):
+        """Test process_multimodal_stop/fail returns False when preconditions not met."""
+        handler = self._create_mock_handler(enabled=True)
+        error = Error(message="err", type=RuntimeError)
+
+        # context_token is None
+        inv1 = self._create_invocation_with_multimodal()
+        inv1.context_token = None
+        inv1.span = MagicMock()
+        self.assertFalse(handler.process_multimodal_stop(inv1))
+        self.assertFalse(handler.process_multimodal_fail(inv1, error))
+
+        # span is None
+        inv2 = self._create_invocation_with_multimodal()
+        inv2.context_token = MagicMock()
+        inv2.span = None
+        self.assertFalse(handler.process_multimodal_stop(inv2))
+
+        # No multimodal data
+        inv3 = LLMInvocation(request_model="gpt-4")
+        inv3.context_token = MagicMock()
+        inv3.span = MagicMock()
+        inv3.input_messages = [
+            InputMessage(role="user", parts=[Text(content="Hi")])
+        ]
+        self.assertFalse(handler.process_multimodal_stop(inv3))
+
+        # multimodal_enabled=False
+        handler_disabled = self._create_mock_handler(enabled=False)
+        inv4 = self._create_invocation_with_multimodal(with_context=True)
+        self.assertFalse(handler_disabled.process_multimodal_stop(inv4))
+
+    @patch.dict(
+        os.environ,
+        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    )
+    def test_process_multimodal_fallback_on_queue_issues(self):
+        """Test process_multimodal_stop/fail uses fallback when queue is None or full."""
+        handler = self._create_mock_handler()
+        inv = self._create_invocation_with_multimodal(with_context=True)
+        error = Error(message="err", type=RuntimeError)
+
+        with patch.object(MultimodalProcessingMixin, "_ensure_async_worker"):
+            # Queue is None
+            MultimodalProcessingMixin._async_queue = None
+            with patch.object(handler, "_fallback_end_span") as mock_end:
+                self.assertTrue(handler.process_multimodal_stop(inv))
+                mock_end.assert_called_once()
+
+            # Reset invocation context token
+            inv.context_token = MagicMock()
+            with patch.object(handler, "_fallback_fail_span") as mock_fail:
+                self.assertTrue(handler.process_multimodal_fail(inv, error))
+                mock_fail.assert_called_once()
+
+            # Queue is full
+            MultimodalProcessingMixin._async_queue = queue.Queue(maxsize=1)
+            MultimodalProcessingMixin._async_queue.put("dummy")
+            inv.context_token = MagicMock()
+            with patch.object(handler, "_fallback_end_span") as mock_end2:
+                self.assertTrue(handler.process_multimodal_stop(inv))
+                mock_end2.assert_called_once()
+
+    @patch.dict(
+        os.environ,
+        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    )
+    def test_process_multimodal_enqueues_task(self):
+        """Test process_multimodal_stop/fail enqueues tasks correctly."""
+        handler = self._create_mock_handler()
+        error = Error(message="err", type=RuntimeError)
+
+        with patch.object(MultimodalProcessingMixin, "_ensure_async_worker"):
+            MultimodalProcessingMixin._async_queue = queue.Queue(maxsize=100)
+
+            # stop
+            inv1 = self._create_invocation_with_multimodal(with_context=True)
+            self.assertTrue(handler.process_multimodal_stop(inv1))
+            task = MultimodalProcessingMixin._async_queue.get_nowait()
+            self.assertEqual(task.method, "stop")
+
+            # fail
+            inv2 = self._create_invocation_with_multimodal(with_context=True)
+            self.assertTrue(handler.process_multimodal_fail(inv2, error))
+            task = MultimodalProcessingMixin._async_queue.get_nowait()
+            self.assertEqual(task.method, "fail")
+            self.assertEqual(task.error, error)
+
+    # ==================== Fallback / Async Methods Tests ====================
+
+    def test_fallback_and_async_methods_handle_span_none(self):
+        """Test fallback and async methods return early when span is None."""
+        handler = self._create_mock_handler()
+        inv = LLMInvocation(request_model="gpt-4")
+        inv.span = None
+
+        # Should not raise
+        handler._fallback_end_span(inv)
+        handler._fallback_fail_span(
+            inv, Error(message="err", type=RuntimeError)
+        )
+        handler._async_stop_llm(
+            _MultimodalAsyncTask(
+                invocation=inv, method="stop", handler=handler
+            )
+        )
+        handler._async_fail_llm(
+            _MultimodalAsyncTask(
+                invocation=inv,
+                method="fail",
+                error=Error(message="err", type=RuntimeError),
+                handler=handler,
+            )
+        )
+
+        # error is None for async_fail_llm
+        inv2 = LLMInvocation(request_model="gpt-4")
+        inv2.span = MagicMock()
+        handler._async_fail_llm(
+            _MultimodalAsyncTask(
+                invocation=inv2, method="fail", error=None, handler=handler
+            )
+        )
+
+    def test_fallback_methods_apply_attributes(self):
+        """Test fallback methods apply correct attributes and end span."""
+        handler = self._create_mock_handler()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+
+        inv = LLMInvocation(request_model="gpt-4")
+        inv.span = mock_span
+        error = Error(message="err", type=ValueError)
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_llm_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_llm_event"
+        ):  # fmt: skip
+            handler._fallback_end_span(inv)
+            m1.assert_called_with(mock_span, inv)
+            mock_span.end.assert_called_once()
+
+            mock_span.reset_mock()
+            handler._fallback_fail_span(inv, error)
+            m2.assert_called_with(mock_span, error)
+            mock_span.end.assert_called_once()
+
+    def test_async_stop_and_fail_llm_process_correctly(self):
+        """Test _async_stop_llm and _async_fail_llm process multimodal and end span."""
+        handler = self._create_mock_handler()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        inv = LLMInvocation(request_model="gpt-4")
+        inv.span = mock_span
+        inv.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Uri(
+                        mime_type="image/png", modality="image", uri="http://x"
+                    )
+                ],
+            )
+        ]
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_llm_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_llm_event"
+        ):  # fmt: skip
+            handler._async_stop_llm(
+                _MultimodalAsyncTask(
+                    invocation=inv, method="stop", handler=handler
+                )
+            )
+            m1.assert_called_once()
+            mock_span.end.assert_called_once()
+            mock_span.set_attribute.assert_called()
+
+            mock_span.reset_mock()
+            error = Error(message="err", type=ValueError)
+            handler._async_fail_llm(
+                _MultimodalAsyncTask(
+                    invocation=inv, method="fail", error=error, handler=handler
+                )
+            )
+            m2.assert_called_once()
+            mock_span.end.assert_called_once()
+
+    # ==================== Worker & Lifecycle Tests ====================
+
+    def test_ensure_worker_and_shutdown(self):
+        """Test _ensure_async_worker creates resources and shutdown cleans them."""
+        mixin = MultimodalProcessingMixin
+
+        # Not started
+        self.assertIsNone(mixin._async_worker)
+        mixin.shutdown_multimodal_worker(timeout=0.1)  # Should not raise
+
+        # Start
+        mixin._ensure_async_worker()
+        self.assertIsNotNone(mixin._async_queue)
+        self.assertTrue(mixin._async_worker.is_alive())
+
+        # Shutdown
+        mixin.shutdown_multimodal_worker(timeout=2.0)
+        self.assertIsNone(mixin._async_worker)
+        self.assertIsNone(mixin._async_queue)
+
+    def test_at_fork_reinit_resets_state(self):
+        """Test _at_fork_reinit resets class-level state."""
+        mixin = MultimodalProcessingMixin
+        mixin._async_queue = queue.Queue()
+        mixin._async_worker = threading.Thread(target=lambda: None)
+        mixin._atexit_handler = object()
+
+        mixin._at_fork_reinit()
+
+        self.assertIsNone(mixin._async_queue)
+        self.assertIsNone(mixin._async_worker)
+        self.assertIsNone(mixin._atexit_handler)
+        self.assertTrue(hasattr(mixin._async_lock, "acquire"))
+
+    def test_async_worker_loop_processes_tasks(self):  # pylint: disable=no-self-use
+        """Test _async_worker_loop processes stop/fail tasks and handles errors.
+
+        Note: Method uses self.assertTrue but pylint doesn't detect it in nested code.
+        """
+        mixin = MultimodalProcessingMixin
+
+        # Test 1: Processes stop task
+        class Handler1(mixin):
+            def __init__(self):
+                self.called = False
+
+            def _async_stop_llm(self, task):
+                self.called = True
+
+        handler1 = Handler1()
+        mixin._async_queue = queue.Queue()
+        inv1 = LLMInvocation(request_model="gpt-4")
+        inv1.span = MagicMock()
+        mixin._async_queue.put(
+            _MultimodalAsyncTask(
+                invocation=inv1, method="stop", handler=handler1
+            )
+        )
+        mixin._async_queue.put(None)
+
+        worker_thread = threading.Thread(target=mixin._async_worker_loop)
+        worker_thread.start()
+        worker_thread.join(timeout=2.0)
+        self.assertTrue(handler1.called)
+
+        # Test 2: Skips task with None handler
+        mixin._async_queue = queue.Queue()
+        mixin._async_queue.put(
+            _MultimodalAsyncTask(invocation=inv1, method="stop", handler=None)
+        )
+        mixin._async_queue.put(None)
+        worker_thread = threading.Thread(target=mixin._async_worker_loop)
+        worker_thread.start()
+        worker_thread.join(timeout=2.0)  # Should not raise
+
+        # Test 3: Handles exception and ends span
+        class Handler2(mixin):
+            def _async_stop_llm(self, task):
+                raise RuntimeError("error")
+
+        mock_span = MagicMock()
+        inv2 = LLMInvocation(request_model="gpt-4")
+        inv2.span = mock_span
+        inv2.monotonic_start_s = 100.0
+        inv2.monotonic_end_s = 102.0
+
+        mixin._async_queue = queue.Queue()
+        mixin._async_queue.put(
+            _MultimodalAsyncTask(
+                invocation=inv2, method="stop", handler=Handler2()
+            )
+        )
+        mixin._async_queue.put(None)
+        worker_thread = threading.Thread(target=mixin._async_worker_loop)
+        worker_thread.start()
+        worker_thread.join(timeout=2.0)
+        mock_span.end.assert_called_once()
+
+    def test_separate_and_upload(self):
+        """Test _separate_and_upload calls uploader and handles exceptions."""
+
+        class Handler(MultimodalProcessingMixin):
+            pass
+
+        handler = Handler()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        mock_uploader = MagicMock()
+        mock_pre_uploader = MagicMock()
+        mock_pre_uploader.pre_upload.return_value = [MagicMock(), MagicMock()]
+
+        inv = LLMInvocation(request_model="gpt-4")
+
+        handler._separate_and_upload(
+            mock_span, inv, mock_uploader, mock_pre_uploader
+        )
+        mock_pre_uploader.pre_upload.assert_called_once()
+        self.assertEqual(mock_uploader.upload.call_count, 2)
+
+        # Exception handling
+        mock_span2 = MagicMock()
+        mock_span2.get_span_context.side_effect = RuntimeError("err")
+        handler._separate_and_upload(
+            mock_span2, inv, mock_uploader, mock_pre_uploader
+        )  # Should not raise

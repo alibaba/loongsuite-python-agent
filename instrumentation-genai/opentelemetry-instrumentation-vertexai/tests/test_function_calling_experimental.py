@@ -135,6 +135,7 @@ def test_tool_events(
     spans = span_exporter.get_finished_spans()
     assert len(spans) == 1
     assert spans[0].name == "chat gemini-2.5-pro"
+    # fmt: off  # LoongSuite Extension: preserve non-ASCII characters in test expectation
     assert dict(spans[0].attributes) == {
         "gen_ai.operation.name": "chat",
         "gen_ai.request.model": "gemini-2.5-pro",
@@ -145,8 +146,9 @@ def test_tool_events(
         "server.address": "us-central1-aiplatform.googleapis.com",
         "server.port": 443,
         "gen_ai.input.messages": '[{"role":"user","parts":[{"content":"Get weather details in New Delhi and San Francisco?","type":"text"}]},{"role":"model","parts":[{"arguments":{"location":"New Delhi"},"name":"get_current_weather","id":"get_current_weather_0","type":"tool_call"},{"arguments":{"location":"San Francisco"},"name":"get_current_weather","id":"get_current_weather_1","type":"tool_call"}]},{"role":"user","parts":[{"response":{"content":"{\\"temperature\\": 35, \\"unit\\": \\"C\\"}"},"id":"get_current_weather_0","type":"tool_call_response"},{"response":{"content":"{\\"temperature\\": 25, \\"unit\\": \\"C\\"}"},"id":"get_current_weather_1","type":"tool_call_response"}]}]',
-        "gen_ai.output.messages": '[{"role":"model","parts":[{"content":"The current temperature in New Delhi is 35\\u00b0C, and in San Francisco, it is 25\\u00b0C.","type":"text"}],"finish_reason":"stop"}]',
+        "gen_ai.output.messages": '[{"role":"model","parts":[{"content":"The current temperature in New Delhi is 35°C, and in San Francisco, it is 25°C.","type":"text"}],"finish_reason":"stop"}]',
     }
+    # fmt: on
     logs = log_exporter.get_finished_logs()
     assert len(logs) == 1
     log = logs[0].log_record

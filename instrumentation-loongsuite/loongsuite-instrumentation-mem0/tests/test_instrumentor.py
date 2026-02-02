@@ -297,6 +297,292 @@ class TestMem0Instrumentor(unittest.TestCase):
         finally:
             sys.modules.pop("test_module", None)
 
+    @patch(
+        "opentelemetry.instrumentation.mem0.config.is_internal_phases_enabled"
+    )
+    def test_branchy_paths_compact(self, mock_internal_enabled):
+        """
+        Compact branch-coverage test:
+        - early-return paths in _instrument/_uninstrument
+        - _public_methods_of import failure
+        - _public_methods_of_cls attribute access failure
+        - _wrap_factory_for_phase: check_enabled short-circuit + one-time wrapping + __otel_mem0_original_config__
+        """
+        inst = Mem0Instrumentor()
+
+        # _instrument early return
+        inst._is_instrumented = True
+        inst._instrument()
+        inst._is_instrumented = False
+
+        # _uninstrument early return
+        inst._is_instrumented = False
+        inst._uninstrument()
+
+        # _public_methods_of import error path
+        with patch("builtins.__import__", side_effect=ImportError("nope")):
+            self.assertEqual(inst._public_methods_of("x.y", "Z"), [])
+
+        # _public_methods_of_cls getattr error path
+        class Weird:
+            @property
+            def bad(self):  # pragma: no cover
+                raise RuntimeError("boom")
+
+            def ok(self):
+                return 1
+
+        methods = inst._public_methods_of_cls(Weird)
+        self.assertIn("ok", methods)
+        self.assertNotIn("bad", methods)
+
+        # _unwrap_class_methods: inner unwrap failure + outer exception path
+        with patch(
+            "opentelemetry.instrumentation.mem0.unwrap",
+            side_effect=RuntimeError("unwrap boom"),
+        ):
+            with patch.object(
+                inst, "_public_methods_of_cls", return_value=["add"]
+            ):
+                # allowed method should attempt unwrap and swallow exception
+                inst._unwrap_class_methods(Weird, "Weird")
+            with patch.object(
+                inst,
+                "_public_methods_of_cls",
+                side_effect=RuntimeError("boom"),
+            ):
+                # outer exception is swallowed too
+                inst._unwrap_class_methods(Weird, "Weird")
+
+        # _unwrap_factory: early return + unwrap exception swallowing
+        with patch(
+            "opentelemetry.instrumentation.mem0._FACTORIES_AVAILABLE", False
+        ):
+            inst._unwrap_factory(object, "X")  # no-op
+        with patch(
+            "opentelemetry.instrumentation.mem0._FACTORIES_AVAILABLE", True
+        ):
+            with patch(
+                "opentelemetry.instrumentation.mem0.unwrap",
+                side_effect=RuntimeError("unwrap boom"),
+            ):
+                inst._unwrap_factory(type("F", (), {}), "F")
+
+        # _get_base_methods: exception path fallback
+        class BadMeta(type):
+            def __getattribute__(cls, name):  # noqa: N805
+                if name == "__dict__":
+                    raise RuntimeError("no dict")
+                return super().__getattribute__(name)
+
+        class BadBase(metaclass=BadMeta):
+            pass
+
+        defaults = ["a", "b"]
+        self.assertEqual(inst._get_base_methods(None, "X", defaults), defaults)
+        self.assertEqual(
+            inst._get_base_methods(BadBase, "BadBase", defaults), defaults
+        )
+
+        # _unwrap_dynamic_classes: import error + unwrap error paths
+        inst._instrumented_vector_classes.add("nonexistent.mod.ClassX")
+        with patch(
+            "opentelemetry.instrumentation.mem0.unwrap",
+            side_effect=RuntimeError("unwrap boom"),
+        ):
+            inst._unwrap_dynamic_classes(
+                inst._instrumented_vector_classes, ["search"]
+            )
+        self.assertEqual(len(inst._instrumented_vector_classes), 0)
+
+        # _wrap_factory_for_phase: capture factory wrapper closure
+        captured = {}
+
+        def capture_factory_wrapper(module, name, wrapper):
+            captured["wrapper"] = wrapper
+
+        with patch(
+            "opentelemetry.instrumentation.mem0.wrap_function_wrapper",
+            side_effect=capture_factory_wrapper,
+        ):
+            inst._wrap_factory_for_phase(
+                factory_module="mem0.utils.factory",
+                factory_class="VectorStoreFactory",
+                phase_name="vector",
+                methods=["search"],
+                wrapper_instance=type(
+                    "W",
+                    (),
+                    {
+                        "wrap_vector_operation": lambda self, m: (
+                            lambda *a, **k: None
+                        )
+                    },
+                )(),
+                instrumented_classes_set=set(),
+                check_enabled_func=lambda: False,
+            )
+
+        # Disabled: should return wrapped() directly
+        dummy = object()
+
+        def wrapped(*a, **k):
+            return dummy
+
+        self.assertIs(
+            captured["wrapper"](wrapped, None, ("p", {"url": "x"}), {}),
+            dummy,
+        )
+
+        # Enabled: should set __otel_mem0_original_config__ and wrap method once
+        wrapped_calls = []
+        captured2 = {}
+
+        def capture_factory_wrapper2(module, name, wrapper):
+            captured2["wrapper"] = wrapper
+
+        def record_wrap(module, name, wrapper):
+            wrapped_calls.append((module, name))
+
+        with patch(
+            "opentelemetry.instrumentation.mem0.wrap_function_wrapper",
+            side_effect=capture_factory_wrapper2,
+        ):
+            inst._wrap_factory_for_phase(
+                factory_module="mem0.utils.factory",
+                factory_class="VectorStoreFactory",
+                phase_name="vector",
+                methods=["search"],
+                wrapper_instance=type(
+                    "W",
+                    (),
+                    {
+                        "wrap_vector_operation": lambda self, m: (
+                            lambda *a, **k: None
+                        )
+                    },
+                )(),
+                instrumented_classes_set=set(),
+                check_enabled_func=lambda: True,
+            )
+
+        class DummyVector:
+            def search(self, **kwargs):
+                return {"ok": True}
+
+        def factory_create(provider, config):
+            return DummyVector()
+
+        with patch(
+            "opentelemetry.instrumentation.mem0.wrap_function_wrapper",
+            side_effect=record_wrap,
+        ):
+            obj = captured2["wrapper"](
+                factory_create, None, ("p", {"url": "x"}), {}
+            )
+            self.assertTrue(hasattr(obj, "__otel_mem0_original_config__"))
+            self.assertTrue(
+                any(n.endswith("DummyVector.search") for _, n in wrapped_calls)
+            )
+
+            # Second time should not wrap again for same fqcn
+            wrapped_calls.clear()
+            _ = captured2["wrapper"](
+                factory_create, None, ("p", {"url": "y"}), {}
+            )
+            self.assertEqual(wrapped_calls, [])
+
+        # Ensure we touched internal-phase gate path at least once
+        mock_internal_enabled.return_value = False
+
+        # _wrap_factory_for_phase: unknown phase branch + wrap_function_wrapper failure paths
+        captured3 = {}
+
+        def capture_factory_wrapper3(module, name, wrapper):
+            captured3["wrapper"] = wrapper
+
+        with patch(
+            "opentelemetry.instrumentation.mem0.wrap_function_wrapper",
+            side_effect=capture_factory_wrapper3,
+        ):
+            inst._wrap_factory_for_phase(
+                factory_module="mem0.utils.factory",
+                factory_class="VectorStoreFactory",
+                phase_name="unknown",
+                methods=["search"],
+                wrapper_instance=type("W", (), {})(),
+                instrumented_classes_set=set(),
+                check_enabled_func=lambda: True,
+            )
+
+        # When phase_name is unknown, it should just skip wrapping methods.
+        class DummyUnknown:
+            def search(self, **kwargs):
+                return {"ok": True}
+
+        def factory_create_unknown(provider, config):
+            return DummyUnknown()
+
+        _ = captured3["wrapper"](
+            factory_create_unknown, None, ("p", {"url": "x"}), {}
+        )
+
+        # Outer wrap_function_wrapper failure when wrapping create
+        with patch(
+            "opentelemetry.instrumentation.mem0.wrap_function_wrapper",
+            side_effect=RuntimeError("wrap boom"),
+        ):
+            inst._wrap_factory_for_phase(
+                factory_module="mem0.utils.factory",
+                factory_class="VectorStoreFactory",
+                phase_name="vector",
+                methods=["search"],
+                wrapper_instance=type(
+                    "W",
+                    (),
+                    {
+                        "wrap_vector_operation": lambda self, m: (
+                            lambda *a, **k: None
+                        )
+                    },
+                )(),
+                instrumented_classes_set=set(),
+                check_enabled_func=lambda: True,
+            )
+
+        # _instrument_* skip paths (types/factories unavailable) and method list fallbacks
+        with patch.multiple(
+            "opentelemetry.instrumentation.mem0",
+            _MEM0_CORE_AVAILABLE=False,
+            _FACTORIES_AVAILABLE=False,
+            VectorStoreBase=None,
+            VectorStoreFactory=None,
+            GraphStoreFactory=None,
+            RerankerFactory=None,
+        ):
+            inst._instrument_vector_operations(object())
+            inst._instrument_graph_operations(object())
+            inst._instrument_reranker_operations(object())
+
+        # method list fallback branches (VectorStoreBase.__dict__ and MemoryGraph.__dict__ raising)
+        with patch.multiple(
+            "opentelemetry.instrumentation.mem0",
+            _MEM0_CORE_AVAILABLE=True,
+            _FACTORIES_AVAILABLE=True,
+            VectorStoreFactory=type("VSF", (), {}),
+            GraphStoreFactory=type("GSF", (), {}),
+            RerankerFactory=type("RRF", (), {}),
+            VectorStoreBase=BadBase,
+            _MEMORY_GRAPH_AVAILABLE=True,
+            MemoryGraph=BadBase,
+        ):
+            with patch.object(
+                inst, "_wrap_factory_for_phase", return_value=None
+            ):
+                inst._instrument_vector_operations(object())
+                inst._instrument_graph_operations(object())
+                inst._instrument_reranker_operations(object())
+
 
 if __name__ == "__main__":
     unittest.main()

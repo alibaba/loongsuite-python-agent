@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+- Fix LLM message content capture in spans ([#91](https://github.com/alibaba/loongsuite-python-agent/pull/91))
+
 ### Breaking Changes
 - **Minimum AgentScope version requirement**: Only supports AgentScope 1.0.0 and above. Previous 0.x versions are not supported.
 
