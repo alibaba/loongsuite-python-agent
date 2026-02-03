@@ -14,6 +14,8 @@
 
 """Utility functions for DashScope instrumentation."""
 
+from __future__ import annotations
+
 import json
 from typing import Any, List, Optional
 

@@ -23,7 +23,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import concurrent.futures
-import hashlib
 import io
 import logging
 import os
@@ -32,13 +31,16 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, get_args
 
 import httpx
 
 from opentelemetry import trace as ot_trace
 from opentelemetry.instrumentation.utils import suppress_http_instrumentation
 from opentelemetry.trace import SpanContext
+
+# LoongSuite Extension: For Python 3.8 Compatibility
+from opentelemetry.util.genai import compatible_hashlib as hashlib
 from opentelemetry.util.genai._multimodal_upload._base import (
     PreUploader,
     PreUploadItem,
@@ -69,8 +71,8 @@ if not _audio_libs_available:
         "numpy or soundfile not available, PCM16 to WAV conversion will be skipped"
     )
 
-# Supported modality types for pre-upload
-_SUPPORTED_MODALITIES = ("image", "video", "audio")
+# Supported modality types for pre-upload (derived from Modality type)
+_SUPPORTED_MODALITIES = get_args(Modality)
 
 # Maximum number of multimodal parts to process per message category (input/output)
 _MAX_MULTIMODAL_PARTS = 10
@@ -93,13 +95,27 @@ class UriMetadata:
 
 
 class MultimodalPreUploader(PreUploader):
-    """Multimodal data preprocessor
+    """Multimodal data preprocessor for GenAI instrumentation
 
-    Processes Base64Blob/Blob/Uri, generates PreUploadItem list.
-    Actual upload is completed by Uploader implementation class.
+    This class preprocesses multimodal data (images, audio, video) from GenAI API calls,
+    converting Base64Blob/Blob/Uri references into uploadable items.
+    Actual upload operations are delegated to
+    :class:`~opentelemetry.util.genai._multimodal_upload.Uploader`.
+
+    Environment variables for configuration:
+    - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE`: Controls which messages to process
+      ("input", "output", or "both", default: "both")
+    - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED`: Enable downloading remote URIs
+      (default: "true")
+    - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY`: Enable SSL verification for downloads
+      (default: "true")
+
+    The ``httpx`` package (for URI metadata fetching)
+    should be installed. For audio format conversion support, install ``numpy`` and ``soundfile``.
+    You can use ``opentelemetry-util-genai[multimodal]`` as a requirement to achieve this.
 
     Note: Only one PreUploader implementation exists, as preprocessing logic is universal.
-    ARMS-specific extra_meta is injected via constructor.
+    Service-specific metadata (e.g., workspaceId, serviceId) is injected via constructor.
 
     Args:
         base_path: Complete base path including protocol (e.g., 'sls://project/logstore', 'file:///path')
@@ -719,7 +735,7 @@ class MultimodalPreUploader(PreUploader):
                 if mime_type in ("audio/unknown", "audio/*", "audio"):
                     detected_mime = self._detect_audio_format(data)
                     if detected_mime:
-                        _logger.info(
+                        _logger.debug(
                             "Auto-detected audio format: %s -> %s",
                             mime_type,
                             detected_mime,
@@ -729,7 +745,7 @@ class MultimodalPreUploader(PreUploader):
                 if mime_type in ("audio/pcm16", "audio/l16", "audio/pcm"):
                     wav_data = self._convert_pcm16_to_wav(data)
                     if wav_data:
-                        _logger.info(
+                        _logger.debug(
                             "Converted PCM16 to WAV format, original size: %d, new size: %d",
                             len(data),
                             len(wav_data),
