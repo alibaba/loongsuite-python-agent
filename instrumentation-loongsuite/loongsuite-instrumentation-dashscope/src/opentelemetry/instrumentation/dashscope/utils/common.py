@@ -52,7 +52,7 @@ def _get_parameter(
 
 def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
     """Extract token usage from DashScope response.
-    
+
     Note: This function is not used in the current implementation.
 
     Note: This function is not used in the current implementation.
