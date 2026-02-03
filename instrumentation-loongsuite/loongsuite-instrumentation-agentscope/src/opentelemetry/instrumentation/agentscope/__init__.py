@@ -287,9 +287,9 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.warning(f"Failed to uninstrument setup_tracing: {e}")
 
         try:
-            import agentscope.tracing  # noqa: PLC0415
+            import agentscope.tracing._trace as agentscope_tracing_trace  # noqa: PLC0415
 
-            unwrap(agentscope.tracing, "_check_tracing_enabled")
+            unwrap(agentscope_tracing_trace, "_check_tracing_enabled")
             logger.debug("Uninstrumented _check_tracing_enabled")
         except Exception as e:
             logger.warning(
