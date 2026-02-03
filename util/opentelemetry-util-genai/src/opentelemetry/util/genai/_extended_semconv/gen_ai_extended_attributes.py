@@ -130,6 +130,14 @@ The total number of tokens used in the operation, calculated as the sum of input
 This is the sum of gen_ai.usage.input_tokens and gen_ai.usage.output_tokens when both are available.
 """
 
+GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN: Final = (
+    "gen_ai.response.time_to_first_token"
+)
+"""
+The time in seconds from the request start to when the first token was received in a streaming response.
+This metric is important for measuring the latency perceived by users in streaming scenarios.
+"""
+
 
 class GenAiSpanKindValues(Enum):
     AGENT = "AGENT"

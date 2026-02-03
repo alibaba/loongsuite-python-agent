@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import logging
+import timeit
 
 from opentelemetry.util.genai.types import Error
 
@@ -111,9 +112,15 @@ def _wrap_multimodal_sync_generator(
     """
     last_response = None
     accumulated_text = ""
+    first_token_received = False
 
     try:
         for chunk in generator:
+            # Record time when first token is received
+            if not first_token_received:
+                first_token_received = True
+                invocation.monotonic_first_token_s = timeit.default_timer()
+
             last_response = chunk
 
             # If incremental_output is True, accumulate text

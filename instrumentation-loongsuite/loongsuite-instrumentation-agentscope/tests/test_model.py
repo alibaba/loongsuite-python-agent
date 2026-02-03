@@ -33,6 +33,7 @@ def _assert_chat_span_attributes(
     temperature: float = None,
     max_tokens: int = None,
     top_p: float = None,
+    expect_time_to_first_token: bool = False,
 ):
     """Assert common chat model span attributes"""
     # Span name format: "chat {model}"
@@ -145,6 +146,22 @@ def _assert_chat_span_attributes(
             "Missing gen_ai.request.top_p"
         )
         assert span.attributes["gen_ai.request.top_p"] == top_p
+
+    # Assert time to first token for streaming responses
+    if expect_time_to_first_token:
+        assert "gen_ai.response.time_to_first_token" in span.attributes, (
+            "Missing gen_ai.response.time_to_first_token"
+        )
+        ttft = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft, (int, float)), (
+            f"time_to_first_token should be a number, got {type(ttft)}"
+        )
+        assert ttft > 0, f"time_to_first_token should be positive, got {ttft}"
+    else:
+        # For non-streaming responses, TTFT should not be present
+        assert "gen_ai.response.time_to_first_token" not in span.attributes, (
+            "gen_ai.response.time_to_first_token should not be present for non-streaming"
+        )
 
 
 @pytest.mark.vcr()
@@ -321,6 +338,7 @@ def test_model_call_streaming(instrument, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (streaming) completed successfully")

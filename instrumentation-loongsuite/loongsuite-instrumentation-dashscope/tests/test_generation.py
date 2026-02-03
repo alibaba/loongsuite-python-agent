@@ -38,6 +38,7 @@ def _assert_generation_span_attributes(
     seed: int = None,
     choice_count: int = None,
     output_type: str = None,
+    expect_time_to_first_token: bool = False,
 ):
     """Assert common generation span attributes."""
     # Span name format is "{operation_name} {model}" per semantic conventions
@@ -202,6 +203,22 @@ def _assert_generation_span_attributes(
         )
         assert span.attributes["gen_ai.output.type"] == output_type
 
+    # Assert time to first token for streaming responses
+    if expect_time_to_first_token:
+        assert "gen_ai.response.time_to_first_token" in span.attributes, (
+            "Missing gen_ai.response.time_to_first_token"
+        )
+        ttft = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft, (int, float)), (
+            f"time_to_first_token should be a number, got {type(ttft)}"
+        )
+        assert ttft > 0, f"time_to_first_token should be positive, got {ttft}"
+    else:
+        # For non-streaming responses, TTFT should not be present
+        assert "gen_ai.response.time_to_first_token" not in span.attributes, (
+            "gen_ai.response.time_to_first_token should not be present for non-streaming"
+        )
+
 
 @pytest.mark.vcr()
 def test_generation_call_basic(instrument, span_exporter):
@@ -327,7 +344,10 @@ def test_generation_call_streaming(instrument, span_exporter):
         if usage
         else None,
         finish_reasons=[finish_reason] if finish_reason else None,
+        expect_time_to_first_token=True,
     )
+
+    print("✓ Generation.call (streaming) completed successfully")
 
 
 @pytest.mark.vcr()
@@ -378,6 +398,11 @@ def test_generation_call_streaming_incremental_output(
         if usage
         else None,
         finish_reasons=[finish_reason] if finish_reason else None,
+        expect_time_to_first_token=True,
+    )
+
+    print(
+        "✓ Generation.call (streaming incremental_output) completed successfully"
     )
 
 
@@ -510,7 +535,10 @@ async def test_aio_generation_call_streaming(instrument, span_exporter):
         if usage
         else None,
         finish_reasons=[finish_reason] if finish_reason else None,
+        expect_time_to_first_token=True,
     )
+
+    print("✓ AioGeneration.call (streaming) completed successfully")
 
 
 @pytest.mark.asyncio
@@ -562,6 +590,11 @@ async def test_aio_generation_call_streaming_incremental_output(
         if usage
         else None,
         finish_reasons=[finish_reason] if finish_reason else None,
+        expect_time_to_first_token=True,
+    )
+
+    print(
+        "✓ AioGeneration.call (streaming incremental_output) completed successfully"
     )
 
 

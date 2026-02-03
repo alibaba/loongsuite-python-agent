@@ -41,6 +41,7 @@ def _assert_multimodal_span_attributes(
     request_id: Optional[str] = None,
     expect_input_messages: bool = True,
     expect_output_messages: bool = True,
+    expect_time_to_first_token: bool = False,
 ):
     """Assert MultiModalConversation span attributes."""
     # Span name format is "{operation_name} {model}"
@@ -104,6 +105,17 @@ def _assert_multimodal_span_attributes(
         assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES not in span.attributes, (
             f"{GenAIAttributes.GEN_AI_OUTPUT_MESSAGES} should not be present"
         )
+
+    # Assert time to first token for streaming responses
+    if expect_time_to_first_token:
+        assert "gen_ai.response.time_to_first_token" in span.attributes, (
+            "Missing gen_ai.response.time_to_first_token"
+        )
+        ttft = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft, (int, float)), (
+            f"time_to_first_token should be a number, got {type(ttft)}"
+        )
+        assert ttft > 0, f"time_to_first_token should be positive, got {ttft}"
 
 
 @pytest.mark.vcr()
@@ -249,6 +261,7 @@ def test_multimodal_conversation_call_streaming(
         request_id=request_id,
         expect_input_messages=True,
         expect_output_messages=True,
+        expect_time_to_first_token=True,
     )
 
     print("✓ MultiModalConversation.call (streaming) completed successfully")
