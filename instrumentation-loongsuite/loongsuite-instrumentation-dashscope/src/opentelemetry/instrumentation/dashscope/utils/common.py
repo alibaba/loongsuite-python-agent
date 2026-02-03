@@ -112,7 +112,7 @@ def _extract_task_id(task: Any) -> Optional[str]:
             if task_id:
                 return task_id
     except (KeyError, AttributeError) as e:
-        logger.debug("Failed to extract task_id from task: %s", e)
+        logger.debug("Failed to extract task_id from task parameter: %s", e)
 
     return None
 
