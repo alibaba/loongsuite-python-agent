@@ -106,16 +106,18 @@ def _assert_multimodal_span_attributes(
             f"{GenAIAttributes.GEN_AI_OUTPUT_MESSAGES} should not be present"
         )
 
-    # Assert time to first token for streaming responses
+    # Assert time to first token for streaming responses (in nanoseconds)
     if expect_time_to_first_token:
         assert "gen_ai.response.time_to_first_token" in span.attributes, (
             "Missing gen_ai.response.time_to_first_token"
         )
-        ttft = span.attributes["gen_ai.response.time_to_first_token"]
-        assert isinstance(ttft, (int, float)), (
-            f"time_to_first_token should be a number, got {type(ttft)}"
+        ttft_ns = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft_ns, int), (
+            f"time_to_first_token should be an integer (nanoseconds), got {type(ttft_ns)}"
         )
-        assert ttft > 0, f"time_to_first_token should be positive, got {ttft}"
+        assert ttft_ns > 0, (
+            f"time_to_first_token should be positive, got {ttft_ns}"
+        )
 
 
 @pytest.mark.vcr()

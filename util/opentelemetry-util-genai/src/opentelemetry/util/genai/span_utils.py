@@ -370,14 +370,16 @@ def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     if total_tokens > 0:
         attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
 
-    # LoongSuite Extension: Time to first token for streaming responses
+    # LoongSuite Extension: Time to first token for streaming responses (in nanoseconds)
     if (
         invocation.monotonic_first_token_s is not None
         and invocation.monotonic_start_s is not None
     ):
-        attributes[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = (
-            invocation.monotonic_first_token_s - invocation.monotonic_start_s
+        ttft_ns = int(
+            (invocation.monotonic_first_token_s - invocation.monotonic_start_s)
+            * 1_000_000_000
         )
+        attributes[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = ttft_ns
 
     return attributes
 
