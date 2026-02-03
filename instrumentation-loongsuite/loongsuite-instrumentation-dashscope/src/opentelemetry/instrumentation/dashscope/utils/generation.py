@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
@@ -31,6 +32,8 @@ from opentelemetry.util.genai.types import (
 )
 
 from .common import _extract_usage, _get_parameter
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_input_messages(kwargs: dict) -> List[InputMessage]:
@@ -249,7 +252,10 @@ def _extract_tool_definitions(kwargs: dict) -> list[ToolDefinition]:
                 # If plugins is already a list, use it
                 if isinstance(plugins, list):
                     tools = plugins
-            except (json.JSONDecodeError, TypeError, AttributeError):
+            except (json.JSONDecodeError, TypeError, AttributeError) as e:
+                logger.debug(
+                    "Failed to extract tool definitions from plugins: %s", e
+                )
                 # If parsing fails, return empty list
                 return tool_definitions
 
@@ -414,7 +420,8 @@ def _extract_output_messages(response: Any) -> List[OutputMessage]:
                         finish_reason=finish_reason or "stop",
                     )
                 )
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract output messages from response: %s", e)
         # If any attribute access fails, return empty list
         return output_messages
 
@@ -545,19 +552,24 @@ def _update_invocation_from_response(
             response_model = getattr(response, "model", None)
             if response_model:
                 invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
-            pass
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
 
         # Extract request ID (if available)
         try:
             request_id = getattr(response, "request_id", None)
             if request_id:
                 invocation.response_id = request_id
-        except (KeyError, AttributeError):
-            pass
-    except (KeyError, AttributeError):
+        except (KeyError, AttributeError) as e:
+            logger.debug("Failed to extract request id from response: %s", e)
+    except (KeyError, AttributeError) as e:
         # If any attribute access fails, silently continue with available data
-        pass
+        logger.debug(
+            "Failed to extract response model name or request id from response: %s",
+            e,
+        )
 
 
 def _create_accumulated_response(original_response, accumulated_text):
@@ -577,9 +589,9 @@ def _create_accumulated_response(original_response, accumulated_text):
             try:
                 output.text = accumulated_text
                 return original_response
-            except (AttributeError, TypeError):
+            except (AttributeError, TypeError) as e:
                 # If we can't modify, create a wrapper object
-                pass
+                logger.debug("Failed to modify output text: %s", e)
 
         # Create wrapper objects with accumulated text
         class AccumulatedOutput:
@@ -599,11 +611,16 @@ def _create_accumulated_response(original_response, accumulated_text):
                         value = getattr(original_response, attr, None)
                         if value is not None:
                             setattr(self, attr, value)
-                    except (KeyError, AttributeError):
-                        pass
+                    except (KeyError, AttributeError) as e:
+                        logger.debug(
+                            "Failed to set attribute %s on accumulated response: %s",
+                            attr,
+                            e,
+                        )
 
         accumulated_output = AccumulatedOutput(output, accumulated_text)
         return AccumulatedResponse(original_response, accumulated_output)
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError) as e:
         # If modification fails, return original response
+        logger.debug("Failed to create accumulated response: %s", e)
         return original_response

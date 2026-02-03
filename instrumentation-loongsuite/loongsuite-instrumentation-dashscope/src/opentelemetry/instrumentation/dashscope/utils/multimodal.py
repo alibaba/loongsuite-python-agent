@@ -23,6 +23,7 @@ This module contains utilities for:
 
 from __future__ import annotations
 
+import logging
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
@@ -35,6 +36,8 @@ from opentelemetry.util.genai.types import (
 
 from .common import _extract_usage, _get_parameter
 from .generation import _extract_tool_definitions
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # ImageSynthesis utilities
@@ -108,8 +111,10 @@ def _update_invocation_from_image_synthesis_response(
             response_model = getattr(response, "model", None)
             if response_model:
                 invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
-            pass
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
 
         # Extract task_id from output and set as response_id
         # Note: For ImageSynthesis, response_id should be task_id, not request_id
@@ -174,11 +179,15 @@ def _update_invocation_from_image_synthesis_response(
                             invocation.output_messages[-1].parts.extend(
                                 image_uris
                             )
-        except (KeyError, AttributeError):
-            pass
-    except (KeyError, AttributeError):
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
+    except (KeyError, AttributeError) as e:
         # If any attribute access fails, silently continue with available data
-        pass
+        logger.debug(
+            "Failed to extract response model name from response: %s", e
+        )
 
 
 def _update_invocation_from_image_synthesis_async_response(
@@ -208,8 +217,8 @@ def _update_invocation_from_image_synthesis_async_response(
 
             if task_id:
                 invocation.response_id = task_id
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract task id from response: %s", e)
 
 
 # ============================================================================
@@ -370,8 +379,8 @@ def _extract_multimodal_output_messages(response: Any) -> List[OutputMessage]:
                     )
                 )
 
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract output messages from response: %s", e)
 
     return output_messages
 
@@ -457,19 +466,24 @@ def _update_invocation_from_multimodal_response(
             response_model = getattr(response, "model", None)
             if response_model:
                 invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
-            pass
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
 
         # Extract request ID
         try:
             request_id = getattr(response, "request_id", None)
             if request_id:
                 invocation.response_id = request_id
-        except (KeyError, AttributeError):
-            pass
+        except (KeyError, AttributeError) as e:
+            logger.debug("Failed to extract request id from response: %s", e)
 
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug(
+            "Failed to extract response model name or request id from response: %s",
+            e,
+        )
 
 
 # ============================================================================
@@ -569,7 +583,10 @@ def _update_invocation_from_video_synthesis_response(
             response_model = getattr(response, "model", None)
             if response_model:
                 invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
             pass
 
         # Extract task_id from output
@@ -607,8 +624,10 @@ def _update_invocation_from_video_synthesis_response(
                     )
                 ]
 
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug(
+            "Failed to extract response model name from response: %s", e
+        )
 
 
 def _update_invocation_from_video_synthesis_async_response(
@@ -634,8 +653,8 @@ def _update_invocation_from_video_synthesis_async_response(
 
             if task_id:
                 invocation.response_id = task_id
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract task id from response: %s", e)
 
 
 # ============================================================================
@@ -705,8 +724,8 @@ def _update_invocation_from_speech_synthesis_response(
                     audio_bytes
                 )
 
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract audio data from response: %s", e)
 
 
 def _create_invocation_from_speech_synthesis_v2(

@@ -82,9 +82,12 @@ def wrap_text_embedding_call(wrapped, instance, args, kwargs, handler=None):
                         total_tokens = usage.get("total_tokens")
                         if total_tokens is not None:
                             invocation.input_tokens = total_tokens
-                except (KeyError, AttributeError):
+                except (KeyError, AttributeError) as e:
                     # If usage extraction fails, continue without setting input_tokens
-                    pass
+                    logger.debug(
+                        "Failed to extract usage information from embedding response: %s",
+                        e,
+                    )
 
             # Successfully complete (sets attributes and ends span)
             handler.stop_embedding(invocation)

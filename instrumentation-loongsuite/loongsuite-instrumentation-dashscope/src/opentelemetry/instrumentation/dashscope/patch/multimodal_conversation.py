@@ -135,8 +135,11 @@ def _wrap_multimodal_sync_generator(
                                             accumulated_text += item["text"]
                                 elif isinstance(content, str):
                                     accumulated_text += content
-                except (KeyError, AttributeError):
-                    pass
+                except (KeyError, AttributeError) as e:
+                    logger.debug(
+                        "Failed to extract chunk text from multimodal conversation response: %s",
+                        e,
+                    )
 
             yield chunk
 

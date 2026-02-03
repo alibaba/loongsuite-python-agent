@@ -16,7 +16,10 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def _get_parameter(
@@ -49,7 +52,7 @@ def _get_parameter(
 
 def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
     """Extract token usage from DashScope response.
-    
+
     Note: This function is not used in the current implementation.
 
     Args:
@@ -77,8 +80,11 @@ def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
         )
 
         return input_tokens, output_tokens
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError) as e:
         # If any attribute access fails, return None for both tokens
+        logger.debug(
+            "Failed to extract usage information from response: %s", e
+        )
         return None, None
 
 
@@ -103,8 +109,8 @@ def _extract_task_id(task: Any) -> Optional[str]:
             task_id = task.output.get("task_id")
             if task_id:
                 return task_id
-    except (KeyError, AttributeError):
-        pass
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract task_id from task: %s", e)
 
     return None
 

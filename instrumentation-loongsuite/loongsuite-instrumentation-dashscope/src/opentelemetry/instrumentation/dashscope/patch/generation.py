@@ -185,8 +185,11 @@ def _wrap_sync_generator(
                         )
                         if chunk_text:
                             accumulated_text += chunk_text
-                except (KeyError, AttributeError):
-                    pass
+                except (KeyError, AttributeError) as e:
+                    logger.debug(
+                        "Failed to extract chunk text from generation response: %s",
+                        e,
+                    )
 
             yield chunk
 
@@ -236,8 +239,11 @@ async def _wrap_async_generator(
                         )
                         if chunk_text:
                             accumulated_text += chunk_text
-                except (KeyError, AttributeError):
-                    pass
+                except (KeyError, AttributeError) as e:
+                    logger.debug(
+                        "Failed to extract chunk text from generation response: %s",
+                        e,
+                    )
 
             yield chunk
 
