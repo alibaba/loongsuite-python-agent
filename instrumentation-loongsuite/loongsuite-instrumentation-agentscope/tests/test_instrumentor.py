@@ -10,6 +10,9 @@ try:
 except ImportError:
     from mock import Mock, patch
 
+import agentscope.tracing._trace as agentscope_tracing_trace
+import wrapt
+
 from opentelemetry import trace
 from opentelemetry.instrumentation.agentscope import AgentScopeInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
@@ -155,6 +158,73 @@ class TestAgentScopeInstrumentor(unittest.TestCase):
             self.fail(
                 f"uninstrument() raised an exception when not instrumented: {e}"
             )
+
+    def test_check_tracing_enabled_patch(self):
+        """Tests that _check_tracing_enabled is patched and correctly restored."""
+
+        # Save original function before instrumentation
+        original_func = getattr(
+            agentscope_tracing_trace, "_check_tracing_enabled", None
+        )
+        if original_func is None:
+            self.skipTest(
+                "_check_tracing_enabled function not found in agentscope"
+            )
+
+        # Verify original function is not wrapped before instrumentation
+        self.assertFalse(
+            isinstance(original_func, wrapt.ObjectProxy),
+            "Original function should not be wrapped before instrumentation",
+        )
+
+        # Instrument
+        self.instrumentor.instrument(tracer_provider=self.tracer_provider)
+
+        # Get the function after instrumentation
+        patched_func = getattr(
+            agentscope_tracing_trace, "_check_tracing_enabled", None
+        )
+        self.assertIsNotNone(
+            patched_func,
+            "_check_tracing_enabled should exist after instrumentation",
+        )
+
+        # Verify function is wrapped (should be an ObjectProxy)
+        self.assertTrue(
+            isinstance(patched_func, wrapt.ObjectProxy),
+            "_check_tracing_enabled should be wrapped (ObjectProxy) after instrumentation",
+        )
+        # Verify wrapped function has __wrapped__ attribute pointing to original
+        self.assertTrue(
+            hasattr(patched_func, "__wrapped__"),
+            "Wrapped function should have __wrapped__ attribute",
+        )
+
+        # Verify patched function returns False
+        result = patched_func()
+        self.assertFalse(
+            result,
+            "Patched _check_tracing_enabled should return False",
+        )
+
+        # Uninstrument
+        self.instrumentor.uninstrument()
+
+        # Get the function after uninstrumentation
+        restored_func = getattr(
+            agentscope_tracing_trace, "_check_tracing_enabled", None
+        )
+        self.assertIsNotNone(
+            restored_func,
+            "_check_tracing_enabled should exist after uninstrumentation",
+        )
+
+        # Verify function is no longer wrapped (restored to original)
+        # After unwrap, the function should not be an ObjectProxy
+        self.assertFalse(
+            isinstance(restored_func, wrapt.ObjectProxy),
+            "_check_tracing_enabled should be restored to original function (not ObjectProxy) after uninstrumentation",
+        )
 
 
 if __name__ == "__main__":
