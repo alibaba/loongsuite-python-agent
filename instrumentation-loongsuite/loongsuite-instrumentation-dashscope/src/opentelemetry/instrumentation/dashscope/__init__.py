@@ -16,13 +16,17 @@
 LoongSuite Instrumentation for Alibaba Cloud DashScope SDK.
 
 This instrumentation library provides automatic tracing for DashScope API calls,
-including text generation, text embedding, text reranking, and image synthesis.
+including text generation, text embedding, text reranking, image synthesis,
+multimodal conversation, video synthesis, and speech synthesis.
 
 Supported Operations:
     - Text Generation (sync/async, streaming/non-streaming)
     - Text Embedding
     - Text Reranking
     - Image Synthesis (sync/async)
+    - MultiModal Conversation (streaming/non-streaming)
+    - Video Synthesis (sync/async)
+    - Speech Synthesis V1 and V2
 
 Note: Chat Completion (OpenAI-compatible) is NOT supported due to a bug in
 DashScope SDK where Completions.create references a non-existent attribute
@@ -53,8 +57,15 @@ from opentelemetry.instrumentation.dashscope.patch import (
     wrap_image_synthesis_async_call,
     wrap_image_synthesis_call,
     wrap_image_synthesis_wait,
+    wrap_multimodal_conversation_call,
+    wrap_speech_synthesis_call,
+    wrap_speech_synthesis_v2_call,
+    wrap_speech_synthesis_v2_streaming_call,
     wrap_text_embedding_call,
     wrap_text_rerank_call,
+    wrap_video_synthesis_async_call,
+    wrap_video_synthesis_call,
+    wrap_video_synthesis_wait,
 )
 from opentelemetry.instrumentation.dashscope.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
@@ -67,8 +78,12 @@ logger = logging.getLogger(__name__)
 
 _MODULE_GENERATION = "dashscope.aigc.generation"
 _MODULE_IMAGE_SYNTHESIS = "dashscope.aigc.image_synthesis"
+_MODULE_MULTIMODAL_CONVERSATION = "dashscope.aigc.multimodal_conversation"
+_MODULE_VIDEO_SYNTHESIS = "dashscope.aigc.video_synthesis"
 _MODULE_TEXT_EMBEDDING = "dashscope.embeddings.text_embedding"
 _MODULE_TEXT_RERANK = "dashscope.rerank.text_rerank"
+_MODULE_SPEECH_SYNTHESIS = "dashscope.audio.tts.speech_synthesizer"
+_MODULE_SPEECH_SYNTHESIS_V2 = "dashscope.audio.tts_v2.speech_synthesizer"
 
 
 class DashScopeInstrumentor(BaseInstrumentor):
@@ -162,6 +177,55 @@ class DashScopeInstrumentor(BaseInstrumentor):
                 wrapped, instance, args, kwargs, handler=handler
             )
 
+        def wrap_multimodal_conversation_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_multimodal_conversation_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_video_synthesis_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_video_synthesis_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_video_synthesis_async_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_video_synthesis_async_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_video_synthesis_wait_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_video_synthesis_wait(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_speech_synthesis_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_speech_synthesis_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_speech_synthesis_v2_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_speech_synthesis_v2_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
+        def wrap_speech_synthesis_v2_streaming_call_with_provider(
+            wrapped, instance, args, kwargs
+        ):
+            return wrap_speech_synthesis_v2_streaming_call(
+                wrapped, instance, args, kwargs, handler=handler
+            )
+
         # Instrument Generation.call (sync)
         try:
             wrap_function_wrapper(
@@ -241,6 +305,93 @@ class DashScopeInstrumentor(BaseInstrumentor):
         except Exception as e:
             logger.warning(f"Failed to instrument ImageSynthesis.wait: {e}")
 
+        # Instrument MultiModalConversation.call
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_MULTIMODAL_CONVERSATION,
+                name="MultiModalConversation.call",
+                wrapper=wrap_multimodal_conversation_call_with_provider,
+            )
+            logger.debug("Instrumented MultiModalConversation.call")
+        except Exception as e:
+            logger.warning(
+                f"Failed to instrument MultiModalConversation.call: {e}"
+            )
+
+        # Instrument VideoSynthesis.call (sync)
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_VIDEO_SYNTHESIS,
+                name="VideoSynthesis.call",
+                wrapper=wrap_video_synthesis_call_with_provider,
+            )
+            logger.debug("Instrumented VideoSynthesis.call")
+        except Exception as e:
+            logger.warning(f"Failed to instrument VideoSynthesis.call: {e}")
+
+        # Instrument VideoSynthesis.async_call
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_VIDEO_SYNTHESIS,
+                name="VideoSynthesis.async_call",
+                wrapper=wrap_video_synthesis_async_call_with_provider,
+            )
+            logger.debug("Instrumented VideoSynthesis.async_call")
+        except Exception as e:
+            logger.warning(
+                f"Failed to instrument VideoSynthesis.async_call: {e}"
+            )
+
+        # Instrument VideoSynthesis.wait
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_VIDEO_SYNTHESIS,
+                name="VideoSynthesis.wait",
+                wrapper=wrap_video_synthesis_wait_with_provider,
+            )
+            logger.debug("Instrumented VideoSynthesis.wait")
+        except Exception as e:
+            logger.warning(f"Failed to instrument VideoSynthesis.wait: {e}")
+
+        # Instrument SpeechSynthesizer.call (V1)
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_SPEECH_SYNTHESIS,
+                name="SpeechSynthesizer.call",
+                wrapper=wrap_speech_synthesis_call_with_provider,
+            )
+            logger.debug("Instrumented SpeechSynthesizer.call (V1)")
+        except Exception as e:
+            logger.warning(
+                f"Failed to instrument SpeechSynthesizer.call (V1): {e}"
+            )
+
+        # Instrument SpeechSynthesizer.call (V2)
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_SPEECH_SYNTHESIS_V2,
+                name="SpeechSynthesizer.call",
+                wrapper=wrap_speech_synthesis_v2_call_with_provider,
+            )
+            logger.debug("Instrumented SpeechSynthesizer.call (V2)")
+        except Exception as e:
+            logger.warning(
+                f"Failed to instrument SpeechSynthesizer.call (V2): {e}"
+            )
+
+        # Instrument SpeechSynthesizer.streaming_call (V2)
+        try:
+            wrap_function_wrapper(
+                module=_MODULE_SPEECH_SYNTHESIS_V2,
+                name="SpeechSynthesizer.streaming_call",
+                wrapper=wrap_speech_synthesis_v2_streaming_call_with_provider,
+            )
+            logger.debug("Instrumented SpeechSynthesizer.streaming_call (V2)")
+        except Exception as e:
+            logger.warning(
+                f"Failed to instrument SpeechSynthesizer.streaming_call (V2): {e}"
+            )
+
     def _uninstrument(self, **kwargs):
         """Uninstrument the DashScope SDK.
 
@@ -252,6 +403,10 @@ class DashScopeInstrumentor(BaseInstrumentor):
         # pylint: disable=import-outside-toplevel
         import dashscope.aigc.generation  # noqa: PLC0415
         import dashscope.aigc.image_synthesis  # noqa: PLC0415
+        import dashscope.aigc.multimodal_conversation  # noqa: PLC0415
+        import dashscope.aigc.video_synthesis  # noqa: PLC0415
+        import dashscope.audio.tts.speech_synthesizer  # noqa: PLC0415
+        import dashscope.audio.tts_v2.speech_synthesizer  # noqa: PLC0415
         import dashscope.embeddings.text_embedding  # noqa: PLC0415
         import dashscope.rerank.text_rerank  # noqa: PLC0415
 
@@ -260,6 +415,25 @@ class DashScopeInstrumentor(BaseInstrumentor):
         unwrap(dashscope.aigc.image_synthesis.ImageSynthesis, "call")
         unwrap(dashscope.aigc.image_synthesis.ImageSynthesis, "async_call")
         unwrap(dashscope.aigc.image_synthesis.ImageSynthesis, "wait")
+        unwrap(
+            dashscope.aigc.multimodal_conversation.MultiModalConversation,
+            "call",
+        )
+        unwrap(dashscope.aigc.video_synthesis.VideoSynthesis, "call")
+        unwrap(dashscope.aigc.video_synthesis.VideoSynthesis, "async_call")
+        unwrap(dashscope.aigc.video_synthesis.VideoSynthesis, "wait")
+        unwrap(
+            dashscope.audio.tts.speech_synthesizer.SpeechSynthesizer,
+            "call",
+        )
+        unwrap(
+            dashscope.audio.tts_v2.speech_synthesizer.SpeechSynthesizer,
+            "call",
+        )
+        unwrap(
+            dashscope.audio.tts_v2.speech_synthesizer.SpeechSynthesizer,
+            "streaming_call",
+        )
         unwrap(dashscope.embeddings.text_embedding.TextEmbedding, "call")
         unwrap(dashscope.rerank.text_rerank.TextReRank, "call")
 

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility functions for DashScope instrumentation."""
+"""Utility functions for DashScope Generation API instrumentation."""
 
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
@@ -28,36 +29,11 @@ from opentelemetry.util.genai.types import (
     ToolCall,
     ToolCallResponse,
     ToolDefinition,
-    Uri,
 )
 
+from .common import _extract_usage, _get_parameter
 
-def _get_parameter(
-    kwargs: dict, param_name: str, parameters: Optional[dict] = None
-) -> Optional[Any]:
-    """Get parameter from kwargs or parameters dict.
-
-    Checks kwargs first (direct arguments), then kwargs["parameters"] if provided.
-
-    Args:
-        kwargs: Method kwargs
-        param_name: Parameter name to extract
-        parameters: Optional parameters dict (if None, will extract from kwargs.get("parameters"))
-
-    Returns:
-        Parameter value if found, None otherwise
-    """
-    # Check kwargs first (direct arguments)
-    if param_name in kwargs:
-        return kwargs[param_name]
-
-    # Check parameters dict if provided
-    if parameters is None:
-        parameters = kwargs.get("parameters", {})
-    if isinstance(parameters, dict) and param_name in parameters:
-        return parameters[param_name]
-
-    return None
+logger = logging.getLogger(__name__)
 
 
 def _extract_input_messages(kwargs: dict) -> List[InputMessage]:
@@ -276,7 +252,10 @@ def _extract_tool_definitions(kwargs: dict) -> list[ToolDefinition]:
                 # If plugins is already a list, use it
                 if isinstance(plugins, list):
                     tools = plugins
-            except (json.JSONDecodeError, TypeError, AttributeError):
+            except (json.JSONDecodeError, TypeError, AttributeError) as e:
+                logger.debug(
+                    "Failed to extract tool definitions from plugins: %s", e
+                )
                 # If parsing fails, return empty list
                 return tool_definitions
 
@@ -441,44 +420,12 @@ def _extract_output_messages(response: Any) -> List[OutputMessage]:
                         finish_reason=finish_reason or "stop",
                     )
                 )
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError) as e:
+        logger.debug("Failed to extract output messages from response: %s", e)
         # If any attribute access fails, return empty list
         return output_messages
 
     return output_messages
-
-
-def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
-    """Extract token usage from DashScope response.
-
-    Args:
-        response: DashScope response object
-
-    Returns:
-        Tuple of (input_tokens, output_tokens)
-    """
-    if not response:
-        return None, None
-
-    try:
-        # Use getattr with default None to safely access attributes
-        # DashScope response uses __getattr__ which raises KeyError for missing attributes
-        usage = getattr(response, "usage", None)
-        if not usage:
-            return None, None
-
-        # Use getattr with default None for safe access
-        input_tokens = getattr(usage, "input_tokens", None) or getattr(
-            usage, "prompt_tokens", None
-        )
-        output_tokens = getattr(usage, "output_tokens", None) or getattr(
-            usage, "completion_tokens", None
-        )
-
-        return input_tokens, output_tokens
-    except (KeyError, AttributeError):
-        # If any attribute access fails, return None for both tokens
-        return None, None
 
 
 def _create_invocation_from_generation(
@@ -605,19 +552,24 @@ def _update_invocation_from_response(
             response_model = getattr(response, "model", None)
             if response_model:
                 invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
-            pass
+        except (KeyError, AttributeError) as e:
+            logger.debug(
+                "Failed to extract response model name from response: %s", e
+            )
 
         # Extract request ID (if available)
         try:
             request_id = getattr(response, "request_id", None)
             if request_id:
                 invocation.response_id = request_id
-        except (KeyError, AttributeError):
-            pass
-    except (KeyError, AttributeError):
+        except (KeyError, AttributeError) as e:
+            logger.debug("Failed to extract request id from response: %s", e)
+    except (KeyError, AttributeError) as e:
         # If any attribute access fails, silently continue with available data
-        pass
+        logger.debug(
+            "Failed to extract response model name or request id from response: %s",
+            e,
+        )
 
 
 def _create_accumulated_response(original_response, accumulated_text):
@@ -637,9 +589,9 @@ def _create_accumulated_response(original_response, accumulated_text):
             try:
                 output.text = accumulated_text
                 return original_response
-            except (AttributeError, TypeError):
+            except (AttributeError, TypeError) as e:
                 # If we can't modify, create a wrapper object
-                pass
+                logger.debug("Failed to modify output text: %s", e)
 
         # Create wrapper objects with accumulated text
         class AccumulatedOutput:
@@ -659,213 +611,16 @@ def _create_accumulated_response(original_response, accumulated_text):
                         value = getattr(original_response, attr, None)
                         if value is not None:
                             setattr(self, attr, value)
-                    except (KeyError, AttributeError):
-                        pass
+                    except (KeyError, AttributeError) as e:
+                        logger.debug(
+                            "Failed to set attribute %s on accumulated response: %s",
+                            attr,
+                            e,
+                        )
 
         accumulated_output = AccumulatedOutput(output, accumulated_text)
         return AccumulatedResponse(original_response, accumulated_output)
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError) as e:
         # If modification fails, return original response
+        logger.debug("Failed to create accumulated response: %s", e)
         return original_response
-
-
-# Context key for skipping instrumentation in nested calls
-_SKIP_INSTRUMENTATION_KEY = "dashscope.skip_instrumentation"
-
-
-def _extract_task_id(task: Any) -> Optional[str]:
-    """Extract task_id from task parameter (can be str or ImageSynthesisResponse).
-
-    Args:
-        task: Task parameter (str task_id or ImageSynthesisResponse object)
-
-    Returns:
-        task_id string if found, None otherwise
-    """
-    if not task:
-        return None
-
-    if isinstance(task, str):
-        return task
-
-    try:
-        # Try to get task_id from response object
-        if hasattr(task, "output") and hasattr(task.output, "get"):
-            task_id = task.output.get("task_id")
-            if task_id:
-                return task_id
-    except (KeyError, AttributeError):
-        pass
-
-    return None
-
-
-def _create_invocation_from_image_synthesis(
-    kwargs: dict, model: Optional[str] = None
-) -> LLMInvocation:
-    """Create LLMInvocation from ImageSynthesis.call or async_call kwargs.
-
-    Args:
-        kwargs: ImageSynthesis.call or async_call kwargs
-        model: Model name (if not in kwargs)
-
-    Returns:
-        LLMInvocation object
-    """
-    request_model = kwargs.get("model") or model
-    if not request_model:
-        raise ValueError("Model name is required")
-
-    invocation = LLMInvocation(request_model=request_model)
-    invocation.provider = "dashscope"
-    invocation.operation_name = "generate_content"
-
-    # Extract prompt as input message
-    prompt = kwargs.get("prompt")
-    if prompt:
-        if isinstance(prompt, str):
-            invocation.input_messages = [
-                InputMessage(
-                    role="user",
-                    parts=[Text(content=prompt, type="text")],
-                )
-            ]
-        elif isinstance(prompt, list):
-            # Handle list of prompts
-            parts = []
-            for p in prompt:
-                if isinstance(p, str):
-                    parts.append(Text(content=p, type="text"))
-            if parts:
-                invocation.input_messages = [
-                    InputMessage(role="user", parts=parts)
-                ]
-
-    return invocation
-
-
-def _update_invocation_from_image_synthesis_response(
-    invocation: LLMInvocation, response: Any
-) -> None:
-    """Update LLMInvocation with ImageSynthesis response data (for call() and wait()).
-
-    Args:
-        invocation: LLMInvocation to update
-        response: ImageSynthesisResponse object
-    """
-    if not response:
-        return
-
-    try:
-        # Extract token usage
-        input_tokens, output_tokens = _extract_usage(response)
-        invocation.input_tokens = input_tokens
-        invocation.output_tokens = output_tokens
-
-        # Extract response model name (if available)
-        try:
-            response_model = getattr(response, "model", None)
-            if response_model:
-                invocation.response_model_name = response_model
-        except (KeyError, AttributeError):
-            pass
-
-        # Extract task_id from output and set as response_id
-        # Note: For ImageSynthesis, response_id should be task_id, not request_id
-        try:
-            output = getattr(response, "output", None)
-            if output:
-                # Extract task_id
-                task_id = None
-                if hasattr(output, "get"):
-                    task_id = output.get("task_id")
-                elif hasattr(output, "task_id"):
-                    task_id = getattr(output, "task_id", None)
-
-                if task_id:
-                    invocation.response_id = task_id
-
-                # Extract image URLs from results and add as Uri MessageParts
-                results = None
-                if hasattr(output, "get"):
-                    results = output.get("results")
-                elif hasattr(output, "results"):
-                    results = getattr(output, "results", None)
-
-                if results and isinstance(results, list):
-                    image_uris = []
-                    for result in results:
-                        if isinstance(result, dict):
-                            url = result.get("url")
-                            if url:
-                                image_uris.append(
-                                    Uri(
-                                        uri=url,
-                                        modality="image",
-                                        mime_type=None,
-                                        type="uri",
-                                    )
-                                )
-                        elif hasattr(result, "url"):
-                            url = getattr(result, "url", None)
-                            if url:
-                                image_uris.append(
-                                    Uri(
-                                        uri=url,
-                                        modality="image",
-                                        mime_type=None,
-                                        type="uri",
-                                    )
-                                )
-                    if image_uris:
-                        # Add image URIs to output messages
-                        # If output_messages is empty, create a new one
-                        if not invocation.output_messages:
-                            invocation.output_messages = [
-                                OutputMessage(
-                                    role="assistant",
-                                    parts=image_uris,
-                                    finish_reason="stop",
-                                )
-                            ]
-                        else:
-                            # Append URIs to the last output message
-                            invocation.output_messages[-1].parts.extend(
-                                image_uris
-                            )
-        except (KeyError, AttributeError):
-            pass
-    except (KeyError, AttributeError):
-        # If any attribute access fails, silently continue with available data
-        pass
-
-
-def _update_invocation_from_image_synthesis_async_response(
-    invocation: LLMInvocation, response: Any
-) -> None:
-    """Update LLMInvocation with ImageSynthesis async_call response data.
-
-    This is called when async_call() returns, before wait() is called.
-    Extracts task_id and sets it as response_id.
-
-    Args:
-        invocation: LLMInvocation to update
-        response: ImageSynthesisResponse object from async_call()
-    """
-    if not response:
-        return
-
-    try:
-        # Extract task_id from output and set as response_id
-        output = getattr(response, "output", None)
-        if output:
-            task_id = None
-            if hasattr(output, "get"):
-                task_id = output.get("task_id")
-            elif hasattr(output, "task_id"):
-                task_id = getattr(output, "task_id", None)
-
-            if task_id:
-                invocation.response_id = task_id
-    except (KeyError, AttributeError):
-        pass
