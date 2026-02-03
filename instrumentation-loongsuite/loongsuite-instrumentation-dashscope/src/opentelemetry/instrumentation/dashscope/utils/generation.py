@@ -20,8 +20,6 @@ import json
 import logging
 from typing import Any, List, Optional
 
-logger = logging.getLogger(__name__)
-
 from opentelemetry.util.genai.types import (
     FunctionToolDefinition,
     InputMessage,
@@ -256,7 +254,9 @@ def _extract_tool_definitions(kwargs: dict) -> list[ToolDefinition]:
                     tools = plugins
             except (json.JSONDecodeError, TypeError, AttributeError) as e:
                 # If parsing fails, return empty list
-                logger.debug("Failed to parse tool definitions from response: %s", e)
+                logger.debug(
+                    "Failed to parse tool definitions from response: %s", e
+                )
                 return tool_definitions
 
     # Convert tool definitions to FunctionToolDefinition objects
@@ -554,7 +554,8 @@ def _update_invocation_from_response(
                 invocation.response_model_name = response_model
         except (KeyError, AttributeError) as e:
             logger.debug(
-                "Failed to extract response model name from response: %s", e
+                "Failed to extract response model from Generation response: %s",
+                e,
             )
 
         # Extract request ID (if available)
@@ -563,7 +564,9 @@ def _update_invocation_from_response(
             if request_id:
                 invocation.response_id = request_id
         except (KeyError, AttributeError) as e:
-            logger.debug("Failed to extract request id from response: %s", e)
+            logger.debug(
+                "Failed to extract request_id from Generation response: %s", e
+            )
     except (KeyError, AttributeError) as e:
         # If any attribute access fails, silently continue with available data
         logger.debug(
@@ -592,7 +595,8 @@ def _create_accumulated_response(original_response, accumulated_text):
             except (AttributeError, TypeError) as e:
                 # If we can't modify, create a wrapper object
                 logger.debug(
-                    "Failed to modify output.text directly, creating wrapper: %s", e
+                    "Failed to modify output.text directly, creating wrapper: %s",
+                    e,
                 )
 
         # Create wrapper objects with accumulated text

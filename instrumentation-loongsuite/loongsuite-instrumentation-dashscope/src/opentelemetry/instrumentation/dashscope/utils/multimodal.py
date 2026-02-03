@@ -28,8 +28,6 @@ import base64
 import logging
 from typing import Any, List, Optional
 
-logger = logging.getLogger(__name__)
-
 from opentelemetry.util.genai.types import (
     Base64Blob,
     InputMessage,
@@ -756,7 +754,8 @@ def _update_invocation_from_speech_synthesis_response(
 
     except (KeyError, AttributeError) as e:
         logger.debug(
-            "Failed to update invocation from SpeechSynthesizer response: %s", e
+            "Failed to update invocation from SpeechSynthesizer response: %s",
+            e,
         )
 
 
