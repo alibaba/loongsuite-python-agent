@@ -324,7 +324,7 @@ def _get_llm_request_attributes(
     return attributes
 
 
-def _get_llm_response_attributes(
+def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     invocation: LLMInvocation,
 ) -> dict[str, Any]:
     """Get GenAI response semantic convention attributes."""

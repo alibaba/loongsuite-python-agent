@@ -209,6 +209,7 @@ def test_model_call_basic(instrument_no_content, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,  # Do not capture content by default
         expect_output_messages=False,  # Do not capture content by default
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (basic) completed successfully")
@@ -254,6 +255,7 @@ def test_model_call_with_messages(
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (with messages) completed successfully")
@@ -291,6 +293,7 @@ async def test_model_call_async(instrument_no_content, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (async) completed successfully")
@@ -387,6 +390,7 @@ def test_model_call_with_parameters(instrument, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (with parameters) completed successfully")
@@ -435,6 +439,7 @@ def test_model_call_with_content_capture(
         request_model="qwen-max",
         expect_input_messages=True,  # Content capture enabled
         expect_output_messages=True,  # Content capture enabled
+        expect_time_to_first_token=False,
     )
 
     print("✓ Model call (with content capture) completed successfully")
@@ -477,6 +482,7 @@ def test_model_call_no_content_capture(
         request_model="qwen-max",
         expect_input_messages=False,  # Content capture disabled
         expect_output_messages=False,  # Content capture disabled
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (no content capture) completed successfully")
@@ -523,6 +529,7 @@ def test_model_call_multiple_sequential(instrument, span_exporter, request):
             request_model="qwen-max",
             expect_input_messages=False,
             expect_output_messages=False,
+            expect_time_to_first_token=True,
         )
 
     print("✓ Model call (multiple sequential) completed successfully")
