@@ -559,6 +559,7 @@ def _update_invocation_from_video_synthesis_response(
 
     try:
         # Extract token usage
+        # FIXME: Usage of video synthesis is not expressed with input_tokens and output_tokens.
         input_tokens, output_tokens = _extract_usage(response)
         invocation.input_tokens = input_tokens
         invocation.output_tokens = output_tokens
@@ -752,4 +753,3 @@ def _update_invocation_from_speech_synthesis_v2_response(
     """
     if audio_data:
         invocation.attributes["gen_ai.response.audio_size"] = len(audio_data)
-

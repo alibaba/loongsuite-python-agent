@@ -256,4 +256,3 @@ async def _wrap_async_generator(
         error = Error(message=str(e), type=type(e))
         handler.fail_llm(invocation, error)
         raise
-

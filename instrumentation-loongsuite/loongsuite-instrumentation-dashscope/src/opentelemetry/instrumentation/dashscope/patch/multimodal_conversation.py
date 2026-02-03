@@ -156,4 +156,3 @@ def _wrap_multimodal_sync_generator(
         error = Error(message=str(e), type=type(e))
         handler.fail_llm(invocation, error)
         raise
-

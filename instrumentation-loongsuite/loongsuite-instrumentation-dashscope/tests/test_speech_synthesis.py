@@ -67,7 +67,9 @@ def _assert_speech_synthesis_span_attributes(
 
     if request_id is not None:
         assert GenAIAttributes.GEN_AI_RESPONSE_ID in span.attributes
-        assert span.attributes[GenAIAttributes.GEN_AI_RESPONSE_ID] == request_id
+        assert (
+            span.attributes[GenAIAttributes.GEN_AI_RESPONSE_ID] == request_id
+        )
 
 
 @pytest.mark.vcr()
@@ -119,5 +121,6 @@ def test_speech_synthesis_v1_call_with_parameters(instrument, span_exporter):
         request_id=request_id,
     )
 
-    print("✓ SpeechSynthesizer V1 call (with parameters) completed successfully")
-
+    print(
+        "✓ SpeechSynthesizer V1 call (with parameters) completed successfully"
+    )

@@ -91,4 +91,3 @@ __all__ = [
     "_create_invocation_from_speech_synthesis_v2",
     "_update_invocation_from_speech_synthesis_v2_response",
 ]
-

@@ -218,4 +218,3 @@ def wrap_video_synthesis_wait(wrapped, instance, args, kwargs, handler=None):
             "Error in video synthesis wait instrumentation wrapper: %s", e
         )
         return wrapped(*args, **kwargs)
-

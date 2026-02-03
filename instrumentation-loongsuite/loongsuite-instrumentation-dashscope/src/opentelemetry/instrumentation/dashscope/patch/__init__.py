@@ -62,4 +62,3 @@ __all__ = [
     "wrap_speech_synthesis_v2_call",
     "wrap_speech_synthesis_v2_streaming_call",
 ]
-

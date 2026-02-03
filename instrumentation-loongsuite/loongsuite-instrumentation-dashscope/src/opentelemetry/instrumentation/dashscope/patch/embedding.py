@@ -99,4 +99,3 @@ def wrap_text_embedding_call(wrapped, instance, args, kwargs, handler=None):
     except Exception as e:
         logger.exception("Error in embedding instrumentation wrapper: %s", e)
         return wrapped(*args, **kwargs)
-

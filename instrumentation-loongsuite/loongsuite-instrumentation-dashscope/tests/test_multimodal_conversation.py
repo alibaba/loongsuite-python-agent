@@ -66,7 +66,9 @@ def _assert_multimodal_span_attributes(
 
     if request_id is not None:
         assert GenAIAttributes.GEN_AI_RESPONSE_ID in span.attributes
-        assert span.attributes[GenAIAttributes.GEN_AI_RESPONSE_ID] == request_id
+        assert (
+            span.attributes[GenAIAttributes.GEN_AI_RESPONSE_ID] == request_id
+        )
 
     if input_tokens is not None:
         assert GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS in span.attributes
@@ -217,4 +219,3 @@ def test_multimodal_conversation_call_streaming(instrument, span_exporter):
     )
 
     print("✓ MultiModalConversation.call (streaming) completed successfully")
-

@@ -22,4 +22,3 @@ import inspect
 def _is_streaming_response(result):
     """Check if the result is a streaming response."""
     return inspect.isgenerator(result) or inspect.isasyncgen(result)
-

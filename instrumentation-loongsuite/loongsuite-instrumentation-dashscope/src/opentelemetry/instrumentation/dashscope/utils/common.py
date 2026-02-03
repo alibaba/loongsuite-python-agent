@@ -49,6 +49,8 @@ def _get_parameter(
 
 def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
     """Extract token usage from DashScope response.
+    
+    Note: This function is not used in the current implementation.
 
     Args:
         response: DashScope response object
@@ -109,4 +111,3 @@ def _extract_task_id(task: Any) -> Optional[str]:
 
 # Context key for skipping instrumentation in nested calls
 _SKIP_INSTRUMENTATION_KEY = "dashscope.skip_instrumentation"
-

@@ -223,4 +223,3 @@ def wrap_image_synthesis_wait(wrapped, instance, args, kwargs, handler=None):
     except Exception as e:
         logger.exception("Error in wait instrumentation wrapper: %s", e)
         return wrapped(*args, **kwargs)
-

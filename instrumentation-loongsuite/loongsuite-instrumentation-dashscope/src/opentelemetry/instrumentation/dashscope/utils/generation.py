@@ -607,4 +607,3 @@ def _create_accumulated_response(original_response, accumulated_text):
     except (KeyError, AttributeError):
         # If modification fails, return original response
         return original_response
-

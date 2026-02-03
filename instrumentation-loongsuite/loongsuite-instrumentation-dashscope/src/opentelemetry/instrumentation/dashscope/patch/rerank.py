@@ -76,4 +76,3 @@ def wrap_text_rerank_call(wrapped, instance, args, kwargs, handler=None):
     except Exception as e:
         logger.exception("Error in rerank instrumentation wrapper: %s", e)
         return wrapped(*args, **kwargs)
-

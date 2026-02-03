@@ -300,4 +300,3 @@ def test_video_synthesis_async_call_and_wait_separate_spans(
     assert len(all_spans) == 2, "Expected 2 spans after wait"
 
     print("✓ VideoSynthesis.async_call and wait create separate spans")
-

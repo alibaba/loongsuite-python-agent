@@ -212,4 +212,3 @@ def wrap_speech_synthesis_v2_streaming_call(
             "Error in speech synthesis V2 streaming_call wrapper: %s", e
         )
         return wrapped(*args, **kwargs)
-
