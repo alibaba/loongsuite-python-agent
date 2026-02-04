@@ -59,12 +59,13 @@ def wrap_image_synthesis_call(wrapped, instance, args, kwargs, handler=None):
         # Create invocation object
         invocation = _create_invocation_from_image_synthesis(kwargs, model)
 
-        # Start LLM invocation (creates span)
-        handler.start_llm(invocation)
-
         # In sync call scenario, set a flag in context to skip span creation in async_call and wait
+        # NOTE: This must be attached BEFORE start_llm to ensure correct LIFO detach order
         ctx = context.set_value(_SKIP_INSTRUMENTATION_KEY, True)
         token = context.attach(ctx)
+
+        # Start LLM invocation (creates span)
+        handler.start_llm(invocation)
 
         try:
             # Execute the wrapped call (internal will call async_call + wait)
@@ -83,7 +84,7 @@ def wrap_image_synthesis_call(wrapped, instance, args, kwargs, handler=None):
             handler.fail_llm(invocation, error)
             raise
         finally:
-            # Restore context
+            # Restore _SKIP_INSTRUMENTATION_KEY context
             if token is not None:
                 context.detach(token)
 
