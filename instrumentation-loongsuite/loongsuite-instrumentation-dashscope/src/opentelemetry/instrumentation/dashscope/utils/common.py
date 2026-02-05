@@ -55,8 +55,6 @@ def _extract_usage(response: Any) -> tuple[Optional[int], Optional[int]]:
 
     Note: This function is not used in the current implementation.
 
-    Note: This function is not used in the current implementation.
-
     Args:
         response: DashScope response object
 
