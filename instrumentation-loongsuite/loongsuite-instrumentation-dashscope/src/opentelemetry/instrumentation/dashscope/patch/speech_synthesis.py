@@ -21,6 +21,7 @@ import logging
 from opentelemetry.util.genai.types import Error
 
 from ..utils import (
+    _convert_speech_format_to_mime_type,
     _create_invocation_from_speech_synthesis,
     _create_invocation_from_speech_synthesis_v2,
     _update_invocation_from_speech_synthesis_response,
@@ -59,6 +60,9 @@ def wrap_speech_synthesis_call(wrapped, instance, args, kwargs, handler=None):
         # Create invocation object
         invocation = _create_invocation_from_speech_synthesis(kwargs, model)
 
+        speech_format = kwargs.get("format", "wav")  # default format is wav
+        mime_type = _convert_speech_format_to_mime_type(speech_format)
+
         # Start LLM invocation (creates span)
         handler.start_llm(invocation)
 
@@ -68,7 +72,7 @@ def wrap_speech_synthesis_call(wrapped, instance, args, kwargs, handler=None):
 
             # Update invocation with response data
             _update_invocation_from_speech_synthesis_response(
-                invocation, result
+                invocation, result, mime_type
             )
             handler.stop_llm(invocation)
 
@@ -115,15 +119,13 @@ def wrap_speech_synthesis_v2_call(
         model = getattr(instance, "_model", None) or getattr(
             instance, "model", "unknown"
         )
-        voice = getattr(instance, "_voice", None) or getattr(
-            instance, "voice", None
-        )
+        speech_format = getattr(instance, "aformat", "mp3")
+        mime_type = _convert_speech_format_to_mime_type(speech_format)
+
         text = args[0] if args else kwargs.get("text", "")
 
         # Create invocation object
-        invocation = _create_invocation_from_speech_synthesis_v2(
-            model, text, voice
-        )
+        invocation = _create_invocation_from_speech_synthesis_v2(model, text)
 
         # Start LLM invocation (creates span)
         handler.start_llm(invocation)
@@ -135,7 +137,7 @@ def wrap_speech_synthesis_v2_call(
             # Update invocation with response data
             if result is not None:
                 _update_invocation_from_speech_synthesis_v2_response(
-                    invocation, result
+                    invocation, result, mime_type
                 )
             handler.stop_llm(invocation)
 
@@ -149,66 +151,5 @@ def wrap_speech_synthesis_v2_call(
     except Exception as e:
         logger.exception(
             "Error in speech synthesis V2 instrumentation wrapper: %s", e
-        )
-        return wrapped(*args, **kwargs)
-
-
-def wrap_speech_synthesis_v2_streaming_call(
-    wrapped, instance, args, kwargs, handler=None
-):
-    """Wrapper for SpeechSynthesizerV2.streaming_call.
-
-    Note: This is a streaming input method. The user calls it multiple times
-    to send text, then calls streaming_complete() to finish.
-
-    For now, we just instrument individual streaming_call() invocations.
-
-    Args:
-        wrapped: The original function being wrapped
-        instance: The SpeechSynthesizer instance
-        args: Positional arguments (text)
-        kwargs: Keyword arguments
-        handler: ExtendedTelemetryHandler instance (created during instrumentation)
-    """
-    if handler is None:
-        logger.warning("Handler not provided, skipping instrumentation")
-        return wrapped(*args, **kwargs)
-
-    try:
-        # Extract model and voice from instance
-        model = getattr(instance, "_model", None) or getattr(
-            instance, "model", "unknown"
-        )
-        voice = getattr(instance, "_voice", None) or getattr(
-            instance, "voice", None
-        )
-        text = args[0] if args else kwargs.get("text", "")
-
-        # Create invocation object
-        invocation = _create_invocation_from_speech_synthesis_v2(
-            model, text, voice
-        )
-        invocation.operation_name = "streaming_call"
-
-        # Start LLM invocation (creates span)
-        handler.start_llm(invocation)
-
-        try:
-            # Execute the wrapped call
-            result = wrapped(*args, **kwargs)
-
-            # For streaming_call, there's no immediate response
-            handler.stop_llm(invocation)
-
-            return result
-
-        except Exception as e:
-            error = Error(message=str(e), type=type(e))
-            handler.fail_llm(invocation, error)
-            raise
-
-    except Exception as e:
-        logger.exception(
-            "Error in speech synthesis V2 streaming_call wrapper: %s", e
         )
         return wrapped(*args, **kwargs)

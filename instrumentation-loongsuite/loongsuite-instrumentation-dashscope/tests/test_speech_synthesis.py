@@ -306,7 +306,7 @@ class StreamingCallback:
         self.events.append("close")
 
 
-@skip_without_api_key
+@pytest.mark.skip("Not support now")
 def test_speech_synthesis_v2_streaming_call_basic(
     instrument_with_content, span_exporter
 ):

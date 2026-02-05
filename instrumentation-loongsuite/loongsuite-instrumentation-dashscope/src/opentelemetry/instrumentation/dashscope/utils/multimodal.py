@@ -23,12 +23,11 @@ This module contains utilities for:
 
 from __future__ import annotations
 
-import base64
 import logging
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
-    Base64Blob,
+    Blob,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -713,13 +712,14 @@ def _create_invocation_from_speech_synthesis(
 
 
 def _update_invocation_from_speech_synthesis_response(
-    invocation: LLMInvocation, response: Any
+    invocation: LLMInvocation, response: Any, mime_type: Optional[str] = None
 ) -> None:
     """Update LLMInvocation with SpeechSynthesizer response data.
 
     Args:
         invocation: LLMInvocation to update
         response: SpeechSynthesisResult object
+        mime_type: MIME type of audio (optional)
     """
     if not response:
         return
@@ -735,16 +735,14 @@ def _update_invocation_from_speech_synthesis_response(
         if callable(audio_data):
             audio_bytes = audio_data()
             if audio_bytes:
-                # Encode audio as base64 and store in output_messages
-                audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
                 invocation.output_messages = [
                     OutputMessage(
                         role="assistant",
                         parts=[
-                            Base64Blob(
-                                mime_type="audio/wav",
+                            Blob(
+                                mime_type=mime_type,
                                 modality="audio",
-                                content=audio_base64,
+                                content=audio_bytes,
                             )
                         ],
                         finish_reason="stop",
@@ -759,14 +757,13 @@ def _update_invocation_from_speech_synthesis_response(
 
 
 def _create_invocation_from_speech_synthesis_v2(
-    model: str, text: str, voice: Optional[str] = None
+    model: str, text: str
 ) -> LLMInvocation:
     """Create LLMInvocation from SpeechSynthesizerV2.call args.
 
     Args:
         model: Model name
         text: Text to synthesize
-        voice: Voice name (optional)
 
     Returns:
         LLMInvocation object
@@ -788,27 +785,49 @@ def _create_invocation_from_speech_synthesis_v2(
 
 
 def _update_invocation_from_speech_synthesis_v2_response(
-    invocation: LLMInvocation, audio_data: bytes
+    invocation: LLMInvocation,
+    audio_data: bytes,
+    mime_type: Optional[str] = None,
 ) -> None:
     """Update LLMInvocation with SpeechSynthesizerV2 response data.
 
     Args:
         invocation: LLMInvocation to update
         audio_data: Audio data bytes
+        mime_type: MIME type of audio (optional)
     """
     if audio_data:
-        # Encode audio as base64 and store in output_messages
-        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
         invocation.output_messages = [
             OutputMessage(
                 role="assistant",
                 parts=[
-                    Base64Blob(
-                        mime_type="audio/mp3",  # V2 typically returns mp3
+                    Blob(
+                        mime_type=mime_type,
                         modality="audio",
-                        content=audio_base64,
+                        content=audio_data,
                     )
                 ],
                 finish_reason="stop",
             )
         ]
+
+
+def _convert_speech_format_to_mime_type(speech_format: str) -> Optional[str]:
+    """Convert from speech format to mime type.
+
+    Args:
+        speech_format: speech format of DashScope
+
+    Returns:
+        the mime type of speech
+    """
+    if speech_format == "wav":
+        return "audio/wav"
+    elif speech_format == "mp3":
+        return "audio/mp3"
+    elif speech_format == "pcm":
+        return "audio/pcm"
+    elif speech_format == "opus":
+        return "audio/opus"
+    else:
+        return None

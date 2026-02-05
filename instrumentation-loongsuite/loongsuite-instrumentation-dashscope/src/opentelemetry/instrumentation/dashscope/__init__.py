@@ -60,7 +60,6 @@ from opentelemetry.instrumentation.dashscope.patch import (
     wrap_multimodal_conversation_call,
     wrap_speech_synthesis_call,
     wrap_speech_synthesis_v2_call,
-    wrap_speech_synthesis_v2_streaming_call,
     wrap_text_embedding_call,
     wrap_text_rerank_call,
     wrap_video_synthesis_async_call,
@@ -219,13 +218,6 @@ class DashScopeInstrumentor(BaseInstrumentor):
                 wrapped, instance, args, kwargs, handler=handler
             )
 
-        def wrap_speech_synthesis_v2_streaming_call_with_provider(
-            wrapped, instance, args, kwargs
-        ):
-            return wrap_speech_synthesis_v2_streaming_call(
-                wrapped, instance, args, kwargs, handler=handler
-            )
-
         # Instrument Generation.call (sync)
         try:
             wrap_function_wrapper(
@@ -379,19 +371,6 @@ class DashScopeInstrumentor(BaseInstrumentor):
                 f"Failed to instrument SpeechSynthesizer.call (V2): {e}"
             )
 
-        # Instrument SpeechSynthesizer.streaming_call (V2)
-        try:
-            wrap_function_wrapper(
-                module=_MODULE_SPEECH_SYNTHESIS_V2,
-                name="SpeechSynthesizer.streaming_call",
-                wrapper=wrap_speech_synthesis_v2_streaming_call_with_provider,
-            )
-            logger.debug("Instrumented SpeechSynthesizer.streaming_call (V2)")
-        except Exception as e:
-            logger.warning(
-                f"Failed to instrument SpeechSynthesizer.streaming_call (V2): {e}"
-            )
-
     def _uninstrument(self, **kwargs):
         """Uninstrument the DashScope SDK.
 
@@ -429,10 +408,6 @@ class DashScopeInstrumentor(BaseInstrumentor):
         unwrap(
             dashscope.audio.tts_v2.speech_synthesizer.SpeechSynthesizer,
             "call",
-        )
-        unwrap(
-            dashscope.audio.tts_v2.speech_synthesizer.SpeechSynthesizer,
-            "streaming_call",
         )
         unwrap(dashscope.embeddings.text_embedding.TextEmbedding, "call")
         unwrap(dashscope.rerank.text_rerank.TextReRank, "call")

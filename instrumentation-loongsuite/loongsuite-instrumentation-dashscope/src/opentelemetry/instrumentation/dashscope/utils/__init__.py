@@ -39,11 +39,12 @@ from .generation import (
 
 # Multimodal utilities
 from .multimodal import (
+    # SpeechSynthesis
+    _convert_speech_format_to_mime_type,
     # ImageSynthesis
     _create_invocation_from_image_synthesis,
     # MultiModalConversation
     _create_invocation_from_multimodal_conversation,
-    # SpeechSynthesis
     _create_invocation_from_speech_synthesis,
     _create_invocation_from_speech_synthesis_v2,
     # VideoSynthesis
@@ -86,6 +87,7 @@ __all__ = [
     "_update_invocation_from_video_synthesis_response",
     "_update_invocation_from_video_synthesis_async_response",
     # SpeechSynthesis
+    "_convert_speech_format_to_mime_type",
     "_create_invocation_from_speech_synthesis",
     "_update_invocation_from_speech_synthesis_response",
     "_create_invocation_from_speech_synthesis_v2",

@@ -12,3 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   ([#111](https://github.com/alibaba/loongsuite-python-agent/pull/111))
 - Initial implementation of DashScope instrumentation
   ([#66](https://github.com/alibaba/loongsuite-python-agent/pull/66))
+
+### Fixed
+
+- Fix MIME type inference logic for speech synthesis instrumentation
+  ([#115](https://github.com/alibaba/loongsuite-python-agent/pull/115))
