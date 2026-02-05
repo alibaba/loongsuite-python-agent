@@ -374,6 +374,7 @@ def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     if (
         invocation.monotonic_first_token_s is not None
         and invocation.monotonic_start_s is not None
+        and invocation.monotonic_first_token_s >= invocation.monotonic_start_s
     ):
         ttft_ns = int(
             (invocation.monotonic_first_token_s - invocation.monotonic_start_s)
