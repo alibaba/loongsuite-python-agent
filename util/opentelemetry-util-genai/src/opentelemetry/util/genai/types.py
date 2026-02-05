@@ -264,6 +264,14 @@ class LLMInvocation:
     populated by the ExtendedTelemetryHandler when stopping an invocation
     with multimodal data.
     """
+    monotonic_first_token_s: float | None = None  # LoongSuite Extension
+    """
+    Monotonic time in seconds (from timeit.default_timer) when the first token
+    was received in a streaming response. This is populated by the instrumentation
+    when processing streaming responses. The gen_ai.response.time_to_first_token
+    attribute is calculated as (monotonic_first_token_s - monotonic_start_s) * 1e9
+    and stored in nanoseconds.
+    """
 
 
 @dataclass

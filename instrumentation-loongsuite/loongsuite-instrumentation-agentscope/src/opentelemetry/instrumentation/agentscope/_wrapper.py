@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import logging
+import timeit
 from functools import wraps
 from typing import Any, AsyncGenerator
 
@@ -57,7 +58,13 @@ class AgentScopeChatModelWrapper:
         """Wrap streaming response to update invocation when done."""
         try:
             last_chunk = None
+            first_token_received = False
             async for chunk in generator:
+                # Record time when first token is received
+                if not first_token_received:
+                    first_token_received = True
+                    invocation.monotonic_first_token_s = timeit.default_timer()
+
                 last_chunk = chunk
                 yield chunk
 

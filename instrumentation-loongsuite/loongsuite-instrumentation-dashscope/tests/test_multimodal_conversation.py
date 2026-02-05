@@ -39,6 +39,9 @@ def _assert_multimodal_span_attributes(
     input_tokens: Optional[int] = None,
     output_tokens: Optional[int] = None,
     request_id: Optional[str] = None,
+    expect_input_messages: bool = True,
+    expect_output_messages: bool = True,
+    expect_time_to_first_token: bool = False,
 ):
     """Assert MultiModalConversation span attributes."""
     # Span name format is "{operation_name} {model}"
@@ -84,9 +87,43 @@ def _assert_multimodal_span_attributes(
             == output_tokens
         )
 
+    # Assert input/output messages based on expectation
+    if expect_input_messages:
+        assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in span.attributes, (
+            f"Missing {GenAIAttributes.GEN_AI_INPUT_MESSAGES}"
+        )
+    else:
+        assert GenAIAttributes.GEN_AI_INPUT_MESSAGES not in span.attributes, (
+            f"{GenAIAttributes.GEN_AI_INPUT_MESSAGES} should not be present"
+        )
+
+    if expect_output_messages:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in span.attributes, (
+            f"Missing {GenAIAttributes.GEN_AI_OUTPUT_MESSAGES}"
+        )
+    else:
+        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES not in span.attributes, (
+            f"{GenAIAttributes.GEN_AI_OUTPUT_MESSAGES} should not be present"
+        )
+
+    # Assert time to first token for streaming responses (in nanoseconds)
+    if expect_time_to_first_token:
+        assert "gen_ai.response.time_to_first_token" in span.attributes, (
+            "Missing gen_ai.response.time_to_first_token"
+        )
+        ttft_ns = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft_ns, int), (
+            f"time_to_first_token should be an integer (nanoseconds), got {type(ttft_ns)}"
+        )
+        assert ttft_ns > 0, (
+            f"time_to_first_token should be positive, got {ttft_ns}"
+        )
+
 
 @pytest.mark.vcr()
-def test_multimodal_conversation_call_basic(instrument, span_exporter):
+def test_multimodal_conversation_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test synchronous MultiModalConversation.call can be instrumented."""
     messages = [
         {
@@ -121,13 +158,17 @@ def test_multimodal_conversation_call_basic(instrument, span_exporter):
         if usage
         else None,
         request_id=request_id,
+        expect_input_messages=True,
+        expect_output_messages=True,
     )
 
     print("✓ MultiModalConversation.call (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_multimodal_conversation_call_with_image(instrument, span_exporter):
+def test_multimodal_conversation_call_with_image(
+    instrument_with_content, span_exporter
+):
     """Test MultiModalConversation.call with image input."""
     messages = [
         {
@@ -167,13 +208,17 @@ def test_multimodal_conversation_call_with_image(instrument, span_exporter):
         if usage
         else None,
         request_id=request_id,
+        expect_input_messages=True,
+        expect_output_messages=True,
     )
 
     print("✓ MultiModalConversation.call (with image) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_multimodal_conversation_call_streaming(instrument, span_exporter):
+def test_multimodal_conversation_call_streaming(
+    instrument_with_content, span_exporter
+):
     """Test MultiModalConversation.call with streaming response."""
     messages = [
         {
@@ -216,6 +261,9 @@ def test_multimodal_conversation_call_streaming(instrument, span_exporter):
         if usage
         else None,
         request_id=request_id,
+        expect_input_messages=True,
+        expect_output_messages=True,
+        expect_time_to_first_token=True,
     )
 
     print("✓ MultiModalConversation.call (streaming) completed successfully")

@@ -40,6 +40,7 @@ def _assert_video_synthesis_span_attributes(
     output_tokens: Optional[int] = None,
     task_id: Optional[str] = None,
     is_wait_span: bool = False,
+    expect_input_messages: bool = True,
 ):
     """Assert VideoSynthesis span attributes."""
     # Span name format
@@ -95,9 +96,19 @@ def _assert_video_synthesis_span_attributes(
             == output_tokens
         )
 
+    # Assert input messages based on expectation
+    if expect_input_messages:
+        assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in span.attributes, (
+            f"Missing {GenAIAttributes.GEN_AI_INPUT_MESSAGES}"
+        )
+    else:
+        assert GenAIAttributes.GEN_AI_INPUT_MESSAGES not in span.attributes, (
+            f"{GenAIAttributes.GEN_AI_INPUT_MESSAGES} should not be present"
+        )
+
 
 @pytest.mark.vcr()
-def test_video_synthesis_call_basic(instrument, span_exporter):
+def test_video_synthesis_call_basic(instrument_with_content, span_exporter):
     """Test synchronous VideoSynthesis.call can be instrumented."""
     response = VideoSynthesis.call(
         model="wanx2.1-t2v-turbo",
@@ -133,13 +144,16 @@ def test_video_synthesis_call_basic(instrument, span_exporter):
         if usage
         else None,
         task_id=task_id,
+        expect_input_messages=True,
     )
 
     print("✓ VideoSynthesis.call (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_video_synthesis_async_call_basic(instrument, span_exporter):
+def test_video_synthesis_async_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test VideoSynthesis.async_call can be instrumented."""
     response = VideoSynthesis.async_call(
         model="wanx2.1-t2v-turbo",
@@ -164,22 +178,19 @@ def test_video_synthesis_async_call_basic(instrument, span_exporter):
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
 
-    # Check async attribute
-    assert "gen_ai.request.async" in span.attributes
-    assert span.attributes["gen_ai.request.async"] is True
-
     _assert_video_synthesis_span_attributes(
         span,
         request_model="wanx2.1-t2v-turbo",
         response_model=response_model,
         task_id=task_id,
+        expect_input_messages=True,
     )
 
     print("✓ VideoSynthesis.async_call (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_video_synthesis_wait_basic(instrument, span_exporter):
+def test_video_synthesis_wait_basic(instrument_with_content, span_exporter):
     """Test VideoSynthesis.wait can be instrumented."""
     # First submit a task
     async_response = VideoSynthesis.async_call(
@@ -217,10 +228,6 @@ def test_video_synthesis_wait_basic(instrument, span_exporter):
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
 
-    # Check async attribute
-    assert "gen_ai.request.async" in wait_span.attributes
-    assert wait_span.attributes["gen_ai.request.async"] is True
-
     _assert_video_synthesis_span_attributes(
         wait_span,
         request_model="unknown",
@@ -233,13 +240,16 @@ def test_video_synthesis_wait_basic(instrument, span_exporter):
         else None,
         task_id=task_id,
         is_wait_span=True,
+        expect_input_messages=False,  # Wait span doesn't have input messages
     )
 
     print("✓ VideoSynthesis.wait (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_video_synthesis_call_no_duplicate_spans(instrument, span_exporter):
+def test_video_synthesis_call_no_duplicate_spans(
+    instrument_with_content, span_exporter
+):
     """Test that call() does not create duplicate spans."""
     response = VideoSynthesis.call(
         model="wanx2.1-t2v-turbo",
@@ -264,7 +274,7 @@ def test_video_synthesis_call_no_duplicate_spans(instrument, span_exporter):
 
 @pytest.mark.vcr()
 def test_video_synthesis_async_call_and_wait_separate_spans(
-    instrument, span_exporter
+    instrument_with_content, span_exporter
 ):
     """Test that async_call and wait create separate spans."""
     # Submit task
@@ -281,7 +291,6 @@ def test_video_synthesis_async_call_and_wait_separate_spans(
         for span in spans_after_async
         if span.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME)
         == "generate_content"
-        and span.attributes.get("gen_ai.request.async") is True
     ]
     assert len(async_spans) == 1, "Expected 1 span after async_call"
 

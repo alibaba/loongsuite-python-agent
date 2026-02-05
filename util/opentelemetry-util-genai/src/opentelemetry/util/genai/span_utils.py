@@ -34,6 +34,7 @@ from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIExtended,  # LoongSuite Extension
 )
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+    GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN,  # LoongSuite Extension
     GEN_AI_SPAN_KIND,  # LoongSuite Extension
     GEN_AI_USAGE_TOTAL_TOKENS,  # LoongSuite Extension
     GenAiSpanKindValues,  # LoongSuite Extension
@@ -323,7 +324,7 @@ def _get_llm_request_attributes(
     return attributes
 
 
-def _get_llm_response_attributes(
+def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     invocation: LLMInvocation,
 ) -> dict[str, Any]:
     """Get GenAI response semantic convention attributes."""
@@ -368,6 +369,17 @@ def _get_llm_response_attributes(
         total_tokens += invocation.output_tokens
     if total_tokens > 0:
         attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
+
+    # LoongSuite Extension: Time to first token for streaming responses (in nanoseconds)
+    if (
+        invocation.monotonic_first_token_s is not None
+        and invocation.monotonic_start_s is not None
+    ):
+        ttft_ns = int(
+            (invocation.monotonic_first_token_s - invocation.monotonic_start_s)
+            * 1_000_000_000
+        )
+        attributes[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = ttft_ns
 
     return attributes
 

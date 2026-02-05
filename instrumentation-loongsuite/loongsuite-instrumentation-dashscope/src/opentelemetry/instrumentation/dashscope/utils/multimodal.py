@@ -23,10 +23,12 @@ This module contains utilities for:
 
 from __future__ import annotations
 
+import base64
 import logging
 from typing import Any, List, Optional
 
 from opentelemetry.util.genai.types import (
+    Base64Blob,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -113,7 +115,8 @@ def _update_invocation_from_image_synthesis_response(
                 invocation.response_model_name = response_model
         except (KeyError, AttributeError) as e:
             logger.debug(
-                "Failed to extract response model name from response: %s", e
+                "Failed to extract response model from ImageSynthesis response: %s",
+                e,
             )
 
         # Extract task_id from output and set as response_id
@@ -181,12 +184,13 @@ def _update_invocation_from_image_synthesis_response(
                             )
         except (KeyError, AttributeError) as e:
             logger.debug(
-                "Failed to extract response model name from response: %s", e
+                "Failed to extract image URLs from ImageSynthesis response: %s",
+                e,
             )
     except (KeyError, AttributeError) as e:
         # If any attribute access fails, silently continue with available data
         logger.debug(
-            "Failed to extract response model name from response: %s", e
+            "Failed to update invocation from ImageSynthesis response: %s", e
         )
 
 
@@ -218,7 +222,10 @@ def _update_invocation_from_image_synthesis_async_response(
             if task_id:
                 invocation.response_id = task_id
     except (KeyError, AttributeError) as e:
-        logger.debug("Failed to extract task id from response: %s", e)
+        logger.debug(
+            "Failed to extract task_id from ImageSynthesis async_call response: %s",
+            e,
+        )
 
 
 # ============================================================================
@@ -380,7 +387,10 @@ def _extract_multimodal_output_messages(response: Any) -> List[OutputMessage]:
                 )
 
     except (KeyError, AttributeError) as e:
-        logger.debug("Failed to extract output messages from response: %s", e)
+        logger.debug(
+            "Failed to extract output messages from MultiModalConversation response: %s",
+            e,
+        )
 
     return output_messages
 
@@ -468,7 +478,8 @@ def _update_invocation_from_multimodal_response(
                 invocation.response_model_name = response_model
         except (KeyError, AttributeError) as e:
             logger.debug(
-                "Failed to extract response model name from response: %s", e
+                "Failed to extract response model from MultiModalConversation response: %s",
+                e,
             )
 
         # Extract request ID
@@ -477,11 +488,14 @@ def _update_invocation_from_multimodal_response(
             if request_id:
                 invocation.response_id = request_id
         except (KeyError, AttributeError) as e:
-            logger.debug("Failed to extract request id from response: %s", e)
+            logger.debug(
+                "Failed to extract request_id from MultiModalConversation response: %s",
+                e,
+            )
 
     except (KeyError, AttributeError) as e:
         logger.debug(
-            "Failed to extract response model name or request id from response: %s",
+            "Failed to update invocation from MultiModalConversation response: %s",
             e,
         )
 
@@ -585,9 +599,9 @@ def _update_invocation_from_video_synthesis_response(
                 invocation.response_model_name = response_model
         except (KeyError, AttributeError) as e:
             logger.debug(
-                "Failed to extract response model name from response: %s", e
+                "Failed to extract response model from VideoSynthesis response: %s",
+                e,
             )
-            pass
 
         # Extract task_id from output
         output = getattr(response, "output", None)
@@ -626,7 +640,7 @@ def _update_invocation_from_video_synthesis_response(
 
     except (KeyError, AttributeError) as e:
         logger.debug(
-            "Failed to extract response model name from response: %s", e
+            "Failed to extract video URL from VideoSynthesis response: %s", e
         )
 
 
@@ -654,7 +668,10 @@ def _update_invocation_from_video_synthesis_async_response(
             if task_id:
                 invocation.response_id = task_id
     except (KeyError, AttributeError) as e:
-        logger.debug("Failed to extract task id from response: %s", e)
+        logger.debug(
+            "Failed to extract task_id from VideoSynthesis async_call response: %s",
+            e,
+        )
 
 
 # ============================================================================
@@ -714,18 +731,31 @@ def _update_invocation_from_speech_synthesis_response(
             invocation.response_id = request_id
 
         # For TTS, the output is audio data (bytes)
-        # We don't capture the actual audio, just record that it was generated
         audio_data = getattr(response, "get_audio_data", None)
         if callable(audio_data):
             audio_bytes = audio_data()
             if audio_bytes:
-                # Record audio size as attribute
-                invocation.attributes["gen_ai.response.audio_size"] = len(
-                    audio_bytes
-                )
+                # Encode audio as base64 and store in output_messages
+                audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+                invocation.output_messages = [
+                    OutputMessage(
+                        role="assistant",
+                        parts=[
+                            Base64Blob(
+                                mime_type="audio/wav",
+                                modality="audio",
+                                content=audio_base64,
+                            )
+                        ],
+                        finish_reason="stop",
+                    )
+                ]
 
     except (KeyError, AttributeError) as e:
-        logger.debug("Failed to extract audio data from response: %s", e)
+        logger.debug(
+            "Failed to update invocation from SpeechSynthesizer response: %s",
+            e,
+        )
 
 
 def _create_invocation_from_speech_synthesis_v2(
@@ -754,10 +784,6 @@ def _create_invocation_from_speech_synthesis_v2(
             )
         ]
 
-    # Record voice as attribute
-    if voice:
-        invocation.attributes["gen_ai.request.voice"] = voice
-
     return invocation
 
 
@@ -771,4 +797,18 @@ def _update_invocation_from_speech_synthesis_v2_response(
         audio_data: Audio data bytes
     """
     if audio_data:
-        invocation.attributes["gen_ai.response.audio_size"] = len(audio_data)
+        # Encode audio as base64 and store in output_messages
+        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
+        invocation.output_messages = [
+            OutputMessage(
+                role="assistant",
+                parts=[
+                    Base64Blob(
+                        mime_type="audio/mp3",  # V2 typically returns mp3
+                        modality="audio",
+                        content=audio_base64,
+                    )
+                ],
+                finish_reason="stop",
+            )
+        ]
