@@ -26,7 +26,7 @@ from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
 from .internal._plugin import GoogleAdkObservabilityPlugin
-from .version import __version__
+from .version import __version__ as __version__  # noqa: F401
 
 _logger = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
                 - logger_provider: Custom logger provider
         """
         # Check if google-adk is installed
-        import importlib.util
+        import importlib.util  # noqa: PLC0415
 
         if importlib.util.find_spec("google.adk.runners") is None:
             _logger.warning(
@@ -181,7 +181,9 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
         logger_provider = kwargs.get("logger_provider")
 
         # Create or get the global plugin instance
-        _create_plugin_if_needed(tracer_provider, meter_provider, logger_provider)
+        _create_plugin_if_needed(
+            tracer_provider, meter_provider, logger_provider
+        )
 
         # Wrap the Runner initialization to auto-inject our plugin
         try:
@@ -205,7 +207,7 @@ class GoogleAdkInstrumentor(BaseInstrumentor):
 
         try:
             # Unwrap the Runner initialization
-            from google.adk.runners import Runner
+            from google.adk.runners import Runner  # noqa: PLC0415
 
             unwrap(Runner, "__init__")
 

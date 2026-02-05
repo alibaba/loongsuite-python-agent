@@ -10,26 +10,20 @@ to util-genai based implementation.
 
 import asyncio
 import os
-from typing import List
 
 import pytest
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
-from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from google.adk.sessions.in_memory_session_service import (
+    InMemorySessionService,
+)
 from google.adk.tools import FunctionTool
 from google.genai import types
 
-from opentelemetry.semconv._incubating.attributes import (
-    gen_ai_attributes as GenAIAttributes,
-)
-
 from .conftest import (
     find_spans_by_operation,
-    find_spans_by_name_prefix,
-    print_span_tree,
 )
-
 
 # Test configuration
 DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "test_api_key")
@@ -72,7 +66,7 @@ class TestGoogleAdkSDKIntegration:
     @pytest.fixture(scope="function")
     def agent(self, model):
         """Create LlmAgent instance with tools.
-        
+
         Uses fixed configuration to ensure VCR cassette matching:
         - Fixed agent name: "test_agent"
         - Fixed instruction and description
@@ -93,10 +87,10 @@ class TestGoogleAdkSDKIntegration:
     @pytest.fixture(scope="function")
     def runner(self, agent, session_service, instrument):
         """Create Runner instance after instrumentation is applied.
-        
+
         Note: Runner must be created AFTER instrumentation to ensure
         the plugin is injected into Runner.__init__.
-        
+
         Uses fixed app_name for VCR matching.
         """
         return Runner(
@@ -112,7 +106,7 @@ class TestGoogleAdkSDKIntegration:
     ):
         """
         Test that LLM calls create chat spans.
-        
+
         Expected spans:
         - invoke_agent {app_name} (Runner)
         - chat {model} (LLM)
@@ -126,8 +120,7 @@ class TestGoogleAdkSDKIntegration:
 
         # Create user message
         user_message = types.Content(
-            role="user",
-            parts=[types.Part(text="Hello, how are you?")]
+            role="user", parts=[types.Part(text="Hello, how are you?")]
         )
 
         # Clear spans before test
@@ -166,7 +159,7 @@ class TestGoogleAdkSDKIntegration:
     ):
         """
         Test that Agent invocation creates invoke_agent spans.
-        
+
         Expected spans:
         - invoke_agent {app_name} (Runner)
         - invoke_agent {agent_name} (Agent)
@@ -181,7 +174,7 @@ class TestGoogleAdkSDKIntegration:
         # Create user message with fixed content for VCR matching
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text="Tell me a joke")]  # Fixed message content
+            parts=[types.Part(text="Tell me a joke")],  # Fixed message content
         )
 
         # Clear spans before test
@@ -204,12 +197,19 @@ class TestGoogleAdkSDKIntegration:
 
         # Should have agent spans
         agent_spans = find_spans_by_operation(spans, "invoke_agent")
-        assert len(agent_spans) >= 1, "Should have at least one invoke_agent span"
+        assert len(agent_spans) >= 1, (
+            "Should have at least one invoke_agent span"
+        )
 
         # Verify agent span attributes
         agent_span = agent_spans[0]
-        assert agent_span.attributes.get("gen_ai.operation.name") == "invoke_agent"
-        assert agent_span.attributes.get("gen_ai.provider.name") == "google_adk"
+        assert (
+            agent_span.attributes.get("gen_ai.operation.name")
+            == "invoke_agent"
+        )
+        assert (
+            agent_span.attributes.get("gen_ai.provider.name") == "google_adk"
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.vcr()
@@ -218,7 +218,7 @@ class TestGoogleAdkSDKIntegration:
     ):
         """
         Test that metrics are recorded for operations.
-        
+
         Expected metrics:
         - gen_ai.client.operation.duration
         - gen_ai.client.token.usage (if tokens are available)
@@ -233,7 +233,7 @@ class TestGoogleAdkSDKIntegration:
         # Create user message with fixed content for VCR matching
         user_message = types.Content(
             role="user",
-            parts=[types.Part(text="Hello")]  # Fixed message content
+            parts=[types.Part(text="Hello")],  # Fixed message content
         )
 
         # Clear before test
@@ -253,7 +253,7 @@ class TestGoogleAdkSDKIntegration:
 
         # Get metrics
         metrics = metric_reader.get_metrics_data()
-        
+
         # Should have operation duration metrics
         # Note: Metrics may be recorded asynchronously, so we check if any metrics exist
         assert metrics is not None, "Should have metrics data"
@@ -265,7 +265,7 @@ class TestGoogleAdkSDKIntegration:
     ):
         """
         Test that errors are properly handled and recorded in spans.
-        
+
         This test may need to be adjusted based on how errors are triggered.
         """
         # Create session
@@ -277,8 +277,7 @@ class TestGoogleAdkSDKIntegration:
 
         # Create user message
         user_message = types.Content(
-            role="user",
-            parts=[types.Part(text="Hello")]
+            role="user", parts=[types.Part(text="Hello")]
         )
 
         # Clear spans before test
@@ -293,17 +292,18 @@ class TestGoogleAdkSDKIntegration:
                 new_message=user_message,
             ):
                 events.append(event)
-        except Exception as e:
+        except Exception:
             # If error occurs, verify it's recorded
             await asyncio.sleep(0.5)
             spans = span_exporter.get_finished_spans()
-            
+
             # Check if any span has error status
             error_spans = [
-                span for span in spans
+                span
+                for span in spans
                 if span.status.status_code.value == 2  # ERROR status
             ]
-            
+
             # If errors occurred, they should be recorded
             if error_spans:
                 error_span = error_spans[0]

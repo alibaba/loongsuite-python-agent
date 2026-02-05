@@ -3,8 +3,7 @@
 
 import json
 import os
-import re
-from typing import List, Optional
+from typing import List
 
 import pytest
 import yaml
@@ -28,7 +27,6 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
-from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
 )
@@ -189,11 +187,11 @@ def instrument_with_content_and_events(
 def find_spans_by_operation(spans: List, operation_name: str) -> List:
     """
     Find spans by operation name.
-    
+
     Args:
         spans: List of spans to search
         operation_name: Operation name to search for (e.g., "chat", "invoke_agent")
-        
+
     Returns:
         List of spans matching the operation name
     """
@@ -207,11 +205,11 @@ def find_spans_by_operation(spans: List, operation_name: str) -> List:
 def find_spans_by_name_prefix(spans: List, prefix: str) -> List:
     """
     Find spans by name prefix.
-    
+
     Args:
         spans: List of spans to search
         prefix: Prefix to match against span names
-        
+
     Returns:
         List of spans with names starting with the prefix
     """
@@ -221,37 +219,38 @@ def find_spans_by_name_prefix(spans: List, prefix: str) -> List:
 def print_span_tree(spans: List, indent: int = 0):
     """
     Print span hierarchy as a tree structure.
-    
+
     Args:
         spans: List of spans to print
         indent: Current indentation level
     """
     # Build a map of span_id -> span for quick lookup
     span_map = {span.context.span_id: span for span in spans}
-    
+
     # Find root spans (spans with no parent or parent not in the list)
     root_spans = [
         span
         for span in spans
-        if span.parent is None
-        or span.parent.span_id not in span_map
+        if span.parent is None or span.parent.span_id not in span_map
     ]
-    
+
     def print_span_recursive(span, level=0):
         """Recursively print span and its children"""
         prefix = "  " * level
         operation = span.attributes.get("gen_ai.operation.name", "unknown")
         print(f"{prefix}- {span.name} ({operation})")
-        
+
         # Find children
         children = [
-            s for s in spans
-            if s.parent is not None and s.parent.span_id == span.context.span_id
+            s
+            for s in spans
+            if s.parent is not None
+            and s.parent.span_id == span.context.span_id
         ]
-        
+
         for child in children:
             print_span_recursive(child, level + 1)
-    
+
     for root_span in root_spans:
         print_span_recursive(root_span, indent)
 
@@ -273,20 +272,20 @@ yaml.add_representer(LiteralBlockScalar, literal_block_scalar_presenter)
 
 def process_string_value(string_value):
     """Format JSON or return long string as LiteralBlockScalar"""
-    import gzip
-    
+    import gzip  # noqa: PLC0415
+
     # Handle bytes type - decompress if gzip, then decode
     if isinstance(string_value, bytes):
         try:
             # Check if gzip compressed (magic number 0x1f 0x8b)
-            if string_value[:2] == b'\x1f\x8b':
-                string_value = gzip.decompress(string_value).decode('utf-8')
+            if string_value[:2] == b"\x1f\x8b":
+                string_value = gzip.decompress(string_value).decode("utf-8")
             else:
-                string_value = string_value.decode('utf-8')
+                string_value = string_value.decode("utf-8")
         except Exception:
             # If we can't decode, return as-is (will be handled by YAML)
             return string_value
-    
+
     try:
         json_data = json.loads(string_value)
         return LiteralBlockScalar(json.dumps(json_data, indent=2))
@@ -344,13 +343,13 @@ def fixture_vcr(vcr):
 def normalize_request_headers(request):
     """
     Normalize request headers by removing dynamic headers that change between requests.
-    
+
     This function removes headers like x-stainless-retry-count that may differ
     between recording and playback, causing VCR matching failures.
-    
+
     Args:
         request: VCR request object
-        
+
     Returns:
         Request object with normalized headers
     """
@@ -418,7 +417,9 @@ def vcr_config():
         "before_record_request": normalize_request_headers,
         # Ignore LiteLLM's model price fetching requests to avoid matching issues
         # These requests are made by LiteLLM internally and don't affect our tests
-        "ignore_hosts": ["raw.githubusercontent.com"],  # Ignore LiteLLM model price requests
+        "ignore_hosts": [
+            "raw.githubusercontent.com"
+        ],  # Ignore LiteLLM model price requests
         # Allow recording new interactions when cassette exists
         "record_mode": "new_episodes",
     }

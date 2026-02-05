@@ -247,7 +247,7 @@ async def run_conversation(
 
     except Exception as e:
         logger.error(f"处理消息时出错: {e}")
-        import traceback
+        import traceback  # noqa: PLC0415
 
         logger.error(f"详细错误信息: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"处理消息失败: {str(e)}")

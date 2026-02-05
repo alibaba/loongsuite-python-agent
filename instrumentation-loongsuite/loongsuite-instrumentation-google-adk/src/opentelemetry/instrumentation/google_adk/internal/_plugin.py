@@ -92,13 +92,11 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         According to OTel GenAI conventions, Runner is treated as a top-level agent.
         """
         try:
-            # Extract conversation_id and user_id
+            # Extract conversation_id
             conversation_id = None
-            user_id = None
 
             if invocation_context.session:
                 conversation_id = invocation_context.session.id
-            user_id = getattr(invocation_context, "user_id", None)
 
             # Create invocation object
             invocation = InvokeAgentInvocation(
@@ -269,17 +267,13 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         Start Agent execution - create invoke_agent span.
         """
         try:
-            # Extract conversation_id and user_id
+            # Extract conversation_id
             conversation_id = None
-            user_id = None
 
             if callback_context._invocation_context.session:
                 conversation_id = (
                     callback_context._invocation_context.session.id
                 )
-            user_id = getattr(
-                callback_context._invocation_context, "user_id", None
-            )
 
             # Create invocation object
             invocation = InvokeAgentInvocation(
@@ -304,7 +298,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             agent_key = f"agent_{id(agent)}_{conversation_id}"
             self._active_agent_invocations[agent_key] = invocation
 
-            _logger.debug(f"Started Agent invocation: invoke_agent {agent.name}")
+            _logger.debug(
+                f"Started Agent invocation: invoke_agent {agent.name}"
+            )
 
         except Exception as e:
             _logger.exception(f"Error in before_agent_callback: {e}")
@@ -376,7 +372,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 invocation.attributes["gen_ai.conversation.id"] = (
                     callback_context._invocation_context.session.id
                 )
-            
+
             user_id = getattr(callback_context, "user_id", None)
             if not user_id:
                 user_id = getattr(
@@ -465,7 +461,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 model_name = self._resolve_model_name(
                     llm_response, request_key, llm_invocation
                 )
-                _logger.debug(f"Finished LLM invocation for model {model_name}")
+                _logger.debug(
+                    f"Finished LLM invocation for model {model_name}"
+                )
 
         except Exception as e:
             _logger.exception(f"Error in after_model_callback: {e}")
@@ -718,7 +716,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
 
         try:
             # Extract finish reason
-            finish_reason = getattr(llm_response, "finish_reason", None) or "stop"
+            finish_reason = (
+                getattr(llm_response, "finish_reason", None) or "stop"
+            )
             if hasattr(finish_reason, "value"):
                 finish_reason = finish_reason.value
             elif not isinstance(finish_reason, (str, int, float, bool)):

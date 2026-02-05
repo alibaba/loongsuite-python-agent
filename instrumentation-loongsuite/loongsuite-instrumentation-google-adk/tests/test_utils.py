@@ -226,7 +226,7 @@ class TestModelUtils:
 
     def test_extract_model_name_from_object(self):
         """Test extracting model name from object with model attribute."""
-        from unittest.mock import Mock
+        from unittest.mock import Mock  # noqa: PLC0415
 
         mock_obj = Mock()
         mock_obj.model = "gemini-pro"

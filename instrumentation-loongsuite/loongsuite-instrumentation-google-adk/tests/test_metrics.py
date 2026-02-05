@@ -291,27 +291,27 @@ class TestGoogleAdkMetricsIntegration:
         duration_points = self.get_metric_data_points(
             "gen_ai.client.operation.duration"
         )
-        assert (
-            len(duration_points) >= 1
-        ), "Should have at least 1 duration data point"
+        assert len(duration_points) >= 1, (
+            "Should have at least 1 duration data point"
+        )
 
         # Validate duration attributes
         duration_attrs = dict(duration_points[0].attributes)
-        assert (
-            duration_attrs.get("gen_ai.operation.name") == "chat"
-        ), "Should have gen_ai.operation.name = 'chat'"
-        assert (
-            "gen_ai.provider.name" in duration_attrs
-        ), "Should have gen_ai.provider.name"
-        assert (
-            duration_attrs.get("gen_ai.request.model") == "gemini-pro"
-        ), "Should have gen_ai.request.model"
+        assert duration_attrs.get("gen_ai.operation.name") == "chat", (
+            "Should have gen_ai.operation.name = 'chat'"
+        )
+        assert "gen_ai.provider.name" in duration_attrs, (
+            "Should have gen_ai.provider.name"
+        )
+        assert duration_attrs.get("gen_ai.request.model") == "gemini-pro", (
+            "Should have gen_ai.request.model"
+        )
 
         # Get token usage data points
         token_points = self.get_metric_data_points("gen_ai.client.token.usage")
-        assert (
-            len(token_points) == 2
-        ), "Should have 2 token usage data points (input + output)"
+        assert len(token_points) == 2, (
+            "Should have 2 token usage data points (input + output)"
+        )
 
         # Validate token types
         token_types = {
@@ -444,9 +444,9 @@ class TestGoogleAdkMetricsIntegration:
             validation_result["metrics_found"]
             & self.validator.STANDARD_METRICS
         )
-        assert (
-            len(standard_metrics) == 2
-        ), f"Should have exactly 2 standard metrics, got {len(standard_metrics)}: {standard_metrics}"
+        assert len(standard_metrics) == 2, (
+            f"Should have exactly 2 standard metrics, got {len(standard_metrics)}: {standard_metrics}"
+        )
 
 
 # Run tests
