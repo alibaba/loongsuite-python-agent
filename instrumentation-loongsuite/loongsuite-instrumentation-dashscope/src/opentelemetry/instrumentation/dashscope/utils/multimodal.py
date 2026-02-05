@@ -23,7 +23,6 @@ This module contains utilities for:
 
 from __future__ import annotations
 
-import logging
 import base64
 import logging
 from typing import Any, List, Optional
