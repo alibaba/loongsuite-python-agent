@@ -14,3 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix compatibility with Python 3.8 hashlib usage. ([#102](https://github.com/alibaba/loongsuite-python-agent/pull/102))
 
 - Add `gen_ai.usage.total_tokens` attribute for LLM, Agent, and Embedding operations. ([#108](https://github.com/alibaba/loongsuite-python-agent/pull/108))
+
+- Add `gen_ai.response.time_to_first_token` attribute for LLM operations. ([#113](https://github.com/alibaba/loongsuite-python-agent/pull/113))
