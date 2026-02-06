@@ -824,7 +824,7 @@ def _convert_speech_format_to_mime_type(speech_format: str) -> Optional[str]:
     if speech_format == "wav":
         return "audio/wav"
     elif speech_format == "mp3":
-        return "audio/mp3"
+        return "audio/mpeg"
     elif speech_format == "pcm":
         return "audio/pcm"
     elif speech_format == "opus":
