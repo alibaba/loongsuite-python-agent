@@ -36,12 +36,6 @@ from opentelemetry.util.genai.types import (
 )
 
 from ._extractors import AdkAttributeExtractors
-from ._utils import (
-    extract_content_safely_for_input_output,
-    process_content,
-    safe_json_dumps,
-    should_capture_content,
-)
 
 _logger = logging.getLogger(__name__)
 
@@ -121,7 +115,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
 
             # Check if we already have a stored user message
             runner_key = f"runner_{invocation_context.invocation_id}"
-            if runner_key in self._runner_inputs and should_capture_content():
+            if runner_key in self._runner_inputs:
                 user_message = self._runner_inputs[runner_key]
                 input_messages = self._convert_user_message_to_input_messages(
                     user_message
@@ -159,9 +153,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             runner_key = f"runner_{invocation_context.invocation_id}"
             self._runner_inputs[runner_key] = user_message
 
-            # Update active Runner invocation if it exists and content capture is enabled
+            # Update active Runner invocation if it exists
             invocation = self._active_runner_invocations.get(runner_key)
-            if invocation and should_capture_content():
+            if invocation:
                 input_messages = self._convert_user_message_to_input_messages(
                     user_message
                 )
@@ -185,19 +179,12 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         This callback is triggered for each event generated during execution.
         """
         try:
-            if not should_capture_content():
-                return None
-
             # Extract text content from event if available
             event_content = ""
             if hasattr(event, "content") and event.content:
-                event_content = extract_content_safely_for_input_output(
-                    event.content
-                )
+                event_content = self._extract_text_from_content(event.content)
             elif hasattr(event, "data") and event.data:
-                event_content = extract_content_safely_for_input_output(
-                    event.data
-                )
+                event_content = self._extract_text_from_content(event.data)
 
             if event_content:
                 runner_key = f"runner_{invocation_context.invocation_id}"
@@ -214,11 +201,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                         OutputMessage(
                             role="assistant",
                             parts=[
-                                Text(
-                                    content=process_content(
-                                        self._runner_outputs[runner_key]
-                                    )
-                                )
+                                Text(content=self._runner_outputs[runner_key])
                             ],
                             finish_reason="stop",
                         )
@@ -347,8 +330,8 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 provider=self._extractors._extract_provider_name(model_name),
             )
 
-            # Extract input messages if content capture is enabled
-            if should_capture_content() and llm_request.contents:
+            # Extract input messages
+            if llm_request.contents:
                 input_messages = self._convert_contents_to_input_messages(
                     llm_request.contents
                 )
@@ -446,14 +429,13 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                             finish_reason = str(finish_reason)
                         llm_invocation.finish_reasons = [finish_reason]
 
-                    # Extract output messages if content capture is enabled
-                    if should_capture_content():
-                        output_messages = (
-                            self._convert_llm_response_to_output_messages(
-                                llm_response
-                            )
+                    # Extract output messages
+                    output_messages = (
+                        self._convert_llm_response_to_output_messages(
+                            llm_response
                         )
-                        llm_invocation.output_messages = output_messages
+                    )
+                    llm_invocation.output_messages = output_messages
 
                 # Stop invocation (ends span and records metrics automatically)
                 self._handler.stop_llm(llm_invocation)
@@ -526,9 +508,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             if hasattr(tool_context, "call_id") and tool_context.call_id:
                 invocation.tool_call_id = tool_context.call_id
 
-            # Set tool arguments if content capture is enabled
-            if should_capture_content() and tool_args:
-                invocation.tool_call_arguments = safe_json_dumps(tool_args)
+            # Set tool arguments (content capture is controlled by the util layer)
+            if tool_args:
+                invocation.tool_call_arguments = tool_args
 
             # Start invocation (creates span)
             self._handler.start_execute_tool(invocation)
@@ -558,9 +540,9 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             invocation = self._active_tool_invocations.pop(tool_key, None)
 
             if invocation:
-                # Set tool result if content capture is enabled
-                if should_capture_content() and result:
-                    invocation.tool_call_result = safe_json_dumps(result)
+                # Set tool result (content capture is controlled by the util layer)
+                if result:
+                    invocation.tool_call_result = result
 
                 # Stop invocation (ends span and records metrics automatically)
                 self._handler.stop_execute_tool(invocation)
@@ -598,6 +580,34 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
         return None
 
     # ===== Helper Methods =====
+
+    @staticmethod
+    def _extract_text_from_content(content: Any) -> str:
+        """
+        Extract text from ADK content objects.
+
+        Handles various content types: plain strings, Content objects with
+        parts/text attributes, and other objects (converted via str()).
+
+        Args:
+            content: Content object (could be types.Content, string, etc.)
+
+        Returns:
+            Extracted text string
+        """
+        if not content:
+            return ""
+        if isinstance(content, str):
+            return content
+        if hasattr(content, "parts") and content.parts:
+            text_parts = []
+            for part in content.parts:
+                if hasattr(part, "text") and part.text:
+                    text_parts.append(part.text)
+            return "".join(text_parts)
+        if hasattr(content, "text"):
+            return content.text or ""
+        return str(content)
 
     def _resolve_model_name(
         self,
@@ -665,7 +675,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
             parts = []
             for part in user_message.parts:
                 if hasattr(part, "text"):
-                    parts.append(Text(content=process_content(part.text)))
+                    parts.append(Text(content=part.text))
             if parts:
                 input_messages.append(
                     InputMessage(role=user_message.role, parts=parts)
@@ -690,7 +700,7 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
                 parts = []
                 for part in content.parts:
                     if hasattr(part, "text"):
-                        parts.append(Text(content=process_content(part.text)))
+                        parts.append(Text(content=part.text))
                 if parts:
                     input_messages.append(
                         InputMessage(role=content.role, parts=parts)
@@ -726,30 +736,32 @@ class GoogleAdkObservabilityPlugin(BasePlugin):
 
             # Check if response has text content
             if hasattr(llm_response, "text") and llm_response.text is not None:
-                extracted_text = extract_content_safely_for_input_output(
+                extracted_text = self._extract_text_from_content(
                     llm_response.text
                 )
-                output_messages.append(
-                    OutputMessage(
-                        role="assistant",
-                        parts=[Text(content=process_content(extracted_text))],
-                        finish_reason=finish_reason,
+                if extracted_text:
+                    output_messages.append(
+                        OutputMessage(
+                            role="assistant",
+                            parts=[Text(content=extracted_text)],
+                            finish_reason=finish_reason,
+                        )
                     )
-                )
             elif (
                 hasattr(llm_response, "content")
                 and llm_response.content is not None
             ):
-                extracted_text = extract_content_safely_for_input_output(
+                extracted_text = self._extract_text_from_content(
                     llm_response.content
                 )
-                output_messages.append(
-                    OutputMessage(
-                        role="assistant",
-                        parts=[Text(content=process_content(extracted_text))],
-                        finish_reason=finish_reason,
+                if extracted_text:
+                    output_messages.append(
+                        OutputMessage(
+                            role="assistant",
+                            parts=[Text(content=extracted_text)],
+                            finish_reason=finish_reason,
+                        )
                     )
-                )
         except Exception as e:
             _logger.debug(f"Failed to extract output messages: {e}")
 
