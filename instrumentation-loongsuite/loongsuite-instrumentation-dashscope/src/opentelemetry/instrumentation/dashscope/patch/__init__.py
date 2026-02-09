@@ -31,7 +31,6 @@ from .rerank import wrap_text_rerank_call
 from .speech_synthesis import (
     wrap_speech_synthesis_call,
     wrap_speech_synthesis_v2_call,
-    wrap_speech_synthesis_v2_streaming_call,
 )
 from .video_synthesis import (
     wrap_video_synthesis_async_call,
@@ -60,5 +59,4 @@ __all__ = [
     # SpeechSynthesis
     "wrap_speech_synthesis_call",
     "wrap_speech_synthesis_v2_call",
-    "wrap_speech_synthesis_v2_streaming_call",
 ]

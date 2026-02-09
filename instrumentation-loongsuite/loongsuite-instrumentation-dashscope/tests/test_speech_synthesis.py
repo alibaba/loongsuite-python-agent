@@ -21,6 +21,9 @@ import pytest
 from dashscope.audio.tts import SpeechSynthesizer
 from dashscope.audio.tts_v2 import SpeechSynthesizer as SpeechSynthesizerV2
 
+from opentelemetry.instrumentation.dashscope.utils.multimodal import (
+    _convert_speech_format_to_mime_type,
+)
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
@@ -306,7 +309,10 @@ class StreamingCallback:
         self.events.append("close")
 
 
-@skip_without_api_key
+@pytest.mark.skip(
+    "Streaming call functionality for SpeechSynthesizer V2 is currently not supported "
+    "by the instrumentation test infrastructure (WebSocket-based streaming is disabled)."
+)
 def test_speech_synthesis_v2_streaming_call_basic(
     instrument_with_content, span_exporter
 ):
@@ -366,3 +372,63 @@ def test_speech_synthesis_v2_streaming_call_basic(
     print(
         "✓ SpeechSynthesizer V2 streaming_call (basic) completed successfully"
     )
+
+
+# ============================================================================
+# Unit tests for _convert_speech_format_to_mime_type
+# ============================================================================
+
+
+def test_convert_speech_format_to_mime_type_wav():
+    """Test _convert_speech_format_to_mime_type with wav format."""
+    result = _convert_speech_format_to_mime_type("wav")
+    assert result == "audio/wav"
+
+
+def test_convert_speech_format_to_mime_type_mp3():
+    """Test _convert_speech_format_to_mime_type with mp3 format."""
+    result = _convert_speech_format_to_mime_type("mp3")
+    assert result == "audio/mpeg"
+
+
+def test_convert_speech_format_to_mime_type_pcm():
+    """Test _convert_speech_format_to_mime_type with pcm format."""
+    result = _convert_speech_format_to_mime_type("pcm")
+    assert result == "audio/pcm"
+
+
+def test_convert_speech_format_to_mime_type_opus():
+    """Test _convert_speech_format_to_mime_type with opus format."""
+    result = _convert_speech_format_to_mime_type("opus")
+    assert result == "audio/opus"
+
+
+def test_convert_speech_format_to_mime_type_unknown():
+    """Test _convert_speech_format_to_mime_type with unknown format."""
+    result = _convert_speech_format_to_mime_type("unknown")
+    assert result is None
+
+
+def test_convert_speech_format_to_mime_type_empty_string():
+    """Test _convert_speech_format_to_mime_type with empty string."""
+    result = _convert_speech_format_to_mime_type("")
+    assert result is None
+
+
+def test_convert_speech_format_to_mime_type_case_sensitive():
+    """Test _convert_speech_format_to_mime_type is case sensitive."""
+    # The function should be case sensitive, so uppercase should return None
+    result = _convert_speech_format_to_mime_type("WAV")
+    assert result is None
+
+    result = _convert_speech_format_to_mime_type("MP3")
+    assert result is None
+
+
+def test_convert_speech_format_to_mime_type_other_formats():
+    """Test _convert_speech_format_to_mime_type with other common audio formats."""
+    # Test some other common audio formats that are not supported
+    assert _convert_speech_format_to_mime_type("aac") is None
+    assert _convert_speech_format_to_mime_type("flac") is None
+    assert _convert_speech_format_to_mime_type("ogg") is None
+    assert _convert_speech_format_to_mime_type("m4a") is None
