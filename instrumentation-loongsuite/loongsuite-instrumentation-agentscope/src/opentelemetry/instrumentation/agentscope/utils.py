@@ -479,7 +479,8 @@ def convert_agentscope_messages_to_genai_format(
                 converted_parts.append(
                     ToolCallResponse(
                         id=part.get("id"),
-                        response=part.get("result", ""),
+                        response=part.get("response")
+                        or part.get("result", ""),
                     )
                 )
             elif part_type == "reasoning":

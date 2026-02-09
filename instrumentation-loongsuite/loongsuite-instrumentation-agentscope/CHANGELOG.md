@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Fixed
+- Fix tool call's response not parsed ([#xx](https://github.com/alibaba/loongsuite-python-agent/pull/xx))
 - Fix LLM message content capture in spans ([#91](https://github.com/alibaba/loongsuite-python-agent/pull/91))
 
 ### Breaking Changes
