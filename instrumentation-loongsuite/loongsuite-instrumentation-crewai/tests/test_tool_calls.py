@@ -22,7 +22,9 @@ OpenTelemetry GenAI TOOL spans, capturing tool names, arguments, and results
 in a standardized format.
 """
 
+import ast
 import json
+import operator
 import os
 import sys
 
@@ -32,6 +34,17 @@ from crewai.tools.base_tool import BaseTool
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
+
+try:
+    from opentelemetry.instrumentation._semconv import (
+        _OpenTelemetrySemanticConventionStability,
+        _OpenTelemetryStabilitySignalType,
+        _StabilityMode,
+    )
+except ImportError:
+    _OpenTelemetrySemanticConventionStability = None
+    _OpenTelemetryStabilitySignalType = None
+    _StabilityMode = None
 
 sys.modules["sqlite3"] = pysqlite3
 
@@ -54,12 +67,35 @@ class CalculatorTool(BaseTool):
     description: str = "Perform mathematical calculations"
 
     def _run(self, expression: str) -> str:
-        """Execute the tool."""
+        """Execute the tool safely without using eval()."""
+        # Supported operators
+        operators = {
+            ast.Add: operator.add,
+            ast.Sub: operator.sub,
+            ast.Mult: operator.mul,
+            ast.Div: operator.truediv,
+            ast.Pow: operator.pow,
+            ast.BitXor: operator.xor,
+            ast.USub: operator.neg,
+        }
+
+        def safe_eval(node):
+            if isinstance(node, ast.Num):  # <3.8
+                return node.n
+            elif isinstance(node, ast.Constant):  # >=3.8
+                return node.value
+            elif isinstance(node, ast.BinOp):
+                return operators[type(node.op)](
+                    safe_eval(node.left), safe_eval(node.right)
+                )
+            elif isinstance(node, ast.UnaryOp):
+                return operators[type(node.op)](safe_eval(node.operand))
+            else:
+                raise TypeError(f"Unsupported operation: {type(node)}")
+
         try:
-            # Safely evaluate mathematical expressions by restricting builtins
-            # In a real tool, use a library like numexpr or simpleeval
-            safe_dict = {"__builtins__": None}
-            result = eval(expression, safe_dict, {})
+            node = ast.parse(expression, mode="eval").body
+            result = safe_eval(node)
             return f"Result: {result}"
         except Exception as e:
             return f"Error: {str(e)}"
@@ -86,6 +122,20 @@ class TestToolCalls(TestBase):
         )
 
         os.environ["CREWAI_TRACING_ENABLED"] = "false"
+        # Enable experimental mode and content capture for testing
+        os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"] = "gen_ai"
+        os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = (
+            "span_only"
+        )
+
+        if _OpenTelemetrySemanticConventionStability:
+            try:
+                _OpenTelemetrySemanticConventionStability._OTEL_SEMCONV_STABILITY_SIGNAL_MAPPING[
+                    _OpenTelemetryStabilitySignalType.GEN_AI
+                ] = _StabilityMode.GEN_AI_LATEST_EXPERIMENTAL
+            except (AttributeError, KeyError):
+                pass
+
         self.instrumentor = CrewAIInstrumentor()
         self.instrumentor.instrument(tracer_provider=self.tracer_provider)
 
