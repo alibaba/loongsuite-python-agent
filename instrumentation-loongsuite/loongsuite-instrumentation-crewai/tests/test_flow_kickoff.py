@@ -22,6 +22,26 @@ This test suite validates the _FlowKickoffAsyncWrapper functionality including:
 - Flow name extraction from instance
 """
 
+import os
+
+# Set environment variables for content capture
+os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"] = "gen_ai"
+os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "span_only"
+
+# Forcefully enable experimental mode in OpenTelemetry's internal mapping
+try:
+    from opentelemetry.instrumentation._semconv import (
+        _OpenTelemetrySemanticConventionStability,
+        _OpenTelemetryStabilitySignalType,
+        _StabilityMode,
+    )
+
+    _OpenTelemetrySemanticConventionStability._OTEL_SEMCONV_STABILITY_SIGNAL_MAPPING[
+        _OpenTelemetryStabilitySignalType.GEN_AI
+    ] = _StabilityMode.GEN_AI_LATEST_EXPERIMENTAL
+except (ImportError, AttributeError):
+    pass
+
 import json
 import unittest
 from unittest.mock import AsyncMock, MagicMock
@@ -30,7 +50,7 @@ from opentelemetry.instrumentation.crewai import (
     GenAIHookHelper,
     _FlowKickoffAsyncWrapper,
 )
-from opentelemetry.instrumentation.crewai.utils import _safe_json_dumps
+from opentelemetry.instrumentation.crewai.utils import gen_ai_json_dumps
 from opentelemetry.sdk.trace import TracerProvider
 
 # Use SDK tracer for testing
@@ -352,55 +372,41 @@ class TestFlowKickoffAsyncWrapper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(span.kind, SpanKind.INTERNAL)
 
 
-class TestSafeJsonDumps(unittest.TestCase):
-    """Test _safe_json_dumps utility function."""
+class TestGenAiJsonDumps(unittest.TestCase):
+    """Test gen_ai_json_dumps utility function."""
 
     def test_simple_string(self):
         """Test with simple string input."""
-        result = _safe_json_dumps("hello")
-        self.assertEqual(result, "hello")
+        result = gen_ai_json_dumps("hello")
+        self.assertEqual(result, '"hello"')
 
     def test_simple_int(self):
         """Test with integer input."""
-        result = _safe_json_dumps(42)
+        result = gen_ai_json_dumps(42)
         self.assertEqual(result, "42")
 
     def test_simple_float(self):
         """Test with float input."""
-        result = _safe_json_dumps(3.14)
+        result = gen_ai_json_dumps(3.14)
         self.assertEqual(result, "3.14")
 
     def test_simple_bool(self):
         """Test with boolean input."""
-        result = _safe_json_dumps(True)
-        self.assertEqual(result, "True")
-
-    def test_none_returns_default(self):
-        """Test that None returns default value."""
-        result = _safe_json_dumps(None, default="default_value")
-        self.assertEqual(result, "default_value")
+        result = gen_ai_json_dumps(True)
+        self.assertEqual(result, "true")
 
     def test_dict_serialization(self):
         """Test dictionary serialization."""
         data = {"key": "value", "number": 123}
-        result = _safe_json_dumps(data)
-        self.assertIn("key", result)
-        self.assertIn("value", result)
-        self.assertIn("123", result)
+        result = gen_ai_json_dumps(data)
+        self.assertIn('"key":"value"', result)
+        self.assertIn('"number":123', result)
 
     def test_list_serialization(self):
         """Test list serialization."""
         data = [1, 2, 3, "four"]
-        result = _safe_json_dumps(data)
-        self.assertIn("1", result)
-        self.assertIn("four", result)
-
-    def test_truncation(self):
-        """Test that long strings are truncated."""
-        long_string = "a" * 20000
-        result = _safe_json_dumps(long_string, max_size=100)
-        self.assertLessEqual(len(result), 120)  # Allow for truncation suffix
-        self.assertIn("[truncated]", result)
+        result = gen_ai_json_dumps(data)
+        self.assertEqual(result, '[1,2,3,"four"]')
 
     def test_non_serializable_object(self):
         """Test handling of non-serializable objects."""
@@ -409,8 +415,11 @@ class TestSafeJsonDumps(unittest.TestCase):
             def __str__(self):
                 return "CustomObject instance"
 
-        result = _safe_json_dumps(CustomObject())
-        self.assertIn("CustomObject", result)
+        # gen_ai_json_dumps uses standard json or partial json.dump
+        # which might raise TypeError if not supported.
+        # But our partial uses _GenAiJsonEncoder.
+        with self.assertRaises(TypeError):
+            gen_ai_json_dumps(CustomObject())
 
 
 if __name__ == "__main__":

@@ -32,3 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   
 - `loongsuite-instrumentation-mem0`: add support for mem0
   ([#67](https://github.com/alibaba/loongsuite-python-agent/pull/67))
+
+- `loongsuite-instrumentation-crewai`: add support for crewai
+  ([#87](https://github.com/alibaba/loongsuite-python-agent/pull/87))
