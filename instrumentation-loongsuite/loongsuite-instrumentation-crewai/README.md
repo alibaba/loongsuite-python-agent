@@ -42,7 +42,7 @@ result = crew.kickoff()
 
 ## Supported Versions
 
-- CrewAI >= 0.70.0
+- CrewAI >= 0.80.0
 
 ## References
 

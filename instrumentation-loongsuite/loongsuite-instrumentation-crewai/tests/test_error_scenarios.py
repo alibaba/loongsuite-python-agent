@@ -34,6 +34,17 @@ from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 from opentelemetry.test.test_base import TestBase
 from opentelemetry.trace import StatusCode
 
+try:
+    from opentelemetry.instrumentation._semconv import (
+        _OpenTelemetrySemanticConventionStability,
+        _OpenTelemetryStabilitySignalType,
+        _StabilityMode,
+    )
+except ImportError:
+    _OpenTelemetrySemanticConventionStability = None
+    _OpenTelemetryStabilitySignalType = None
+    _StabilityMode = None
+
 sys.modules["sqlite3"] = pysqlite3
 
 
@@ -59,6 +70,20 @@ class TestErrorScenarios(TestBase):
 
         # Disable CrewAI's built-in tracing to avoid interference
         os.environ["CREWAI_TRACING_ENABLED"] = "false"
+
+        # Enable experimental mode and content capture for testing
+        os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"] = "gen_ai"
+        os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = (
+            "span_only"
+        )
+
+        if _OpenTelemetrySemanticConventionStability:
+            try:
+                _OpenTelemetrySemanticConventionStability._OTEL_SEMCONV_STABILITY_SIGNAL_MAPPING[
+                    _OpenTelemetryStabilitySignalType.GEN_AI
+                ] = _StabilityMode.GEN_AI_LATEST_EXPERIMENTAL
+            except (AttributeError, KeyError):
+                pass
 
         self.instrumentor = CrewAIInstrumentor()
         self.instrumentor.instrument(tracer_provider=self.tracer_provider)
