@@ -17,6 +17,7 @@
 import os
 import queue
 import threading
+import time
 import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
@@ -140,13 +141,6 @@ def _assert_span_attributes(
 
 class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-many-public-methods
     def setUp(self):
-        # [Aliyun Python Agent] Reset ArmsCommonServiceMetrics singleton to avoid test interference
-        from aliyun.sdk.extension.arms.semconv.metrics import (
-            MetricsSingletonMeta,  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
-        )
-
-        MetricsSingletonMeta.reset()
-
         self.span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
         tracer_provider.add_span_processor(
@@ -1299,14 +1293,20 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv1 = self._create_invocation_with_multimodal()
         inv1.context_token = None
         inv1.span = MagicMock()
-        self.assertFalse(handler.process_multimodal_stop(inv1))
-        self.assertFalse(handler.process_multimodal_fail(inv1, error))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv1, method="stop_llm")
+        )
+        self.assertFalse(
+            handler.process_multimodal_fail(inv1, error, method="fail_llm")
+        )
 
         # span is None
         inv2 = self._create_invocation_with_multimodal()
         inv2.context_token = MagicMock()
         inv2.span = None
-        self.assertFalse(handler.process_multimodal_stop(inv2))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv2, method="stop_llm")
+        )
 
         # No multimodal data
         inv3 = LLMInvocation(request_model="gpt-4")
@@ -1315,12 +1315,16 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv3.input_messages = [
             InputMessage(role="user", parts=[Text(content="Hi")])
         ]
-        self.assertFalse(handler.process_multimodal_stop(inv3))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv3, method="stop_llm")
+        )
 
         # multimodal_enabled=False
         handler_disabled = self._create_mock_handler(enabled=False)
         inv4 = self._create_invocation_with_multimodal(with_context=True)
-        self.assertFalse(handler_disabled.process_multimodal_stop(inv4))
+        self.assertFalse(
+            handler_disabled.process_multimodal_stop(inv4, method="stop_llm")
+        )
 
     @patch.dict(
         os.environ,
@@ -1335,22 +1339,30 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         with patch.object(MultimodalProcessingMixin, "_ensure_async_worker"):
             # Queue is None
             MultimodalProcessingMixin._async_queue = None
-            with patch.object(handler, "_fallback_end_span") as mock_end:
-                self.assertTrue(handler.process_multimodal_stop(inv))
+            with patch.object(handler, "_fallback_stop") as mock_end:
+                self.assertTrue(
+                    handler.process_multimodal_stop(inv, method="stop_llm")
+                )
                 mock_end.assert_called_once()
 
             # Reset invocation context token
             inv.context_token = MagicMock()
-            with patch.object(handler, "_fallback_fail_span") as mock_fail:
-                self.assertTrue(handler.process_multimodal_fail(inv, error))
+            with patch.object(handler, "_fallback_fail") as mock_fail:
+                self.assertTrue(
+                    handler.process_multimodal_fail(
+                        inv, error, method="fail_llm"
+                    )
+                )
                 mock_fail.assert_called_once()
 
             # Queue is full
             MultimodalProcessingMixin._async_queue = queue.Queue(maxsize=1)
             MultimodalProcessingMixin._async_queue.put("dummy")
             inv.context_token = MagicMock()
-            with patch.object(handler, "_fallback_end_span") as mock_end2:
-                self.assertTrue(handler.process_multimodal_stop(inv))
+            with patch.object(handler, "_fallback_stop") as mock_end2:
+                self.assertTrue(
+                    handler.process_multimodal_stop(inv, method="stop_llm")
+                )
                 mock_end2.assert_called_once()
 
     @patch.dict(
@@ -1367,15 +1379,19 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
 
             # stop
             inv1 = self._create_invocation_with_multimodal(with_context=True)
-            self.assertTrue(handler.process_multimodal_stop(inv1))
+            self.assertTrue(
+                handler.process_multimodal_stop(inv1, method="stop_llm")
+            )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
-            self.assertEqual(task.method, "stop")
+            self.assertEqual(task.method, "stop_llm")
 
             # fail
             inv2 = self._create_invocation_with_multimodal(with_context=True)
-            self.assertTrue(handler.process_multimodal_fail(inv2, error))
+            self.assertTrue(
+                handler.process_multimodal_fail(inv2, error, method="fail_llm")
+            )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
-            self.assertEqual(task.method, "fail")
+            self.assertEqual(task.method, "fail_llm")
             self.assertEqual(task.error, error)
 
     # ==================== Fallback / Async Methods Tests ====================
@@ -1387,19 +1403,19 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv.span = None
 
         # Should not raise
-        handler._fallback_end_span(inv)
-        handler._fallback_fail_span(
-            inv, Error(message="err", type=RuntimeError)
+        handler._fallback_stop(inv, "stop_llm")
+        handler._fallback_fail(
+            inv, Error(message="err", type=RuntimeError), "fail_llm"
         )
         handler._async_stop_llm(
             _MultimodalAsyncTask(
-                invocation=inv, method="stop", handler=handler
+                invocation=inv, method="stop_llm", handler=handler
             )
         )
         handler._async_fail_llm(
             _MultimodalAsyncTask(
                 invocation=inv,
-                method="fail",
+                method="fail_llm",
                 error=Error(message="err", type=RuntimeError),
                 handler=handler,
             )
@@ -1410,7 +1426,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv2.span = MagicMock()
         handler._async_fail_llm(
             _MultimodalAsyncTask(
-                invocation=inv2, method="fail", error=None, handler=handler
+                invocation=inv2, method="fail_llm", error=None, handler=handler
             )
         )
 
@@ -1431,12 +1447,12 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         ) as m2, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_llm_event"
         ):  # fmt: skip
-            handler._fallback_end_span(inv)
+            handler._fallback_stop(inv, "stop_llm")
             m1.assert_called_with(mock_span, inv)
             mock_span.end.assert_called_once()
 
             mock_span.reset_mock()
-            handler._fallback_fail_span(inv, error)
+            handler._fallback_fail(inv, error, "fail_llm")
             m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
 
@@ -1469,7 +1485,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         ):  # fmt: skip
             handler._async_stop_llm(
                 _MultimodalAsyncTask(
-                    invocation=inv, method="stop", handler=handler
+                    invocation=inv, method="stop_llm", handler=handler
                 )
             )
             m1.assert_called_once()
@@ -1480,10 +1496,195 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
             error = Error(message="err", type=ValueError)
             handler._async_fail_llm(
                 _MultimodalAsyncTask(
-                    invocation=inv, method="fail", error=error, handler=handler
+                    invocation=inv,
+                    method="fail_llm",
+                    error=error,
+                    handler=handler,
                 )
             )
             m2.assert_called_once()
+            mock_span.end.assert_called_once()
+
+    # ==================== Agent Async / Fallback / Dispatch Tests ====================
+
+    @staticmethod
+    def _create_agent_invocation_with_multimodal(with_context=False):
+        """Helper to create InvokeAgentInvocation with multimodal data."""
+        invocation = InvokeAgentInvocation(provider="test")
+        invocation.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Uri(
+                        mime_type="image/png", modality="image", uri="http://x"
+                    )
+                ],
+            )
+        ]
+        if with_context:
+            invocation.context_token = MagicMock()
+            invocation.span = MagicMock()
+        return invocation
+
+    @staticmethod
+    def _create_mock_handler_with_agent_metrics(enabled=True):
+        """MockHandler that also has _record_extended_metrics."""
+        mixin = MultimodalProcessingMixin
+
+        class MockHandler(mixin):
+            def __init__(self):
+                self._multimodal_enabled = enabled
+                self._logger = MagicMock()
+
+            def _get_uploader_and_pre_uploader(self):
+                return MagicMock(), MagicMock()
+
+            def _record_llm_metrics(self, *args, **kwargs):
+                pass
+
+            def _record_extended_metrics(self, *args, **kwargs):
+                pass
+
+        return MockHandler()
+
+    def test_dispatch_task_routes_agent_methods(self):
+        """Test _dispatch_task dispatches stop_agent/fail_agent correctly."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        inv = self._create_agent_invocation_with_multimodal()
+        inv.span = mock_span
+        error = Error(message="err", type=RuntimeError)
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m_attr, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            # stop_agent
+            handler._dispatch_task(
+                _MultimodalAsyncTask(
+                    invocation=inv, method="stop_agent", handler=handler
+                )
+            )
+            m_attr.assert_called_once()
+            mock_span.end.assert_called_once()
+
+            mock_span.reset_mock()
+            m_attr.reset_mock()
+
+            # fail_agent
+            handler._dispatch_task(
+                _MultimodalAsyncTask(
+                    invocation=inv,
+                    method="fail_agent",
+                    error=error,
+                    handler=handler,
+                )
+            )
+            m_attr.assert_called_once()
+            mock_span.end.assert_called_once()
+
+    def test_async_stop_and_fail_agent_process_correctly(self):
+        """Test _async_stop/fail_invoke_agent processes multimodal and end span."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        inv = self._create_agent_invocation_with_multimodal()
+        inv.span = mock_span
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._async_stop_invoke_agent(
+                _MultimodalAsyncTask(
+                    invocation=inv, method="stop_agent", handler=handler
+                )
+            )
+            m1.assert_called_once()
+            mock_span.end.assert_called_once()
+            mock_span.set_attribute.assert_called()  # multimodal metadata
+
+            mock_span.reset_mock()
+            error = Error(message="err", type=ValueError)
+            handler._async_fail_invoke_agent(
+                _MultimodalAsyncTask(
+                    invocation=inv,
+                    method="fail_agent",
+                    error=error,
+                    handler=handler,
+                )
+            )
+            m2.assert_called_with(mock_span, error)
+            mock_span.end.assert_called_once()
+
+    def test_agent_async_methods_handle_span_none(self):
+        """Test agent async methods return early when span is None."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = None
+
+        # Should not raise
+        handler._async_stop_invoke_agent(
+            _MultimodalAsyncTask(
+                invocation=inv, method="stop_agent", handler=handler
+            )
+        )
+        handler._async_fail_invoke_agent(
+            _MultimodalAsyncTask(
+                invocation=inv,
+                method="fail_agent",
+                error=Error(message="err", type=RuntimeError),
+                handler=handler,
+            )
+        )
+
+    def test_fallback_stop_agent_applies_attributes(self):
+        """Test _fallback_stop with stop_agent method applies agent attributes."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = mock_span
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._fallback_stop(inv, "stop_agent")
+            m1.assert_called_with(mock_span, inv)
+            mock_span.end.assert_called_once()
+
+    def test_fallback_fail_agent_applies_attributes(self):
+        """Test _fallback_fail with fail_agent method applies agent attributes."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = mock_span
+        error = Error(message="err", type=ValueError)
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._fallback_fail(inv, error, "fail_agent")
+            m1.assert_called_with(mock_span, inv)
+            m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
 
     # ==================== Worker & Lifecycle Tests ====================
@@ -1541,7 +1742,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv1.span = MagicMock()
         mixin._async_queue.put(
             _MultimodalAsyncTask(
-                invocation=inv1, method="stop", handler=handler1
+                invocation=inv1, method="stop_llm", handler=handler1
             )
         )
         mixin._async_queue.put(None)
@@ -1554,7 +1755,9 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         # Test 2: Skips task with None handler
         mixin._async_queue = queue.Queue()
         mixin._async_queue.put(
-            _MultimodalAsyncTask(invocation=inv1, method="stop", handler=None)
+            _MultimodalAsyncTask(
+                invocation=inv1, method="stop_llm", handler=None
+            )
         )
         mixin._async_queue.put(None)
         worker_thread = threading.Thread(target=mixin._async_worker_loop)
@@ -1575,7 +1778,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         mixin._async_queue = queue.Queue()
         mixin._async_queue.put(
             _MultimodalAsyncTask(
-                invocation=inv2, method="stop", handler=Handler2()
+                invocation=inv2, method="stop_llm", handler=Handler2()
             )
         )
         mixin._async_queue.put(None)
@@ -1623,9 +1826,6 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
 
     def test_shutdown_waits_for_slow_task(self):
         """测试 shutdown 等待慢任务完成（poison pill 模式）"""
-        import threading
-        import time
-
         # 重置状态
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
@@ -1646,10 +1846,10 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
                 time.sleep(0.15)
                 task_completed.set()
 
-            mock_handler._async_stop_llm = slow_stop
+            mock_handler._dispatch_task = slow_stop
 
             mock_task = _MultimodalAsyncTask(
-                invocation=MagicMock(), method="stop", handler=mock_handler
+                invocation=MagicMock(), method="stop_llm", handler=mock_handler
             )
             MultimodalProcessingMixin._async_queue.put(mock_task)
 
@@ -1662,7 +1862,9 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=5.0)
 
             # 验证任务完成了
-            self.assertTrue(task_completed.is_set(), "Task should have completed")
+            self.assertTrue(
+                task_completed.is_set(), "Task should have completed"
+            )
             # 幂等性：再次调用不报错
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=1.0)
         finally:
@@ -1671,9 +1873,6 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
 
     def test_shutdown_timeout_exits(self):
         """测试超时后 shutdown 直接退出"""
-        import threading
-        import time
-
         # 重置状态
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
@@ -1690,10 +1889,10 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
                 task_started.set()
                 block_event.wait(timeout=5.0)
 
-            mock_handler._async_stop_llm = blocking_stop
+            mock_handler._dispatch_task = blocking_stop
 
             mock_task = _MultimodalAsyncTask(
-                invocation=MagicMock(), method="stop", handler=mock_handler
+                invocation=MagicMock(), method="stop_llm", handler=mock_handler
             )
             MultimodalProcessingMixin._async_queue.put(mock_task)
 
@@ -1705,7 +1904,9 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             # shutdown timeout=0.3s，任务阻塞 5s
             start = time.time()
             timeout = 0.3
-            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=timeout)
+            MultimodalProcessingMixin.shutdown_multimodal_worker(
+                timeout=timeout
+            )
             elapsed = time.time() - start
 
             # 验证超时后返回（不可能短于 timeout）

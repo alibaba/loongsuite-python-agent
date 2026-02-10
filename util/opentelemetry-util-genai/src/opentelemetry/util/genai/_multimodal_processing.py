@@ -46,9 +46,12 @@ from typing import (
     Literal,
     Optional,
     Tuple,
+    Union,
+    cast,
 )
 
 from opentelemetry import context as otel_context
+from opentelemetry._logs import Logger as OtelLogger
 from opentelemetry.trace import Span
 from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIEx,
@@ -56,6 +59,11 @@ from opentelemetry.util.genai._extended_semconv import (
 from opentelemetry.util.genai.extended_environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
 )
+from opentelemetry.util.genai.extended_span_utils import (
+    _apply_invoke_agent_finish_attributes,
+    _maybe_emit_invoke_agent_event,
+)
+from opentelemetry.util.genai.extended_types import InvokeAgentInvocation
 from opentelemetry.util.genai.span_utils import (
     _apply_error_attributes,
     _apply_llm_finish_attributes,
@@ -70,9 +78,7 @@ from opentelemetry.util.genai.types import (
     OutputMessage,
     Uri,
 )
-from opentelemetry.util.genai.utils import (
-    gen_ai_json_dumps,
-)
+from opentelemetry.util.genai.utils import gen_ai_json_dumps
 
 if TYPE_CHECKING:
     from opentelemetry.util.genai._multimodal_upload._base import (
@@ -85,13 +91,19 @@ _logger = logging.getLogger(__name__)
 # Async queue maximum length
 _MAX_ASYNC_QUEUE_SIZE = 1000
 
+# Invocation types that carry multimodal messages
+_MultimodalInvocation = Union[LLMInvocation, InvokeAgentInvocation]
+
+# Task method literals
+_TaskMethod = Literal["stop_llm", "fail_llm", "stop_agent", "fail_agent"]
+
 
 @dataclass
 class _MultimodalAsyncTask:
     """Async multimodal processing task"""
 
-    invocation: LLMInvocation
-    method: Literal["stop", "fail"]
+    invocation: _MultimodalInvocation
+    method: _TaskMethod
     error: Optional[Error] = None
     handler: Optional[Any] = None  # TelemetryHandler instance
 
@@ -134,14 +146,19 @@ class MultimodalProcessingMixin:
 
     # ==================== Public Methods ====================
 
-    def process_multimodal_stop(self, invocation: LLMInvocation) -> bool:
-        """Process multimodal stop_llm request
+    def process_multimodal_stop(
+        self,
+        invocation: _MultimodalInvocation,
+        method: _TaskMethod,
+    ) -> bool:
+        """Process multimodal stop request
 
         Args:
-            invocation: LLM invocation object
+            invocation: LLM or Agent invocation object
+            method: Task method for dispatch ("stop_llm" or "stop_agent")
 
         Returns:
-            bool: Whether handled (True means async processed, caller doesn't need to continue; False means no multimodal, need sync path)
+            bool: Whether handled (True = async processed, False = no multimodal)
         """
         if invocation.context_token is None or invocation.span is None:
             return False
@@ -149,7 +166,7 @@ class MultimodalProcessingMixin:
         if not self._should_async_process(invocation):
             return False
 
-        # 1. First detach context (let user code continue execution)
+        # 1. Detach context immediately (let user code continue)
         otel_context.detach(invocation.context_token)
 
         # 2. Ensure worker is started
@@ -158,31 +175,36 @@ class MultimodalProcessingMixin:
         # 3. Try to put into queue (non-blocking)
         async_queue = self.__class__._async_queue
         if async_queue is None:
-            self._fallback_end_span(invocation)
+            self._fallback_stop(invocation, method)
             return True
         try:
             async_queue.put_nowait(
                 _MultimodalAsyncTask(
-                    invocation=invocation, method="stop", handler=self
+                    invocation=invocation,
+                    method=method,
+                    handler=self,
                 )
             )
         except queue.Full:
-            # Queue full: sync degradation, skip multimodal processing
             _logger.warning(
                 "Multimodal queue full, skipping multimodal processing"
             )
-            self._fallback_end_span(invocation)
+            self._fallback_stop(invocation, method)
 
         return True
 
     def process_multimodal_fail(
-        self, invocation: LLMInvocation, error: Error
+        self,
+        invocation: _MultimodalInvocation,
+        error: Error,
+        method: _TaskMethod,
     ) -> bool:
-        """Process multimodal fail_llm request
+        """Process multimodal fail request
 
         Args:
-            invocation: LLM invocation object
+            invocation: LLM or Agent invocation object
             error: Error information
+            method: Task method for dispatch ("fail_llm" or "fail_agent")
 
         Returns:
             bool: Whether handled
@@ -198,13 +220,13 @@ class MultimodalProcessingMixin:
 
         async_queue = self.__class__._async_queue
         if async_queue is None:
-            self._fallback_fail_span(invocation, error)
+            self._fallback_fail(invocation, error, method)
             return True
         try:
             async_queue.put_nowait(
                 _MultimodalAsyncTask(
                     invocation=invocation,
-                    method="fail",
+                    method=method,
                     error=error,
                     handler=self,
                 )
@@ -213,7 +235,7 @@ class MultimodalProcessingMixin:
             _logger.warning(
                 "Multimodal queue full, skipping multimodal processing"
             )
-            self._fallback_fail_span(invocation, error)
+            self._fallback_fail(invocation, error, method)
 
         return True
 
@@ -269,7 +291,7 @@ class MultimodalProcessingMixin:
 
     # ==================== Internal Methods ====================
 
-    def _should_async_process(self, invocation: LLMInvocation) -> bool:
+    def _should_async_process(self, invocation: _MultimodalInvocation) -> bool:
         """Determine whether async processing is needed
 
         Condition: Has multimodal data and multimodal upload switch is not 'none'
@@ -280,7 +302,7 @@ class MultimodalProcessingMixin:
         return MultimodalProcessingMixin._quick_has_multimodal(invocation)
 
     @staticmethod
-    def _quick_has_multimodal(invocation: LLMInvocation) -> bool:
+    def _quick_has_multimodal(invocation: _MultimodalInvocation) -> bool:
         """Quick detection of multimodal data (O(n), no network)"""
 
         def _check_messages(
@@ -349,10 +371,7 @@ class MultimodalProcessingMixin:
                 continue
 
             try:
-                if task.method == "stop":
-                    handler._async_stop_llm(task)
-                elif task.method == "fail":
-                    handler._async_fail_llm(task)
+                handler._dispatch_task(task)
             except (
                 AttributeError,
                 TypeError,
@@ -389,6 +408,19 @@ class MultimodalProcessingMixin:
                 # Use local variable to avoid race condition
                 async_queue.task_done()
 
+    def _dispatch_task(self, task: _MultimodalAsyncTask) -> None:
+        """Dispatch task to the appropriate handler method based on task.method"""
+        if task.method == "stop_llm":
+            self._async_stop_llm(task)
+        elif task.method == "fail_llm":
+            self._async_fail_llm(task)
+        elif task.method == "stop_agent":
+            self._async_stop_invoke_agent(task)
+        elif task.method == "fail_agent":
+            self._async_fail_invoke_agent(task)
+
+    # ==================== LLM Async Methods ====================
+
     def _async_stop_llm(self, task: _MultimodalAsyncTask) -> None:
         """Async stop LLM invocation (executed in worker thread)"""
         invocation = task.invocation
@@ -399,26 +431,12 @@ class MultimodalProcessingMixin:
         # 1. Get uploader and process multimodal data
         uploader, pre_uploader = self._get_uploader_and_pre_uploader()
         if uploader is not None and pre_uploader is not None:
-            self._separate_and_upload(span, invocation, uploader, pre_uploader)
-            # Extract and set multimodal metadata
-            input_metadata, output_metadata = (
-                MultimodalProcessingMixin._extract_multimodal_metadata(
-                    invocation.input_messages, invocation.output_messages
-                )
+            self._upload_and_set_metadata(
+                span, invocation, uploader, pre_uploader
             )
-            if input_metadata:
-                span.set_attribute(
-                    GenAIEx.GEN_AI_INPUT_MULTIMODAL_METADATA,
-                    gen_ai_json_dumps(input_metadata),
-                )
-            if output_metadata:
-                span.set_attribute(
-                    GenAIEx.GEN_AI_OUTPUT_MULTIMODAL_METADATA,
-                    gen_ai_json_dumps(output_metadata),
-                )
 
         # 2. Execute original attribute setting
-        _apply_llm_finish_attributes(span, invocation)
+        _apply_llm_finish_attributes(span, invocation)  # type: ignore[arg-type]
 
         # 3. Record metrics (using TelemetryHandler's method)
         self._record_llm_metrics(invocation, span)  # type: ignore[attr-defined]
@@ -443,25 +461,12 @@ class MultimodalProcessingMixin:
         # 1. Get uploader and process multimodal data
         uploader, pre_uploader = self._get_uploader_and_pre_uploader()
         if uploader is not None and pre_uploader is not None:
-            self._separate_and_upload(span, invocation, uploader, pre_uploader)
-            input_metadata, output_metadata = (
-                MultimodalProcessingMixin._extract_multimodal_metadata(
-                    invocation.input_messages, invocation.output_messages
-                )
+            self._upload_and_set_metadata(
+                span, invocation, uploader, pre_uploader
             )
-            if input_metadata:
-                span.set_attribute(
-                    GenAIEx.GEN_AI_INPUT_MULTIMODAL_METADATA,
-                    gen_ai_json_dumps(input_metadata),
-                )
-            if output_metadata:
-                span.set_attribute(
-                    GenAIEx.GEN_AI_OUTPUT_MULTIMODAL_METADATA,
-                    gen_ai_json_dumps(output_metadata),
-                )
 
         # 2. Set attributes
-        _apply_llm_finish_attributes(span, invocation)
+        _apply_llm_finish_attributes(span, invocation)  # type: ignore[arg-type]
         _apply_error_attributes(span, error)
 
         # 3. Record metrics
@@ -477,38 +482,170 @@ class MultimodalProcessingMixin:
         )
         span.end(end_time=end_time_ns)
 
-    def _fallback_end_span(self, invocation: LLMInvocation) -> None:
-        """Sync degradation: skip multimodal, follow original logic to end span"""
+    # ==================== Agent Async Methods ====================
+
+    def _async_stop_invoke_agent(self, task: _MultimodalAsyncTask) -> None:
+        """Async stop Agent invocation (executed in worker thread)"""
+        invocation = task.invocation
+        if not isinstance(invocation, InvokeAgentInvocation):
+            return
         span = invocation.span
         if span is None:
             return
-        _apply_llm_finish_attributes(span, invocation)
-        self._record_llm_metrics(invocation, span)  # type: ignore[attr-defined]
-        _maybe_emit_llm_event(self._logger, span, invocation)  # type: ignore[attr-defined]
+
+        # 1. Get uploader and process multimodal data
+        uploader, pre_uploader = self._get_uploader_and_pre_uploader()
+        if uploader is not None and pre_uploader is not None:
+            self._upload_and_set_metadata(
+                span, invocation, uploader, pre_uploader
+            )
+
+        # 2. Execute attribute setting
+        _apply_invoke_agent_finish_attributes(span, invocation)
+
+        # 3. Record metrics
+        cast(Any, self)._record_extended_metrics(span, invocation)
+
+        # 4. Send event
+        event_logger = cast(
+            Optional[OtelLogger], getattr(self, "_logger", None)
+        )
+        _maybe_emit_invoke_agent_event(
+            event_logger,
+            span,
+            invocation,
+        )
+
+        # 5. Calculate correct end time and end span
         end_time_ns = MultimodalProcessingMixin._compute_end_time_ns(
             invocation
         )
         span.end(end_time=end_time_ns)
 
-    def _fallback_fail_span(
-        self, invocation: LLMInvocation, error: Error
-    ) -> None:
-        """Sync degradation: skip multimodal, follow original logic to end span (with error)"""
-        span = invocation.span
-        if span is None:
+    def _async_fail_invoke_agent(self, task: _MultimodalAsyncTask) -> None:
+        """Async fail Agent invocation (executed in worker thread)"""
+        invocation = task.invocation
+        if not isinstance(invocation, InvokeAgentInvocation):
             return
-        _apply_llm_finish_attributes(span, invocation)
+        error = task.error
+        span = invocation.span
+        if span is None or error is None:
+            return
+
+        # 1. Get uploader and process multimodal data
+        uploader, pre_uploader = self._get_uploader_and_pre_uploader()
+        if uploader is not None and pre_uploader is not None:
+            self._upload_and_set_metadata(
+                span, invocation, uploader, pre_uploader
+            )
+
+        # 2. Set attributes
+        _apply_invoke_agent_finish_attributes(span, invocation)
         _apply_error_attributes(span, error)
+
+        # 3. Record metrics
         error_type = getattr(error.type, "__qualname__", None)
-        self._record_llm_metrics(invocation, span, error_type=error_type)  # type: ignore[attr-defined]
-        _maybe_emit_llm_event(self._logger, span, invocation, error)  # type: ignore[attr-defined]
+        cast(Any, self)._record_extended_metrics(
+            span, invocation, error_type=error_type
+        )
+
+        # 4. Send event
+        event_logger = cast(
+            Optional[OtelLogger], getattr(self, "_logger", None)
+        )
+        _maybe_emit_invoke_agent_event(
+            event_logger,
+            span,
+            invocation,
+            error,
+        )
+
+        # 5. End span
         end_time_ns = MultimodalProcessingMixin._compute_end_time_ns(
             invocation
         )
         span.end(end_time=end_time_ns)
+
+    # ==================== Fallback Methods ====================
+
+    def _fallback_stop(
+        self,
+        invocation: _MultimodalInvocation,
+        method: _TaskMethod,
+    ) -> None:
+        """Sync degradation for stop: skip multimodal, end span with attributes"""
+        span = invocation.span
+        if span is None:
+            return
+        if method == "stop_llm":
+            if not isinstance(invocation, LLMInvocation):
+                return
+            _apply_llm_finish_attributes(span, invocation)
+            cast(Any, self)._record_llm_metrics(invocation, span)
+            event_logger = cast(
+                Optional[OtelLogger], getattr(self, "_logger", None)
+            )
+            _maybe_emit_llm_event(event_logger, span, invocation)
+        elif method == "stop_agent":
+            if not isinstance(invocation, InvokeAgentInvocation):
+                return
+            _apply_invoke_agent_finish_attributes(span, invocation)
+            cast(Any, self)._record_extended_metrics(span, invocation)
+            event_logger = cast(
+                Optional[OtelLogger], getattr(self, "_logger", None)
+            )
+            _maybe_emit_invoke_agent_event(event_logger, span, invocation)
+        end_time_ns = MultimodalProcessingMixin._compute_end_time_ns(
+            invocation
+        )
+        span.end(end_time=end_time_ns)
+
+    def _fallback_fail(
+        self,
+        invocation: _MultimodalInvocation,
+        error: Error,
+        method: _TaskMethod,
+    ) -> None:
+        """Sync degradation for fail: skip multimodal, end span with error"""
+        span = invocation.span
+        if span is None:
+            return
+        error_type = getattr(error.type, "__qualname__", None)
+        if method == "fail_llm":
+            if not isinstance(invocation, LLMInvocation):
+                return
+            _apply_llm_finish_attributes(span, invocation)
+            _apply_error_attributes(span, error)
+            cast(Any, self)._record_llm_metrics(
+                invocation, span, error_type=error_type
+            )
+            event_logger = cast(
+                Optional[OtelLogger], getattr(self, "_logger", None)
+            )
+            _maybe_emit_llm_event(event_logger, span, invocation, error)
+        elif method == "fail_agent":
+            if not isinstance(invocation, InvokeAgentInvocation):
+                return
+            _apply_invoke_agent_finish_attributes(span, invocation)
+            _apply_error_attributes(span, error)
+            cast(Any, self)._record_extended_metrics(
+                span, invocation, error_type=error_type
+            )
+            event_logger = cast(
+                Optional[OtelLogger], getattr(self, "_logger", None)
+            )
+            _maybe_emit_invoke_agent_event(
+                event_logger, span, invocation, error
+            )
+        end_time_ns = MultimodalProcessingMixin._compute_end_time_ns(
+            invocation
+        )
+        span.end(end_time=end_time_ns)
+
+    # ==================== Timing Helpers ====================
 
     @staticmethod
-    def _compute_end_time_ns(invocation: LLMInvocation) -> int:
+    def _compute_end_time_ns(invocation: _MultimodalInvocation) -> int:
         """Calculate absolute time (nanoseconds) based on monotonic time"""
         if not invocation.monotonic_end_s or not invocation.monotonic_start_s:
             return time_ns()
@@ -543,10 +680,35 @@ class MultimodalProcessingMixin:
         except ImportError:
             return None, None
 
+    def _upload_and_set_metadata(
+        self,
+        span: Span,
+        invocation: _MultimodalInvocation,
+        uploader: "Uploader",
+        pre_uploader: "PreUploader",
+    ) -> None:
+        """Upload multimodal data and set metadata attributes on span"""
+        self._separate_and_upload(span, invocation, uploader, pre_uploader)
+        input_metadata, output_metadata = (
+            MultimodalProcessingMixin._extract_multimodal_metadata(
+                invocation.input_messages, invocation.output_messages
+            )
+        )
+        if input_metadata:
+            span.set_attribute(
+                GenAIEx.GEN_AI_INPUT_MULTIMODAL_METADATA,
+                gen_ai_json_dumps(input_metadata),
+            )
+        if output_metadata:
+            span.set_attribute(
+                GenAIEx.GEN_AI_OUTPUT_MULTIMODAL_METADATA,
+                gen_ai_json_dumps(output_metadata),
+            )
+
     def _separate_and_upload(  # pylint: disable=no-self-use
         self,
         span: Span,
-        invocation: LLMInvocation,
+        invocation: _MultimodalInvocation,
         uploader: "Uploader",
         pre_uploader: "PreUploader",
     ) -> None:

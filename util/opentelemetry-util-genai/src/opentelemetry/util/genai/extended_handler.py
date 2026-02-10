@@ -73,7 +73,12 @@ from opentelemetry.metrics import MeterProvider, get_meter
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
-from opentelemetry.trace import SpanKind, TracerProvider, set_span_in_context
+from opentelemetry.trace import (
+    Span,
+    SpanKind,
+    TracerProvider,
+    set_span_in_context,
+)
 from opentelemetry.util.genai._extended_memory import (
     MemoryInvocation,
     _apply_memory_finish_attributes,
@@ -139,6 +144,32 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         # Initialize multimodal processing (from Mixin)
         self._init_multimodal()
 
+    # ==================== Metrics Helper ====================
+
+    def _record_extended_metrics(
+        self,
+        span: Span,
+        invocation: (
+            LLMInvocation
+            | EmbeddingInvocation
+            | ExecuteToolInvocation
+            | InvokeAgentInvocation
+            | CreateAgentInvocation
+            | RetrieveInvocation
+            | RerankInvocation
+            | MemoryInvocation
+        ),
+        *,
+        error_type: str | None = None,
+    ) -> None:
+        """Record extended metrics for any invocation type."""
+        if self._metrics_recorder is not None and isinstance(
+            self._metrics_recorder, ExtendedInvocationMetricsRecorder
+        ):
+            self._metrics_recorder.record_extended(
+                span, invocation, error_type=error_type
+            )
+
     # ==================== LLM Operations Override (Async Multimodal) ====================
     # Note: start_llm is inherited from TelemetryHandler.
     # We only override stop_llm/fail_llm for async multimodal processing.
@@ -160,7 +191,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_stop(invocation):
+        if self.process_multimodal_stop(invocation, method="stop_llm"):
             return invocation
 
         # No multimodal: use parent's sync path
@@ -180,7 +211,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_fail(invocation, error):
+        if self.process_multimodal_fail(invocation, error, method="fail_llm"):
             return invocation
 
         # No multimodal: use parent's sync path
@@ -226,12 +257,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             return invocation
 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -246,14 +272,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                invocation.span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -303,12 +324,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             return invocation
 
         _apply_embedding_finish_attributes(invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -323,14 +339,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_embedding_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                invocation.span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -380,12 +391,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             return invocation
 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -400,14 +406,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                invocation.span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -463,16 +464,19 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         if invocation.context_token is None or invocation.span is None:
             return invocation
 
+        # Record actual end time
+        invocation.monotonic_end_s = timeit.default_timer()
+
+        # Try async multimodal processing
+        if self.process_multimodal_stop(invocation, method="stop_agent"):
+            return invocation
+
+        # No multimodal: sync path
         _apply_invoke_agent_finish_attributes(invocation.span, invocation)
         _maybe_emit_invoke_agent_event(
             self._logger, invocation.span, invocation
         )
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -485,18 +489,23 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         if invocation.context_token is None or invocation.span is None:
             return invocation
 
+        # Record actual end time
+        invocation.monotonic_end_s = timeit.default_timer()
+
+        # Try async multimodal processing
+        if self.process_multimodal_fail(
+            invocation, error, method="fail_agent"
+        ):
+            return invocation
+
+        # No multimodal: sync path
         span = invocation.span
         _apply_invoke_agent_finish_attributes(span, invocation)
         _apply_error_attributes(span, error)
         _maybe_emit_invoke_agent_event(self._logger, span, invocation, error)  # pylint: disable=too-many-function-args
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         span.end()
@@ -546,12 +555,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             return invocation
 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -566,14 +570,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                invocation.span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -619,12 +618,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             return invocation
 
         _apply_rerank_finish_attributes(invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -639,14 +633,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_rerank_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
-
-        # Record metrics with error type
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(
-                invocation.span, invocation, error_type=error.type.__qualname__
-            )
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()
@@ -696,12 +685,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         _apply_memory_finish_attributes(invocation.span, invocation)
         _maybe_emit_memory_event(self._logger, invocation.span, invocation)
-
-        # Record metrics
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
-            self._metrics_recorder.record_extended(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
 
         otel_context.detach(invocation.context_token)
         invocation.span.end()

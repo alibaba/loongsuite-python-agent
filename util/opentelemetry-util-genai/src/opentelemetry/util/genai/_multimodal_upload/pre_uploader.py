@@ -46,11 +46,11 @@ from opentelemetry.util.genai._multimodal_upload._base import (
     PreUploadItem,
 )
 from opentelemetry.util.genai.extended_environment_variables import (
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
 )
 from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
 
@@ -169,9 +169,7 @@ class MultimodalPreUploader(PreUploader):
                 if p.strip()
             ]
             # Convert to absolute paths and normalize
-            self._allowed_root_paths = [
-                os.path.abspath(p) for p in paths
-            ]
+            self._allowed_root_paths = [os.path.abspath(p) for p in paths]
 
         if self._local_file_enabled and not self._allowed_root_paths:
             _logger.warning(

@@ -1022,15 +1022,18 @@ class TestPreUploadLocalFile:
         # OR we try to pass a relative path if we can force os.getcwd() to match.
         relative_path = test_file.name
 
-        with patch.dict(
-            os.environ,
-            {
-                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
-                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": str(
-                    test_dir
-                ),
-            },
-        ), patch("os.getcwd", return_value=str(test_dir)):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": str(
+                        test_dir
+                    ),
+                },
+            ),
+            patch("os.getcwd", return_value=str(test_dir)),
+        ):
             pre_uploader = pre_uploader_factory()
             # Test with simple filename (relative path)
             part = Uri(
@@ -1124,4 +1127,3 @@ class TestPreUploadLocalFile:
             )
 
             assert len(uploads) == 0
-
