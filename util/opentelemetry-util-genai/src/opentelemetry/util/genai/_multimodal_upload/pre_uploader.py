@@ -49,6 +49,8 @@ from opentelemetry.util.genai.extended_environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
 )
 from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
 
@@ -149,6 +151,33 @@ class MultimodalPreUploader(PreUploader):
         self._ssl_verify = os.getenv(
             OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY, "true"
         ).lower() not in ("false", "0", "no")
+
+        # Local file configuration
+        self._local_file_enabled = os.getenv(
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED, "false"
+        ).lower() in ("true", "1", "yes")
+
+        allowed_roots_str = os.getenv(
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS, ""
+        )
+        self._allowed_root_paths: List[str] = []
+        if allowed_roots_str:
+            # Parse split by comma or semicolon
+            paths = [
+                p.strip()
+                for p in re.split(r"[;,]", allowed_roots_str)
+                if p.strip()
+            ]
+            # Convert to absolute paths and normalize
+            self._allowed_root_paths = [
+                os.path.abspath(p) for p in paths
+            ]
+
+        if self._local_file_enabled and not self._allowed_root_paths:
+            _logger.warning(
+                "Local file processing enabled but no allowed root paths configured. "
+                "Local file uploads will be blocked for security."
+            )
 
     @property
     def base_path(self) -> str:
@@ -708,36 +737,77 @@ class MultimodalPreUploader(PreUploader):
         """Check if URI starts with http:// or https://"""
         return uri.startswith("http://") or uri.startswith("https://")
 
-    @staticmethod
-    def _is_local_file_uri(uri: str) -> bool:
-        """Check if URI is a local file (file:// protocol)"""
-        return uri.startswith("file://")
+    def _is_local_file_uri(self, uri: str) -> bool:
+        """Check if URI is a local file path or file:// URI"""
+        if uri.startswith("file://"):
+            return True
 
-    @staticmethod
-    def _read_local_file(file_path: str) -> Optional[bytes]:
-        """Read content from local file with size limit.
+        # If local file processing is enabled, treat paths starting with /, ./, ../ or no scheme as local files
+        if self._local_file_enabled:
+            # Check if it has a scheme (like http://, data:, etc.)
+            # If no scheme, or starts with common path prefixes, treat as file
+            if "://" in uri:
+                return False  # Has scheme other than file:// (handled above)
+            if uri.startswith("data:"):
+                return False
+
+            # Assume anything else without a scheme is a potential local file path
+            return True
+
+        return False
+
+    def _read_local_file(self, uri: str) -> Optional[bytes]:
+        """Read content from local file with size limit and security checks.
 
         Args:
-            file_path: Absolute path to the local file
+            uri: Local file URI (file://...) or path
 
         Returns:
-            File content as bytes, or None if read fails or file too large
+            File content as bytes, or None if read fails, security check fails, or file too large
         """
         try:
-            if not os.path.exists(file_path):
-                _logger.debug("Local file not found: %s", file_path)
+            # Normalize path
+            if uri.startswith("file://"):
+                file_path = uri[7:]
+            else:
+                file_path = uri
+
+            # Security check: must be absolute and within allowed root paths
+            abs_path = os.path.abspath(file_path)
+
+            allowed = False
+            for root in self._allowed_root_paths:
+                # Use os.path.commonpath to safely check path containment
+                try:
+                    if os.path.commonpath([root, abs_path]) == root:
+                        allowed = True
+                        break
+                except ValueError:
+                    # Paths on different drives or invalid
+                    continue
+
+            if not allowed:
+                _logger.warning(
+                    "Local file access blocked: %s is not in allowed root paths %s",
+                    abs_path,
+                    self._allowed_root_paths,
+                )
                 return None
 
-            file_size = os.path.getsize(file_path)
+            if not os.path.exists(abs_path):
+                _logger.debug("Local file not found: %s", abs_path)
+                return None
+
+            file_size = os.path.getsize(abs_path)
             if not MultimodalPreUploader._check_size(
-                file_size, f" local file {file_path}"
+                file_size, f" local file {abs_path}"
             ):
                 return None
 
-            with open(file_path, "rb") as f:
+            with open(abs_path, "rb") as f:
                 return f.read()
         except (OSError, IOError) as e:
-            _logger.debug("Failed to read local file %s: %s", file_path, e)
+            _logger.debug("Failed to read local file %s: %s", uri, e)
             return None
 
     @staticmethod
@@ -928,11 +998,10 @@ class MultimodalPreUploader(PreUploader):
         # Step 2.5: Process local file:// URIs (read file content, similar to Blob)
         for idx, part in local_file_parts:
             try:
-                # Extract file path from file:// URI
-                file_path = part.uri[7:]  # Remove "file://"
-                data = self._read_local_file(file_path)
+                # Pass full URI/path to _read_local_file, which handles security checks
+                data = self._read_local_file(part.uri)
                 if data is None:
-                    # File not found or too large, keep original URI
+                    # File not found, too large, or security check failed -> keep original URI
                     continue
 
                 mime_type = self._resolve_mime_type(None, part.mime_type)

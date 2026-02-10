@@ -4,6 +4,7 @@ Includes extension mapping, URL generation, meta processing, message handling, a
 """
 
 import base64
+import os
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -956,40 +957,171 @@ class TestPreUploadDataUri:
 
 
 class TestPreUploadLocalFile:
-    """Test local file handling"""
+    """Test local file handling with security checks"""
 
     @pytest.fixture
-    def pre_uploader(self):  # pylint: disable=R6301
-        """Create PreUploader instance"""
-        return MultimodalPreUploader(
-            base_path="/tmp/test_upload",
-            extra_meta={"workspaceId": "test_workspace"},
-        )
+    def pre_uploader_factory(self):  # pylint: disable=R6301
+        """Create PreUploader instance factory"""
+
+        def _create():
+            return MultimodalPreUploader(
+                base_path="/tmp/test_upload",
+                extra_meta={"workspaceId": "test_workspace"},
+            )
+
+        return _create
 
     @staticmethod
-    def test_local_file_processing(pre_uploader, tmp_path):
-        """Test processing of local file URI"""
-        # Create a temporary file
-        test_file = tmp_path / "test.png"
-        test_data = b"fake png content"
-        test_file.write_bytes(test_data)
-
+    def test_local_file_processing_allowed(pre_uploader_factory):
+        """Test processing of local file URI when allowed"""
+        # Use this test file itself as the source file
+        test_file = Path(__file__).resolve()
+        test_dir = test_file.parent
         file_uri = f"file://{test_file}"
 
+        # Enable local file and set allowed root
+        with patch.dict(
+            os.environ,
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": str(
+                    test_dir
+                ),
+            },
+        ):
+            pre_uploader = pre_uploader_factory()
+            part = Uri(modality="image", mime_type="image/png", uri=file_uri)
+            message = InputMessage(role="user", parts=[part])
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000000000000,
+                input_messages=[message],
+                output_messages=[],
+            )
+
+            assert len(uploads) == 1
+            assert uploads[0].content_type == "image/png"
+            assert uploads[0].url.startswith("/tmp/test_upload")
+            # Verify data content matches file content
+            assert uploads[0].data == test_file.read_bytes()
+            # Verify original part is replaced
+            assert message.parts[0].uri != file_uri
+            assert message.parts[0].uri == uploads[0].url
+
+    @staticmethod
+    def test_local_file_processing_relative_path(pre_uploader_factory):
+        """Test processing of relative path when allowed"""
+        test_file = Path(__file__).resolve()
+        test_dir = test_file.parent
+        # Create a relative path: ./test_pre_uploader.py (assuming we run from same dir)
+        # However, CWD might vary. Safer to use filename and rely on pre_uploader using CWD
+        # Or construct a relative path if we know where we are.
+        # Let's assume we allow the directory where this file resides.
+        # And we pass the absolute path of the file but without scheme, which counts as local path.
+        # OR we try to pass a relative path if we can force os.getcwd() to match.
+        relative_path = test_file.name
+
+        with patch.dict(
+            os.environ,
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": str(
+                    test_dir
+                ),
+            },
+        ), patch("os.getcwd", return_value=str(test_dir)):
+            pre_uploader = pre_uploader_factory()
+            # Test with simple filename (relative path)
+            part = Uri(
+                modality="image", mime_type="image/png", uri=relative_path
+            )
+            message = InputMessage(role="user", parts=[part])
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000000000000,
+                input_messages=[message],
+                output_messages=[],
+            )
+
+            assert len(uploads) == 1
+            assert uploads[0].data == test_file.read_bytes()
+
+    @staticmethod
+    def test_local_file_processing_disabled_by_default(pre_uploader_factory):
+        """Test local file ignored when disabled (default)"""
+        test_file = Path(__file__).resolve()
+        file_uri = f"file://{test_file}"
+
+        # Default environment (feature disabled)
+        pre_uploader = pre_uploader_factory()
         part = Uri(modality="image", mime_type="image/png", uri=file_uri)
         message = InputMessage(role="user", parts=[part])
 
         uploads = pre_uploader.pre_upload(
             span_context=None,
-            start_time_utc_nano=1000000000000,
+            start_time_utc_nano=1000,
             input_messages=[message],
             output_messages=[],
         )
 
-        assert len(uploads) == 1
-        assert uploads[0].content_type == "image/png"
-        assert uploads[0].url.startswith("/tmp/test_upload")
-        assert uploads[0].data == test_data
-        # Verify original part is replaced
-        assert message.parts[0].uri != file_uri
-        assert message.parts[0].uri == uploads[0].url
+        assert len(uploads) == 0
+        assert message.parts[0].uri == file_uri
+
+    @staticmethod
+    def test_local_file_processing_forbidden_path(pre_uploader_factory):
+        """Test blocked access when path is not in allowed roots"""
+        test_file = Path(__file__).resolve()
+        # Allowed root is /tmp, but file is in source dir
+        allowed_root = "/tmp/fake_allowed_root"
+
+        with patch.dict(
+            os.environ,
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": allowed_root,
+            },
+        ):
+            pre_uploader = pre_uploader_factory()
+            file_uri = f"file://{test_file}"
+            part = Uri(modality="image", mime_type="image/png", uri=file_uri)
+            message = InputMessage(role="user", parts=[part])
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000,
+                input_messages=[message],
+                output_messages=[],
+            )
+
+            assert len(uploads) == 0
+            # URI should remain unchanged
+            assert message.parts[0].uri == file_uri
+
+    @staticmethod
+    def test_local_file_processing_no_allowed_roots(pre_uploader_factory):
+        """Test blocked access when no allowed roots configured"""
+        test_file = Path(__file__).resolve()
+
+        with patch.dict(
+            os.environ,
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                # No ALLOWED_ROOT_PATHS
+            },
+        ):
+            pre_uploader = pre_uploader_factory()
+            file_uri = f"file://{test_file}"
+            part = Uri(modality="image", mime_type="image/png", uri=file_uri)
+            message = InputMessage(role="user", parts=[part])
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000,
+                input_messages=[message],
+                output_messages=[],
+            )
+
+            assert len(uploads) == 0
+

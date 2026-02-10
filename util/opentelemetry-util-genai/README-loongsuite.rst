@@ -63,6 +63,8 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE``: 控制处理哪些消息（``input`` / ``output`` / ``both``，默认 ``both``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否下载远程 URI（``true`` / ``false``，默认 ``true``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY``: 是否验证 SSL 证书（``true`` / ``false``，默认 ``true``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED``: 是否启用本地文件处理（支持 file:// 和相对路径，``true`` / ``false``，默认 ``false``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS``: 允许访问的本地文件根目录列表（逗号或分号分隔，启用本地文件处理时必需配置）
 
 依赖要求:
   多模态上传功能需要安装 ``fsspec`` 和 ``httpx`` 包（必需），以及 ``numpy`` 和 ``soundfile`` 包（可选，用于音频格式转换）。

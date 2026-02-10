@@ -79,3 +79,23 @@ Whether to verify SSL certificates when downloading external URI references.
 Set to ``true`` or ``false``. Defaults to ``true``.
 Disabling SSL verification may expose to man-in-the-middle attacks.
 """
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED
+
+Whether to enable local file processing (including file:// URI and relative paths).
+Set to ``true`` or ``false``. Defaults to ``false``.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS
+
+List of allowed root paths for local file access (semicolon or comma separated).
+Only files within these paths will be processed.
+"""
