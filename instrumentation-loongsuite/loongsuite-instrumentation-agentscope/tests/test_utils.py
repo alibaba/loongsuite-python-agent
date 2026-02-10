@@ -2,6 +2,7 @@
 """
 Tests for utility functions in opentelemetry.instrumentation.agentscope.utils
 """
+
 from agentscope.message import Msg, ToolResultBlock
 from agentscope.tracing._converter import (
     _convert_block_to_part as _convert_block_to_part_framework,
@@ -24,15 +25,11 @@ class TestUtils:
             type="tool_result",
             id="call_test_123",
             name="test_tool",
-            output="Tool execution success"
+            output="Tool execution success",
         )
 
         # AgentScope Msg enforces role to be 'user', 'assistant', or 'system'
-        msg = Msg(
-            name="tool",
-            role="user",
-            content=[tool_result_block]
-        )
+        msg = Msg(name="tool", role="user", content=[tool_result_block])
 
         converted_messages = convert_agentscope_messages_to_genai_format([msg])
 
@@ -51,7 +48,7 @@ class TestUtils:
             "type": "tool_result",
             "id": "id_local",
             "name": "tool_local",
-            "output": "local output"
+            "output": "local output",
         }
         # This uses the copy in utils.py which uses 'result' key
         part = _convert_block_to_part_local(block)
@@ -75,7 +72,7 @@ class TestUtils:
             "type": "tool_result",
             "id": "id_framework",
             "name": "tool_framework",
-            "output": "framework output"
+            "output": "framework output",
         }
         # This uses the official agentscope converter which uses 'response' key
         part = _convert_block_to_part_framework(block)

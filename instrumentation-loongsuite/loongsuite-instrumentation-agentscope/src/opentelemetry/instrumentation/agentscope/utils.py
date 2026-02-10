@@ -29,6 +29,7 @@ from opentelemetry.util.genai.extended_types import (
     InvokeAgentInvocation,
 )
 from opentelemetry.util.genai.types import (
+    Base64Blob,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -36,6 +37,7 @@ from opentelemetry.util.genai.types import (
     Text,
     ToolCall,
     ToolCallResponse,
+    Uri,
 )
 
 from .message_converter import get_message_converter
@@ -441,6 +443,7 @@ def convert_agentscope_messages_to_genai_format(
     provider_name: Optional[str] = None,
 ) -> List[InputMessage]:
     """Convert AgentScope messages to opentelemetry-util-genai InputMessage format.
+       parse _convert_block_to_part result from agentscope/tracing/_converter.py
 
     This function is used by ExtendedTelemetryHandler which requires InputMessage objects.
     """
@@ -479,16 +482,33 @@ def convert_agentscope_messages_to_genai_format(
                 converted_parts.append(
                     ToolCallResponse(
                         id=part.get("id"),
-                        response=part.get("response")
-                        or part.get("result", ""),
+                        response=part["response"]
+                        if "response" in part
+                        else part.get("result", ""),
                     )
                 )
             elif part_type == "reasoning":
                 converted_parts.append(
                     Reasoning(content=part.get("content", ""))
                 )
-            elif part_type in ("uri", "blob"):
-                converted_parts.append(part)
+            elif part_type == "uri":
+                converted_parts.append(
+                    Uri(
+                        uri=part.get("uri"),
+                        modality=part.get("modality"),
+                        mime_type=part.get("mime_type"),
+                    )
+                )
+            elif part_type == "blob":
+                converted_parts.append(
+                    Base64Blob(
+                        content=part.get("content", ""),
+                        modality=part.get("modality"),
+                        mime_type=part.get("media_type")
+                        if "media_type" in part
+                        else part.get("mime_type"),
+                    )
+                )
             else:
                 # Keep other types as-is
                 converted_parts.append(part)
