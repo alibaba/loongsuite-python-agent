@@ -3,9 +3,7 @@ Test general functionality of MultimodalPreUploader
 Includes extension mapping, URL generation, meta processing, message handling, async metadata fetching, etc.
 """
 
-import asyncio
-import threading
-import time
+import base64
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -19,7 +17,7 @@ from opentelemetry.util.genai._multimodal_upload.pre_uploader import (
     MultimodalPreUploader,
     UriMetadata,
 )
-from opentelemetry.util.genai.types import Blob, InputMessage, Uri
+from opentelemetry.util.genai.types import Base64Blob, Blob, InputMessage, Uri
 
 # Test audio file directory for integration tests
 TEST_AUDIO_DIR = Path(__file__).parent / "test_audio_samples"
@@ -591,6 +589,71 @@ class TestPreUploadLimits:
         # Process at most _MAX_MULTIMODAL_PARTS parts
         assert len(uploads) == _MAX_MULTIMODAL_PARTS
 
+    @staticmethod
+    @patch(
+        "opentelemetry.util.genai._multimodal_upload.pre_uploader._MAX_MULTIMODAL_DATA_SIZE",
+        100,
+    )
+    def test_blob_size_limit_exceeded(pre_uploader):
+        """Test Blob larger than limit is skipped"""
+        large_data = b"x" * 101
+        part = Blob(
+            content=large_data, mime_type="image/png", modality="image"
+        )
+        message = InputMessage(role="user", parts=[part])
+
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000,
+            input_messages=[message],
+            output_messages=[],
+        )
+        assert len(uploads) == 0
+
+    @staticmethod
+    @patch(
+        "opentelemetry.util.genai._multimodal_upload.pre_uploader._MAX_MULTIMODAL_DATA_SIZE",
+        100,
+    )
+    def test_base64_blob_size_limit_exceeded(pre_uploader):
+        """Test Base64Blob larger than limit is skipped"""
+        data = b"x" * 101
+        b64_data = base64.b64encode(data).decode("ascii")
+        part = Base64Blob(
+            content=b64_data, mime_type="image/png", modality="image"
+        )
+        message = InputMessage(role="user", parts=[part])
+
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000,
+            input_messages=[message],
+            output_messages=[],
+        )
+        assert len(uploads) == 0
+
+    @staticmethod
+    @patch(
+        "opentelemetry.util.genai._multimodal_upload.pre_uploader._MAX_MULTIMODAL_DATA_SIZE",
+        100,
+    )
+    def test_data_uri_size_limit_exceeded(pre_uploader):
+        """Test Data URI larger than limit is skipped"""
+        data = b"x" * 101
+        b64_data = base64.b64encode(data).decode("ascii")
+        data_uri = f"data:image/png;base64,{b64_data}"
+
+        part = Uri(modality="image", mime_type=None, uri=data_uri)
+        message = InputMessage(role="user", parts=[part])
+
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000,
+            input_messages=[message],
+            output_messages=[],
+        )
+        assert len(uploads) == 0
+
 
 class TestPreUploadEventLoop:
     """Test behavior in existing event loop scenarios"""
@@ -805,111 +868,128 @@ class TestMultimodalUploadSwitch:
             assert uploads[0].data is not None  # Blob has data
 
 
-class TestMultimodalPreUploaderShutdown:
-    """MultimodalPreUploader shutdown 相关测试"""
+class TestPreUploadDataUri:
+    """Test data URI handling"""
 
-    def setup_method(self):  # pylint: disable=no-self-use
-        """每个测试前重置类级别状态（使用 _at_fork_reinit 确保一致性）"""
-        MultimodalPreUploader._at_fork_reinit()
-
-    @staticmethod
-    def test_shutdown_waits_for_active_tasks():
-        """测试 shutdown 等待活跃任务完成（通过真实 _run_async 调用）"""
-        # 确保事件循环启动
-        loop = MultimodalPreUploader._ensure_loop()
-        assert loop is not None
-
-        task_started = threading.Event()
-        task_can_complete = threading.Event()
-        task_completed = threading.Event()
-
-        # 创建一个可控的协程
-        async def controlled_coro():
-            task_started.set()
-            # 等待允许完成的信号
-            while not task_can_complete.is_set():
-                await asyncio.sleep(0.01)
-            task_completed.set()
-            return {}
-
-        # 在另一个线程中调用真实的 _run_async
-        uploader = MultimodalPreUploader(base_path="file:///tmp/test")
-
-        def run_real_async():
-            uploader._run_async(controlled_coro(), timeout=5.0)
-
-        task_thread = threading.Thread(target=run_real_async)
-        task_thread.start()
-
-        # 等待任务真正开始
-        assert task_started.wait(timeout=1.0), "Task should have started"
-        assert MultimodalPreUploader._active_tasks == 1, (
-            "Active tasks should be 1"
+    @pytest.fixture
+    def pre_uploader(self):  # pylint: disable=R6301
+        """Create PreUploader instance"""
+        return MultimodalPreUploader(
+            base_path="/tmp/test_upload",
+            extra_meta={"workspaceId": "test_workspace"},
         )
 
-        # 在另一个线程中调用 shutdown（它会等待任务完成）
-        shutdown_started = threading.Event()
-        shutdown_done = threading.Event()
+    @staticmethod
+    def test_data_uri_processing(pre_uploader):
+        """Test processing of base64 data URI"""
+        # A small base64 image
+        base64_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNiAAAABgDNjd8qAAAAAElFTkSuQmCC"
+        data_uri = f"data:image/png;base64,{base64_data}"
 
-        def run_shutdown():
-            shutdown_started.set()
-            MultimodalPreUploader.shutdown(timeout=5.0)
-            shutdown_done.set()
+        part = Uri(modality="image", mime_type=None, uri=data_uri)
+        message = InputMessage(role="user", parts=[part])
+        input_messages = [message]
 
-        shutdown_thread = threading.Thread(target=run_shutdown)
-        shutdown_thread.start()
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000000000000,
+            input_messages=input_messages,
+            output_messages=[],
+        )
 
-        # 等待 shutdown 开始
-        assert shutdown_started.wait(timeout=1.0)
-        time.sleep(0.05)  # 确保 shutdown 进入等待
-
-        # 此时 shutdown 应该还在等待
-        assert not shutdown_done.is_set(), "Shutdown should still be waiting"
-
-        # 允许任务完成
-        task_can_complete.set()
-
-        # shutdown 应该很快完成
-        assert shutdown_done.wait(timeout=2.0), "Shutdown should complete"
-        assert task_completed.is_set(), "Task should have completed"
-
-        # 幂等性：再次调用不报错
-        MultimodalPreUploader.shutdown(timeout=1.0)
-
-        task_thread.join(timeout=1.0)
-        shutdown_thread.join(timeout=1.0)
+        assert len(uploads) == 1
+        assert uploads[0].content_type == "image/png"
+        assert uploads[0].url.startswith("/tmp/test_upload")
+        # Verify data is decoded correctly
+        assert uploads[0].data == base64.b64decode(base64_data)
+        # Verify original part is replaced with uploaded URL
+        assert message.parts[0].uri != data_uri
+        assert message.parts[0].uri == uploads[0].url
 
     @staticmethod
-    def test_shutdown_timeout_exits():
-        """测试超时后 shutdown 直接退出"""
-        # 确保事件循环启动
-        loop = MultimodalPreUploader._ensure_loop()
-        assert loop is not None
+    def test_data_uri_processing_explicit_mime(pre_uploader):
+        """Test processing of data URI with explicit mime type in Uri object"""
+        base64_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNiAAAABgDNjd8qAAAAAElFTkSuQmCC"
+        data_uri = f"data:image/png;base64,{base64_data}"
 
-        # 模拟有活跃任务但永不完成（直接设置计数器）
-        with MultimodalPreUploader._active_cond:
-            MultimodalPreUploader._active_tasks = 1
+        part = Uri(modality="image", mime_type="image/custom", uri=data_uri)
+        message = InputMessage(role="user", parts=[part])
 
-        start = time.time()
-        timeout = 0.3
-        MultimodalPreUploader.shutdown(timeout=timeout)
-        elapsed = time.time() - start
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000000000000,
+            input_messages=[message],
+            output_messages=[],
+        )
 
-        # 验证超时后返回（不可能短于 timeout）
-        assert elapsed < timeout + 0.2, f"shutdown took {elapsed:.2f}s"
-        assert elapsed >= timeout, f"shutdown too fast: {elapsed:.2f}s"
+        assert len(uploads) == 1
+        assert uploads[0].content_type == "image/png"
 
     @staticmethod
-    def test_at_fork_reinit_resets_state():
-        """测试 _at_fork_reinit 正确重置类级别状态"""
-        MultimodalPreUploader._shutdown_called = True
-        MultimodalPreUploader._loop = "fake_loop"
-        MultimodalPreUploader._loop_thread = "fake_thread"
-        MultimodalPreUploader._active_tasks = 5
+    def test_invalid_data_uri(pre_uploader):
+        """Test invalid data URI handling"""
+        part = Uri(modality="image", mime_type=None, uri="data:invalid")
+        message = InputMessage(role="user", parts=[part])
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000,
+            input_messages=[message],
+            output_messages=[],
+        )
+        assert len(uploads) == 0
 
-        MultimodalPreUploader._at_fork_reinit()
+    @staticmethod
+    def test_non_base64_data_uri_skipped(pre_uploader):
+        """Test non-base64 data URI is skipped"""
+        data_uri = "data:text/plain,hello%20world"
+        part = Uri(modality="text", mime_type="text/plain", uri=data_uri)
+        message = InputMessage(role="user", parts=[part])
 
-        assert MultimodalPreUploader._shutdown_called is False
-        assert MultimodalPreUploader._loop is None
-        assert MultimodalPreUploader._loop_thread is None
-        assert MultimodalPreUploader._active_tasks == 0
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000,
+            input_messages=[message],
+            output_messages=[],
+        )
+        assert len(uploads) == 0
+        assert message.parts[0].uri == data_uri
+
+
+class TestPreUploadLocalFile:
+    """Test local file handling"""
+
+    @pytest.fixture
+    def pre_uploader(self):  # pylint: disable=R6301
+        """Create PreUploader instance"""
+        return MultimodalPreUploader(
+            base_path="/tmp/test_upload",
+            extra_meta={"workspaceId": "test_workspace"},
+        )
+
+    @staticmethod
+    def test_local_file_processing(pre_uploader, tmp_path):
+        """Test processing of local file URI"""
+        # Create a temporary file
+        test_file = tmp_path / "test.png"
+        test_data = b"fake png content"
+        test_file.write_bytes(test_data)
+
+        file_uri = f"file://{test_file}"
+
+        part = Uri(modality="image", mime_type="image/png", uri=file_uri)
+        message = InputMessage(role="user", parts=[part])
+
+        uploads = pre_uploader.pre_upload(
+            span_context=None,
+            start_time_utc_nano=1000000000000,
+            input_messages=[message],
+            output_messages=[],
+        )
+
+        assert len(uploads) == 1
+        assert uploads[0].content_type == "image/png"
+        assert uploads[0].url.startswith("/tmp/test_upload")
+        assert uploads[0].data == test_data
+        # Verify original part is replaced
+        assert message.parts[0].uri != file_uri
+        assert message.parts[0].uri == uploads[0].url

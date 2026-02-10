@@ -575,6 +575,41 @@ class MultimodalPreUploader(PreUploader):
             _logger.error("Failed to convert PCM16 to WAV: %s", exc)
             return None
 
+    @staticmethod
+    def _normalize_audio_data(
+        data: bytes, mime_type: str, source_desc: str = ""
+    ) -> Tuple[bytes, str]:
+        """Detect and convert audio format if needed"""
+        if mime_type in ("audio/unknown", "audio/*", "audio"):
+            detected_mime = MultimodalPreUploader._detect_audio_format(data)
+            if detected_mime:
+                _logger.debug(
+                    "Auto-detected audio format%s: %s -> %s",
+                    source_desc,
+                    mime_type,
+                    detected_mime,
+                )
+                mime_type = detected_mime
+
+        if mime_type in ("audio/pcm16", "audio/l16", "audio/pcm"):
+            wav_data = MultimodalPreUploader._convert_pcm16_to_wav(data)
+            if wav_data:
+                _logger.debug(
+                    "Converted%s PCM16 to WAV, original: %d, new: %d",
+                    source_desc,
+                    len(data),
+                    len(wav_data),
+                )
+                mime_type = "audio/wav"
+                data = wav_data
+            else:
+                _logger.warning(
+                    "Failed to convert%s PCM16 to WAV, using original format",
+                    source_desc,
+                )
+
+        return data, mime_type
+
     def _create_upload_item(
         self,
         data: bytes,
@@ -673,6 +708,133 @@ class MultimodalPreUploader(PreUploader):
         """Check if URI starts with http:// or https://"""
         return uri.startswith("http://") or uri.startswith("https://")
 
+    @staticmethod
+    def _is_local_file_uri(uri: str) -> bool:
+        """Check if URI is a local file (file:// protocol)"""
+        return uri.startswith("file://")
+
+    @staticmethod
+    def _read_local_file(file_path: str) -> Optional[bytes]:
+        """Read content from local file with size limit.
+
+        Args:
+            file_path: Absolute path to the local file
+
+        Returns:
+            File content as bytes, or None if read fails or file too large
+        """
+        try:
+            if not os.path.exists(file_path):
+                _logger.debug("Local file not found: %s", file_path)
+                return None
+
+            file_size = os.path.getsize(file_path)
+            if not MultimodalPreUploader._check_size(
+                file_size, f" local file {file_path}"
+            ):
+                return None
+
+            with open(file_path, "rb") as f:
+                return f.read()
+        except (OSError, IOError) as e:
+            _logger.debug("Failed to read local file %s: %s", file_path, e)
+            return None
+
+    @staticmethod
+    def _resolve_mime_type(
+        source_mime: Optional[str] = None, object_mime: Optional[str] = None
+    ) -> str:
+        """Resolve MIME type from source (detected) and object (provided)."""
+        generic_types = ("text/plain", "application/octet-stream", None, "")
+
+        # If source is specific, prefer it
+        if source_mime and source_mime not in generic_types:
+            return source_mime
+
+        # If source is generic/missing, use object mime if specific
+        if object_mime and object_mime not in generic_types:
+            return object_mime
+
+        # Fallback to source if it was generic (but present), or object (if generic), or default
+        return source_mime or object_mime or "application/octet-stream"
+
+    @staticmethod
+    def _estimate_base64_size(b64_data: str) -> int:
+        """Estimate decoded size of base64 string"""
+        return len(b64_data) * 3 // 4 - b64_data.count("=", -2)
+
+    @staticmethod
+    def _check_size(size: int, description: str = "") -> bool:
+        """
+        Check if size exceeds limit.
+        Returns True if size is within limit, False otherwise.
+        """
+        if size > _MAX_MULTIMODAL_DATA_SIZE:
+            _logger.debug(
+                "Skip%s: size %d exceeds limit %d",
+                description,
+                size,
+                _MAX_MULTIMODAL_DATA_SIZE,
+            )
+            return False
+        return True
+
+    @staticmethod
+    def _is_data_uri(uri: str) -> bool:
+        """Check if URI is a data URI"""
+        return uri.startswith("data:")
+
+    @staticmethod
+    def _parse_data_uri(uri: str) -> Tuple[Optional[str], Optional[bytes]]:
+        """Parse data URI to extract mime_type and decoded data
+
+        Format: data:[<mediatype>][;base64],<data>
+        """
+        if not uri.startswith("data:"):
+            return None, None
+
+        try:
+            header, encoded_data = uri.split(",", 1)
+        except ValueError:
+            return None, None
+
+        # Parse header
+        # parts[0] is "data:[<mediatype>]"
+        # subsequent parts are parameters, e.g. "base64" or "charset=..."
+        parts = header.split(";")
+
+        mime_type = "text/plain"  # RFC 2397 default
+        if len(parts) > 0 and len(parts[0]) > 5:
+            mime_type = parts[0][5:] or "text/plain"
+
+        is_base64 = "base64" in parts[1:]
+
+        try:
+            if is_base64:
+                # Size check optimization
+                approx_size = MultimodalPreUploader._estimate_base64_size(
+                    encoded_data
+                )
+                if not MultimodalPreUploader._check_size(
+                    approx_size, " data URI (approx)"
+                ):
+                    return None, None
+
+                decoded_data = base64.b64decode(encoded_data)
+
+                # Precise check after decode
+                if not MultimodalPreUploader._check_size(
+                    len(decoded_data), " data URI"
+                ):
+                    return None, None
+            else:
+                # Only support base64 data URIs for now
+                return None, None
+
+            return mime_type, decoded_data
+        except Exception:  # pylint: disable=broad-except
+            return None, None
+
     def _process_message_parts(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         self,
         parts: List[Any],
@@ -686,10 +848,18 @@ class MultimodalPreUploader(PreUploader):
 
         # Step 1: Traverse and extract potential multimodal parts (max 10)
         blob_parts: List[Tuple[int, Union[Base64Blob, Blob]]] = []
-        uri_parts: List[Tuple[int, Uri]] = []
+        local_file_parts: List[Tuple[int, Uri]] = []  # file:// URIs
+        http_uri_parts: List[Tuple[int, Uri]] = []  # http/https URIs
+        data_uri_parts: List[Tuple[int, Uri]] = []  # data: URIs
 
         for idx, part in enumerate(parts):
-            if len(blob_parts) + len(uri_parts) >= _MAX_MULTIMODAL_PARTS:
+            total_parts = (
+                len(blob_parts)
+                + len(local_file_parts)
+                + len(http_uri_parts)
+                + len(data_uri_parts)
+            )
+            if total_parts >= _MAX_MULTIMODAL_PARTS:
                 _logger.debug(
                     "Reached max multimodal parts limit (%d), skipping remaining",
                     _MAX_MULTIMODAL_PARTS,
@@ -698,64 +868,41 @@ class MultimodalPreUploader(PreUploader):
 
             if isinstance(part, (Base64Blob, Blob)):
                 blob_parts.append((idx, part))
-            elif isinstance(part, Uri) and self._download_enabled:
-                # Only process Uri when download feature is enabled
+            elif isinstance(part, Uri):
                 modality_str = part.modality
                 if modality_str in _SUPPORTED_MODALITIES:
-                    uri_parts.append((idx, part))
+                    # Categorize by URI type
+                    if self._is_local_file_uri(part.uri):
+                        # Local file:// URIs - always process (no download needed)
+                        local_file_parts.append((idx, part))
+                    elif self._is_data_uri(part.uri):
+                        # data: URIs - always process (decoding needed)
+                        data_uri_parts.append((idx, part))
+                    elif (
+                        self._is_http_uri(part.uri) and self._download_enabled
+                    ):
+                        # HTTP/HTTPS URIs - only process when download enabled
+                        http_uri_parts.append((idx, part))
 
         # Step 2: Process Blob (data already in memory)
         for idx, part in blob_parts:
             try:
-                mime_type = part.mime_type or "application/octet-stream"
-                # Size limit check
+                mime_type = self._resolve_mime_type(None, part.mime_type)
+                # Check size limit
                 if isinstance(part, Base64Blob):
                     b64data = part.content
-                    datalen = len(b64data) * 3 // 4 - b64data.count("=", -2)
-                    if datalen > _MAX_MULTIMODAL_DATA_SIZE:
-                        _logger.debug(
-                            "Skip Base64Blob: decoded size %d exceeds limit %d",
-                            datalen,
-                            _MAX_MULTIMODAL_DATA_SIZE,
-                        )
+                    datalen = self._estimate_base64_size(b64data)
+                    if not self._check_size(datalen, " Base64Blob"):
                         continue
                     data = base64.b64decode(b64data)
                 else:
                     data = part.content
-                    if len(data) > _MAX_MULTIMODAL_DATA_SIZE:
-                        _logger.debug(
-                            "Skip Blob: size %d exceeds limit %d, mime_type: %s",
-                            len(data),
-                            _MAX_MULTIMODAL_DATA_SIZE,
-                            mime_type,
-                        )
+                    if not self._check_size(
+                        len(data), f" Blob (mime_type: {mime_type})"
+                    ):
                         continue
 
-                # If audio/unknown or other unknown audio formats, try auto-detection
-                if mime_type in ("audio/unknown", "audio/*", "audio"):
-                    detected_mime = self._detect_audio_format(data)
-                    if detected_mime:
-                        _logger.debug(
-                            "Auto-detected audio format: %s -> %s",
-                            mime_type,
-                            detected_mime,
-                        )
-                        mime_type = detected_mime
-                # If PCM16 audio format, convert to WAV
-                if mime_type in ("audio/pcm16", "audio/l16", "audio/pcm"):
-                    wav_data = self._convert_pcm16_to_wav(data)
-                    if wav_data:
-                        _logger.debug(
-                            "Converted PCM16 to WAV format, original size: %d, new size: %d",
-                            len(data),
-                            len(wav_data),
-                        )
-                        mime_type = "audio/wav"
-                        data = wav_data
-                    else:
-                        _logger.warning(
-                            "Failed to convert PCM16 to WAV, using original format"
-                        )
+                data, mime_type = self._normalize_audio_data(data, mime_type)
 
                 upload_item, uri_part = self._create_upload_item(
                     data,
@@ -778,16 +925,86 @@ class MultimodalPreUploader(PreUploader):
                 )
                 # Keep original, don't replace
 
-        # Step 3: Process Uri (create download task based on metadata)
-        for idx, part in uri_parts:
-            # Non-http/https URIs (like already processed file://, etc.) skip directly
-            if not self._is_http_uri(part.uri):
+        # Step 2.5: Process local file:// URIs (read file content, similar to Blob)
+        for idx, part in local_file_parts:
+            try:
+                # Extract file path from file:// URI
+                file_path = part.uri[7:]  # Remove "file://"
+                data = self._read_local_file(file_path)
+                if data is None:
+                    # File not found or too large, keep original URI
+                    continue
+
+                mime_type = self._resolve_mime_type(None, part.mime_type)
+
+                data, mime_type = self._normalize_audio_data(
+                    data, mime_type, " for local file"
+                )
+
+                upload_item, uri_part = self._create_upload_item(
+                    data,
+                    mime_type,
+                    part.modality,
+                    timestamp,
+                    trace_id,
+                    span_id,
+                )
+                uploads.append(upload_item)
+                parts[idx] = uri_part
                 _logger.debug(
-                    "Skip non-http URI (already processed or local): %s",
+                    "Local file processed: %s -> %s",
+                    part.uri,
+                    uri_part.uri,
+                )
+            except (ValueError, TypeError, KeyError, OSError) as exc:
+                _logger.error(
+                    "Failed to process local file URI, skip: %s, uri: %s",
+                    exc,
                     part.uri,
                 )
-                continue
+                # Keep original, don't replace
 
+        # Step 2.6: Process data: URIs (decode base64/url-encoded)
+        for idx, part in data_uri_parts:
+            try:
+                mime_type, data = self._parse_data_uri(part.uri)
+                if data is None:
+                    _logger.debug(
+                        "Failed to parse data URI, skip: %s", part.uri[:50]
+                    )
+                    continue
+
+                mime_type = self._resolve_mime_type(mime_type, part.mime_type)
+
+                data, mime_type = self._normalize_audio_data(
+                    data, mime_type, " for data URI"
+                )
+
+                upload_item, uri_part = self._create_upload_item(
+                    data,
+                    mime_type,
+                    part.modality,
+                    timestamp,
+                    trace_id,
+                    span_id,
+                )
+                uploads.append(upload_item)
+                parts[idx] = uri_part
+                _logger.debug(
+                    "Data URI processed: %s -> %s",
+                    part.uri[:50],
+                    uri_part.uri,
+                )
+            except (ValueError, TypeError, KeyError) as exc:
+                _logger.error(
+                    "Failed to process data URI, skip: %s, uri: %s",
+                    exc,
+                    part.uri[:50],
+                )
+                # Keep original, don't replace
+
+        # Step 3: Process HTTP/HTTPS URIs (create download task based on metadata)
+        for idx, part in http_uri_parts:
             metadata = uri_to_metadata.get(part.uri)
             # Fetch failed/timeout/missing required info -> keep original
             if metadata is None:
@@ -798,14 +1015,15 @@ class MultimodalPreUploader(PreUploader):
                 continue
 
             # Size limit check
-            if metadata.content_length > _MAX_MULTIMODAL_DATA_SIZE:
-                _logger.debug(
-                    "Skip Uri: size %d exceeds limit %d, uri: %s",
-                    metadata.content_length,
-                    _MAX_MULTIMODAL_DATA_SIZE,
-                    part.uri,
-                )
+            if not self._check_size(
+                metadata.content_length, f" Uri {part.uri}"
+            ):
                 continue
+
+            # Resolve MIME type
+            metadata.content_type = self._resolve_mime_type(
+                metadata.content_type, part.mime_type
+            )
 
             try:
                 upload_item, uri_part = self._create_download_upload_item(
