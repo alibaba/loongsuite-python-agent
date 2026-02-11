@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 def _is_instrumentation_enabled() -> bool:
     """Check if instrumentation is enabled via environment variable."""
-    enabled = os.getenv("ARMS_LITELLM_INSTRUMENTATION_ENABLED", "true").lower()
+    enabled = os.getenv("ENABLE_LITELLM_INSTRUMENTOR", "true").lower()
     return enabled != "false"
 
 
@@ -61,8 +61,6 @@ class EmbeddingWrapper:
                 return self.original_func(*args, **kwargs)
 
         # Create invocation object
-
-        # Create invocation object
         invocation = create_embedding_invocation_from_litellm(**kwargs)
 
         # Set SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
@@ -72,6 +70,7 @@ class EmbeddingWrapper:
                 context.set_value(SUPPRESS_LLM_SDK_KEY, True)
             )
         except Exception:
+            # If context setting fails, continue without suppression token
             pass
 
         # Start Embedding invocation
@@ -162,8 +161,6 @@ class AsyncEmbeddingWrapper:
                 return await self.original_func(*args, **kwargs)
 
         # Create invocation object
-
-        # Create invocation object
         invocation = create_embedding_invocation_from_litellm(**kwargs)
 
         # Set SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
@@ -173,6 +170,7 @@ class AsyncEmbeddingWrapper:
                 context.set_value(SUPPRESS_LLM_SDK_KEY, True)
             )
         except Exception:
+            # If context setting fails, continue without suppression token
             pass
 
         # Start Embedding invocation
