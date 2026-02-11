@@ -248,6 +248,7 @@ def convert_litellm_messages_to_genai_format(
                         try:
                             arguments = json.loads(arguments)
                         except Exception:
+                            # If arguments are not valid JSON, keep the original string
                             pass
 
                     parts.append(
@@ -306,6 +307,7 @@ def extract_output_from_litellm_response(response: Any) -> List:
                     try:
                         arguments = json.loads(arguments)
                     except Exception:
+                        # If arguments are not valid JSON, keep the original string
                         pass
 
                 parts.append(
