@@ -358,6 +358,7 @@ class TestGoogleAdkMetricsIntegration:
         mock_llm_request = Mock()
         mock_llm_request.model = "gemini-pro"
         mock_llm_request.config = Mock()
+        mock_llm_request.contents = None
 
         mock_callback_context = create_mock_callback_context()
 
