@@ -15,6 +15,7 @@ from opentelemetry.instrumentation.agentscope.utils import (
     convert_agent_response_to_output_messages,
     convert_agentscope_messages_to_genai_format,
 )
+from opentelemetry.util.genai.types import Base64Blob, Uri
 
 
 class TestBlockConversion:
@@ -344,10 +345,36 @@ class TestInputMessageConversion:
         assert len(input_messages) == 1
         assert len(input_messages[0].parts) == 2
         # First part is Text object
-        # Second part is dict with uri type
+        # Second part is Uri object
         uri_part = input_messages[0].parts[1]
-        assert isinstance(uri_part, dict)
-        assert uri_part["type"] == "uri"
+        assert isinstance(uri_part, Uri)
+        assert uri_part.type == "uri"
+
+    def test_convert_messages_with_blob_to_base64blob(self):
+        """Test blob part converts to Base64Blob object"""
+        messages = [
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "type": "blob",
+                        "content": "dGVzdA==",
+                        "media_type": "image/png",
+                        "modality": "image",
+                    }
+                ],
+            }
+        ]
+
+        input_messages = convert_agentscope_messages_to_genai_format(messages)
+
+        assert len(input_messages) == 1
+        assert len(input_messages[0].parts) == 1
+        blob_part = input_messages[0].parts[0]
+        assert isinstance(blob_part, Base64Blob)
+        assert blob_part.content == "dGVzdA=="
+        assert blob_part.mime_type == "image/png"
+        assert blob_part.modality == "image"
 
 
 class TestDefaultMediaType:
