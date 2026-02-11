@@ -12,6 +12,9 @@ import httpx
 import pytest
 import respx
 
+from opentelemetry.util.genai._multimodal_processing import (
+    MultimodalProcessingMixin,
+)
 from opentelemetry.util.genai._multimodal_upload.pre_uploader import (
     _MAX_MULTIMODAL_DATA_SIZE,
     _MAX_MULTIMODAL_PARTS,
@@ -22,6 +25,18 @@ from opentelemetry.util.genai.types import Base64Blob, Blob, InputMessage, Uri
 
 # Test audio file directory for integration tests
 TEST_AUDIO_DIR = Path(__file__).parent / "test_audio_samples"
+
+
+@pytest.fixture(autouse=True)
+def _default_upload_mode_enabled_for_tests():
+    with patch.dict(
+        "os.environ",
+        {
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+        },
+    ):
+        yield
 
 
 class TestPreUploadGeneral:
@@ -856,7 +871,7 @@ class TestMultimodalUploadSwitch:
                     ),
                     Uri(
                         modality="image",
-                        mime_type="image/jpeg",
+                        mime_type=None,
                         uri="https://example.com/img.jpg",
                     ),
                 ],
@@ -867,6 +882,64 @@ class TestMultimodalUploadSwitch:
             # Only processed Blob
             assert len(uploads) == 1
             assert uploads[0].data is not None  # Blob has data
+
+            input_meta, output_meta = (
+                MultimodalProcessingMixin._extract_multimodal_metadata(
+                    input_messages, None
+                )
+            )
+            assert output_meta == []
+            assert len(input_meta) == 2
+            assert any(
+                item.get("uri") == "https://example.com/img.jpg"
+                for item in input_meta
+            )
+            uri_meta = next(
+                item
+                for item in input_meta
+                if item.get("uri") == "https://example.com/img.jpg"
+            )
+            assert uri_meta.get("mime_type") == "image/jpeg"
+
+    @staticmethod
+    @patch.object(MultimodalPreUploader, "_fetch_metadata_batch")
+    def test_download_enabled_fetch_failed_uri_kept_in_metadata(mock_fetch):
+        """When metadata fetch fails, original URI should still appear in metadata."""
+        with patch.dict(
+            "os.environ",
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+            },
+        ):
+            mock_fetch.return_value = {}
+            pre_uploader = MultimodalPreUploader("/tmp/test")
+
+            input_messages = [
+                InputMessage(
+                    role="user",
+                    parts=[
+                        Uri(
+                            modality="image",
+                            mime_type=None,
+                            uri="https://example.com/fail.png",
+                        )
+                    ],
+                )
+            ]
+
+            uploads = pre_uploader.pre_upload(None, 0, input_messages, None)
+            assert uploads == []
+
+            input_meta, output_meta = (
+                MultimodalProcessingMixin._extract_multimodal_metadata(
+                    input_messages, None
+                )
+            )
+            assert output_meta == []
+            assert len(input_meta) == 1
+            assert input_meta[0]["uri"] == "https://example.com/fail.png"
+            assert input_meta[0]["mime_type"] == "image/png"
 
 
 class TestPreUploadDataUri:

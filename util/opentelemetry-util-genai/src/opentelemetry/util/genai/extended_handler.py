@@ -220,8 +220,8 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Shutdown ====================
 
     @classmethod
-    def shutdown_async_worker(cls, timeout: float = 5.0) -> None:
-        """Gracefully shutdown async worker"""
+    def shutdown(cls, timeout: float = 5.0) -> None:
+        """Gracefully shutdown async worker."""
         cls.shutdown_multimodal_worker(timeout)
 
     # ==================== Create Agent Operations ====================

@@ -134,7 +134,7 @@ class MultimodalProcessingMixin:
     def _init_multimodal(self) -> None:
         """Initialize multimodal-related instance attributes, called in subclass __init__"""
         upload_mode = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "both"
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none"
         ).lower()
 
         uploader, pre_uploader = self._get_uploader_and_pre_uploader()
@@ -672,11 +672,10 @@ class MultimodalProcessingMixin:
         """
         try:
             from opentelemetry.util.genai._multimodal_upload import (  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
-                get_pre_uploader,
-                get_uploader,
+                get_or_load_uploader_pair,
             )
 
-            return get_uploader(), get_pre_uploader()
+            return get_or_load_uploader_pair()
         except ImportError:
             return None, None
 
@@ -747,7 +746,14 @@ class MultimodalProcessingMixin:
         input_messages: Optional[List[InputMessage]],
         output_messages: Optional[List[OutputMessage]],
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """Extract multimodal metadata from messages"""
+        """Extract multimodal metadata from messages.
+
+        Important:
+        - URI metadata extraction is based on the final message parts.
+        - It is independent from download/replace success in pre-uploader.
+        - When URI replacement is skipped (e.g. download disabled) or fails,
+          the original URI should still remain in messages and be reported here.
+        """
 
         def _extract_from_messages(
             messages: Optional[List[InputMessage] | List[OutputMessage]],

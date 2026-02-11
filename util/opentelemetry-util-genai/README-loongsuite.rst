@@ -50,21 +50,57 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 多模态上传控制
 ~~~~~~~~~~~~~~
 
-设置环境变量 ``OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH`` 来启用多模态数据上传功能。
+多模态能力通过“`UPLOAD_MODE` 总开关 + hook 动态发现并实例化”机制启用。
+
+启用总开关：
+
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE``: 控制处理哪些消息（``none`` / ``input`` / ``output`` / ``both``，默认 ``none``）
+
+当 ``UPLOAD_MODE=none`` 时，不会加载 uploader/pre-uploader；当 ``UPLOAD_MODE`` 不是 ``none`` 时，会按 hook 名称加载实现。
+
+Hook 选择：
+
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER``: uploader hook 名称（默认 ``fs``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER``: pre-uploader hook 名称（默认 ``fs``）
+
+在开源版中，hook 默认是 ``fs``，因此通常不需要显式设置以上两个 hook 环境变量。  
+启用多模态上传后，需设置 ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH`` 来指定存储后端。
 支持的存储协议包括：
 
 - ``file:///path/to/dir``: 本地文件系统
+- ``memory://``: 内存文件系统
 - ``oss://bucket-name/prefix``: 阿里云 OSS
 - ``sls://project/logstore``: 阿里云 SLS
 - 其他 fsspec 支持的协议
 
 相关环境变量：
 
-- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE``: 控制处理哪些消息（``input`` / ``output`` / ``both``，默认 ``both``）
-- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否下载远程 URI（``true`` / ``false``，默认 ``true``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否下载远程 URI（``true`` / ``false``，默认 ``false``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY``: 是否验证 SSL 证书（``true`` / ``false``，默认 ``true``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED``: 是否启用本地文件处理（支持 file:// 和相对路径，``true`` / ``false``，默认 ``false``）
-- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS``: 允许访问的本地文件根目录列表（逗号或分号分隔，启用本地文件处理时必需配置）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS``: 允许访问的本地文件根目录列表（逗号分隔，启用本地文件处理时必需配置）
+
+``pyproject.toml`` entry point 配置（插件扩展方式）::
+
+    [project.entry-points.opentelemetry_genai_multimodal_uploader]
+    fs = "opentelemetry.util.genai._multimodal_upload.fs_uploader:fs_uploader_hook"
+
+    [project.entry-points.opentelemetry_genai_multimodal_pre_uploader]
+    fs = "opentelemetry.util.genai._multimodal_upload.pre_uploader:fs_pre_uploader_hook"
+
+运行时示例配置::
+
+    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
+    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=file:///var/log/genai/multimodal
+
+如果启用了多模态上传，请在 ``TracerProvider`` 注册 ``GenAIShutdownProcessor``，
+用于进程退出时按顺序关闭 ``ExtendedTelemetryHandler`` / ``Uploader`` / ``PreUploader``::
+
+    from opentelemetry import trace
+    from opentelemetry.util.genai.shutdown_processor import GenAIShutdownProcessor
+
+    tracer_provider = trace.get_tracer_provider()
+    tracer_provider.add_span_processor(GenAIShutdownProcessor())
 
 依赖要求:
   多模态上传功能需要安装 ``fsspec`` 和 ``httpx`` 包（必需），以及 ``numpy`` 和 ``soundfile`` 包（可选，用于音频格式转换）。
@@ -78,9 +114,8 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
     export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
     export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_AND_EVENT
     export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
-    export OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH=file:///var/log/genai/multimodal
     export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
-    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED=true
+    export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=file:///var/log/genai/multimodal
 
 支持的操作
 ----------

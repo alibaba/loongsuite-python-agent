@@ -44,6 +44,7 @@ from opentelemetry.util.genai._multimodal_upload._base import (
 )
 from opentelemetry.util.genai.extended_environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
 )
 
 _logger = logging.getLogger(__name__)
@@ -57,6 +58,20 @@ def hash_content(content: bytes | str) -> str:
     if isinstance(content, str):
         content = content.encode("utf-8")
     return hashlib.sha256(content, usedforsecurity=False).hexdigest()
+
+
+def fs_uploader_hook() -> Optional[Uploader]:
+    """Create default FsUploader from environment variables."""
+    base_path = os.environ.get(
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH
+    )
+    if not base_path:
+        _logger.warning(
+            "%s is required but not set, multimodal uploader disabled",
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
+        )
+        return None
+    return FsUploader(base_path=base_path)
 
 
 @dataclass

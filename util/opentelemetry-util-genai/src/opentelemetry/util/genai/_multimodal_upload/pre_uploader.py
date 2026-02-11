@@ -25,6 +25,7 @@ import base64
 import concurrent.futures
 import io
 import logging
+import mimetypes
 import os
 import re
 import threading
@@ -32,6 +33,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, get_args
+from urllib.parse import urlparse
 
 import httpx
 
@@ -50,6 +52,7 @@ from opentelemetry.util.genai.extended_environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
 )
 from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
@@ -106,9 +109,9 @@ class MultimodalPreUploader(PreUploader):
 
     Environment variables for configuration:
     - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE`: Controls which messages to process
-      ("input", "output", or "both", default: "both")
+      ("input", "output", or "both", default: "none")
     - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED`: Enable downloading remote URIs
-      (default: "true")
+      (default: "false")
     - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY`: Enable SSL verification for downloads
       (default: "true")
 
@@ -141,12 +144,12 @@ class MultimodalPreUploader(PreUploader):
 
         # Read multimodal upload configuration (static config, read once only)
         upload_mode = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "both"
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none"
         ).lower()
         self._process_input = upload_mode in ("input", "both")
         self._process_output = upload_mode in ("output", "both")
         self._download_enabled = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED, "true"
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED, "false"
         ).lower() in ("true", "1", "yes")
         self._ssl_verify = os.getenv(
             OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY, "true"
@@ -162,10 +165,10 @@ class MultimodalPreUploader(PreUploader):
         )
         self._allowed_root_paths: List[str] = []
         if allowed_roots_str:
-            # Parse split by comma or semicolon
+            # Parse split by comma
             paths = [
                 p.strip()
-                for p in re.split(r"[;,]", allowed_roots_str)
+                for p in re.split(r"[,]", allowed_roots_str)
                 if p.strip()
             ]
             # Convert to absolute paths and normalize
@@ -236,8 +239,7 @@ class MultimodalPreUploader(PreUploader):
             cls._loop = loop
             return cls._loop
 
-    @classmethod
-    def shutdown(cls, timeout: float = 5.0) -> None:
+    def shutdown(self, timeout: float = 5.0) -> None:
         """
         Gracefully shutdown event loop.
 
@@ -246,6 +248,8 @@ class MultimodalPreUploader(PreUploader):
         2. Wait for active tasks to complete first (wait for _active_tasks == 0)
         3. Stop event loop and exit after timeout
         """
+        cls = self.__class__
+
         if cls._shutdown_called:
             return
         cls._shutdown_called = True
@@ -735,6 +739,24 @@ class MultimodalPreUploader(PreUploader):
         """Check if URI starts with http:// or https://"""
         return uri.startswith("http://") or uri.startswith("https://")
 
+    @staticmethod
+    def _infer_mime_type_from_uri(uri: str) -> Optional[str]:
+        """Infer MIME type from URI path suffix without downloading data."""
+        parsed = urlparse(uri)
+        # For plain paths without scheme, fall back to the raw uri.
+        path = parsed.path or uri
+        mime_type, _ = mimetypes.guess_type(path)
+        return mime_type
+
+    @staticmethod
+    def _ensure_uri_mime_type(part: Uri) -> None:
+        """Best-effort MIME fill for Uri parts when mime_type is missing."""
+        if part.mime_type:
+            return
+        inferred = MultimodalPreUploader._infer_mime_type_from_uri(part.uri)
+        if inferred:
+            part.mime_type = inferred
+
     def _is_local_file_uri(self, uri: str) -> bool:
         """Check if URI is a local file path or file:// URI"""
         if uri.startswith("file://"):
@@ -937,6 +959,7 @@ class MultimodalPreUploader(PreUploader):
             if isinstance(part, (Base64Blob, Blob)):
                 blob_parts.append((idx, part))
             elif isinstance(part, Uri):
+                self._ensure_uri_mime_type(part)
                 modality_str = part.modality
                 if modality_str in _SUPPORTED_MODALITIES:
                     # Categorize by URI type
@@ -946,10 +969,10 @@ class MultimodalPreUploader(PreUploader):
                     elif self._is_data_uri(part.uri):
                         # data: URIs - always process (decoding needed)
                         data_uri_parts.append((idx, part))
-                    elif (
-                        self._is_http_uri(part.uri) and self._download_enabled
-                    ):
-                        # HTTP/HTTPS URIs - only process when download enabled
+                    elif self._is_http_uri(part.uri):
+                        # Always keep HTTP/HTTPS URI parts visible to follow-up
+                        # metadata extraction. Replacement is controlled later
+                        # by _download_enabled in Step 3.
                         http_uri_parts.append((idx, part))
 
         # Step 2: Process Blob (data already in memory)
@@ -1072,6 +1095,11 @@ class MultimodalPreUploader(PreUploader):
 
         # Step 3: Process HTTP/HTTPS URIs (create download task based on metadata)
         for idx, part in http_uri_parts:
+            if not self._download_enabled:
+                # Download disabled: keep original URI in-place, so metadata
+                # extraction still observes this URI in final messages.
+                continue
+
             metadata = uri_to_metadata.get(part.uri)
             # Fetch failed/timeout/missing required info -> keep original
             if metadata is None:
@@ -1079,6 +1107,8 @@ class MultimodalPreUploader(PreUploader):
                     "No metadata for URI (timeout/error/missing), skip: %s",
                     part.uri,
                 )
+                # Keep original URI in-place, so metadata extraction still
+                # observes this URI in final messages.
                 continue
 
             # Size limit check
@@ -1233,6 +1263,20 @@ class MultimodalPreUploader(PreUploader):
                     )
 
         return uploads
+
+
+def fs_pre_uploader_hook() -> Optional[PreUploader]:
+    """Create file-system pre-uploader from environment variables."""
+    base_path = os.environ.get(
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH
+    )
+    if not base_path:
+        _logger.warning(
+            "%s is required but not set, multimodal pre-uploader disabled",
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
+        )
+        return None
+    return MultimodalPreUploader(base_path=base_path)
 
 
 # Module-level fork handler registration
