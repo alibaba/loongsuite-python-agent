@@ -33,6 +33,13 @@ class TestErrorHandling(TestBase):
         LiteLLMInstrumentor().instrument(
             tracer_provider=self.tracer_provider,
         )
+        # Use model aliases
+        litellm.model_alias_map = {
+            "qwen-turbo": "openai/qwen-turbo",
+            "qwen-plus": "openai/qwen-plus",
+        }
+        if os.environ.get("DASHSCOPE_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = os.environ["DASHSCOPE_API_KEY"]
 
     def tearDown(self):
         super().tearDown()
@@ -46,23 +53,32 @@ class TestErrorHandling(TestBase):
         Test handling of authentication failures.
         """
 
-        # Temporarily set invalid credentials
-        original_dashscope_key = os.environ.get("DASHSCOPE_API_KEY")
-        os.environ["DASHSCOPE_API_KEY"] = "invalid-key-12345"
+        # Temporarily set invalid credentials and base to trigger fast failure
+        original_keys = {
+            "DASHSCOPE_API_KEY": os.environ.get("DASHSCOPE_API_KEY"),
+            "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
+            "OPENAI_API_BASE": os.environ.get("OPENAI_API_BASE"),
+        }
+        os.environ["DASHSCOPE_API_KEY"] = "invalid"
+        os.environ["OPENAI_API_KEY"] = "invalid"
+        os.environ["OPENAI_API_BASE"] = "http://localhost:1"
 
         try:
             litellm.completion(
-                model="dashscope/qwen-turbo",
+                model="qwen-turbo",
                 messages=[{"role": "user", "content": "Hello"}],
+                num_retries=0,
             )
-            self.fail("Expected authentication error but call succeeded")
+            self.fail("Expected failure but call succeeded")
         except Exception as e:
             self.assertIsNotNone(e)
         finally:
-            if original_dashscope_key:
-                os.environ["DASHSCOPE_API_KEY"] = original_dashscope_key
-            else:
-                os.environ.pop("DASHSCOPE_API_KEY", None)
+            # Restore original environment
+            for key, val in original_keys.items():
+                if val:
+                    os.environ[key] = val
+                else:
+                    os.environ.pop(key, None)
 
         spans = self.get_finished_spans()
         self.assertEqual(len(spans), 1, "Should create 1 span even on error")
@@ -122,7 +138,7 @@ class TestErrorHandling(TestBase):
 
         try:
             litellm.completion(
-                model="dashscope/qwen-turbo",
+                model="qwen-turbo",
                 messages=[{"role": "user", "content": "Tell me a long story"}],
                 timeout=0.001,
             )
@@ -145,7 +161,7 @@ class TestErrorHandling(TestBase):
         )
 
         response = litellm.completion(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[{"role": "user", "content": "Write a 500 word essay"}],
             max_tokens=2,
         )

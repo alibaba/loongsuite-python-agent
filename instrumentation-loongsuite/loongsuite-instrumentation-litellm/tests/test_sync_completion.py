@@ -69,6 +69,11 @@ class TestSyncCompletion(TestBase):
         LiteLLMInstrumentor().instrument(
             tracer_provider=self.tracer_provider,
         )
+        # Use model aliases to map to openai provider while keeping model name
+        litellm.model_alias_map = {
+            "qwen-turbo": "openai/qwen-turbo",
+            "qwen-plus": "openai/qwen-plus",
+        }
 
     def tearDown(self):
         super().tearDown()
@@ -92,7 +97,7 @@ class TestSyncCompletion(TestBase):
 
         # Business demo: Simple chat completion
         response = litellm.completion(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[
                 {
                     "role": "user",
@@ -175,7 +180,9 @@ class TestSyncCompletion(TestBase):
 
         # Business demo: Multi-turn conversation
         response = litellm.completion(
-            model="dashscope/qwen-turbo", messages=messages, temperature=0.1
+            model="qwen-turbo",
+            messages=messages,
+            temperature=0.1,
         )
         # Verify response
         self.assertIsNotNone(response)
@@ -207,7 +214,7 @@ class TestSyncCompletion(TestBase):
         """
 
         response = litellm.completion(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[{"role": "user", "content": "Tell me a short joke."}],
             temperature=0.9,
             max_tokens=100,

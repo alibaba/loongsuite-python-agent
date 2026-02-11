@@ -69,6 +69,13 @@ class TestRetry(TestBase):
         LiteLLMInstrumentor().instrument(
             tracer_provider=self.tracer_provider,
         )
+        # Use model aliases
+        litellm.model_alias_map = {
+            "qwen-turbo": "openai/qwen-turbo",
+            "qwen-plus": "openai/qwen-plus",
+        }
+        if os.environ.get("DASHSCOPE_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = os.environ["DASHSCOPE_API_KEY"]
 
     def tearDown(self):
         super().tearDown()
@@ -84,7 +91,7 @@ class TestRetry(TestBase):
 
         # Business demo: Completion with retry wrapper (success case)
         response = litellm.completion_with_retries(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[
                 {"role": "user", "content": "What is 1+1? Answer briefly."}
             ],
@@ -121,7 +128,8 @@ class TestRetry(TestBase):
 
         async def run_async_retry():
             response = await litellm.acompletion_with_retries(
-                model="dashscope/qwen-turbo",
+                model="qwen-turbo",
+                custom_llm_provider="openai",
                 messages=[{"role": "user", "content": "Name a color."}],
                 temperature=0.0,
             )
@@ -158,7 +166,7 @@ class TestRetry(TestBase):
         # This demo sets custom retry parameters
         # Note: LiteLLM's retry mechanism might use different parameter names
         response = litellm.completion_with_retries(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[
                 {"role": "user", "content": "What is the capital of China?"}
             ],
@@ -180,7 +188,7 @@ class TestRetry(TestBase):
 
         # Business demo: Streaming completion with retry wrapper
         response = litellm.completion_with_retries(
-            model="dashscope/qwen-turbo",
+            model="qwen-turbo",
             messages=[{"role": "user", "content": "Count to 3."}],
             stream=True,
             temperature=0.0,

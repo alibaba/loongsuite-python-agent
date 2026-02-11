@@ -47,6 +47,13 @@ class TestToolCalls(TestBase):
         LiteLLMInstrumentor().instrument(
             tracer_provider=self.tracer_provider,
         )
+        # Use model aliases
+        litellm.model_alias_map = {
+            "qwen-turbo": "openai/qwen-turbo",
+            "qwen-plus": "openai/qwen-plus",
+        }
+        if os.environ.get("DASHSCOPE_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = os.environ["DASHSCOPE_API_KEY"]
 
     def tearDown(self):
         super().tearDown()
@@ -86,7 +93,7 @@ class TestToolCalls(TestBase):
         ]
 
         response = litellm.completion(
-            model="dashscope/qwen-plus",
+            model="qwen-plus",
             messages=[
                 {
                     "role": "user",
@@ -165,7 +172,7 @@ class TestToolCalls(TestBase):
         ]
 
         response = litellm.completion(
-            model="dashscope/qwen-plus",
+            model="qwen-plus",
             messages=[
                 {"role": "user", "content": "What time is it in New York?"}
             ],
@@ -216,7 +223,9 @@ class TestToolCalls(TestBase):
 
         # Step 1: Initial call
         response = litellm.completion(
-            model="dashscope/qwen-plus", messages=messages, tools=tools
+            model="qwen-plus",
+            messages=messages,
+            tools=tools,
         )
 
         # Check if tool call was generated
@@ -235,7 +244,9 @@ class TestToolCalls(TestBase):
 
             # Step 3: Final call
             litellm.completion(
-                model="dashscope/qwen-plus", messages=messages, tools=tools
+                model="qwen-plus",
+                messages=messages,
+                tools=tools,
             )
 
             spans = self.get_finished_spans()
@@ -270,7 +281,7 @@ class TestToolCalls(TestBase):
         ]
 
         response = litellm.completion(
-            model="dashscope/qwen-plus",
+            model="qwen-plus",
             messages=[{"role": "user", "content": "Search AI news"}],
             tools=tools,
             stream=True,
@@ -297,7 +308,7 @@ class TestToolCalls(TestBase):
         ]
 
         litellm.completion(
-            model="dashscope/qwen-plus",
+            model="qwen-plus",
             messages=[{"role": "user", "content": "Format this"}],
             tools=tools,
             tool_choice="required",

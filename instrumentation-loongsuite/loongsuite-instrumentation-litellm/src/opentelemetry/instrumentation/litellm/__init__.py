@@ -31,7 +31,6 @@ Configuration
 The instrumentation can be configured using environment variables:
 
 * ``ENABLE_LITELLM_INSTRUMENTOR``: Enable/disable instrumentation (default: true)
-* ``ARMS_LITELLM_INSTRUMENTATION_ENABLED``: Alternative enable/disable flag (default: true)
 
 Usage
 -----

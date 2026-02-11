@@ -43,12 +43,12 @@ from opentelemetry.util.genai.types import (
 logger = logging.getLogger(__name__)
 
 # Environment variable to control instrumentation
-LITELLM_INSTRUMENTATION_ENABLED = "ARMS_LITELLM_INSTRUMENTATION_ENABLED"
+ENABLE_LITELLM_INSTRUMENTOR = "ENABLE_LITELLM_INSTRUMENTOR"
 
 
 def _is_instrumentation_enabled() -> bool:
     """Check if instrumentation is enabled via environment variable."""
-    enabled = os.getenv(LITELLM_INSTRUMENTATION_ENABLED, "true").lower()
+    enabled = os.getenv(ENABLE_LITELLM_INSTRUMENTOR, "true").lower()
     return enabled != "false"
 
 
@@ -83,8 +83,6 @@ class CompletionWrapper:
             kwargs["stream_options"] = {"include_usage": True}
 
         # For streaming, we need special handling
-
-        # For streaming, we need special handling
         if is_stream:
             # Create invocation object
             invocation = create_llm_invocation_from_litellm(**kwargs)
@@ -96,6 +94,7 @@ class CompletionWrapper:
                     context.set_value(SUPPRESS_LLM_SDK_KEY, True)
                 )
             except Exception:
+                # If context setting fails, continue without suppression token
                 pass
 
             # Start LLM invocation
@@ -110,11 +109,14 @@ class CompletionWrapper:
                 stream_wrapper = StreamWrapper(
                     stream=response,
                     span=invocation.span,  # For TTFT tracking
-                    callback=lambda span,
+                    callback=None,
+                )
+                stream_wrapper.callback = (
+                    lambda span,
                     last_chunk,
                     error: self._handle_stream_end_with_handler(
                         invocation, last_chunk, error, stream_wrapper
-                    ),
+                    )
                 )
                 response = stream_wrapper
 
@@ -143,6 +145,7 @@ class CompletionWrapper:
                     context.set_value(SUPPRESS_LLM_SDK_KEY, True)
                 )
             except Exception:
+                # If context setting fails, continue without suppression token
                 pass
 
             # Start LLM invocation (handler creates and manages span)
@@ -242,6 +245,7 @@ class CompletionWrapper:
                                 try:
                                     arguments = json.loads(arguments)
                                 except Exception:
+                                    # If arguments are not valid JSON, keep the original string
                                     pass
 
                             parts.append(
@@ -302,8 +306,12 @@ class CompletionWrapper:
                 self._handler.fail_llm(
                     invocation, Error(message=str(e), type=type(e))
                 )
-            except Exception:
-                pass
+            except Exception as handler_error:
+                # Swallow exceptions from telemetry failure reporting, but log them for diagnostics.
+                logger.debug(
+                    "Error while reporting LLM failure in _handle_stream_end_with_handler: %s",
+                    handler_error,
+                )
 
 
 class AsyncCompletionWrapper:
@@ -347,6 +355,7 @@ class AsyncCompletionWrapper:
                     context.set_value(SUPPRESS_LLM_SDK_KEY, True)
                 )
             except Exception:
+                # If context setting fails, continue without suppression token
                 pass
 
             # Start LLM invocation
@@ -360,11 +369,14 @@ class AsyncCompletionWrapper:
                 stream_wrapper = AsyncStreamWrapper(
                     stream=response,
                     span=invocation.span,  # For TTFT tracking
-                    callback=lambda span,
+                    callback=None,
+                )
+                stream_wrapper.callback = (
+                    lambda span,
                     last_chunk,
                     error: self._handle_stream_end_with_handler(
                         invocation, last_chunk, error, stream_wrapper
-                    ),
+                    )
                 )
                 response = stream_wrapper
 
@@ -394,6 +406,7 @@ class AsyncCompletionWrapper:
                     context.set_value(SUPPRESS_LLM_SDK_KEY, True)
                 )
             except Exception:
+                # If context setting fails, continue without suppression token
                 pass
 
             # Start LLM invocation

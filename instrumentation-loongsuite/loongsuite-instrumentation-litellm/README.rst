@@ -22,7 +22,7 @@ Configuration
 
 The instrumentation can be enabled/disabled using environment variables:
 
-* ``ARMS_LITELLM_INSTRUMENTATION_ENABLED``: Enable/disable instrumentation (default: true)
+* ``ENABLE_LITELLM_INSTRUMENTOR``: Enable/disable instrumentation (default: true)
 
 Usage
 -----
@@ -49,7 +49,6 @@ This instrumentation automatically captures:
 * LLM completion calls (sync and async)
 * Streaming completions
 * Embedding calls
-* Image generation calls
 * Retry mechanisms
 * Tool/function calls
 * Request and response metadata
