@@ -12,7 +12,7 @@ try:
         ExtendedTelemetryHandler,
     )
 except ImportError:  # pragma: no cover
-    ExtendedTelemetryHandler = None  # type: ignore[assignment]
+    ExtendedTelemetryHandler = None
 
 try:
     from opentelemetry.util.genai._multimodal_upload import (
@@ -20,8 +20,8 @@ try:
         get_uploader,
     )
 except ImportError:  # pragma: no cover
-    get_uploader = None  # type: ignore[assignment]
-    get_pre_uploader = None  # type: ignore[assignment]
+    get_uploader = None
+    get_pre_uploader = None
 
 _logger = logging.getLogger(__name__)
 
@@ -76,7 +76,9 @@ class GenAIShutdownProcessor(SpanProcessor):
     def _shutdown_handler(self) -> None:
         try:
             if ExtendedTelemetryHandler is None:
-                _logger.debug("ExtendedTelemetryHandler not available, skipping")
+                _logger.debug(
+                    "ExtendedTelemetryHandler not available, skipping"
+                )
                 return
             _logger.debug("Shutting down ExtendedTelemetryHandler...")
             ExtendedTelemetryHandler.shutdown(timeout=self._handler_timeout)

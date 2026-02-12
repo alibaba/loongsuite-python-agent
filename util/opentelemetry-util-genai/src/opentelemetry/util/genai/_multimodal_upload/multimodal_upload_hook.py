@@ -42,7 +42,8 @@ def _iter_entry_points(group: str) -> list[Any]:
     eps = metadata.entry_points()
     if hasattr(eps, "select"):
         return list(eps.select(group=group))
-    return list(eps.get(group, []))
+    legacy_eps = cast(dict[str, list[Any]], eps)
+    return list(legacy_eps.get(group, []))
 
 
 @runtime_checkable
