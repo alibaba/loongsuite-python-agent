@@ -42,10 +42,8 @@ def _iter_entry_points(group: str) -> list[Any]:
     eps = metadata.entry_points()
     if hasattr(eps, "select"):
         return list(eps.select(group=group))
-    if isinstance(eps, dict):
-        legacy_group_eps = eps[group] if group in eps else []
-        return list(legacy_group_eps)
-    return []
+    legacy_group_eps = eps[group] if group in eps else []
+    return list(legacy_group_eps)
 
 
 @runtime_checkable
