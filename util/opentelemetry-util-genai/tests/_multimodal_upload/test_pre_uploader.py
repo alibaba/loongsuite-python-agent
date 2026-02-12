@@ -2,6 +2,7 @@
 Test general functionality of MultimodalPreUploader
 Includes extension mapping, URL generation, meta processing, message handling, async metadata fetching, etc.
 """
+# pylint: disable=too-many-lines
 
 import base64
 import os
@@ -888,7 +889,7 @@ class TestMultimodalUploadSwitch:
                     input_messages, None
                 )
             )
-            assert output_meta == []
+            assert not output_meta
             assert len(input_meta) == 2
             assert any(
                 item.get("uri") == "https://example.com/img.jpg"
@@ -929,14 +930,14 @@ class TestMultimodalUploadSwitch:
             ]
 
             uploads = pre_uploader.pre_upload(None, 0, input_messages, None)
-            assert uploads == []
+            assert not uploads
 
             input_meta, output_meta = (
                 MultimodalProcessingMixin._extract_multimodal_metadata(
                     input_messages, None
                 )
             )
-            assert output_meta == []
+            assert not output_meta
             assert len(input_meta) == 1
             assert input_meta[0]["uri"] == "https://example.com/fail.png"
             assert input_meta[0]["mime_type"] == "image/png"

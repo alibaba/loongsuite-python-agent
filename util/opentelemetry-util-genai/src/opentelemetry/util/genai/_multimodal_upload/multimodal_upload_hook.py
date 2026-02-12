@@ -160,7 +160,6 @@ def get_or_load_uploader_pair() -> tuple[
         if _uploader is None or _pre_uploader is None:
             _uploader = None
             _pre_uploader = None
-            return
 
     _load_once.do_once(_load)
     return _uploader, _pre_uploader

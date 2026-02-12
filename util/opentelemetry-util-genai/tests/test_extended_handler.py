@@ -1040,7 +1040,9 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         )
 
 
-class TestMultimodalProcessingMixin(unittest.TestCase):
+class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
+    unittest.TestCase
+):
     """Tests for MultimodalProcessingMixin.
 
     Uses orthogonal test design to maximize coverage with minimal test cases.

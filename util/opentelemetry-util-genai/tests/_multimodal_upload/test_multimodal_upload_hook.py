@@ -65,7 +65,8 @@ class FakeEntryPoint:
 
 
 class TestMultimodalUploadHook(TestCase):
-    def _reload_module(self):
+    @staticmethod
+    def _reload_module():
         module = importlib.import_module(HOOK_MODULE)
         return importlib.reload(module)
 
@@ -127,13 +128,23 @@ class TestMultimodalUploadHook(TestCase):
     def test_load_uploader_and_pre_uploader_default_to_fs(self):
         module = self._reload_module()
 
+        def uploader_factory():
+            return FakeUploader()
+
+        def pre_uploader_factory():
+            return FakePreUploader()
+
+        def load_uploader_factory():
+            return uploader_factory
+
+        def load_pre_uploader_factory():
+            return pre_uploader_factory
+
         def fake_entry_points(group: str):
             if group == "opentelemetry_genai_multimodal_uploader":
-                return [FakeEntryPoint("fs", lambda: (lambda: FakeUploader()))]
+                return [FakeEntryPoint("fs", load_uploader_factory)]
             if group == "opentelemetry_genai_multimodal_pre_uploader":
-                return [
-                    FakeEntryPoint("fs", lambda: (lambda: FakePreUploader()))
-                ]
+                return [FakeEntryPoint("fs", load_pre_uploader_factory)]
             return []
 
         with patch.object(
@@ -155,15 +166,23 @@ class TestMultimodalUploadHook(TestCase):
     def test_invalid_hook_result_fallback(self):
         module = self._reload_module()
 
+        def invalid_factory():
+            return InvalidHookResult()
+
+        def pre_uploader_factory():
+            return FakePreUploader()
+
+        def load_invalid_factory():
+            return invalid_factory
+
+        def load_pre_uploader_factory():
+            return pre_uploader_factory
+
         def fake_entry_points(group: str):
             if group == "opentelemetry_genai_multimodal_uploader":
-                return [
-                    FakeEntryPoint("fs", lambda: (lambda: InvalidHookResult()))
-                ]
+                return [FakeEntryPoint("fs", load_invalid_factory)]
             if group == "opentelemetry_genai_multimodal_pre_uploader":
-                return [
-                    FakeEntryPoint("fs", lambda: (lambda: FakePreUploader()))
-                ]
+                return [FakeEntryPoint("fs", load_pre_uploader_factory)]
             return []
 
         with patch.object(

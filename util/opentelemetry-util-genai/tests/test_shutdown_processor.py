@@ -22,8 +22,8 @@ class TestShutdownProcessor(TestCase):
     @patch(
         "opentelemetry.util.genai.extended_handler.ExtendedTelemetryHandler.shutdown"
     )
-    @patch("opentelemetry.util.genai._multimodal_upload.get_uploader")
-    @patch("opentelemetry.util.genai._multimodal_upload.get_pre_uploader")
+    @patch("opentelemetry.util.genai.shutdown_processor.get_uploader")
+    @patch("opentelemetry.util.genai.shutdown_processor.get_pre_uploader")
     def test_shutdown_sequence(
         self,
         mock_get_pre_uploader: Mock,
@@ -40,6 +40,7 @@ class TestShutdownProcessor(TestCase):
             uploader_timeout=2.0,
             pre_uploader_timeout=3.0,
         )
+        self.assertIsNotNone(processor)
         processor.shutdown()
 
         mock_handler_shutdown.assert_called_once_with(timeout=1.0)

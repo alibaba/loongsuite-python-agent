@@ -7,6 +7,22 @@ from typing import Optional
 from opentelemetry.context import Context
 from opentelemetry.sdk.trace import ReadableSpan, Span, SpanProcessor
 
+try:
+    from opentelemetry.util.genai.extended_handler import (
+        ExtendedTelemetryHandler,
+    )
+except ImportError:  # pragma: no cover
+    ExtendedTelemetryHandler = None  # type: ignore[assignment]
+
+try:
+    from opentelemetry.util.genai._multimodal_upload import (
+        get_pre_uploader,
+        get_uploader,
+    )
+except ImportError:  # pragma: no cover
+    get_uploader = None  # type: ignore[assignment]
+    get_pre_uploader = None  # type: ignore[assignment]
+
 _logger = logging.getLogger(__name__)
 
 
@@ -59,10 +75,9 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_handler(self) -> None:
         try:
-            from opentelemetry.util.genai.extended_handler import (  # noqa: PLC0415
-                ExtendedTelemetryHandler,
-            )
-
+            if ExtendedTelemetryHandler is None:
+                _logger.debug("ExtendedTelemetryHandler not available, skipping")
+                return
             _logger.debug("Shutting down ExtendedTelemetryHandler...")
             ExtendedTelemetryHandler.shutdown(timeout=self._handler_timeout)
         except ImportError:
@@ -74,10 +89,9 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_uploader(self) -> None:
         try:
-            from opentelemetry.util.genai._multimodal_upload import (  # noqa: PLC0415
-                get_uploader,
-            )
-
+            if get_uploader is None:
+                _logger.debug("Uploader not available, skipping")
+                return
             uploader = get_uploader()
             if uploader is not None and hasattr(uploader, "shutdown"):
                 _logger.debug("Shutting down Uploader...")
@@ -89,10 +103,9 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_pre_uploader(self) -> None:
         try:
-            from opentelemetry.util.genai._multimodal_upload import (  # noqa: PLC0415
-                get_pre_uploader,
-            )
-
+            if get_pre_uploader is None:
+                _logger.debug("PreUploader not available, skipping")
+                return
             pre_uploader = get_pre_uploader()
             if pre_uploader is not None and hasattr(pre_uploader, "shutdown"):
                 _logger.debug("Shutting down PreUploader...")

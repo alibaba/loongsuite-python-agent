@@ -17,6 +17,7 @@
 Processes Base64Blob/Blob/Uri, generates PreUploadItem list.
 Actual upload is completed by Uploader implementation class.
 """
+# pylint: disable=too-many-lines
 
 from __future__ import annotations
 
@@ -646,6 +647,7 @@ class MultimodalPreUploader(PreUploader):
         data: bytes,
         mime_type: str,
         modality: Union[Modality, str],
+        *,
         timestamp: int,
         trace_id: Optional[str],
         span_id: Optional[str],
@@ -695,6 +697,7 @@ class MultimodalPreUploader(PreUploader):
         source_uri: str,
         metadata: UriMetadata,
         modality: Union[Modality, str],
+        *,
         timestamp: int,
         trace_id: Optional[str],
         span_id: Optional[str],
@@ -824,10 +827,10 @@ class MultimodalPreUploader(PreUploader):
             ):
                 return None
 
-            with open(abs_path, "rb") as f:
-                return f.read()
-        except (OSError, IOError) as e:
-            _logger.debug("Failed to read local file %s: %s", uri, e)
+            with open(abs_path, "rb") as file_obj:
+                return file_obj.read()
+        except (OSError, IOError) as exc:
+            _logger.debug("Failed to read local file %s: %s", uri, exc)
             return None
 
     @staticmethod
@@ -880,13 +883,16 @@ class MultimodalPreUploader(PreUploader):
 
         Format: data:[<mediatype>][;base64],<data>
         """
+        parsed_mime_type: Optional[str] = None
+        parsed_data: Optional[bytes] = None
+
         if not uri.startswith("data:"):
-            return None, None
+            return parsed_mime_type, parsed_data
 
         try:
             header, encoded_data = uri.split(",", 1)
         except ValueError:
-            return None, None
+            return parsed_mime_type, parsed_data
 
         # Parse header
         # parts[0] is "data:[<mediatype>]"
@@ -905,25 +911,23 @@ class MultimodalPreUploader(PreUploader):
                 approx_size = MultimodalPreUploader._estimate_base64_size(
                     encoded_data
                 )
-                if not MultimodalPreUploader._check_size(
+                if MultimodalPreUploader._check_size(
                     approx_size, " data URI (approx)"
                 ):
-                    return None, None
+                    decoded_data = base64.b64decode(encoded_data)
 
-                decoded_data = base64.b64decode(encoded_data)
-
-                # Precise check after decode
-                if not MultimodalPreUploader._check_size(
-                    len(decoded_data), " data URI"
-                ):
-                    return None, None
-            else:
-                # Only support base64 data URIs for now
-                return None, None
-
-            return mime_type, decoded_data
+                    # Precise check after decode
+                    if MultimodalPreUploader._check_size(
+                        len(decoded_data), " data URI"
+                    ):
+                        parsed_mime_type = mime_type
+                        parsed_data = decoded_data
+            # Only support base64 data URIs for now.
+            # Non-base64 branch intentionally keeps defaults.
         except Exception:  # pylint: disable=broad-except
-            return None, None
+            pass
+
+        return parsed_mime_type, parsed_data
 
     def _process_message_parts(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         self,
@@ -931,6 +935,7 @@ class MultimodalPreUploader(PreUploader):
         trace_id: Optional[str],
         span_id: Optional[str],
         timestamp: int,
+        *,
         uri_to_metadata: Dict[str, UriMetadata],
         uploads: List[PreUploadItem],
     ) -> None:
@@ -999,9 +1004,9 @@ class MultimodalPreUploader(PreUploader):
                     data,
                     mime_type,
                     part.modality,
-                    timestamp,
-                    trace_id,
-                    span_id,
+                    timestamp=timestamp,
+                    trace_id=trace_id,
+                    span_id=span_id,
                 )
                 uploads.append(upload_item)
                 parts[idx] = uri_part
@@ -1035,9 +1040,9 @@ class MultimodalPreUploader(PreUploader):
                     data,
                     mime_type,
                     part.modality,
-                    timestamp,
-                    trace_id,
-                    span_id,
+                    timestamp=timestamp,
+                    trace_id=trace_id,
+                    span_id=span_id,
                 )
                 uploads.append(upload_item)
                 parts[idx] = uri_part
@@ -1074,9 +1079,9 @@ class MultimodalPreUploader(PreUploader):
                     data,
                     mime_type,
                     part.modality,
-                    timestamp,
-                    trace_id,
-                    span_id,
+                    timestamp=timestamp,
+                    trace_id=trace_id,
+                    span_id=span_id,
                 )
                 uploads.append(upload_item)
                 parts[idx] = uri_part
@@ -1127,9 +1132,9 @@ class MultimodalPreUploader(PreUploader):
                     part.uri,
                     metadata,
                     part.modality,
-                    timestamp,
-                    trace_id,
-                    span_id,
+                    timestamp=timestamp,
+                    trace_id=trace_id,
+                    span_id=span_id,
                 )
                 uploads.append(upload_item)
                 parts[idx] = uri_part
@@ -1246,8 +1251,8 @@ class MultimodalPreUploader(PreUploader):
                         trace_id,
                         span_id,
                         timestamp,
-                        uri_to_metadata,
-                        uploads,
+                        uri_to_metadata=uri_to_metadata,
+                        uploads=uploads,
                     )
 
         if self._process_output and output_messages:
@@ -1258,8 +1263,8 @@ class MultimodalPreUploader(PreUploader):
                         trace_id,
                         span_id,
                         timestamp,
-                        uri_to_metadata,
-                        uploads,
+                        uri_to_metadata=uri_to_metadata,
+                        uploads=uploads,
                     )
 
         return uploads
