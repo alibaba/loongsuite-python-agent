@@ -6,7 +6,7 @@ from __future__ import annotations
 from importlib import metadata
 import logging
 from os import environ
-from typing import Any, Optional, Protocol, cast, runtime_checkable
+from typing import Any, Optional, Protocol, runtime_checkable
 
 from opentelemetry.util._once import Once
 from opentelemetry.util.genai.extended_environment_variables import (
@@ -42,8 +42,10 @@ def _iter_entry_points(group: str) -> list[Any]:
     eps = metadata.entry_points()
     if hasattr(eps, "select"):
         return list(eps.select(group=group))
-    legacy_eps = cast(dict[str, list[Any]], eps)
-    return list(legacy_eps.get(group, []))
+    if isinstance(eps, dict):
+        legacy_group_eps = eps[group] if group in eps else []
+        return list(legacy_group_eps)
+    return []
 
 
 @runtime_checkable
@@ -62,7 +64,7 @@ def _load_by_name(
     group: str,
 ) -> Optional[object]:
     for entry_point in _iter_entry_points(group):
-        name = cast(str, entry_point.name)
+        name = str(entry_point.name)
         if name != hook_name:
             continue
         try:
