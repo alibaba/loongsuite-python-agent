@@ -71,8 +71,8 @@ def test_upload_local_binary():
 def test_upload_oss_binary_env():
     region_id = os.getenv("ARMS_REGION_ID", "")
     endpoint = "https://oss-" + region_id + ".aliyuncs.com"
-    key = os.getenv("APSARA_APM_COLLECTOR_MULTIMODAL_OSS_ACCESS_KEY")
-    secret = os.getenv("APSARA_APM_COLLECTOR_MULTIMODAL_OSS_ACCESS_SECRET_KEY")
+    key = os.getenv("APSARA_APM_COLLECTOR_MULTIMODAL_OSS_ACCESS_KEY_ID")
+    secret = os.getenv("APSARA_APM_COLLECTOR_MULTIMODAL_OSS_ACCESS_KEY_SECRET")
     storage_base_path = os.getenv(
         "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH", ""
     )

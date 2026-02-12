@@ -5,6 +5,7 @@ and audio format conversion (e.g., PCM16 to WAV)
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -16,6 +17,18 @@ from opentelemetry.util.genai.types import Blob, InputMessage
 
 # Test audio file directory
 TEST_AUDIO_DIR = Path(__file__).parent / "test_audio_samples"
+
+
+@pytest.fixture(autouse=True)
+def _default_upload_mode_enabled_for_tests():
+    with patch.dict(
+        "os.environ",
+        {
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+        },
+    ):
+        yield
 
 
 class TestAudioFormatDetection:

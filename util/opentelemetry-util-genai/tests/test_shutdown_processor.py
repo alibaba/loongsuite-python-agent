@@ -49,4 +49,3 @@ class TestShutdownProcessor(TestCase):
     def test_force_flush_noop(self):
         processor = GenAIShutdownProcessor()
         self.assertTrue(processor.force_flush(timeout_millis=1))
-

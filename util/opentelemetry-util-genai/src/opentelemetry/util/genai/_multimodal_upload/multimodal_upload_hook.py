@@ -22,7 +22,9 @@ from ._base import (
 
 _logger = logging.getLogger(__name__)
 
-_MULTIMODAL_UPLOADER_ENTRY_POINT_GROUP = "opentelemetry_genai_multimodal_uploader"
+_MULTIMODAL_UPLOADER_ENTRY_POINT_GROUP = (
+    "opentelemetry_genai_multimodal_uploader"
+)
 _MULTIMODAL_PRE_UPLOADER_ENTRY_POINT_GROUP = (
     "opentelemetry_genai_multimodal_pre_uploader"
 )
@@ -141,12 +143,15 @@ def load_pre_uploader_hook() -> Optional[PreUploader]:
     return pre_uploader
 
 
-def get_or_load_uploader_pair() -> tuple[Optional[Uploader], Optional[PreUploader]]:
+def get_or_load_uploader_pair() -> tuple[
+    Optional[Uploader], Optional[PreUploader]
+]:
     """Get lazily loaded singleton uploader/pre-uploader pair.
 
     First call performs one-time loading; subsequent calls return cache.
     If either side fails to load, both are downgraded to `(None, None)`.
     """
+
     def _load() -> None:
         global _uploader  # pylint: disable=global-statement
         global _pre_uploader  # pylint: disable=global-statement
@@ -167,4 +172,3 @@ def get_uploader() -> Optional[Uploader]:
 
 def get_pre_uploader() -> Optional[PreUploader]:
     return get_or_load_uploader_pair()[1]
-

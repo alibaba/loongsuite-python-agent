@@ -44,7 +44,9 @@ class TestDefaultHooks(TestCase):
 
     @patch.dict(
         "os.environ",
-        {OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH: "file:///tmp"},
+        {
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH: "file:///tmp"
+        },
         clear=True,
     )
     def test_fs_uploader_hook_returns_uploader(self):
@@ -66,11 +68,12 @@ class TestDefaultHooks(TestCase):
 
     @patch.dict(
         "os.environ",
-        {OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH: "file:///tmp"},
+        {
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH: "file:///tmp"
+        },
         clear=True,
     )
     def test_fs_pre_uploader_hook_returns_pre_uploader(self):
         pre_uploader = fs_pre_uploader_hook()
         self.assertIsInstance(pre_uploader, MultimodalPreUploader)
         pre_uploader.shutdown(timeout=0.1)
-

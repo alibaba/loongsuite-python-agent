@@ -59,7 +59,7 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_handler(self) -> None:
         try:
-            from opentelemetry.util.genai.extended_handler import (
+            from opentelemetry.util.genai.extended_handler import (  # noqa: PLC0415
                 ExtendedTelemetryHandler,
             )
 
@@ -74,7 +74,7 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_uploader(self) -> None:
         try:
-            from opentelemetry.util.genai._multimodal_upload import (
+            from opentelemetry.util.genai._multimodal_upload import (  # noqa: PLC0415
                 get_uploader,
             )
 
@@ -89,7 +89,7 @@ class GenAIShutdownProcessor(SpanProcessor):
 
     def _shutdown_pre_uploader(self) -> None:
         try:
-            from opentelemetry.util.genai._multimodal_upload import (
+            from opentelemetry.util.genai._multimodal_upload import (  # noqa: PLC0415
                 get_pre_uploader,
             )
 
@@ -101,4 +101,3 @@ class GenAIShutdownProcessor(SpanProcessor):
             _logger.debug("PreUploader not available, skipping")
         except Exception as exc:  # pylint: disable=broad-except
             _logger.warning("Error shutting down PreUploader: %s", exc)
-

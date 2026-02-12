@@ -19,14 +19,14 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from opentelemetry.util.genai._multimodal_upload._base import (
-    PreUploadItem,
     PreUploader,
+    PreUploadItem,
     Uploader,
     UploadItem,
 )
 from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,
 )
 
@@ -36,9 +36,7 @@ HOOK_MODULE = (
 
 
 class FakeUploader(Uploader):
-    def upload(
-        self, item: UploadItem, *, skip_if_exists: bool = True
-    ) -> bool:
+    def upload(self, item: UploadItem, *, skip_if_exists: bool = True) -> bool:
         return True
 
     def shutdown(self, timeout: float = 10.0) -> None:
@@ -100,15 +98,9 @@ class TestMultimodalUploadHook(TestCase):
             return FakePreUploader()
 
         def fake_entry_points(group: str):
-            if (
-                group
-                == "opentelemetry_genai_multimodal_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_uploader":
                 return [FakeEntryPoint("fs", lambda: uploader_hook)]
-            if (
-                group
-                == "opentelemetry_genai_multimodal_pre_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_pre_uploader":
                 return [FakeEntryPoint("fs", lambda: pre_hook)]
             return []
 
@@ -136,19 +128,11 @@ class TestMultimodalUploadHook(TestCase):
         module = self._reload_module()
 
         def fake_entry_points(group: str):
-            if (
-                group
-                == "opentelemetry_genai_multimodal_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_uploader":
                 return [FakeEntryPoint("fs", lambda: (lambda: FakeUploader()))]
-            if (
-                group
-                == "opentelemetry_genai_multimodal_pre_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_pre_uploader":
                 return [
-                    FakeEntryPoint(
-                        "fs", lambda: (lambda: FakePreUploader())
-                    )
+                    FakeEntryPoint("fs", lambda: (lambda: FakePreUploader()))
                 ]
             return []
 
@@ -172,23 +156,13 @@ class TestMultimodalUploadHook(TestCase):
         module = self._reload_module()
 
         def fake_entry_points(group: str):
-            if (
-                group
-                == "opentelemetry_genai_multimodal_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_uploader":
                 return [
-                    FakeEntryPoint(
-                        "fs", lambda: (lambda: InvalidHookResult())
-                    )
+                    FakeEntryPoint("fs", lambda: (lambda: InvalidHookResult()))
                 ]
-            if (
-                group
-                == "opentelemetry_genai_multimodal_pre_uploader"
-            ):
+            if group == "opentelemetry_genai_multimodal_pre_uploader":
                 return [
-                    FakeEntryPoint(
-                        "fs", lambda: (lambda: FakePreUploader())
-                    )
+                    FakeEntryPoint("fs", lambda: (lambda: FakePreUploader()))
                 ]
             return []
 
@@ -216,4 +190,3 @@ class TestMultimodalUploadHook(TestCase):
         self.assertIsNone(uploader)
         self.assertIsNone(pre_uploader)
         mock_iter.assert_not_called()
-
