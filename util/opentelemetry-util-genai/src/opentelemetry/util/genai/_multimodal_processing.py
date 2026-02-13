@@ -57,9 +57,6 @@ from opentelemetry.trace import Span
 from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIEx,
 )
-from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
-)
 from opentelemetry.util.genai.extended_span_utils import (
     _apply_invoke_agent_finish_attributes,
     _maybe_emit_invoke_agent_event,

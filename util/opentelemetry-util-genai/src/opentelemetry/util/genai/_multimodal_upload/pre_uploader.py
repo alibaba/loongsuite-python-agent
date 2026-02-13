@@ -632,9 +632,10 @@ class MultimodalPreUploader(PreUploader):
                 )
                 mime_type = detected_mime
 
-        if (
-            self._audio_conversion_enabled
-            and mime_type in ("audio/pcm16", "audio/l16", "audio/pcm")
+        if self._audio_conversion_enabled and mime_type in (
+            "audio/pcm16",
+            "audio/l16",
+            "audio/pcm",
         ):
             wav_data = MultimodalPreUploader._convert_pcm16_to_wav(data)
             if wav_data:
@@ -1291,4 +1292,3 @@ def fs_pre_uploader_hook() -> Optional[PreUploader]:
         )
         return None
     return MultimodalPreUploader(base_path=base_path)
-

@@ -1934,18 +1934,20 @@ class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
     ):
         calls = []
 
-        mock_shutdown_worker.side_effect = (
-            lambda timeout: calls.append(("handler", timeout))
+        mock_shutdown_worker.side_effect = lambda timeout: calls.append(
+            ("handler", timeout)
         )
-        mock_shutdown_pre_uploader.side_effect = (
-            lambda timeout: calls.append(("pre_uploader", timeout))
+        mock_shutdown_pre_uploader.side_effect = lambda timeout: calls.append(
+            ("pre_uploader", timeout)
         )
-        mock_shutdown_uploader.side_effect = (
-            lambda timeout: calls.append(("uploader", timeout))
+        mock_shutdown_uploader.side_effect = lambda timeout: calls.append(
+            ("uploader", timeout)
         )
 
         ExtendedTelemetryHandler.shutdown(
-            timeout=1.0, pre_uploader_timeout=2.0, uploader_timeout=3.0
+            worker_timeout=1.0,
+            pre_uploader_timeout=2.0,
+            uploader_timeout=3.0,
         )
 
         self.assertEqual(
@@ -1956,7 +1958,7 @@ class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
     @patch.object(ExtendedTelemetryHandler, "_shutdown_uploader")
     @patch.object(ExtendedTelemetryHandler, "_shutdown_pre_uploader")
     @patch.object(ExtendedTelemetryHandler, "shutdown_multimodal_worker")
-    def test_shutdown_idempotent(
+    def test_shutdown_idempotent(  # pylint: disable=no-self-use
         self,
         mock_shutdown_worker: MagicMock,
         mock_shutdown_pre_uploader: MagicMock,

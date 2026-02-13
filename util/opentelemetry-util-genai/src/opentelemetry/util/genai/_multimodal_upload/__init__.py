@@ -26,9 +26,9 @@ from opentelemetry.util.genai._multimodal_upload.multimodal_upload_hook import (
     get_or_load_pre_uploader,
     get_or_load_uploader,
     get_or_load_uploader_pair,
-    get_uploader_pair,
     get_pre_uploader,
     get_uploader,
+    get_uploader_pair,
     load_pre_uploader_hook,
     load_uploader_hook,
 )

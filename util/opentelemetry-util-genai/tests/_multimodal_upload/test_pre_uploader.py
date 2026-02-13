@@ -4,8 +4,8 @@ Includes extension mapping, URL generation, meta processing, message handling, a
 """
 # pylint: disable=too-many-lines
 
-import base64
 import asyncio
+import base64
 import os
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -753,7 +753,9 @@ class TestPreUploadEventLoop:
 
         async def _dummy():
             await asyncio.sleep(0)
-            return {"x": UriMetadata(content_type="image/png", content_length=1)}
+            return {
+                "x": UriMetadata(content_type="image/png", content_length=1)
+            }
 
         assert pre_uploader._run_async(_dummy(), timeout=0.1) == {}
 

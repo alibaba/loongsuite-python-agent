@@ -30,8 +30,8 @@ from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
 )
 from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
@@ -106,7 +106,9 @@ def _parse_env_bool(value: Optional[str], default: bool) -> bool:
 
 
 def get_multimodal_upload_mode() -> str:
-    return os.getenv(OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none").lower()
+    return os.getenv(
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none"
+    ).lower()
 
 
 def should_process_multimodal_input() -> bool:
@@ -125,7 +127,9 @@ def is_multimodal_download_enabled() -> bool:
 
 
 def should_verify_multimodal_download_ssl() -> bool:
-    value = os.getenv(OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY)
+    value = os.getenv(
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY
+    )
     if not value:
         return True
     return value.lower() not in ("false", "0", "no")
@@ -155,7 +159,9 @@ def get_multimodal_allowed_root_paths() -> List[str]:
     if not allowed_roots_str:
         return []
 
-    paths = [p.strip() for p in re.split(r"[,]", allowed_roots_str) if p.strip()]
+    paths = [
+        p.strip() for p in re.split(r"[,]", allowed_roots_str) if p.strip()
+    ]
     return [os.path.abspath(p) for p in paths]
 
 
@@ -165,7 +171,9 @@ def get_multimodal_uploader_hook_name() -> Optional[str]:
 
 
 def get_multimodal_pre_uploader_hook_name() -> Optional[str]:
-    hook_name = os.getenv(OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER, "fs")
+    hook_name = os.getenv(
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER, "fs"
+    )
     return hook_name or None
 
 

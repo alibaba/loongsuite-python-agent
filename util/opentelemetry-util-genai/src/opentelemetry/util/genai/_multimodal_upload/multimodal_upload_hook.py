@@ -32,7 +32,7 @@ _load_once = Once()
 def _iter_entry_points(group: str) -> list[Any]:
     eps = metadata.entry_points()
     if hasattr(eps, "select"):
-        return list(eps.select(group=group))
+        return list(eps.select(group=group))  # pyright: ignore [reportUnknownMemberType, reportUnknownArgumentType， reportAttributeAccessIssue]
     legacy_group_eps = eps[group] if group in eps else []
     return list(legacy_group_eps)
 

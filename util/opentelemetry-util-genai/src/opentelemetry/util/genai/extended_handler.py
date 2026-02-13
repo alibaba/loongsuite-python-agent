@@ -127,6 +127,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     - All operations supported by the base TelemetryHandler (LLM/chat)
     - Async multimodal processing (via MultimodalProcessingMixin)
     """
+
     def __init__(
         self,
         tracer_provider: TracerProvider | None = None,
@@ -163,7 +164,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         error_type: str | None = None,
     ) -> None:
         """Record extended metrics for any invocation type."""
-        if self._metrics_recorder is not None:
+        if self._metrics_recorder is not None and isinstance(
+            self._metrics_recorder, ExtendedInvocationMetricsRecorder
+        ):
             self._metrics_recorder.record_extended(
                 span, invocation, error_type=error_type
             )
