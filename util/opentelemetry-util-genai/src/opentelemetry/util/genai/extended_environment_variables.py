@@ -56,7 +56,7 @@ OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE = (
 .. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE
 
 Upload mode for multimodal data. Must be one of ``none``, ``input``, ``output``, or ``both``.
-Defaults to ``both``.
+Defaults to ``none``.
 """
 
 OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED = (
@@ -65,8 +65,8 @@ OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED = (
 """
 .. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED
 
-Whether to download and re-upload external URI references. Set to ``true`` or ``false``.
-Defaults to ``true``.
+Whether to download from external URI and re-upload to storage. Set to ``true`` or ``false``.
+Defaults to ``false``.
 """
 
 OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY = (
@@ -78,4 +78,59 @@ OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY = (
 Whether to verify SSL certificates when downloading external URI references.
 Set to ``true`` or ``false``. Defaults to ``true``.
 Disabling SSL verification may expose to man-in-the-middle attacks.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED
+
+Whether to enable audio transcoding in multimodal pre-processing
+(currently PCM16/L16/PCM to WAV).
+Set to ``true`` or ``false``. Defaults to ``false``.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED
+
+Whether to allow the multimodal pipeline to read and upload files directly
+from the local file system (supports ``file://`` URIs, absolute paths, and
+relative paths).
+Set to ``true`` or ``false``. Defaults to ``false``.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS
+
+List of allowed root paths for local file access (comma separated).
+Only files within these paths will be allowed for upload.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER
+
+Select multimodal uploader hook name from entry point group
+``opentelemetry_genai_multimodal_uploader``.
+Defaults to ``fs`` when unset.
+"""
+
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER
+
+Select multimodal pre-uploader hook name from entry point group
+``opentelemetry_genai_multimodal_pre_uploader``.
+Defaults to ``fs`` when unset.
 """

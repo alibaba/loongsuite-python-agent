@@ -4223,12 +4223,14 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-multimodal-upload = [
-    { name = "fsspec" },
-    { name = "httpx" },
+audio-conversion = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }, marker = "python_full_version >= '3.10'" },
     { name = "soundfile" },
+]
+multimodal-upload = [
+    { name = "fsspec" },
+    { name = "httpx" },
 ]
 test = [
     { name = "pytest" },
@@ -4242,14 +4244,14 @@ requires-dist = [
     { name = "fsspec", marker = "extra == 'multimodal-upload'", specifier = ">=2025.9.0" },
     { name = "fsspec", marker = "extra == 'upload'", specifier = ">=2025.9.0" },
     { name = "httpx", marker = "extra == 'multimodal-upload'" },
-    { name = "numpy", marker = "extra == 'multimodal-upload'" },
+    { name = "numpy", marker = "extra == 'audio-conversion'" },
     { name = "opentelemetry-api", git = "https://github.com/open-telemetry/opentelemetry-python?subdirectory=opentelemetry-api&branch=main" },
     { name = "opentelemetry-instrumentation", editable = "opentelemetry-instrumentation" },
     { name = "opentelemetry-semantic-conventions", git = "https://github.com/open-telemetry/opentelemetry-python?subdirectory=opentelemetry-semantic-conventions&branch=main" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
-    { name = "soundfile", marker = "extra == 'multimodal-upload'" },
+    { name = "soundfile", marker = "extra == 'audio-conversion'" },
 ]
-provides-extras = ["multimodal-upload", "test", "upload"]
+provides-extras = ["audio-conversion", "multimodal-upload", "test", "upload"]
 
 [[package]]
 name = "opentelemetry-util-http"

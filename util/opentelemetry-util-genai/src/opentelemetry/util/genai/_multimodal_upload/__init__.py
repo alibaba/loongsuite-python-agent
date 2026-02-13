@@ -12,29 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Multimodal Upload Module
-
-Provides upload support for multimodal data (images, audio, video).
-
-Responsibilities:
-1. Define and manage global Uploader/PreUploader singletons
-2. Provide set_*/get_* interfaces for external initialization and retrieval
-3. extended_handler.py retrieves instances via get_uploader()/get_pre_uploader()
-
-Note: This module does not create concrete instances, only manages singletons.
-Concrete instances are created by external modules like ARMS storage.py and registered via set_*().
-"""
+"""Multimodal upload public exports."""
 
 from __future__ import annotations
 
-from typing import Optional
-
-from opentelemetry.util._once import Once
 from opentelemetry.util.genai._multimodal_upload._base import (
     PreUploader,
     PreUploadItem,
     Uploader,
     UploadItem,
+)
+from opentelemetry.util.genai._multimodal_upload.multimodal_upload_hook import (
+    get_or_load_pre_uploader,
+    get_or_load_uploader,
+    get_or_load_uploader_pair,
+    get_pre_uploader,
+    get_uploader,
+    get_uploader_pair,
+    load_pre_uploader_hook,
+    load_uploader_hook,
 )
 
 try:
@@ -51,50 +47,18 @@ try:
 except ImportError:
     MultimodalPreUploader = None
 
-_uploader: Optional[Uploader] = None
-_uploader_set_once = Once()
-_preuploader: Optional[PreUploader] = None
-_preuploader_set_once = Once()
-
-
-def set_uploader(uploader: Uploader) -> None:
-    """Set global Uploader instance (can only be set once)"""
-
-    def _set() -> None:
-        global _uploader  # pylint: disable=global-statement
-        _uploader = uploader
-
-    _uploader_set_once.do_once(_set)
-
-
-def get_uploader() -> Optional[Uploader]:
-    """Get global Uploader instance"""
-    return _uploader
-
-
-def set_pre_uploader(pre_uploader: PreUploader) -> None:
-    """Set global PreUploader instance (can only be set once)"""
-
-    def _set() -> None:
-        global _preuploader  # pylint: disable=global-statement
-        _preuploader = pre_uploader
-
-    _preuploader_set_once.do_once(_set)
-
-
-def get_pre_uploader() -> Optional[PreUploader]:
-    """Get global PreUploader instance"""
-    return _preuploader
-
-
 __all__ = [
     "UploadItem",
     "PreUploadItem",
     "Uploader",
     "PreUploader",
-    "set_uploader",
+    "load_uploader_hook",
+    "load_pre_uploader_hook",
+    "get_uploader_pair",
+    "get_or_load_uploader",
+    "get_or_load_pre_uploader",
+    "get_or_load_uploader_pair",
     "get_uploader",
-    "set_pre_uploader",
     "get_pre_uploader",
 ]
 
