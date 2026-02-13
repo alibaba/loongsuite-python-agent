@@ -1,24 +1,17 @@
 from __future__ import annotations
 
-# pyright: reportMissingImports=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportAttributeAccessIssue=false
-# ruff: noqa: I001
-
-from importlib import metadata
 import logging
-from os import environ
+from importlib import metadata
 from typing import Any, Optional, Protocol, runtime_checkable
 
 from opentelemetry.util._once import Once
-from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,
+from opentelemetry.util.genai.utils import (
+    get_multimodal_pre_uploader_hook_name,
+    get_multimodal_upload_mode,
+    get_multimodal_uploader_hook_name,
 )
 
-from ._base import (
-    PreUploader,
-    Uploader,
-)
+from ._base import PreUploader, Uploader
 
 _logger = logging.getLogger(__name__)
 
@@ -29,8 +22,6 @@ _MULTIMODAL_PRE_UPLOADER_ENTRY_POINT_GROUP = (
     "opentelemetry_genai_multimodal_pre_uploader"
 )
 
-_DEFAULT_UPLOADER_HOOK = "fs"
-_DEFAULT_PRE_UPLOADER_HOOK = "fs"
 _UPLOAD_MODE_NONE = "none"
 
 _uploader: Optional[Uploader] = None
@@ -84,16 +75,11 @@ def load_uploader_hook() -> Optional[Uploader]:
     - call zero-arg hook factory to build uploader instance
     - validate returned object type (`Uploader`)
     """
-    upload_mode = environ.get(
-        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, _UPLOAD_MODE_NONE
-    ).lower()
+    upload_mode = get_multimodal_upload_mode()
     if upload_mode == _UPLOAD_MODE_NONE:
         return None
 
-    hook_name = environ.get(
-        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,
-        _DEFAULT_UPLOADER_HOOK,
-    )
+    hook_name = get_multimodal_uploader_hook_name()
     if not hook_name:
         return None
 
@@ -121,16 +107,13 @@ def load_pre_uploader_hook() -> Optional[PreUploader]:
     - call zero-arg hook factory to build pre-uploader instance
     - validate returned object type (`PreUploader`)
     """
-    upload_mode = environ.get(
-        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, _UPLOAD_MODE_NONE
-    ).lower()
+    upload_mode = get_multimodal_upload_mode()
     if upload_mode == _UPLOAD_MODE_NONE:
         return None
 
-    hook_name = environ.get(
-        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
-        _DEFAULT_PRE_UPLOADER_HOOK,
-    )
+    hook_name = get_multimodal_pre_uploader_hook_name()
+    if not hook_name:
+        return None
     pre_uploader = _load_by_name(
         hook_name=hook_name,
         group=_MULTIMODAL_PRE_UPLOADER_ENTRY_POINT_GROUP,
@@ -166,9 +149,26 @@ def get_or_load_uploader_pair() -> tuple[
     return _uploader, _pre_uploader
 
 
-def get_uploader() -> Optional[Uploader]:
+def get_uploader_pair() -> tuple[Optional[Uploader], Optional[PreUploader]]:
+    """Return cached uploader pair without triggering lazy loading."""
+    return _uploader, _pre_uploader
+
+
+def get_or_load_uploader() -> Optional[Uploader]:
+    """Get uploader and trigger lazy loading when needed."""
     return get_or_load_uploader_pair()[0]
 
 
-def get_pre_uploader() -> Optional[PreUploader]:
+def get_or_load_pre_uploader() -> Optional[PreUploader]:
+    """Get pre-uploader and trigger lazy loading when needed."""
     return get_or_load_uploader_pair()[1]
+
+
+def get_uploader() -> Optional[Uploader]:
+    """Return cached uploader without triggering lazy loading."""
+    return _uploader
+
+
+def get_pre_uploader() -> Optional[PreUploader]:
+    """Return cached pre-uploader without triggering lazy loading."""
+    return _pre_uploader

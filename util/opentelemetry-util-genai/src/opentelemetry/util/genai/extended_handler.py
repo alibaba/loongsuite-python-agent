@@ -65,7 +65,7 @@ from __future__ import annotations
 
 import timeit
 from contextlib import contextmanager
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 
 from opentelemetry import context as otel_context
 from opentelemetry._logs import LoggerProvider
@@ -127,7 +127,6 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     - All operations supported by the base TelemetryHandler (LLM/chat)
     - Async multimodal processing (via MultimodalProcessingMixin)
     """
-
     def __init__(
         self,
         tracer_provider: TracerProvider | None = None,
@@ -143,29 +142,28 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         # Initialize multimodal processing (from Mixin)
         self._init_multimodal()
+        self.__class__._ensure_multimodal_shutdown_atexit_registered()
 
     # ==================== Metrics Helper ====================
 
     def _record_extended_metrics(
         self,
         span: Span,
-        invocation: (
-            LLMInvocation
-            | EmbeddingInvocation
-            | ExecuteToolInvocation
-            | InvokeAgentInvocation
-            | CreateAgentInvocation
-            | RetrieveInvocation
-            | RerankInvocation
-            | MemoryInvocation
-        ),
+        invocation: Union[
+            LLMInvocation,
+            EmbeddingInvocation,
+            ExecuteToolInvocation,
+            InvokeAgentInvocation,
+            CreateAgentInvocation,
+            RetrieveInvocation,
+            RerankInvocation,
+            MemoryInvocation,
+        ],
         *,
         error_type: str | None = None,
     ) -> None:
         """Record extended metrics for any invocation type."""
-        if self._metrics_recorder is not None and isinstance(
-            self._metrics_recorder, ExtendedInvocationMetricsRecorder
-        ):
+        if self._metrics_recorder is not None:
             self._metrics_recorder.record_extended(
                 span, invocation, error_type=error_type
             )
@@ -216,13 +214,6 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         # No multimodal: use parent's sync path
         return super().fail_llm(invocation, error)
-
-    # ==================== Shutdown ====================
-
-    @classmethod
-    def shutdown(cls, timeout: float = 5.0) -> None:
-        """Gracefully shutdown async worker."""
-        cls.shutdown_multimodal_worker(timeout)
 
     # ==================== Create Agent Operations ====================
 

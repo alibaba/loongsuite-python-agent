@@ -30,6 +30,7 @@ Usage:
 
 from __future__ import annotations
 
+import atexit
 import logging
 import os
 import queue
@@ -78,7 +79,10 @@ from opentelemetry.util.genai.types import (
     OutputMessage,
     Uri,
 )
-from opentelemetry.util.genai.utils import gen_ai_json_dumps
+from opentelemetry.util.genai.utils import (
+    gen_ai_json_dumps,
+    get_multimodal_upload_mode,
+)
 
 if TYPE_CHECKING:
     from opentelemetry.util.genai._multimodal_upload._base import (
@@ -127,15 +131,16 @@ class MultimodalProcessingMixin:
     _async_worker: ClassVar[Optional[threading.Thread]] = None
     _async_lock: ClassVar[threading.Lock] = threading.Lock()
     _atexit_handler: ClassVar[Optional[object]] = None
+    _shutdown_atexit_lock: ClassVar[threading.Lock] = threading.Lock()
+    _shutdown_lock: ClassVar[threading.Lock] = threading.Lock()
+    _shutdown_called: ClassVar[bool] = False
 
     # Instance-level attributes (initialized by _init_multimodal)
     _multimodal_enabled: bool
 
     def _init_multimodal(self) -> None:
         """Initialize multimodal-related instance attributes, called in subclass __init__"""
-        upload_mode = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none"
-        ).lower()
+        upload_mode = get_multimodal_upload_mode()
 
         uploader, pre_uploader = self._get_uploader_and_pre_uploader()
         self._multimodal_enabled = (
@@ -243,7 +248,7 @@ class MultimodalProcessingMixin:
     def shutdown_multimodal_worker(cls, timeout: float = 5.0) -> None:
         """Gracefully shutdown async worker
 
-        Called by ArmsShutdownProcessor, no need to call other components' shutdown internally.
+        Called by shutdown during graceful exit.
 
         Strategy:
         1. Try to send None signal to queue within timeout
@@ -277,6 +282,64 @@ class MultimodalProcessingMixin:
         # Clean up state
         cls._async_worker = None
         cls._async_queue = None
+
+    @classmethod
+    def _ensure_multimodal_shutdown_atexit_registered(cls) -> None:
+        """Register a single process-level atexit shutdown callback."""
+        if cls._atexit_handler is not None:
+            return
+        with cls._shutdown_atexit_lock:
+            if cls._atexit_handler is not None:
+                return
+            cls._atexit_handler = atexit.register(cls._shutdown_for_exit)
+
+    @classmethod
+    def _shutdown_for_exit(cls) -> None:
+        """atexit callback entrypoint for multimodal graceful shutdown."""
+        cls.shutdown()
+
+    @classmethod
+    def shutdown(
+        cls,
+        worker_timeout: float = 5.0,
+        pre_uploader_timeout: float = 2.0,
+        uploader_timeout: float = 5.0,
+    ) -> None:
+        """Shutdown multimodal worker, pre-uploader and uploader in order."""
+        with cls._shutdown_lock:
+            if cls._shutdown_called:
+                return
+            cls._shutdown_called = True
+
+        cls.shutdown_multimodal_worker(worker_timeout)
+        cls._shutdown_pre_uploader(pre_uploader_timeout)
+        cls._shutdown_uploader(uploader_timeout)
+
+    @classmethod
+    def _shutdown_pre_uploader(cls, timeout: float) -> None:
+        try:
+            from opentelemetry.util.genai._multimodal_upload import (  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
+                get_pre_uploader,
+            )
+
+            pre_uploader = get_pre_uploader()
+            if pre_uploader is not None and hasattr(pre_uploader, "shutdown"):
+                pre_uploader.shutdown(timeout=timeout)
+        except Exception as exc:  # pylint: disable=broad-except
+            _logger.warning("Error shutting down PreUploader: %s", exc)
+
+    @classmethod
+    def _shutdown_uploader(cls, timeout: float) -> None:
+        try:
+            from opentelemetry.util.genai._multimodal_upload import (  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
+                get_uploader,
+            )
+
+            uploader = get_uploader()
+            if uploader is not None and hasattr(uploader, "shutdown"):
+                uploader.shutdown(timeout=timeout)
+        except Exception as exc:  # pylint: disable=broad-except
+            _logger.warning("Error shutting down Uploader: %s", exc)
 
     @classmethod
     def _at_fork_reinit(cls) -> None:

@@ -26,6 +26,7 @@ def _default_upload_mode_enabled_for_tests():
         {
             "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
             "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED": "true",
         },
     ):
         yield
@@ -158,3 +159,31 @@ class TestAudioFormatDetection:
         else:
             # If library unavailable, should keep original format
             assert uploads[0].content_type == pcm_mime_type
+
+    @staticmethod
+    def test_pcm16_conversion_disabled_by_default():
+        """Test PCM16 conversion stays disabled when env var is unset"""
+        with patch.dict(
+            "os.environ",
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+            },
+            clear=True,
+        ):
+            pre_uploader = MultimodalPreUploader(base_path="/tmp/test_upload")
+            pcm_data = b"\x00\x01" * 1000
+            part = Blob(
+                content=pcm_data, mime_type="audio/pcm16", modality="audio"
+            )
+            input_messages = [InputMessage(role="user", parts=[part])]
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000000000000000000,
+                input_messages=input_messages,
+                output_messages=None,
+            )
+
+            assert len(uploads) == 1
+            assert uploads[0].content_type == "audio/pcm16"

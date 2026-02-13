@@ -42,7 +42,8 @@ fs = "opentelemetry.util.genai._multimodal_upload.pre_uploader:fs_pre_uploader_h
 [project.optional-dependencies]
 test = ["pytest>=7.0.0"]
 upload = ["fsspec>=2025.9.0"]
-multimodal_upload = ["httpx", "fsspec>=2025.9.0", "numpy", "soundfile"]
+multimodal_upload = ["httpx", "fsspec>=2025.9.0"]
+audio_conversion = ["numpy", "soundfile"]
 
 [project.urls]
 Homepage = "https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/util/opentelemetry-util-genai"

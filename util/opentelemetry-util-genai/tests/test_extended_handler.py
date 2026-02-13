@@ -22,18 +22,16 @@ import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
 
-import pytest  # [Aliyun-Python-Agent]
-
 from opentelemetry import trace
 from opentelemetry.instrumentation._semconv import (
     OTEL_SEMCONV_STABILITY_OPT_IN,
     _OpenTelemetrySemanticConventionStability,
 )
 from opentelemetry.sdk._logs import LoggerProvider
-from opentelemetry.sdk._logs.export import (
-    InMemoryLogExporter as InMemoryLogRecordExporter,  # pylint: disable=no-name-in-module; [Aliyun Python Agent] This api is changed to InMemoryLogRecordExporter in 0.59b0
+from opentelemetry.sdk._logs.export import (  # pylint: disable=no-name-in-module
+    InMemoryLogRecordExporter,
+    SimpleLogRecordProcessor,
 )
-from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
 from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
@@ -67,6 +65,7 @@ from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
 )
 from opentelemetry.util.genai.extended_handler import (
+    ExtendedTelemetryHandler,
     get_extended_telemetry_handler,
 )
 from opentelemetry.util.genai.extended_types import (
@@ -395,7 +394,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.assertIn(GEN_AI_TOOL_CALL_ARGUMENTS, span_attrs)
         self.assertIn(GEN_AI_TOOL_CALL_RESULT, span_attrs)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_execute_tool_without_sensitive_data(self):
         # Without experimental mode, sensitive data should not be recorded
         with self.telemetry_handler.execute_tool() as invocation:
@@ -601,7 +599,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_invoke_agent_without_content_capturing(self):
         """Test that messages are NOT captured when content capturing is disabled."""
         with self.telemetry_handler.invoke_agent() as invocation:
@@ -686,7 +683,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Verify system instruction is captured
         self.assertIn(GenAI.GEN_AI_SYSTEM_INSTRUCTIONS, span_attrs)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_invoke_agent_with_system_instruction_without_content_capturing(
         self,
     ):
@@ -704,7 +700,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Verify system instruction is NOT captured
         self.assertNotIn(GenAI.GEN_AI_SYSTEM_INSTRUCTIONS, span_attrs)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="EVENT_ONLY",
@@ -748,7 +743,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, attrs)
         self.assertIn(GenAI.GEN_AI_OUTPUT_MESSAGES, attrs)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_AND_EVENT",
@@ -785,7 +779,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         )
         self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, log_record.attributes)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="EVENT_ONLY",
@@ -876,7 +869,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Documents should be present with opt-in
         self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
-    @pytest.mark.skip("Enterprise: skip this test for enterprise options")
     def test_retrieve_without_sensitive_data(self):
         # Without experimental mode, documents should not be recorded
         documents = [{"id": "123", "content": "sensitive data"}]
@@ -1821,26 +1813,27 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
 
 
 class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
-    """ExtendedTelemetryHandler shutdown 相关测试
+    """Tests for ExtendedTelemetryHandler shutdown behavior.
 
-    设计：使用真实 worker loop，通过 mock task.handler._async_stop_llm 来控制任务执行
+    Design: use the real worker loop and control task execution through
+    mock task.handler._async_stop_llm.
     """
 
     def test_shutdown_waits_for_slow_task(self):
-        """测试 shutdown 等待慢任务完成（poison pill 模式）"""
-        # 重置状态
+        """Test shutdown waits for slow task completion (poison-pill mode)."""
+        # Reset state
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
 
-        # 跟踪任务处理
+        # Track task processing
         task_started = threading.Event()
         task_completed = threading.Event()
 
         try:
-            # 确保 worker 启动
+            # Ensure worker is started
             MultimodalProcessingMixin._ensure_async_worker()
 
-            # 创建一个带慢处理的 mock handler
+            # Create a mock handler with slow processing
             mock_handler = MagicMock()
 
             def slow_stop(task):
@@ -1855,27 +1848,28 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             )
             MultimodalProcessingMixin._async_queue.put(mock_task)
 
-            # 等待任务开始
+            # Wait for the task to start
             self.assertTrue(
                 task_started.wait(timeout=1.0), "Task did not start"
             )
 
-            # shutdown 应该等待任务完成（poison pill 排在后面）
+            # Shutdown should wait for task completion
+            # (the poison pill is queued after the task)
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=5.0)
 
-            # 验证任务完成了
+            # Verify the task has completed
             self.assertTrue(
                 task_completed.is_set(), "Task should have completed"
             )
-            # 幂等性：再次调用不报错
+            # Idempotency: repeated shutdown should not fail
             MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=1.0)
         finally:
             MultimodalProcessingMixin._async_queue = None
             MultimodalProcessingMixin._async_worker = None
 
     def test_shutdown_timeout_exits(self):
-        """测试超时后 shutdown 直接退出"""
-        # 重置状态
+        """Test shutdown exits when timeout is reached."""
+        # Reset state
         MultimodalProcessingMixin._async_queue = None
         MultimodalProcessingMixin._async_worker = None
 
@@ -1898,12 +1892,12 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             )
             MultimodalProcessingMixin._async_queue.put(mock_task)
 
-            # 等待任务开始
+            # Wait for the task to start
             self.assertTrue(
                 task_started.wait(timeout=1.0), "Task did not start"
             )
 
-            # shutdown timeout=0.3s，任务阻塞 5s
+            # Shutdown timeout=0.3s, task blocks for 5s
             start = time.time()
             timeout = 0.3
             MultimodalProcessingMixin.shutdown_multimodal_worker(
@@ -1911,7 +1905,7 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             )
             elapsed = time.time() - start
 
-            # 验证超时后返回（不可能短于 timeout）
+            # Verify it returns after timeout (cannot be shorter than timeout)
             self.assertLess(
                 elapsed, timeout + 0.2, f"shutdown took {elapsed:.2f}s"
             )
@@ -1923,3 +1917,54 @@ class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
             time.sleep(0.1)
             MultimodalProcessingMixin._async_queue = None
             MultimodalProcessingMixin._async_worker = None
+
+
+class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
+    def setUp(self):
+        ExtendedTelemetryHandler._shutdown_called = False
+
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_uploader")
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_pre_uploader")
+    @patch.object(ExtendedTelemetryHandler, "shutdown_multimodal_worker")
+    def test_shutdown_sequence(
+        self,
+        mock_shutdown_worker: MagicMock,
+        mock_shutdown_pre_uploader: MagicMock,
+        mock_shutdown_uploader: MagicMock,
+    ):
+        calls = []
+
+        mock_shutdown_worker.side_effect = (
+            lambda timeout: calls.append(("handler", timeout))
+        )
+        mock_shutdown_pre_uploader.side_effect = (
+            lambda timeout: calls.append(("pre_uploader", timeout))
+        )
+        mock_shutdown_uploader.side_effect = (
+            lambda timeout: calls.append(("uploader", timeout))
+        )
+
+        ExtendedTelemetryHandler.shutdown(
+            timeout=1.0, pre_uploader_timeout=2.0, uploader_timeout=3.0
+        )
+
+        self.assertEqual(
+            calls,
+            [("handler", 1.0), ("pre_uploader", 2.0), ("uploader", 3.0)],
+        )
+
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_uploader")
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_pre_uploader")
+    @patch.object(ExtendedTelemetryHandler, "shutdown_multimodal_worker")
+    def test_shutdown_idempotent(
+        self,
+        mock_shutdown_worker: MagicMock,
+        mock_shutdown_pre_uploader: MagicMock,
+        mock_shutdown_uploader: MagicMock,
+    ):
+        ExtendedTelemetryHandler.shutdown()
+        ExtendedTelemetryHandler.shutdown()
+
+        mock_shutdown_worker.assert_called_once()
+        mock_shutdown_pre_uploader.assert_called_once()
+        mock_shutdown_uploader.assert_called_once()

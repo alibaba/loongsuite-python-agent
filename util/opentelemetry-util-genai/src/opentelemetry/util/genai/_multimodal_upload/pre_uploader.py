@@ -31,9 +31,11 @@ import os
 import re
 import threading
 import time
+import weakref
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, get_args
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union, get_args
 from urllib.parse import urlparse
 
 import httpx
@@ -49,14 +51,19 @@ from opentelemetry.util.genai._multimodal_upload._base import (
     PreUploadItem,
 )
 from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
 )
 from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
+from opentelemetry.util.genai.utils import (
+    get_multimodal_allowed_root_paths,
+    get_multimodal_storage_base_path,
+    is_multimodal_audio_conversion_enabled,
+    is_multimodal_download_enabled,
+    is_multimodal_local_file_enabled,
+    should_process_multimodal_input,
+    should_process_multimodal_output,
+    should_verify_multimodal_download_ssl,
+)
 
 # Try importing audio processing libraries (optional dependencies)
 try:
@@ -115,6 +122,8 @@ class MultimodalPreUploader(PreUploader):
       (default: "false")
     - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY`: Enable SSL verification for downloads
       (default: "true")
+    - :envvar:`OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED`: Enable audio conversion
+      (currently PCM16/L16/PCM to WAV, default: "false")
 
     The ``httpx`` package (for URI metadata fetching)
     should be installed. For audio format conversion support, install ``numpy`` and ``soundfile``.
@@ -128,52 +137,31 @@ class MultimodalPreUploader(PreUploader):
         extra_meta: Additional metadata to include in each upload item (e.g., workspaceId, serviceId for ARMS)
     """
 
-    # Class-level event loop and dedicated thread
-    _loop: ClassVar[Optional[asyncio.AbstractEventLoop]] = None
-    _loop_thread: ClassVar[Optional[threading.Thread]] = None
-    _loop_lock: ClassVar[threading.Lock] = threading.Lock()
-    _shutdown_called: ClassVar[bool] = False
-    # Active task counter (for graceful shutdown wait)
-    _active_tasks: ClassVar[int] = 0
-    _active_cond: ClassVar[threading.Condition] = threading.Condition()
-
     def __init__(
         self, base_path: str, extra_meta: Optional[Dict[str, str]] = None
     ) -> None:
         self._base_path = base_path
         self._extra_meta = extra_meta or {}
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop_thread: Optional[threading.Thread] = None
+        self._loop_lock = threading.Lock()
+        self._shutdown_called = False
+        # Active task counter (for graceful shutdown wait)
+        self._active_tasks = 0
+        self._active_cond = threading.Condition()
 
         # Read multimodal upload configuration (static config, read once only)
-        upload_mode = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE, "none"
-        ).lower()
-        self._process_input = upload_mode in ("input", "both")
-        self._process_output = upload_mode in ("output", "both")
-        self._download_enabled = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED, "false"
-        ).lower() in ("true", "1", "yes")
-        self._ssl_verify = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY, "true"
-        ).lower() not in ("false", "0", "no")
+        self._process_input = should_process_multimodal_input()
+        self._process_output = should_process_multimodal_output()
+        self._download_enabled = is_multimodal_download_enabled()
+        self._ssl_verify = should_verify_multimodal_download_ssl()
+        self._audio_conversion_enabled = (
+            is_multimodal_audio_conversion_enabled()
+        )
 
         # Local file configuration
-        self._local_file_enabled = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED, "false"
-        ).lower() in ("true", "1", "yes")
-
-        allowed_roots_str = os.getenv(
-            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS, ""
-        )
-        self._allowed_root_paths: List[str] = []
-        if allowed_roots_str:
-            # Parse split by comma
-            paths = [
-                p.strip()
-                for p in re.split(r"[,]", allowed_roots_str)
-                if p.strip()
-            ]
-            # Convert to absolute paths and normalize
-            self._allowed_root_paths = [os.path.abspath(p) for p in paths]
+        self._local_file_enabled = is_multimodal_local_file_enabled()
+        self._allowed_root_paths = get_multimodal_allowed_root_paths()
 
         if self._local_file_enabled and not self._allowed_root_paths:
             _logger.warning(
@@ -181,39 +169,48 @@ class MultimodalPreUploader(PreUploader):
                 "Local file uploads will be blocked for security."
             )
 
+        # register_at_fork: Reset state in child process
+        # Use weak reference to avoid preventing instance from being GC'd
+        if hasattr(os, "register_at_fork"):
+            weak_reinit = weakref.WeakMethod(self._at_fork_reinit)
+            os.register_at_fork(
+                after_in_child=lambda: (ref := weak_reinit()) and ref and ref()
+            )
+
     @property
     def base_path(self) -> str:
         return self._base_path
 
-    @classmethod
-    def _ensure_loop(cls) -> asyncio.AbstractEventLoop:
+    def _ensure_loop(self) -> asyncio.AbstractEventLoop:
         """Ensure event loop exists and is running (thread-safe)"""
         # Fast path: loop exists and thread is alive
         if (
-            cls._loop is not None
-            and cls._loop_thread is not None
-            and cls._loop_thread.is_alive()
+            self._loop is not None
+            and self._loop_thread is not None
+            and self._loop_thread.is_alive()
         ):
-            return cls._loop
+            return self._loop
 
         # Slow path: need to create or rebuild (within lock)
-        with cls._loop_lock:
+        with self._loop_lock:
+            if self._shutdown_called:
+                raise RuntimeError("MultimodalPreUploader already shutdown")
             # Double check: check if loop exists and thread is alive
             if (
-                cls._loop is not None
-                and cls._loop_thread is not None
-                and cls._loop_thread.is_alive()
+                self._loop is not None
+                and self._loop_thread is not None
+                and self._loop_thread.is_alive()
             ):
-                return cls._loop
+                return self._loop
 
             # Clean up old loop (if thread is dead)
-            if cls._loop is not None:
+            if self._loop is not None:
                 try:
-                    cls._loop.call_soon_threadsafe(cls._loop.stop)
+                    self._loop.call_soon_threadsafe(self._loop.stop)
                 except RuntimeError:
                     pass  # Loop already stopped
-                cls._loop = None
-                cls._loop_thread = None
+                self._loop = None
+                self._loop_thread = None
 
             # Create new event loop
             loop = asyncio.new_event_loop()
@@ -236,9 +233,9 @@ class MultimodalPreUploader(PreUploader):
                     break
                 threading.Event().wait(0.001)
 
-            cls._loop_thread = thread
-            cls._loop = loop
-            return cls._loop
+            self._loop_thread = thread
+            self._loop = loop
+            return self._loop
 
     def shutdown(self, timeout: float = 5.0) -> None:
         """
@@ -249,66 +246,74 @@ class MultimodalPreUploader(PreUploader):
         2. Wait for active tasks to complete first (wait for _active_tasks == 0)
         3. Stop event loop and exit after timeout
         """
-        cls = self.__class__
-
-        if cls._shutdown_called:
-            return
-        cls._shutdown_called = True
+        with self._loop_lock:
+            if self._shutdown_called:
+                return
+            self._shutdown_called = True
 
         deadline = time.time() + timeout
 
         # Phase 1: Wait for active tasks to complete
-        with cls._active_cond:
-            while cls._active_tasks > 0:
+        with self._active_cond:
+            while self._active_tasks > 0:
                 remaining = deadline - time.time()
                 if remaining <= 0:
                     _logger.warning(
                         "MultimodalPreUploader shutdown timeout, %d tasks still active",
-                        cls._active_tasks,
+                        self._active_tasks,
                     )
                     break
-                cls._active_cond.wait(timeout=remaining)
+                self._active_cond.wait(timeout=remaining)
 
-        with cls._loop_lock:
-            if cls._loop is None or cls._loop_thread is None:
+        with self._loop_lock:
+            if self._loop is None or self._loop_thread is None:
                 return
 
             # Phase 2: Stop event loop
             try:
-                cls._loop.call_soon_threadsafe(cls._loop.stop)
+                self._loop.call_soon_threadsafe(self._loop.stop)
             except RuntimeError:
                 pass  # Loop already stopped
 
             # Phase 3: Wait for thread to exit
             remaining = max(0.0, deadline - time.time())
-            cls._loop_thread.join(timeout=remaining)
+            self._loop_thread.join(timeout=remaining)
 
             # Phase 4: Clean up state
-            cls._loop = None
-            cls._loop_thread = None
+            self._loop = None
+            self._loop_thread = None
 
-    @classmethod
-    def _at_fork_reinit(cls) -> None:
-        """Reset class-level state in child process after fork"""
+    def _at_fork_reinit(self) -> None:
+        """Reset instance state in child process after fork"""
         _logger.debug(
             "[_at_fork_reinit] MultimodalPreUploader reinitializing after fork"
         )
-        cls._loop_lock = threading.Lock()
-        cls._loop = None
-        cls._loop_thread = None
-        cls._shutdown_called = False
-        cls._active_tasks = 0
-        cls._active_cond = threading.Condition()
+        self._loop_lock = threading.Lock()
+        self._loop = None
+        self._loop_thread = None
+        self._shutdown_called = False
+        self._active_tasks = 0
+        self._active_cond = threading.Condition()
 
     def _run_async(
         self, coro: Any, timeout: float = 0.3
     ) -> Dict[str, UriMetadata]:
-        """Execute coroutine in class-level event loop (thread-safe)"""
-        cls = self.__class__
+        """Execute coroutine in instance event loop (thread-safe)"""
+
+        if self._shutdown_called:
+            close = getattr(coro, "close", None)
+            if callable(close):
+                close()
+            return {}
 
         # Increase active task count
-        with cls._active_cond:
-            cls._active_tasks += 1
+        with self._active_cond:
+            if self._shutdown_called:
+                close = getattr(coro, "close", None)
+                if callable(close):
+                    close()
+                return {}
+            self._active_tasks += 1
 
         try:
             loop = self._ensure_loop()
@@ -319,11 +324,16 @@ class MultimodalPreUploader(PreUploader):
             except concurrent.futures.TimeoutError:
                 future.cancel()
                 return {}  # Return empty result on timeout
+        except RuntimeError:
+            close = getattr(coro, "close", None)
+            if callable(close):
+                close()
+            return {}
         finally:
             # Decrease active task count and notify
-            with cls._active_cond:
-                cls._active_tasks -= 1
-                cls._active_cond.notify_all()
+            with self._active_cond:
+                self._active_tasks -= 1
+                self._active_cond.notify_all()
 
     @staticmethod
     def _strip_query_params(uri: str) -> str:
@@ -607,9 +617,8 @@ class MultimodalPreUploader(PreUploader):
             _logger.error("Failed to convert PCM16 to WAV: %s", exc)
             return None
 
-    @staticmethod
     def _normalize_audio_data(
-        data: bytes, mime_type: str, source_desc: str = ""
+        self, data: bytes, mime_type: str, source_desc: str = ""
     ) -> Tuple[bytes, str]:
         """Detect and convert audio format if needed"""
         if mime_type in ("audio/unknown", "audio/*", "audio"):
@@ -623,7 +632,10 @@ class MultimodalPreUploader(PreUploader):
                 )
                 mime_type = detected_mime
 
-        if mime_type in ("audio/pcm16", "audio/l16", "audio/pcm"):
+        if (
+            self._audio_conversion_enabled
+            and mime_type in ("audio/pcm16", "audio/l16", "audio/pcm")
+        ):
             wav_data = MultimodalPreUploader._convert_pcm16_to_wav(data)
             if wav_data:
                 _logger.debug(
@@ -796,17 +808,16 @@ class MultimodalPreUploader(PreUploader):
                 file_path = uri
 
             # Security check: must be absolute and within allowed root paths
-            abs_path = os.path.abspath(file_path)
+            abs_path = Path(file_path).resolve(strict=False)
 
             allowed = False
-            for root in self._allowed_root_paths:
-                # Use os.path.commonpath to safely check path containment
+            for root_str in self._allowed_root_paths:
+                root_path = Path(root_str).resolve()
                 try:
-                    if os.path.commonpath([root, abs_path]) == root:
-                        allowed = True
-                        break
+                    abs_path.relative_to(root_path)
+                    allowed = True
+                    break
                 except ValueError:
-                    # Paths on different drives or invalid
                     continue
 
             if not allowed:
@@ -924,8 +935,8 @@ class MultimodalPreUploader(PreUploader):
                         parsed_data = decoded_data
             # Only support base64 data URIs for now.
             # Non-base64 branch intentionally keeps defaults.
-        except Exception:  # pylint: disable=broad-except
-            pass
+        except Exception as exc:  # pylint: disable=broad-except
+            _logger.debug("Failed to parse data URI: %s", exc)
 
         return parsed_mime_type, parsed_data
 
@@ -1272,9 +1283,7 @@ class MultimodalPreUploader(PreUploader):
 
 def fs_pre_uploader_hook() -> Optional[PreUploader]:
     """Create file-system pre-uploader from environment variables."""
-    base_path = os.environ.get(
-        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH
-    )
+    base_path = get_multimodal_storage_base_path()
     if not base_path:
         _logger.warning(
             "%s is required but not set, multimodal pre-uploader disabled",
@@ -1283,7 +1292,3 @@ def fs_pre_uploader_hook() -> Optional[PreUploader]:
         return None
     return MultimodalPreUploader(base_path=base_path)
 
-
-# Module-level fork handler registration
-if hasattr(os, "register_at_fork"):
-    os.register_at_fork(after_in_child=MultimodalPreUploader._at_fork_reinit)

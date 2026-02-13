@@ -65,7 +65,7 @@ OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED = (
 """
 .. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED
 
-Whether to download and re-upload external URI references. Set to ``true`` or ``false``.
+Whether to download from external URI and re-upload to storage. Set to ``true`` or ``false``.
 Defaults to ``false``.
 """
 
@@ -80,13 +80,26 @@ Set to ``true`` or ``false``. Defaults to ``true``.
 Disabling SSL verification may expose to man-in-the-middle attacks.
 """
 
+OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED = (
+    "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED"
+)
+"""
+.. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED
+
+Whether to enable audio transcoding in multimodal pre-processing
+(currently PCM16/L16/PCM to WAV).
+Set to ``true`` or ``false``. Defaults to ``false``.
+"""
+
 OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED = (
     "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED"
 )
 """
 .. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED
 
-Whether to enable local file processing (including file:// URI and relative paths).
+Whether to allow the multimodal pipeline to read and upload files directly
+from the local file system (supports ``file://`` URIs, absolute paths, and
+relative paths).
 Set to ``true`` or ``false``. Defaults to ``false``.
 """
 
@@ -97,7 +110,7 @@ OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS = (
 .. envvar:: OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS
 
 List of allowed root paths for local file access (comma separated).
-Only files within these paths will be processed.
+Only files within these paths will be allowed for upload.
 """
 
 OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER = (

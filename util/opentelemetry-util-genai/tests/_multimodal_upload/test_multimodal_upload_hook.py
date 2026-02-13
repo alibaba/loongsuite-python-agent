@@ -86,6 +86,23 @@ class TestMultimodalUploadHook(TestCase):
         },
         clear=True,
     )
+    def test_getters_do_not_trigger_loading(self):
+        module = self._reload_module()
+        with patch.object(module, "_iter_entry_points") as mock_iter:
+            self.assertIsNone(module.get_uploader())
+            self.assertIsNone(module.get_pre_uploader())
+            self.assertEqual(module.get_uploader_pair(), (None, None))
+        mock_iter.assert_not_called()
+
+    @patch.dict(
+        "os.environ",
+        {
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE: "both",
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER: "fs",
+            OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER: "fs",
+        },
+        clear=True,
+    )
     def test_load_hooks_success(self):
         module = self._reload_module()
         calls = {"uploader": 0, "pre": 0}
@@ -117,6 +134,9 @@ class TestMultimodalUploadHook(TestCase):
         self.assertIs(pre_uploader2, pre_uploader)
         self.assertEqual(calls["uploader"], 1)
         self.assertEqual(calls["pre"], 1)
+        self.assertIs(module.get_uploader(), uploader)
+        self.assertIs(module.get_pre_uploader(), pre_uploader)
+        self.assertEqual(module.get_uploader_pair(), (uploader, pre_uploader))
 
     @patch.dict(
         "os.environ",

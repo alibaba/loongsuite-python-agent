@@ -5,6 +5,7 @@ Includes extension mapping, URL generation, meta processing, message handling, a
 # pylint: disable=too-many-lines
 
 import base64
+import asyncio
 import os
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -726,6 +727,36 @@ class TestPreUploadEventLoop:
             assert uploads[0].data == test_data
             assert uploads[1].source_uri == "https://example.com/test.png"
 
+    @staticmethod
+    def test_event_loop_is_instance_scoped():
+        """Different pre-uploader instances should own independent loops."""
+        pre_uploader_1 = MultimodalPreUploader(base_path="/tmp/test_upload_1")
+        pre_uploader_2 = MultimodalPreUploader(base_path="/tmp/test_upload_2")
+
+        loop_1 = pre_uploader_1._ensure_loop()
+        loop_2 = pre_uploader_2._ensure_loop()
+
+        assert loop_1 is not loop_2
+        assert pre_uploader_1._loop_thread is not pre_uploader_2._loop_thread
+
+        pre_uploader_1.shutdown(timeout=0.5)
+        assert pre_uploader_1._loop is None
+        assert pre_uploader_2._loop is not None
+
+        pre_uploader_2.shutdown(timeout=0.5)
+
+    @staticmethod
+    def test_run_async_after_shutdown_returns_empty():
+        """No new async task should be accepted after shutdown."""
+        pre_uploader = MultimodalPreUploader(base_path="/tmp/test_upload")
+        pre_uploader.shutdown(timeout=0.1)
+
+        async def _dummy():
+            await asyncio.sleep(0)
+            return {"x": UriMetadata(content_type="image/png", content_length=1)}
+
+        assert pre_uploader._run_async(_dummy(), timeout=0.1) == {}
+
 
 class TestPreUploadNonHttpUri:
     """Test non-HTTP URI handling"""
@@ -1175,6 +1206,51 @@ class TestPreUploadLocalFile:
             assert len(uploads) == 0
             # URI should remain unchanged
             assert message.parts[0].uri == file_uri
+
+    @staticmethod
+    def test_local_file_processing_symlink_traversal_blocked(
+        pre_uploader_factory, tmp_path
+    ):
+        """Test that symlink traversal outside allowed root is blocked"""
+        allowed_root = tmp_path / "allowed_root"
+        external_dir = tmp_path / "outside_root"
+        allowed_root.mkdir()
+        external_dir.mkdir()
+
+        secret_file = external_dir / "secret.txt"
+        secret_file.write_text("top secret", encoding="utf-8")
+
+        symlink_dir = allowed_root / "symlink_to_outside"
+        try:
+            os.symlink(external_dir, symlink_dir)
+        except (OSError, NotImplementedError):
+            pytest.skip("Symlinks are not supported on this platform")
+
+        target_path = symlink_dir / "secret.txt"
+        file_uri = f"file://{target_path}"
+
+        with patch.dict(
+            os.environ,
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED": "true",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS": str(
+                    allowed_root
+                ),
+            },
+        ):
+            pre_uploader = pre_uploader_factory()
+            part = Uri(modality="image", mime_type="image/png", uri=file_uri)
+            message = InputMessage(role="user", parts=[part])
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000,
+                input_messages=[message],
+                output_messages=[],
+            )
+
+        assert len(uploads) == 0
+        assert message.parts[0].uri == file_uri
 
     @staticmethod
     def test_local_file_processing_no_allowed_roots(pre_uploader_factory):

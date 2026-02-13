@@ -63,6 +63,19 @@ Hook 选择：
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER``: uploader hook 名称（默认 ``fs``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER``: pre-uploader hook 名称（默认 ``fs``）
 
+核心概念（Uploader & PreUploader）
+
+- ``PreUploader``（预处理器）负责“解析与改写消息”，不负责真正写存储：
+  - 识别 ``Base64Blob`` / ``Blob`` / ``Uri``，生成 ``UploadItem`` 列表
+  - 按 ``{base_path}/{date}/{md5}.{ext}`` 生成目标 URI
+  - 原地修改消息，把可处理的多模态 part 替换为新的 ``Uri``
+- ``Uploader``（上传器）负责“实际上传”：
+  - 接收 ``UploadItem`` 后异步入队上传（尽量不阻塞业务线程）
+  - 支持幂等跳过（同一路径可跳过重复上传），失败只记日志，不向业务抛异常
+- 调用顺序是固定的：先 ``pre_uploader.pre_upload(...)``，再对返回的每个 item 调用 ``uploader.upload(...)``。
+- 两者是成对工作的：如果任一 hook 加载失败或返回 ``None``，会整体降级为禁用多模态上传（``uploader/pre-uploader`` 同时为 ``None``）。
+- 最小使用方式：设置 ``UPLOAD_MODE`` + ``STORAGE_BASE_PATH`` 即可启用默认 ``fs`` 实现；如需自定义实现，再通过 entry point 注册新 hook 名称。
+
 在开源版中，hook 默认是 ``fs``，因此通常不需要显式设置以上两个 hook 环境变量。  
 启用多模态上传后，需设置 ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH`` 来指定存储后端。
 支持的存储协议包括：
@@ -75,9 +88,10 @@ Hook 选择：
 
 相关环境变量：
 
-- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否下载远程 URI（``true`` / ``false``，默认 ``false``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED``: 是否将外部 URI 资源下载后再上传到配置的存储后端（``true`` / ``false``，默认 ``false``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY``: 是否验证 SSL 证书（``true`` / ``false``，默认 ``true``）
-- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED``: 是否启用本地文件处理（支持 file:// 和相对路径，``true`` / ``false``，默认 ``false``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED``: 是否启用音频转码（当前支持 PCM16/L16/PCM 转 WAV，``true`` / ``false``，默认 ``false``）
+- ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED``: 是否允许直接读取并上传本地文件（支持 ``file://`` URI、绝对路径和相对路径，``true`` / ``false``，默认 ``false``）
 - ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS``: 允许访问的本地文件根目录列表（逗号分隔，启用本地文件处理时必需配置）
 
 ``pyproject.toml`` entry point 配置（插件扩展方式）::
@@ -93,18 +107,18 @@ Hook 选择：
     export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE=both
     export OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH=file:///var/log/genai/multimodal
 
-如果启用了多模态上传，请在 ``TracerProvider`` 注册 ``GenAIShutdownProcessor``，
-用于进程退出时按顺序关闭 ``ExtendedTelemetryHandler`` / ``Uploader`` / ``PreUploader``::
+如果启用了多模态上传，``ExtendedTelemetryHandler`` 会在首次初始化时注册 ``atexit`` 回调，
+并在进程退出时按顺序关闭 ``ExtendedTelemetryHandler`` / ``PreUploader`` / ``Uploader``。
 
-    from opentelemetry import trace
-    from opentelemetry.util.genai.shutdown_processor import GenAIShutdownProcessor
+如需在应用生命周期中主动关闭（例如服务框架 shutdown hook）::
 
-    tracer_provider = trace.get_tracer_provider()
-    tracer_provider.add_span_processor(GenAIShutdownProcessor())
+    from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
+
+    ExtendedTelemetryHandler.shutdown()
 
 依赖要求:
-  多模态上传功能需要安装 ``fsspec`` 和 ``httpx`` 包（必需），以及 ``numpy`` 和 ``soundfile`` 包（可选，用于音频格式转换）。
-  可以通过 ``pip install opentelemetry-util-genai[multimodal]`` 安装所有依赖。
+  多模态上传功能需要安装 ``fsspec`` 和 ``httpx`` 包（必需），以及 ``numpy`` 和 ``soundfile`` 包（可选，用于音频格式pcm - wav 转换，且需 ``OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED=true`` 才会启用）。
+  可以通过 ``pip install opentelemetry-util-genai[multimodal_upload]`` 安装必需依赖； ``pip install opentelemetry-util-genai[audio_conversion]`` 安装音频格式转换依赖。
 
 示例配置
 ~~~~~~~~
