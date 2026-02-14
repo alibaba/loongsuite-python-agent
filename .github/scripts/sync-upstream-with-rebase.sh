@@ -206,8 +206,10 @@ create_pr() {
     upstream_desc="commit $(git rev-parse --short "$UPSTREAM_COMMIT") (from ${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH})"
   fi
   title="chore: sync ${upstream_desc} into ${BASE_BRANCH}"
-  body=$(
-    cat <<EOF
+  local body_file
+  body_file=$(mktemp)
+  trap "rm -f '$body_file'" EXIT
+  cat <<EOF >"$body_file"
 ## Summary
 - Merge upstream \`${upstream_desc}\` into \`${BASE_BRANCH}\`
 - Preserve upstream commit history for incremental future syncs
@@ -217,14 +219,13 @@ create_pr() {
 - This PR can be merged into \`${BASE_BRANCH}\` without conflicts (conflicts were resolved during the upstream merge)
 - Use **merge commit** (not squash) to preserve upstream commit granularity
 EOF
-  )
 
   if gh pr view "$SYNC_BRANCH" >/dev/null 2>&1; then
     echo "PR for branch $SYNC_BRANCH already exists, skipping creation."
     return
   fi
 
-  gh pr create --base "$BASE_BRANCH" --head "$SYNC_BRANCH" --title "$title" --body "$body"
+  gh pr create --base "$BASE_BRANCH" --head "$SYNC_BRANCH" --title "$title" --body-file "$body_file"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────
