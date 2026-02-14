@@ -203,7 +203,7 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Patched setup_tracing")
         except Exception as e:
             logger.warning(f"Failed to patch setup_tracing: {e}")
-        
+
         # Patch _check_tracing_enabled to return False
         # We always want to disable tracing in native AgentScope library
         try:

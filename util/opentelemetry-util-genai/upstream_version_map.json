@@ -1,0 +1,17 @@
+{
+  "component": "loongsuite-util-genai",
+  "upstream_repository": "https://github.com/open-telemetry/opentelemetry-python-contrib",
+  "upstream_path": "util/opentelemetry-util-genai",
+  "schema_version": 1,
+  "mappings": [
+    {
+      "loongsuite_version": "0.3b0.dev2026021101",
+      "upstream_version": "0.3b0.dev",
+      "upstream_commit": "REPLACE_WITH_REAL_COMMIT_SHA",
+      "upstream_ref_type": "branch",
+      "upstream_ref": "main",
+      "sync_date": "2026-02-11",
+      "notes": "Prototype baseline mapping. Replace commit SHA before first official release."
+    }
+  ]
+}

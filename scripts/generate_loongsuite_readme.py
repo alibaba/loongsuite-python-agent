@@ -49,27 +49,27 @@ def main(base_instrumentation_path):
         try:
             with open(pyproject_toml, "rb") as f:
                 pyproject = tomli.load(f)
-            
+
             project = pyproject.get("project", {})
             optional_deps = project.get("optional-dependencies", {})
             instruments = optional_deps.get("instruments", [])
             instruments_any = optional_deps.get("instruments-any", [])
-            
+
             # Extract package name from instrumentation directory name
             # e.g., "loongsuite-instrumentation-agentscope" -> "agentscope"
             name = instrumentation.replace(_prefix, "")
-            
+
             instruments_all = ()
             if not instruments and not instruments_any:
                 instruments_all = (name,)
             else:
                 instruments_all = tuple(instruments + instruments_any)
-            
+
             # Try to get metrics support and semconv status from pyproject.toml
             # These might not be present, so use defaults
             supports_metrics = project.get("supports_metrics", False)
             semconv_status = project.get("semconv_status", "development")
-            
+
             metric_column = "Yes" if supports_metrics else "No"
 
             table.append(
@@ -87,9 +87,12 @@ def main(base_instrumentation_path):
 
 if __name__ == "__main__":
     root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    instrumentation_path = os.path.join(root_path, "instrumentation-loongsuite")
+    instrumentation_path = os.path.join(
+        root_path, "instrumentation-loongsuite"
+    )
     if os.path.exists(instrumentation_path):
         main(instrumentation_path)
     else:
-        logger.warning(f"Instrumentation path does not exist: {instrumentation_path}")
-
+        logger.warning(
+            f"Instrumentation path does not exist: {instrumentation_path}"
+        )

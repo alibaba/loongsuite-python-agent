@@ -62,13 +62,13 @@ UNINSTALL_EXCLUDED_PACKAGES = {
 def normalize_package_name(package_name: str) -> str:
     """
     Normalize package name by converting underscores to hyphens.
-    
+
     Package names in PyPI use hyphens, but wheel filenames may use underscores.
     This function ensures consistent package name format.
-    
+
     Args:
         package_name: Package name (may contain underscores or hyphens)
-        
+
     Returns:
         Normalized package name with hyphens
     """
@@ -78,13 +78,13 @@ def normalize_package_name(package_name: str) -> str:
 def get_package_name_variants(package_name: str) -> List[str]:
     """
     Get all possible variants of a package name for lookup.
-    
+
     This is useful when checking if a package is installed, as package names
     may be stored with either underscores or hyphens.
-    
+
     Args:
         package_name: Package name
-        
+
     Returns:
         List of package name variants to try
     """
@@ -102,15 +102,15 @@ def get_package_name_variants(package_name: str) -> List[str]:
 def extract_package_name_from_requirement(req_str: str) -> str:
     """
     Extract package name from a requirement string.
-    
+
     Examples:
         "redis >= 2.6" -> "redis"
         "opentelemetry-instrumentation==0.60b0" -> "opentelemetry-instrumentation"
         "package-name~=1.0" -> "package-name"
-    
+
     Args:
         req_str: Requirement string
-        
+
     Returns:
         Package name extracted from requirement
     """
@@ -127,11 +127,11 @@ def extract_package_name_from_requirement(req_str: str) -> str:
 def package_names_match(name1: str, name2: str) -> bool:
     """
     Check if two package names match (considering normalization).
-    
+
     Args:
         name1: First package name
         name2: Second package name
-        
+
     Returns:
         True if names match (after normalization), False otherwise
     """
@@ -301,10 +301,10 @@ def get_python_requirement_from_whl(whl_path: Path) -> Optional[str]:
 def _try_get_package_version(package_name: str) -> Optional[str]:
     """
     Try to get version of a package using pip show.
-    
+
     Args:
         package_name: Package name to check
-        
+
     Returns:
         Version string if found, None otherwise
     """
@@ -319,14 +319,16 @@ def _try_get_package_version(package_name: str) -> Optional[str]:
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
         logger.debug(f"Failed to get version for {package_name}: {e}")
     except Exception as e:
-        logger.warning(f"Unexpected error getting version for {package_name}: {e}")
+        logger.warning(
+            f"Unexpected error getting version for {package_name}: {e}"
+        )
     return None
 
 
 def get_installed_package_version(package_name: str) -> Optional[str]:
     """
     Get installed version of a package.
-    
+
     Tries multiple name variants (with underscores/hyphens) to handle
     different naming conventions.
 
@@ -369,7 +371,9 @@ def _is_library_installed(req_str: str) -> bool:
         # Check if installed version satisfies requirement
         return req.specifier.contains(dist_version)
     except Exception as e:
-        logger.debug(f"Failed to check if library is installed for {req_str}: {e}")
+        logger.debug(
+            f"Failed to check if library is installed for {req_str}: {e}"
+        )
         return False
 
 
@@ -389,7 +393,9 @@ def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
     # Check default instrumentations
     for default_instr in gen_default_instrumentations:
         if isinstance(default_instr, str):
-            default_pkg_name = extract_package_name_from_requirement(default_instr)
+            default_pkg_name = extract_package_name_from_requirement(
+                default_instr
+            )
             if package_names_match(default_pkg_name, package_name):
                 return True
 
@@ -397,7 +403,9 @@ def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
     for lib_mapping in gen_libraries:
         instrumentation = lib_mapping.get("instrumentation", "")
         if isinstance(instrumentation, str):
-            instr_pkg_name = extract_package_name_from_requirement(instrumentation)
+            instr_pkg_name = extract_package_name_from_requirement(
+                instrumentation
+            )
             if package_names_match(instr_pkg_name, package_name):
                 return True
 
@@ -428,7 +436,9 @@ def get_target_libraries_from_bootstrap_gen(
     # Check if it's a default instrumentation
     for default_instr in gen_default_instrumentations:
         if isinstance(default_instr, str):
-            default_pkg_name = extract_package_name_from_requirement(default_instr)
+            default_pkg_name = extract_package_name_from_requirement(
+                default_instr
+            )
             if package_names_match(default_pkg_name, package_name):
                 return [], True
 
@@ -437,7 +447,9 @@ def get_target_libraries_from_bootstrap_gen(
     for lib_mapping in gen_libraries:
         instrumentation = lib_mapping.get("instrumentation", "")
         if isinstance(instrumentation, str):
-            instr_pkg_name = extract_package_name_from_requirement(instrumentation)
+            instr_pkg_name = extract_package_name_from_requirement(
+                instrumentation
+            )
             if package_names_match(instr_pkg_name, package_name):
                 target_lib = lib_mapping.get("library", "")
                 if target_lib and isinstance(target_lib, str):

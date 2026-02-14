@@ -24,7 +24,9 @@ from generate_instrumentation_bootstrap import (
     independent_packages,
     packages_to_exclude,
 )
-from otel_packaging import get_instrumentation_packages as get_upstream_packages
+from otel_packaging import (
+    get_instrumentation_packages as get_upstream_packages,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("loongsuite_bootstrap_generator")
@@ -47,32 +49,45 @@ libraries = []
 default_instrumentations = []
 """
 
-gen_path = root_path / "loongsuite-distro" / "src" / "loongsuite" / "distro" / "bootstrap_gen.py"
+gen_path = (
+    root_path
+    / "loongsuite-distro"
+    / "src"
+    / "loongsuite"
+    / "distro"
+    / "bootstrap_gen.py"
+)
 
 
 def get_instrumentation_packages():
     """Get all instrumentation packages from various directories"""
     packages = []
-    
+
     logger.info("Scanning instrumentation packages...")
-    
+
     # Get packages from upstream directories (instrumentation, instrumentation-genai)
     # using otel_packaging
-    logger.info("Processing upstream packages (instrumentation, instrumentation-genai)...")
-    for pkg in get_upstream_packages(independent_packages=independent_packages):
+    logger.info(
+        "Processing upstream packages (instrumentation, instrumentation-genai)..."
+    )
+    for pkg in get_upstream_packages(
+        independent_packages=independent_packages
+    ):
         if pkg["name"] not in packages_to_exclude:
             packages.append(pkg)
-    
+
     # Scan instrumentation-loongsuite directory (reuse same logic as otel_packaging)
     loongsuite_dir = root_path / "instrumentation-loongsuite"
     if loongsuite_dir.exists():
-        logger.info("Processing loongsuite packages (instrumentation-loongsuite)...")
+        logger.info(
+            "Processing loongsuite packages (instrumentation-loongsuite)..."
+        )
         pkg_dirs = sorted([d for d in loongsuite_dir.iterdir() if d.is_dir()])
         for pkg_dir in pkg_dirs:
             pyproject_toml = pkg_dir / "pyproject.toml"
             if not pyproject_toml.exists():
                 continue
-            
+
             try:
                 # Get version using hatch command (same as otel_packaging)
                 # Suppress hatch's verbose output
@@ -82,43 +97,51 @@ def get_instrumentation_packages():
                     cwd=pkg_dir,
                     universal_newlines=True,
                 ).strip()
-                
+
                 # Read pyproject.toml
                 with open(pyproject_toml, "rb") as f:
                     pyproject = tomli.load(f)
-                
+
                 pkg_name = pyproject["project"]["name"]
-                
+
                 # Skip if this package is in the exclusion list
                 if pkg_name in packages_to_exclude:
                     continue
-                
+
                 # Get optional dependencies
                 optional_deps = pyproject["project"]["optional-dependencies"]
                 instruments = optional_deps.get("instruments", [])
                 instruments_any = optional_deps.get("instruments-any", [])
-                
+
                 # Handle independent packages
                 if pkg_name in independent_packages:
                     specifier = independent_packages[pkg_name]
-                    requirement = f"{pkg_name}{specifier}" if specifier else f"{pkg_name}=={version}"
+                    requirement = (
+                        f"{pkg_name}{specifier}"
+                        if specifier
+                        else f"{pkg_name}=={version}"
+                    )
                 else:
                     requirement = f"{pkg_name}=={version}"
-                
-                packages.append({
-                    "name": pkg_name,
-                    "version": version,
-                    "instruments": instruments,
-                    "instruments-any": instruments_any,
-                    "requirement": requirement,
-                })
+
+                packages.append(
+                    {
+                        "name": pkg_name,
+                        "version": version,
+                        "instruments": instruments,
+                        "instruments-any": instruments_any,
+                        "requirement": requirement,
+                    }
+                )
             except subprocess.CalledProcessError as e:
-                logger.warning(f"Could not get hatch version from {pkg_dir.name}: {e}")
+                logger.warning(
+                    f"Could not get hatch version from {pkg_dir.name}: {e}"
+                )
                 continue
             except Exception as e:
                 logger.warning(f"Failed to process {pkg_dir.name}: {e}")
                 continue
-    
+
     return packages
 
 
@@ -130,15 +153,15 @@ def main():
             header = f.read()
     else:
         header = "# Copyright The OpenTelemetry Authors\n# Licensed under the Apache License, Version 2.0\n"
-    
+
     # Get all packages
     packages = get_instrumentation_packages()
     logger.info(f"Found {len(packages)} instrumentation packages")
-    
+
     # Build AST nodes
     default_instrumentations = ast.List(elts=[])
     libraries = ast.List(elts=[])
-    
+
     logger.info("Building bootstrap configuration...")
     for pkg in packages:
         # If no instruments and no instruments-any, it's a default instrumentation
@@ -161,7 +184,7 @@ def main():
                         ],
                     )
                 )
-            
+
             # Add instruments-any (at least one must be installed)
             for target_pkg in pkg["instruments-any"]:
                 libraries.elts.append(
@@ -176,7 +199,7 @@ def main():
                         ],
                     )
                 )
-    
+
     # Generate source code manually (avoiding astor dependency)
     logger.info("Generating source code...")
     # Build libraries list string
@@ -188,20 +211,42 @@ def main():
             instr_key = lib_mapping.keys[1]
             lib_val_node = lib_mapping.values[0]
             instr_val_node = lib_mapping.values[1]
-            
+
             # Get string values
-            lib_key_str = lib_key.value if isinstance(lib_key, ast.Constant) else (lib_key.s if hasattr(lib_key, 's') else "library")
-            instr_key_str = instr_key.value if isinstance(instr_key, ast.Constant) else (instr_key.s if hasattr(instr_key, 's') else "instrumentation")
-            lib_val_str = lib_val_node.value if isinstance(lib_val_node, ast.Constant) else (lib_val_node.s if hasattr(lib_val_node, 's') else "")
-            instr_val_str = instr_val_node.value if isinstance(instr_val_node, ast.Constant) else (instr_val_node.s if hasattr(instr_val_node, 's') else "")
-            
+            lib_key_str = (
+                lib_key.value
+                if isinstance(lib_key, ast.Constant)
+                else (lib_key.s if hasattr(lib_key, "s") else "library")
+            )
+            instr_key_str = (
+                instr_key.value
+                if isinstance(instr_key, ast.Constant)
+                else (
+                    instr_key.s
+                    if hasattr(instr_key, "s")
+                    else "instrumentation"
+                )
+            )
+            lib_val_str = (
+                lib_val_node.value
+                if isinstance(lib_val_node, ast.Constant)
+                else (lib_val_node.s if hasattr(lib_val_node, "s") else "")
+            )
+            instr_val_str = (
+                instr_val_node.value
+                if isinstance(instr_val_node, ast.Constant)
+                else (instr_val_node.s if hasattr(instr_val_node, "s") else "")
+            )
+
             # Escape quotes in values
             lib_val_str = lib_val_str.replace('"', '\\"')
             instr_val_str = instr_val_str.replace('"', '\\"')
-            
-            libraries_lines.append(f'    {{"{lib_key_str}": "{lib_val_str}", "{instr_key_str}": "{instr_val_str}"}},')
+
+            libraries_lines.append(
+                f'    {{"{lib_key_str}": "{lib_val_str}", "{instr_key_str}": "{instr_val_str}"}},'
+            )
     libraries_lines.append("]")
-    
+
     # Build default_instrumentations list string
     default_lines = ["default_instrumentations = ["]
     for default_instr in default_instrumentations.elts:
@@ -209,23 +254,24 @@ def main():
             instr_val = default_instr.value.replace('"', '\\"')
             default_lines.append(f'    "{instr_val}",')
     default_lines.append("]")
-    
+
     # Combine source
     source = "\n".join(libraries_lines) + "\n\n" + "\n".join(default_lines)
-    
+
     # Format with header
     formatted_source = _template.format(header=header, source=source)
-    
+
     # Write to file
     gen_path.parent.mkdir(parents=True, exist_ok=True)
     with open(gen_path, "w", encoding="utf-8") as f:
         f.write(formatted_source)
-    
+
     logger.info("generated %s", gen_path)
-    logger.info("  - %d default instrumentations", len(default_instrumentations.elts))
+    logger.info(
+        "  - %d default instrumentations", len(default_instrumentations.elts)
+    )
     logger.info("  - %d library mappings", len(libraries.elts))
 
 
 if __name__ == "__main__":
     main()
-
