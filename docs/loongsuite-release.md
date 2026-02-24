@@ -435,17 +435,30 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-#### PyPI 发布配置
+#### PyPI / Test PyPI 发布配置
 
-使用 OIDC Trusted Publishing（推荐）或 API Token：
+**发布到生产 PyPI（二选一）：**
 
-**OIDC 配置：**
-1. PyPI 项目设置 → Publishing
-2. 添加 trusted publisher:
-   - Owner: `alibaba`
-   - Repository: `loongsuite-python-agent`
-   - Workflow: `loongsuite-release.yml`
-   - Environment: `pypi`
+1. **API Token**：在 GitHub 仓库 Settings → Secrets → Actions 中添加：
+   - `PYPI_API_TOKEN`：从 [pypi.org/manage/account/token/](https://pypi.org/manage/account/token/) 创建
+
+2. **OIDC Trusted Publishing**（推荐）：
+   - PyPI 项目设置 → Publishing → Add a new pending publisher
+   - Owner: `alibaba`，Repository: `loongsuite-python-agent`
+   - Workflow: `loongsuite-release.yml`，Environment: `pypi`
+   - 在 GitHub 仓库中创建 Environment `pypi`（Settings → Environments）
+
+**发布到 Test PyPI（测试用）：**
+
+1. 在 [test.pypi.org/manage/account/token/](https://test.pypi.org/manage/account/token/) 创建 API Token
+2. 在 GitHub Secrets 中添加：`TEST_PYPI_TOKEN`（值为 `pypi-xxx`）
+3. 手动触发 workflow 时，将 `publish_target` 选为 **testpypi**
+
+**重要说明：**
+
+- 只有 `loongsuite_util_genai-*.whl` 和 `loongsuite_distro-*.whl` 会上传到 PyPI
+- `loongsuite-python-agent-*.tar.gz` 仅用于 GitHub Release，**禁止**上传到 PyPI
+- 若手动使用 `twine upload dist/*`，请先 `rm dist/loongsuite-python-agent-*.tar.gz`，否则会报错 `InvalidDistribution: Too many top-level members in sdist archive`
 
 #### 发布检查清单
 

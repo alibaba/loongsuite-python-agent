@@ -2,15 +2,20 @@
 #
 # This workflow handles the complete LoongSuite release process:
 #
-# 1. PyPI packages (loongsuite-util-genai, loongsuite-distro)
+# 1. PyPI packages (loongsuite-util-genai, loongsuite-distro) - .whl only, NOT loongsuite-python-agent.tar.gz
 # 2. GitHub Release (instrumentation-genai/*, instrumentation-loongsuite/* as tar.gz)
 #
 # Trigger:
 # - workflow_dispatch: Manual trigger with version inputs
 # - push tags: Automatic trigger on v* tags
 #
-# Required secrets:
-# - PYPI_API_TOKEN: PyPI API token for publishing (optional, can skip PyPI publish)
+# PyPI / Test PyPI configuration:
+# - Production PyPI: Set PYPI_API_TOKEN secret, or configure OIDC trusted publishing on pypi.org
+# - Test PyPI: Set TEST_PYPI_TOKEN secret (pypi-xxx from https://test.pypi.org/manage/account/token/)
+# - Use publish_target: testpypi to publish to Test PyPI instead of production
+#
+# IMPORTANT: Only loongsuite_util_genai-*.whl and loongsuite_distro-*.whl are uploaded to PyPI.
+# loongsuite-python-agent-*.tar.gz is for GitHub Release only and must NOT be uploaded to PyPI.
 #
 name: LoongSuite Release
 
@@ -32,6 +37,13 @@ on:
         description: 'Skip PyPI publish (for testing)'
         type: boolean
         default: false
+      publish_target:
+        description: 'Publish target: pypi or testpypi'
+        type: choice
+        options:
+          - pypi
+          - testpypi
+        default: pypi
   push:
     tags:
       - 'v*'
@@ -134,16 +146,18 @@ jobs:
           name: github-release
           path: dist/loongsuite-python-agent-*.tar.gz
 
-  # Publish to PyPI
+  # Publish to production PyPI
   publish-pypi:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip_pypi }}
+    if: |
+      (github.event_name != 'workflow_dispatch' || !inputs.skip_pypi) &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.publish_target != 'testpypi')
     environment:
       name: pypi
       url: https://pypi.org/project/loongsuite-distro/
     permissions:
-      id-token: write  # OIDC publishing
+      id-token: write  # For OIDC; or use PYPI_API_TOKEN secret
     steps:
       - name: Download PyPI artifacts
         uses: actions/download-artifact@v4
@@ -154,8 +168,26 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Uses OIDC trusted publishing (no API token needed if configured)
-          # Or set PYPI_API_TOKEN secret
+          skip-existing: true
+
+  # Publish to Test PyPI (for testing before production)
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_pypi && inputs.publish_target == 'testpypi' }}
+    steps:
+      - name: Download PyPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+          path: dist/
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          username: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
           skip-existing: true
 
   # Create GitHub Release
