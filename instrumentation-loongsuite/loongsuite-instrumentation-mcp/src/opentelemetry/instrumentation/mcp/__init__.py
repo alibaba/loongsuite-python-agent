@@ -19,6 +19,7 @@ from opentelemetry.instrumentation.mcp.session_handler import (
 )
 from opentelemetry.instrumentation.mcp.utils import (
     _get_logger,
+    _get_streamable_http_client_name,
     _is_version_supported,
     _is_ws_installed,
 )
@@ -52,6 +53,8 @@ _client_session_methods = [
     (method_name, rpc_name)
     for method_name, rpc_name in RPC_NAME_MAPPING.items()
 ]
+
+_streamable_http_client_name = _get_streamable_http_client_name()
 
 
 class MCPInstrumentor(BaseInstrumentor):
@@ -99,7 +102,7 @@ class MCPInstrumentor(BaseInstrumentor):
         )
         wrap_function_wrapper(
             module="mcp.client.streamable_http",
-            name="streamablehttp_client",
+            name=_streamable_http_client_name,
             wrapper=streamable_http_client_wrapper(),
         )
         wrap_function_wrapper(
@@ -140,10 +143,10 @@ class MCPInstrumentor(BaseInstrumentor):
         try:
             import mcp.client.streamable_http  # noqa: PLC0415
 
-            unwrap(mcp.client.streamable_http, "streamablehttp_client")
+            unwrap(mcp.client.streamable_http, _streamable_http_client_name)
         except Exception:
             logger.warning(
-                "Fail to uninstrument streamablehttp_client", exc_info=True
+                "Fail to uninstrument streamable_http_client", exc_info=True
             )
 
         try:
