@@ -15,8 +15,15 @@
 """
 LoongSuite Bootstrap Tool
 
-Install all components of loongsuite Python Agent from tar.gz package.
-Supports blacklist/whitelist to control which instrumentations to install.
+Two-phase installation strategy:
+1. Install loongsuite-* packages from GitHub Release tar.gz (GenAI instrumentations)
+2. Install opentelemetry-* packages from PyPI (standard instrumentations)
+
+The installation source is determined by package name prefix:
+- loongsuite-* -> GitHub Release tar.gz
+- opentelemetry-* -> PyPI
+
+loongsuite-util-genai is installed from PyPI as a base dependency.
 """
 
 import argparse
@@ -41,12 +48,13 @@ from packaging.specifiers import SpecifierSet
 
 logger = logging.getLogger(__name__)
 
-# Base dependency packages (must be installed)
-BASE_DEPENDENCIES = {
+# Base dependency packages installed from PyPI
+# loongsuite-util-genai is published to PyPI and required by GenAI instrumentations
+BASE_DEPENDENCIES_PYPI = {
     "opentelemetry-api",
     "opentelemetry-sdk",
     "opentelemetry-instrumentation",
-    "opentelemetry-util-genai",
+    "loongsuite-util-genai",
     "opentelemetry-semantic-conventions",
 }
 
@@ -412,6 +420,71 @@ def _is_instrumentation_in_bootstrap_gen(package_name: str) -> bool:
     return False
 
 
+def _is_loongsuite_package(package_name: str) -> bool:
+    """Check if package is a loongsuite package (installed from GitHub Release tar)"""
+    return package_name.startswith("loongsuite-")
+
+
+def _get_desired_instrumentation_requirements(
+    blacklist: Optional[Set[str]] = None,
+    whitelist: Optional[Set[str]] = None,
+    auto_detect: bool = False,
+) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
+    """
+    Get desired instrumentation packages from bootstrap_gen with filtering.
+
+    Returns:
+        (tar_packages, pypi_packages)
+        - tar_packages: loongsuite-* packages to install from GitHub Release tar.gz
+        - pypi_packages: opentelemetry-* packages to install from PyPI
+    """
+    blacklist = blacklist or set()
+    whitelist = whitelist or set()
+    tar_packages: List[Tuple[str, str]] = []
+    pypi_packages: List[Tuple[str, str]] = []
+
+    def _should_include(
+        pkg_name: str, target_libraries: List[str], is_default: bool
+    ) -> bool:
+        if blacklist and pkg_name in blacklist:
+            return False
+        if whitelist and pkg_name not in whitelist:
+            return False
+        if is_default:
+            return True
+        if auto_detect and target_libraries:
+            return any(_is_library_installed(lib) for lib in target_libraries)
+        return not auto_detect
+
+    seen: Set[str] = set()
+    for default_instr in gen_default_instrumentations:
+        if isinstance(default_instr, str):
+            pkg_name = extract_package_name_from_requirement(default_instr)
+            if pkg_name not in seen and _should_include(pkg_name, [], True):
+                seen.add(pkg_name)
+                if _is_loongsuite_package(pkg_name):
+                    tar_packages.append((pkg_name, default_instr))
+                else:
+                    pypi_packages.append((pkg_name, default_instr))
+
+    for lib_mapping in gen_libraries:
+        instrumentation = lib_mapping.get("instrumentation", "")
+        if isinstance(instrumentation, str):
+            pkg_name = extract_package_name_from_requirement(instrumentation)
+            target_lib = lib_mapping.get("library", "")
+            target_libraries = [target_lib] if target_lib else []
+            if pkg_name not in seen and _should_include(
+                pkg_name, target_libraries, False
+            ):
+                seen.add(pkg_name)
+                if _is_loongsuite_package(pkg_name):
+                    tar_packages.append((pkg_name, instrumentation))
+                else:
+                    pypi_packages.append((pkg_name, instrumentation))
+
+    return tar_packages, pypi_packages
+
+
 def get_target_libraries_from_bootstrap_gen(
     package_name: str,
 ) -> Tuple[List[str], bool]:
@@ -635,7 +708,7 @@ def filter_packages(
 
         # Check dependency version compatibility (only for base dependencies)
         # Instrumentation packages will be checked by pip during installation
-        if package_name in BASE_DEPENDENCIES:
+        if package_name in BASE_DEPENDENCIES_PYPI:
             is_dep_compatible, conflict_msg = check_dependency_compatibility(
                 whl_file, skip_version_check
             )
@@ -646,7 +719,7 @@ def filter_packages(
                 continue
 
         # Classify: base dependencies vs instrumentation
-        if package_name in BASE_DEPENDENCIES:
+        if package_name in BASE_DEPENDENCIES_PYPI:
             base_packages.append(whl_file)
         else:
             # For instrumentation packages, check if auto-detect is enabled
@@ -706,10 +779,13 @@ def filter_packages(
 
 
 def install_packages(
-    whl_files: List[Path], find_links_dir: Path, upgrade: bool = False
+    whl_files: List[Path],
+    find_links_dir: Path,
+    upgrade: bool = False,
+    extra_requirements: Optional[List[str]] = None,
 ):
-    """Install packages using pip"""
-    if not whl_files:
+    """Install packages using pip. extra_requirements are installed from PyPI."""
+    if not whl_files and not extra_requirements:
         logger.warning("No packages to install")
         return
 
@@ -725,8 +801,10 @@ def install_packages(
     if upgrade:
         cmd.append("--upgrade")
 
-    # Add all whl files
+    # Add whl files (from tar) and extra requirements (from PyPI)
     cmd.extend([str(whl) for whl in whl_files])
+    if extra_requirements:
+        cmd.extend(extra_requirements)
 
     logger.info(f"Executing install command: {' '.join(cmd)}")
     try:
@@ -886,7 +964,9 @@ def install_from_tar(
     auto_detect: bool = False,
 ):
     """
-    Install loongsuite packages from tar package
+    Two-phase installation from tar package:
+    1. Install loongsuite-* packages from GitHub Release tar.gz (GenAI instrumentations)
+    2. Install opentelemetry-* packages from PyPI (standard instrumentations)
 
     Args:
         tar_path: tar file path or URI (can be Path or str)
@@ -913,42 +993,72 @@ def install_from_tar(
 
         logger.info(f"Found {len(whl_files)} packages in tar file")
 
-        # Filter packages
+        # Filter packages from tar (loongsuite-* packages)
         logger.info("Filtering packages...")
         base_packages, instrumentation_packages = filter_packages(
             whl_files, blacklist, whitelist, skip_version_check, auto_detect
         )
 
-        # Ensure base dependencies must be installed
-        if not base_packages:
-            logger.warning(
-                "Warning: No base dependency packages found, this may cause installation to fail"
-            )
+        # Get desired packages from bootstrap_gen
+        tar_desired, pypi_desired = _get_desired_instrumentation_requirements(
+            blacklist, whitelist, auto_detect
+        )
 
-        # Merge all packages to install
-        all_packages = base_packages + instrumentation_packages
+        # Build package name set from tar
+        tar_package_names = {
+            normalize_package_name(get_package_name_from_whl(w))
+            for w in whl_files
+        }
 
-        if not all_packages:
+        # loongsuite-* packages from tar (already filtered)
+        tar_packages = base_packages + instrumentation_packages
+
+        # opentelemetry-* packages from PyPI (use requirement string with version)
+        pypi_requirements: List[str] = []
+        for pkg_name, req_str in pypi_desired:
+            norm_name = normalize_package_name(pkg_name)
+            if norm_name not in tar_package_names:
+                # Use full requirement string (e.g., "opentelemetry-instrumentation-flask==0.60b1")
+                pypi_requirements.append(req_str)
+
+        if not tar_packages and not pypi_requirements:
             logger.warning("No packages to install after filtering")
             return
 
-        logger.info(
-            f"Will install {len(base_packages)} base dependency packages"
-        )
-        logger.info(
-            f"Will install {len(instrumentation_packages)} instrumentation packages"
-        )
-
-        if instrumentation_packages:
-            logger.info("Instrumentation packages to install:")
-            for pkg in instrumentation_packages:
+        # Phase 1: Install from tar.gz (loongsuite-* packages)
+        logger.info("=" * 50)
+        logger.info("Phase 1: Installing loongsuite-* packages from tar...")
+        logger.info("=" * 50)
+        if tar_packages:
+            logger.info(f"Will install {len(tar_packages)} packages from tar:")
+            for pkg in tar_packages:
                 pkg_name = get_package_name_from_whl(pkg)
                 logger.info(f"  - {pkg_name}")
+            install_packages(tar_packages, temp_dir, upgrade)
+        else:
+            logger.info("No loongsuite-* packages to install from tar")
 
-        # Install
-        logger.info("Installing packages...")
-        install_packages(all_packages, temp_dir, upgrade)
+        # Phase 2: Install from PyPI (opentelemetry-* packages)
+        logger.info("=" * 50)
+        logger.info(
+            "Phase 2: Installing opentelemetry-* packages from PyPI..."
+        )
+        logger.info("=" * 50)
+        if pypi_requirements:
+            logger.info(
+                f"Will install {len(pypi_requirements)} packages from PyPI:"
+            )
+            for req in pypi_requirements:
+                logger.info(f"  - {req}")
+            install_packages(
+                [], temp_dir, upgrade, extra_requirements=pypi_requirements
+            )
+        else:
+            logger.info("No opentelemetry-* packages to install from PyPI")
+
+        logger.info("=" * 50)
         logger.info("Installation completed successfully!")
+        logger.info("=" * 50)
 
     finally:
         if not keep_temp:

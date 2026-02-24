@@ -61,7 +61,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mapping-file", type=Path, required=True)
     parser.add_argument("--version-file", type=Path, required=True)
-    parser.add_argument("--component", type=str, default="loongsuite-util-genai")
+    parser.add_argument(
+        "--component", type=str, default="loongsuite-util-genai"
+    )
     parser.add_argument(
         "--upstream-repository",
         type=str,

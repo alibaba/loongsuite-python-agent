@@ -1,3 +1,11 @@
+# LoongSuite build dependencies
 build>=1.0.0
 setuptools>=65.0.0
 wheel>=0.40.0
+
+# LoongSuite release dependencies
+tomli>=2.0.0
+tomlkit>=0.12.0
+hatch>=1.7.0
+astor>=0.8.0
+packaging>=21.0
