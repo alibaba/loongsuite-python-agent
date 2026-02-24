@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+  #!/usr/bin/env bash
 #
 # Sync upstream changes into a local branch via "git merge" (not rebase).
 #
@@ -200,7 +200,7 @@ create_pr() {
     return
   fi
   require_command gh
-  local title body upstream_desc
+  local title upstream_desc
   upstream_desc="${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}"
   if [[ -n "$UPSTREAM_COMMIT" ]]; then
     upstream_desc="commit $(git rev-parse --short "$UPSTREAM_COMMIT") (from ${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH})"
@@ -208,7 +208,7 @@ create_pr() {
   title="chore: sync ${upstream_desc} into ${BASE_BRANCH}"
   local body_file
   body_file=$(mktemp)
-  trap "rm -f '$body_file'" EXIT
+  trap 'rm -f "$body_file"' EXIT
   cat <<EOF >"$body_file"
 ## Summary
 - Merge upstream \`${upstream_desc}\` into \`${BASE_BRANCH}\`

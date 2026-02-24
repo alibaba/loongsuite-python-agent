@@ -24,8 +24,8 @@ def _read_local_version(version_file: Path) -> str:
 def _load_mapping(mapping_file: Path) -> dict[str, Any]:
     if not mapping_file.exists():
         return {"schema_version": 1, "mappings": []}
-    with mapping_file.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    with mapping_file.open("r", encoding="utf-8") as mapping_str:
+        return json.load(mapping_str)
 
 
 def _upsert_mapping(

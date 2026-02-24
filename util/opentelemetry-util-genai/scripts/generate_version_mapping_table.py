@@ -14,8 +14,8 @@ END_MARKER = ".. END AUTO-GENERATED VERSION MAPPING"
 
 
 def _load_mapping(mapping_path: Path) -> dict[str, Any]:
-    with mapping_path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    with mapping_path.open("r", encoding="utf-8") as mapping_str:
+        return json.load(mapping_str)
 
 
 def _format_cell(value: Any) -> str:

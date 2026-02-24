@@ -67,6 +67,6 @@ pyrightconfig.json
 
 # LoongSuite Extension
 .cursor/
-dist-*
+dist-*/
 upload/
 upload_*_test/
