@@ -1,0 +1,11 @@
+{
+  "skip_packages": [],
+  "description": "Build configuration file, defines packages to skip during build",
+  "notes": [
+    "Packages in upstream packages_to_exclude are already excluded automatically.",
+    "This config is for additional LoongSuite-specific skip rules if needed.",
+    "When there are packages with the same name in instrumentation-genai and instrumentation-loongsuite,",
+    "prefer the version in instrumentation-loongsuite and skip the version in instrumentation-genai."
+  ]
+}
+

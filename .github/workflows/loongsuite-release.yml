@@ -1,0 +1,272 @@
+# LoongSuite Release Workflow
+#
+# This workflow handles the complete LoongSuite release process:
+#
+# 1. PyPI packages (loongsuite-util-genai, loongsuite-distro) - .whl only, NOT loongsuite-python-agent.tar.gz
+# 2. GitHub Release (instrumentation-genai/*, instrumentation-loongsuite/* as tar.gz)
+#
+# Trigger:
+# - workflow_dispatch: Manual trigger with version inputs
+# - push tags: Automatic trigger on v* tags
+#
+# PyPI / Test PyPI configuration:
+# - Production PyPI: Set PYPI_API_TOKEN secret, or configure OIDC trusted publishing on pypi.org
+# - Test PyPI: Set TEST_PYPI_TOKEN secret (pypi-xxx from https://test.pypi.org/manage/account/token/)
+# - Use publish_target: testpypi to publish to Test PyPI instead of production
+#
+# IMPORTANT: Only loongsuite_util_genai-*.whl and loongsuite_distro-*.whl are uploaded to PyPI.
+# loongsuite-python-agent-*.tar.gz is for GitHub Release only and must NOT be uploaded to PyPI.
+#
+name: LoongSuite Release
+
+run-name: "LoongSuite Release ${{ github.event.inputs.loongsuite_version || github.ref_name }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      loongsuite_version:
+        description: 'LoongSuite version (e.g., 0.1.0) - for loongsuite-* packages'
+        required: true
+      upstream_version:
+        description: 'Upstream OTel version (e.g., 0.60b1) - for opentelemetry-* packages in bootstrap_gen.py'
+        required: true
+      release_notes:
+        description: 'Release notes (optional, uses CHANGELOG-loongsuite.md Unreleased if empty)'
+        required: false
+      skip_pypi:
+        description: 'Skip PyPI publish (for testing)'
+        type: boolean
+        default: false
+      publish_target:
+        description: 'Publish target: pypi or testpypi'
+        type: choice
+        options:
+          - pypi
+          - testpypi
+        default: pypi
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Build all packages
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      loongsuite_version: ${{ steps.version.outputs.loongsuite_version }}
+      upstream_version: ${{ steps.version.outputs.upstream_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set versions from tag or input
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            # Tag-based release: extract version from tag (v0.1.0 -> 0.1.0)
+            tag="${GITHUB_REF#refs/tags/}"
+            loongsuite_version="${tag#v}"
+            # For tag-based release, upstream_version must be set via environment or default
+            upstream_version="${UPSTREAM_VERSION:-0.60b1}"
+          else
+            # Manual release: use inputs
+            loongsuite_version="${{ github.event.inputs.loongsuite_version }}"
+            upstream_version="${{ github.event.inputs.upstream_version }}"
+          fi
+
+          if [[ -z "$loongsuite_version" ]]; then
+            echo "ERROR: loongsuite_version is required"
+            exit 1
+          fi
+          if [[ -z "$upstream_version" ]]; then
+            echo "ERROR: upstream_version is required"
+            exit 1
+          fi
+
+          echo "loongsuite_version=$loongsuite_version" >> $GITHUB_OUTPUT
+          echo "upstream_version=$upstream_version" >> $GITHUB_OUTPUT
+          echo "LOONGSUITE_VERSION=$loongsuite_version" >> $GITHUB_ENV
+          echo "UPSTREAM_VERSION=$upstream_version" >> $GITHUB_ENV
+
+          echo "LoongSuite version: $loongsuite_version"
+          echo "Upstream version: $upstream_version"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r pkg-requirements.txt
+
+      - name: Generate bootstrap_gen.py with versions
+        run: |
+          python scripts/generate_loongsuite_bootstrap.py \
+            --upstream-version ${{ steps.version.outputs.upstream_version }} \
+            --loongsuite-version ${{ steps.version.outputs.loongsuite_version }}
+
+          echo "Generated bootstrap_gen.py:"
+          head -30 loongsuite-distro/src/loongsuite/distro/bootstrap_gen.py
+
+      - name: Build PyPI packages
+        run: |
+          python scripts/build_loongsuite_package.py \
+            --build-pypi \
+            --version ${{ steps.version.outputs.loongsuite_version }}
+
+          echo "PyPI packages built:"
+          ls -la dist/*.whl
+
+      - name: Build GitHub Release packages
+        run: |
+          python scripts/build_loongsuite_package.py \
+            --build-github-release \
+            --version ${{ steps.version.outputs.loongsuite_version }}
+
+          echo "GitHub Release tar:"
+          ls -la dist/*.tar.gz
+
+      - name: Upload PyPI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-packages
+          path: |
+            dist/loongsuite_util_genai-*.whl
+            dist/loongsuite_distro-*.whl
+
+      - name: Upload GitHub Release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-release
+          path: dist/loongsuite-python-agent-*.tar.gz
+
+  # Publish to production PyPI
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name != 'workflow_dispatch' || !inputs.skip_pypi) &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.publish_target != 'testpypi')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/loongsuite-distro/
+    permissions:
+      id-token: write  # For OIDC; or use PYPI_API_TOKEN secret
+    steps:
+      - name: Download PyPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  # Publish to Test PyPI (for testing before production)
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_pypi && inputs.publish_target == 'testpypi' }}
+    steps:
+      - name: Download PyPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+          path: dist/
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          username: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          skip-existing: true
+
+  # Create GitHub Release
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for creating releases
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download GitHub Release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-release
+          path: dist/
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          LOONGSUITE_VERSION="${{ needs.build.outputs.loongsuite_version }}"
+          UPSTREAM_VERSION="${{ needs.build.outputs.upstream_version }}"
+
+          if [[ -n "${{ github.event.inputs.release_notes }}" ]]; then
+            echo "${{ github.event.inputs.release_notes }}" > /tmp/release-notes.txt
+          else
+            # Start with header
+            cat > /tmp/release-notes.txt << EOF
+          # LoongSuite Python Agent v${LOONGSUITE_VERSION}
+
+          ## Installation
+
+          \`\`\`bash
+          pip install loongsuite-distro==${LOONGSUITE_VERSION}
+          loongsuite-bootstrap -a install --version ${LOONGSUITE_VERSION}
+          \`\`\`
+
+          ## Package Versions
+
+          - loongsuite-* packages: ${LOONGSUITE_VERSION}
+          - opentelemetry-* packages: ${UPSTREAM_VERSION}
+
+          ---
+
+          EOF
+
+            # Collect from root CHANGELOG-loongsuite.md
+            if [[ -f CHANGELOG-loongsuite.md ]]; then
+              echo "## loongsuite-distro" >> /tmp/release-notes.txt
+              echo "" >> /tmp/release-notes.txt
+              sed -n '/^## \[*Unreleased\]*$/,/^## /p' CHANGELOG-loongsuite.md | sed '/^## /d' >> /tmp/release-notes.txt
+              echo "" >> /tmp/release-notes.txt
+            fi
+
+            # Collect from instrumentation-loongsuite/*/CHANGELOG.md
+            for changelog in instrumentation-loongsuite/*/CHANGELOG.md; do
+              if [[ -f "$changelog" ]]; then
+                pkg_dir=$(dirname "$changelog")
+                pkg_name=$(basename "$pkg_dir")
+                unreleased_content=$(sed -n '/^## \[*Unreleased\]*$/,/^## /p' "$changelog" | sed '/^## /d')
+                if [[ -n "$unreleased_content" && "$unreleased_content" =~ [^[:space:]] ]]; then
+                  echo "## $pkg_name" >> /tmp/release-notes.txt
+                  echo "" >> /tmp/release-notes.txt
+                  echo "$unreleased_content" >> /tmp/release-notes.txt
+                  echo "" >> /tmp/release-notes.txt
+                fi
+              fi
+            done
+          fi
+
+          echo "Release notes:"
+          cat /tmp/release-notes.txt
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.build.outputs.loongsuite_version }}"
+          gh release create "v${VERSION}" \
+            --title "LoongSuite Python Agent v${VERSION}" \
+            --notes-file /tmp/release-notes.txt \
+            dist/loongsuite-python-agent-${VERSION}.tar.gz
