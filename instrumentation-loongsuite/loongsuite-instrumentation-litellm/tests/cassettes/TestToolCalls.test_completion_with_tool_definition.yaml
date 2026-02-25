@@ -1,0 +1,1270 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-7b10612b-3cbe-9db7-be78-0c43bc85c8a3","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_ee0d1fefe2d74bda9fdfb8","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001277,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:37 GMT
+      req-arrive-time:
+      - '1772001277141'
+      req-cost-time:
+      - '1108'
+      resp-start-time:
+      - '1772001278250'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1108'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-40d7fd22-65bf-90b9-a3f4-ad970c27b5d5","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_98a527252e31468eb56e92","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001362,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:03 GMT
+      req-arrive-time:
+      - '1772001362450'
+      req-cost-time:
+      - '1050'
+      resp-start-time:
+      - '1772001363500'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1049'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-03af0eff-f566-9bea-9c9a-4440472e1d61","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_aa0d884feda745ddac9392","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001404,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:44 GMT
+      req-arrive-time:
+      - '1772001403991'
+      req-cost-time:
+      - '904'
+      resp-start-time:
+      - '1772001404895'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '904'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-0440b609-d151-998f-a7bd-07de527d38f1","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_5966c0c4998f44b0b910b6","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001473,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:54 GMT
+      req-arrive-time:
+      - '1772001473662'
+      req-cost-time:
+      - '1226'
+      resp-start-time:
+      - '1772001474889'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1226'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-b7aee333-ced2-9636-8957-d057febf0d04","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_69547d4967c24907b01ac6","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001518,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:38 GMT
+      req-arrive-time:
+      - '1772001518177'
+      req-cost-time:
+      - '1015'
+      resp-start-time:
+      - '1772001519193'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1015'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-fcdf9d5b-0580-9b59-9c2c-db09c4c9db1c","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_9376c1c829a64acdac042c","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001543,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:39:04 GMT
+      req-arrive-time:
+      - '1772001543533'
+      req-cost-time:
+      - '1016'
+      resp-start-time:
+      - '1772001544549'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1015'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-d31cff38-d94d-967a-9b56-7eb474fdf378","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_c1bfe374d56b49fe99240d","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001639,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:40 GMT
+      req-arrive-time:
+      - '1772001639835'
+      req-cost-time:
+      - '993'
+      resp-start-time:
+      - '1772001640828'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '993'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-65366da9-420e-9818-a11c-93998f2bf4a2","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_54aea834c8dc4c0cbc8019","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001937,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:38 GMT
+      req-arrive-time:
+      - '1772001937859'
+      req-cost-time:
+      - '988'
+      resp-start-time:
+      - '1772001938848'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '988'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-1a2ee79c-2334-93ef-b016-5800433178cf","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_4275396bc0494863951363","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002069,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:50 GMT
+      req-arrive-time:
+      - '1772002069404'
+      req-cost-time:
+      - '1066'
+      resp-start-time:
+      - '1772002070470'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1066'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-19937a3c-f335-97f0-9b03-f49931bbe665","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_7b6fb234d6e749be9b8fa0","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002099,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:20 GMT
+      req-arrive-time:
+      - '1772002099893'
+      req-cost-time:
+      - '1097'
+      resp-start-time:
+      - '1772002100990'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1096'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What''s the weather like in
+      San Francisco?"}], "model": "qwen-plus", "tool_choice": "auto", "tools": [{"type":
+      "function", "function": {"name": "get_weather", "description": "Get the current
+      weather in a given location", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string", "description": "The city and state, e.g. San
+      Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"],
+      "description": "The temperature unit"}}, "required": ["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-47e78572-fd14-9862-a25c-7e1d43efb4b5","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_0fa89dbb67c64db8a15ae7","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002374,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:54 GMT
+      req-arrive-time:
+      - '1772002374194'
+      req-cost-time:
+      - '969'
+      resp-start-time:
+      - '1772002375163'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '969'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What''s the weather like in San
+      Francisco?"}],"model":"qwen-plus","tool_choice":"auto","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The
+      city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"],"description":"The
+      temperature unit"}},"required":["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-62ea84c5-ce6a-98b2-9131-13957dedbae9","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_be911bb3c9214cd09a00a7","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003346,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:06 GMT
+      req-arrive-time:
+      - '1772003346178'
+      req-cost-time:
+      - '886'
+      resp-start-time:
+      - '1772003347065'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '886'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What''s the weather like in San
+      Francisco?"}],"model":"qwen-plus","tool_choice":"auto","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The
+      city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"],"description":"The
+      temperature unit"}},"required":["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-c29179cc-b2d8-9b8d-b94a-16f16ea01169","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_b062ec47a2604cafa76349","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003450,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:50 GMT
+      req-arrive-time:
+      - '1772003450390'
+      req-cost-time:
+      - '892'
+      resp-start-time:
+      - '1772003451283'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '892'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What''s the weather like in San
+      Francisco?"}],"model":"qwen-plus","tool_choice":"auto","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The
+      city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"],"description":"The
+      temperature unit"}},"required":["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-25a76aec-ed17-91f8-be4b-3db549108e99","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_30307f8d38744b9cba9aac","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003825,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:06 GMT
+      req-arrive-time:
+      - '1772003825429'
+      req-cost-time:
+      - '928'
+      resp-start-time:
+      - '1772003826357'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '928'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What''s the weather like in San
+      Francisco?"}],"model":"qwen-plus","tool_choice":"auto","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The
+      city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"],"description":"The
+      temperature unit"}},"required":["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-e6d9aa0f-7371-9201-9bf4-4aba6575e84a","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_3fcf8ee6e93347a687ff72","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004217,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:38 GMT
+      req-arrive-time:
+      - '1772004217804'
+      req-cost-time:
+      - '1335'
+      resp-start-time:
+      - '1772004219140'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1335'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What''s the weather like in San
+      Francisco?"}],"model":"qwen-plus","tool_choice":"auto","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The
+      city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"],"description":"The
+      temperature unit"}},"required":["location"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '501'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-1020be16-b39a-9c8e-82e6-496e31cfdfe1","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_f91ef5ccfcd04ff4820bc5","type":"function","function":{"name":"get_weather","arguments":"{\"location\":
+        \"San Francisco, CA\", \"unit\": \"celsius\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004250,"object":"chat.completion","usage":{"total_tokens":231,"completion_tokens":29,"prompt_tokens":202,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '524'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:11 GMT
+      req-arrive-time:
+      - '1772004250653'
+      req-cost-time:
+      - '975'
+      resp-start-time:
+      - '1772004251629'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '975'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

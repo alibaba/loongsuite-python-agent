@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import litellm
+import pytest
 
 from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
 from opentelemetry.test.test_base import TestBase
@@ -9,6 +10,7 @@ from opentelemetry.trace import StatusCode
 from opentelemetry.util.genai.types import ContentCapturingMode
 
 
+@pytest.mark.vcr
 class TestErrorHandling(TestBase):
     """
     Test error handling and edge cases with LiteLLM.

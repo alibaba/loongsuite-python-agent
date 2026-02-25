@@ -24,12 +24,14 @@ import os
 from unittest.mock import patch
 
 import litellm
+import pytest
 
 from opentelemetry.instrumentation.litellm import LiteLLMInstrumentor
 from opentelemetry.test.test_base import TestBase
 from opentelemetry.util.genai.types import ContentCapturingMode
 
 
+@pytest.mark.vcr
 class TestSyncCompletion(TestBase):
     """
     Test synchronous completion calls with LiteLLM.

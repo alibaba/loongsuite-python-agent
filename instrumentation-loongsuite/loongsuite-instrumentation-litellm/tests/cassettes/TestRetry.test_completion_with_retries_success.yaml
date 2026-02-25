@@ -1,0 +1,1252 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001266,"id":"chatcmpl-fc4f2d65-9568-9390-b2f1-ac1cc5196285","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:26 GMT
+      req-arrive-time:
+      - '1772001265999'
+      req-cost-time:
+      - '284'
+      resp-start-time:
+      - '1772001266283'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '283'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001350,"id":"chatcmpl-dc416f01-b812-9898-902c-24fa36043183","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:51 GMT
+      req-arrive-time:
+      - '1772001350789'
+      req-cost-time:
+      - '577'
+      resp-start-time:
+      - '1772001351367'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '577'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001392,"id":"chatcmpl-8965ebdc-4f26-9bb6-b499-b487440d40be","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:32 GMT
+      req-arrive-time:
+      - '1772001392651'
+      req-cost-time:
+      - '261'
+      resp-start-time:
+      - '1772001392913'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '261'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001460,"id":"chatcmpl-0310db29-139a-9194-b0c3-badf24b4af3c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:40 GMT
+      req-arrive-time:
+      - '1772001460691'
+      req-cost-time:
+      - '174'
+      resp-start-time:
+      - '1772001460866'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '174'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001506,"id":"chatcmpl-4fc28973-eff6-9d6a-92b4-897d69f16d53","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:26 GMT
+      req-arrive-time:
+      - '1772001506754'
+      req-cost-time:
+      - '275'
+      resp-start-time:
+      - '1772001507030'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '275'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001532,"id":"chatcmpl-4192e608-ec3a-9ae9-921d-fb02c93d6ed9","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:52 GMT
+      req-arrive-time:
+      - '1772001532539'
+      req-cost-time:
+      - '218'
+      resp-start-time:
+      - '1772001532757'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '217'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001629,"id":"chatcmpl-f4ec89ba-7aa6-9465-8655-1831da4e5319","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:29 GMT
+      req-arrive-time:
+      - '1772001628941'
+      req-cost-time:
+      - '341'
+      resp-start-time:
+      - '1772001629283'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '341'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772001926,"id":"chatcmpl-9bab8a67-a3a6-960c-8511-8aabce937ae4","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:26 GMT
+      req-arrive-time:
+      - '1772001926296'
+      req-cost-time:
+      - '243'
+      resp-start-time:
+      - '1772001926539'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '243'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772002058,"id":"chatcmpl-9a9fbd0c-7f93-9084-94b2-a325a1d258fd","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:38 GMT
+      req-arrive-time:
+      - '1772002058428'
+      req-cost-time:
+      - '304'
+      resp-start-time:
+      - '1772002058732'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '303'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772002088,"id":"chatcmpl-531d9232-6fd5-97dd-a6ad-c22ae292b42c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:08 GMT
+      req-arrive-time:
+      - '1772002088798'
+      req-cost-time:
+      - '187'
+      resp-start-time:
+      - '1772002088986'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '187'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772002326,"id":"chatcmpl-2c665af0-9260-9e3c-a592-e746e6e788a2","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:06 GMT
+      req-arrive-time:
+      - '1772002326540'
+      req-cost-time:
+      - '227'
+      resp-start-time:
+      - '1772002326767'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '227'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 1+1? Answer briefly."}],
+      "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772002362,"id":"chatcmpl-f31f8757-db52-942e-9eb6-eede44868c60","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:42 GMT
+      req-arrive-time:
+      - '1772002362789'
+      req-cost-time:
+      - '233'
+      resp-start-time:
+      - '1772002363023'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '233'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 1+1? Answer briefly."}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772003333,"id":"chatcmpl-9ce45a7a-df33-93c9-b293-4eafdaf8fa05","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:08:53 GMT
+      req-arrive-time:
+      - '1772003333677'
+      req-cost-time:
+      - '260'
+      resp-start-time:
+      - '1772003333937'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '260'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 1+1? Answer briefly."}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772003439,"id":"chatcmpl-436d721f-3eb4-954c-9c82-29ecfdec091d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:39 GMT
+      req-arrive-time:
+      - '1772003439379'
+      req-cost-time:
+      - '616'
+      resp-start-time:
+      - '1772003439995'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '616'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 1+1? Answer briefly."}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772003812,"id":"chatcmpl-8211a1bc-30db-9bbe-845a-17c971edf6ff","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:16:52 GMT
+      req-arrive-time:
+      - '1772003812519'
+      req-cost-time:
+      - '234'
+      resp-start-time:
+      - '1772003812753'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '234'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 1+1? Answer briefly."}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2","role":"assistant"}}],"created":1772004205,"id":"chatcmpl-82df5c13-6044-9bf8-b5a5-bad38303faba","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":23}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:25 GMT
+      req-arrive-time:
+      - '1772004205407'
+      req-cost-time:
+      - '175'
+      resp-start-time:
+      - '1772004205582'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '175'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 1+1? Answer briefly."}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '110'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"2.","role":"assistant"}}],"created":1772004239,"id":"chatcmpl-005e883f-44c8-9a72-94d7-8d8770ce06d5","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":22,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":24}}'
+    headers:
+      content-length:
+      - '329'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:59 GMT
+      req-arrive-time:
+      - '1772004239028'
+      req-cost-time:
+      - '317'
+      resp-start-time:
+      - '1772004239346'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '317'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1
