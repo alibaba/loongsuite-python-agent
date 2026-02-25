@@ -1,0 +1,170 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Content Writer. Expert
+      content writer\nYour personal goal is: Write engaging content\nTo give my best
+      complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Write a short greeting message\n\nThis is the expect criteria for your
+      final answer: A greeting message\nyou MUST return the actual complete content
+      as the final answer, not a summary.\n\nBegin! This is VERY important to you,
+      use the tools available and give your best Final Answer, your job depends on
+      it!\n\nThought:"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '839'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Hello! It''s a pleasure to meet
+        you. How can I assist you today?","role":"assistant"}}],"created":1771988257,"id":"chatcmpl-a3cdb116-a7ca-9d7a-a689-a5cd1a09ceec","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":30,"prompt_tokens":163,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":193}}'
+    headers:
+      content-length:
+      - '447'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:57:38 GMT
+      req-arrive-time:
+      - '1771988257456'
+      req-cost-time:
+      - '1432'
+      resp-start-time:
+      - '1771988258889'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1432'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Content Writer. Expert
+      content writer\nYour personal goal is: Write engaging content\nTo give my best
+      complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Write a short greeting message\n\nThis is the expect criteria for your
+      final answer: A greeting message\nyou MUST return the actual complete content
+      as the final answer, not a summary.\n\nBegin! This is VERY important to you,
+      use the tools available and give your best Final Answer, your job depends on
+      it!\n\nThought:"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '839'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Hello! It''s a pleasure to meet
+        you. How can I assist you today?","role":"assistant"}}],"created":1771989470,"id":"chatcmpl-fe25bcbd-5274-9802-8da5-c86bbf55155e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":30,"prompt_tokens":163,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":193}}'
+    headers:
+      content-length:
+      - '447'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:51 GMT
+      req-arrive-time:
+      - '1771989470477'
+      req-cost-time:
+      - '635'
+      resp-start-time:
+      - '1771989471112'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '635'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

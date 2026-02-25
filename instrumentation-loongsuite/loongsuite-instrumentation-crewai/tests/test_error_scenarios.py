@@ -28,6 +28,7 @@ import os
 import sys
 
 import pysqlite3
+import pytest
 from crewai import Agent, Crew, Task
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
@@ -48,6 +49,7 @@ except ImportError:
 sys.modules["sqlite3"] = pysqlite3
 
 
+@pytest.mark.vcr
 class TestErrorScenarios(TestBase):
     """Test error handling scenarios."""
 

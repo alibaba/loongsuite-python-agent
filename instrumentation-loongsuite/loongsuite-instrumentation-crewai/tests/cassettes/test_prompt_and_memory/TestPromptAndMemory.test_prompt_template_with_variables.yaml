@@ -1,0 +1,262 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are City Analyst. Expert
+      city analyst\nYour personal goal is: Analyze cities\nTo give my best complete
+      final answer to the task use the exact following format:\n\nThought: I now can
+      give a great answer\nFinal Answer: Your final answer must be the great and the
+      most complete as possible, it must be outcome described.\n\nI MUST use these
+      formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent Task:
+      Analyze the city of San Francisco and provide insights about its economy.\n\nThis
+      is the expect criteria for your final answer: City analysis report\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '872'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now can give a great answer\\nFinal Answer: San Francisco City Analysis
+        Report\\n\\n1. Introduction:\\nSan Francisco is a major city located in Northern
+        California, known for its cultural diversity, historical significance, and
+        economic vitality. It is the largest city in the San Francisco Bay Area and
+        serves as a global hub for technology, finance, tourism, and innovation.\\n\\n2.
+        Economic Overview:\\nSan Francisco has a highly diversified economy with strong
+        sectors including technology, financial services, healthcare, education, and
+        tourism. The city's economy is driven by its proximity to Silicon Valley,
+        which has made it a center for tech startups and established companies.\\n\\n3.
+        Key Sectors:\\n- Technology: San Francisco is home to numerous tech companies,
+        including Twitter, Salesforce, Uber, and Salesforce Tower. The city's startup
+        ecosystem is vibrant, with venture capital funding flowing into innovative
+        enterprises.\\n- Financial Services: The city is a major financial center,
+        hosting institutions such as the Federal Reserve Bank of San Francisco and
+        various investment banks.\\n- Healthcare: San Francisco has a robust healthcare
+        sector, with institutions like UCSF Medical Center and Kaiser Permanente playing
+        significant roles.\\n- Education: The presence of prestigious universities
+        such as Stanford University and the University of California, Berkeley, contributes
+        to the city's knowledge-based economy.\\n- Tourism: San Francisco attracts
+        millions of tourists annually, drawn by landmarks such as the Golden Gate
+        Bridge, Alcatraz, Fisherman\u2019s Wharf, and the cable cars.\\n\\n4. Employment
+        and Labor Market:\\nSan Francisco has a high employment rate, with a labor
+        force that is highly educated and skilled. The city has a low unemployment
+        rate, reflecting a strong job market. However, the cost of living is extremely
+        high, which can be a challenge for many residents.\\n\\n5. Real Estate and
+        Housing:\\nThe real estate market in San Francisco is one of the most competitive
+        in the United States. High demand for housing, coupled with limited supply,
+        has led to soaring property prices and a significant housing affordability
+        crisis. The city has implemented policies to address this issue, including
+        rent control measures and affordable housing initiatives.\\n\\n6. Innovation
+        and Entrepreneurship:\\nSan Francisco is a global leader in innovation and
+        entrepreneurship. The city's culture of creativity and risk-taking has fostered
+        a dynamic startup environment. Incubators and accelerators such as Y Combinator
+        have helped launch numerous successful tech companies.\\n\\n7. Challenges:\\nDespite
+        its economic strengths, San Francisco faces several challenges, including
+        income inequality, homelessness, and environmental concerns. The city has
+        also experienced issues related to traffic congestion and public transportation
+        capacity.\\n\\n8. Conclusion:\\nSan Francisco is a thriving economic hub with
+        a diverse and resilient economy. Its strengths lie in technology, finance,
+        and innovation, while challenges such as housing affordability and social
+        inequality require ongoing attention. The city continues to be a key player
+        in the global economy and a center for progress and change.\",\"role\":\"assistant\"}}],\"created\":1771988791,\"id\":\"chatcmpl-e9c882a0-f967-92b1-b638-c5a7f6ab1273\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":577,\"prompt_tokens\":171,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":748}}"
+    headers:
+      content-length:
+      - '3537'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:39 GMT
+      req-arrive-time:
+      - '1771988791102'
+      req-cost-time:
+      - '9067'
+      resp-start-time:
+      - '1771988800169'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '9067'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are City Analyst. Expert
+      city analyst\nYour personal goal is: Analyze cities\nTo give my best complete
+      final answer to the task use the exact following format:\n\nThought: I now can
+      give a great answer\nFinal Answer: Your final answer must be the great and the
+      most complete as possible, it must be outcome described.\n\nI MUST use these
+      formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent Task:
+      Analyze the city of San Francisco and provide insights about its economy.\n\nThis
+      is the expect criteria for your final answer: City analysis report\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '872'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now can give a great answer\\nFinal Answer: San Francisco City Analysis
+        Report\\n\\n1. Introduction:\\nSan Francisco is a major city located in Northern
+        California, known for its cultural diversity, historical significance, and
+        economic vitality. It is the largest city in the San Francisco Bay Area and
+        serves as a global hub for technology, finance, tourism, and innovation.\\n\\n2.
+        Economic Overview:\\nSan Francisco has a highly diversified economy with strong
+        sectors including technology, financial services, healthcare, education, and
+        tourism. The city's economy is driven by a mix of large multinational corporations,
+        startups, and small businesses.\\n\\n3. Key Industries:\\n- Technology: San
+        Francisco is home to numerous tech companies, including major players like
+        Salesforce, Twitter, Uber, and Airbnb. The city is also part of the larger
+        Silicon Valley ecosystem, which is one of the most significant technology
+        hubs globally.\\n- Financial Services: The city is a major financial center,
+        hosting institutions such as the Federal Reserve Bank of San Francisco, the
+        San Francisco Stock Exchange, and numerous venture capital firms.\\n- Healthcare:
+        San Francisco has a robust healthcare sector with leading medical institutions
+        such as the University of California, San Francisco (UCSF) Medical Center
+        and Kaiser Permanente.\\n- Education: The city is home to several prestigious
+        universities and colleges, including the University of California, Berkeley,
+        and Stanford University, which contribute significantly to the local economy
+        through research, innovation, and employment.\\n- Tourism: San Francisco is
+        a popular tourist destination, attracting millions of visitors annually. Landmarks
+        such as the Golden Gate Bridge, Alcatraz, Fisherman\u2019s Wharf, and the
+        cable cars are major attractions.\\n\\n4. Employment and Labor Market:\\nThe
+        labor market in San Francisco is competitive, with a high concentration of
+        skilled workers in the technology and finance sectors. The city has a relatively
+        low unemployment rate, but the cost of living is among the highest in the
+        United States. The workforce is highly educated, with a significant percentage
+        holding bachelor\u2019s degrees or higher.\\n\\n5. Real Estate and Housing:\\nSan
+        Francisco faces significant housing challenges due to high demand and limited
+        supply. The real estate market is dominated by high property values and rising
+        rents, making it difficult for many residents to afford housing. The city
+        has implemented various policies to address homelessness and promote affordable
+        housing, but these issues remain pressing concerns.\\n\\n6. Innovation and
+        Entrepreneurship:\\nSan Francisco is a global leader in innovation and entrepreneurship,
+        particularly in the technology and startup sectors. The city hosts numerous
+        incubators, accelerators, and co-working spaces that support new ventures.
+        This environment fosters continuous growth and development in emerging industries.\\n\\n7.
+        Challenges:\\nDespite its economic strengths, San Francisco faces several
+        challenges, including income inequality, housing affordability, traffic congestion,
+        and environmental sustainability. The city is also dealing with the impacts
+        of climate change, such as rising sea levels and increased risk of wildfires.\\n\\n8.
+        Future Outlook:\\nSan Francisco is well-positioned for continued economic
+        growth, driven by its strong tech industry, innovative spirit, and diverse
+        population. However, addressing the city\u2019s social and environmental challenges
+        will be critical to ensuring long-term prosperity and quality of life for
+        all residents.\\n\\n9. Conclusion:\\nSan Francisco is a dynamic and economically
+        powerful city with a unique blend of culture, innovation, and opportunity.
+        Its economy is resilient and forward-thinking, but it must navigate ongoing
+        challenges to maintain its status as a global leader. The city\u2019s future
+        will depend on its ability to balance growth with sustainability, inclusivity,
+        and quality of life.\",\"role\":\"assistant\"}}],\"created\":1771989458,\"id\":\"chatcmpl-a94aeb0f-3a92-92e4-8c9c-446f1f84f224\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":703,\"prompt_tokens\":171,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":874}}"
+    headers:
+      content-length:
+      - '4297'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:48 GMT
+      req-arrive-time:
+      - '1771989458658'
+      req-cost-time:
+      - '10095'
+      resp-start-time:
+      - '1771989468753'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '10095'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

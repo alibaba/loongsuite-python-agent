@@ -1,0 +1,624 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1275'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+        \"test\"}","role":"assistant"}}],"created":1771988293,"id":"chatcmpl-c13cb06e-6af9-961f-992e-111220ba1725","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":26,"prompt_tokens":260,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":286}}'
+    headers:
+      content-length:
+      - '424'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:13 GMT
+      req-arrive-time:
+      - '1771988293155'
+      req-cost-time:
+      - '608'
+      resp-start-time:
+      - '1771988293764'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '608'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+      \"test\"}\nObservation: \nI encountered an error while trying to use the tool.
+      This was the error: Tool execution failed.\n Tool failing_tool accepts these
+      inputs: Tool Name: failing_tool\nTool Arguments: {''input_str'': {''description'':
+      None, ''type'': ''str''}}\nTool Description: A tool that always fails.\nMoving
+      on then. I MUST either use a tool (use one at time) OR give my best final answer
+      not both at the same time. To Use the following format:\n\nThought: you should
+      always think about what to do\nAction: the action to take, should be one of
+      [failing_tool]\nAction Input: the input to the action, dictionary enclosed in
+      curly braces\nObservation: the result of the action\n... (this Thought/Action/Action
+      Input/Result can repeat N times)\nThought: I now can give a great answer\nFinal
+      Answer: Your final answer must be the great and the most complete as possible,
+      it must be outcome described"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2290'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to use the failing tool again.\nAction: failing_tool\nAction Input:
+        {\"input_str\": \"another test\"}","role":"assistant"}}],"created":1771988294,"id":"chatcmpl-6d463a44-e3d4-93ac-84c9-38f42a4891f1","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":30,"prompt_tokens":481,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":511}}'
+    headers:
+      content-length:
+      - '447'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:14 GMT
+      req-arrive-time:
+      - '1771988294006'
+      req-cost-time:
+      - '570'
+      resp-start-time:
+      - '1771988294577'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '569'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+      \"test\"}\nObservation: \nI encountered an error while trying to use the tool.
+      This was the error: Tool execution failed.\n Tool failing_tool accepts these
+      inputs: Tool Name: failing_tool\nTool Arguments: {''input_str'': {''description'':
+      None, ''type'': ''str''}}\nTool Description: A tool that always fails.\nMoving
+      on then. I MUST either use a tool (use one at time) OR give my best final answer
+      not both at the same time. To Use the following format:\n\nThought: you should
+      always think about what to do\nAction: the action to take, should be one of
+      [failing_tool]\nAction Input: the input to the action, dictionary enclosed in
+      curly braces\nObservation: the result of the action\n... (this Thought/Action/Action
+      Input/Result can repeat N times)\nThought: I now can give a great answer\nFinal
+      Answer: Your final answer must be the great and the most complete as possible,
+      it must be outcome described"}, {"role": "assistant", "content": "Thought: I
+      need to use the failing tool again.\nAction: failing_tool\nAction Input: {\"input_str\":
+      \"another test\"}\nObservation: \nI encountered an error while trying to use
+      the tool. This was the error: Tool execution failed.\n Tool failing_tool accepts
+      these inputs: Tool Name: failing_tool\nTool Arguments: {''input_str'': {''description'':
+      None, ''type'': ''str''}}\nTool Description: A tool that always fails.\nMoving
+      on then. I MUST either use a tool (use one at time) OR give my best final answer
+      not both at the same time. To Use the following format:\n\nThought: you should
+      always think about what to do\nAction: the action to take, should be one of
+      [failing_tool]\nAction Input: the input to the action, dictionary enclosed in
+      curly braces\nObservation: the result of the action\n... (this Thought/Action/Action
+      Input/Result can repeat N times)\nThought: I now can give a great answer\nFinal
+      Answer: Your final answer must be the great and the most complete as possible,
+      it must be outcome described"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3328'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Error handling result: The tool
+        \"failing_tool\" was used twice with different input strings (\"test\" and
+        \"another test\"). In both cases, the tool failed as expected. The error message
+        indicates that the tool execution failed, confirming its behavior of always
+        failing regardless of the input provided.","role":"assistant"}}],"created":1771988295,"id":"chatcmpl-6083da56-40e4-98ec-adad-c55916f2804f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":71,"prompt_tokens":707,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":778}}'
+    headers:
+      content-length:
+      - '689'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:15 GMT
+      req-arrive-time:
+      - '1771988295192'
+      req-cost-time:
+      - '879'
+      resp-start-time:
+      - '1771988296072'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '877'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1275'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+        \"test\"}","role":"assistant"}}],"created":1771989511,"id":"chatcmpl-9d8c563c-5488-967c-baef-85454cd7f0e0","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":26,"prompt_tokens":260,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":286}}'
+    headers:
+      content-length:
+      - '424'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:31 GMT
+      req-arrive-time:
+      - '1771989511340'
+      req-cost-time:
+      - '527'
+      resp-start-time:
+      - '1771989511867'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '527'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+      \"test\"}\nObservation: \nI encountered an error while trying to use the tool.
+      This was the error: Tool execution failed.\n Tool failing_tool accepts these
+      inputs: Tool Name: failing_tool\nTool Arguments: {''input_str'': {''description'':
+      None, ''type'': ''str''}}\nTool Description: A tool that always fails.\nMoving
+      on then. I MUST either use a tool (use one at time) OR give my best final answer
+      not both at the same time. To Use the following format:\n\nThought: you should
+      always think about what to do\nAction: the action to take, should be one of
+      [failing_tool]\nAction Input: the input to the action, dictionary enclosed in
+      curly braces\nObservation: the result of the action\n... (this Thought/Action/Action
+      Input/Result can repeat N times)\nThought: I now can give a great answer\nFinal
+      Answer: Your final answer must be the great and the most complete as possible,
+      it must be outcome described"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2290'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to use the failing tool again to ensure error handling is properly
+        tested.\nAction: failing_tool\nAction Input: {\"input_str\": \"another test\"}","role":"assistant"}}],"created":1771989512,"id":"chatcmpl-2ed0fd81-92c6-9042-947e-6d08ced3b105","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":37,"prompt_tokens":481,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":518}}'
+    headers:
+      content-length:
+      - '491'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:32 GMT
+      req-arrive-time:
+      - '1771989512075'
+      req-cost-time:
+      - '548'
+      resp-start-time:
+      - '1771989512623'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '548'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Assistant. Test
+      agent\nYour personal goal is: Test error handling\nYou ONLY have access to the
+      following tools, and should NEVER make up tools that are not listed here:\n\nTool
+      Name: failing_tool\nTool Arguments: {''input_str'': {''description'': None,
+      ''type'': ''str''}}\nTool Description: A tool that always fails\n\nUse the following
+      format:\n\nThought: you should always think about what to do\nAction: the action
+      to take, only one name of [failing_tool], just the name, exactly as it''s written.\nAction
+      Input: the input to the action, just a simple python dictionary, enclosed in
+      curly braces, using \" to wrap keys and values.\nObservation: the result of
+      the action\n\nOnce all necessary information is gathered:\n\nThought: I now
+      know the final answer\nFinal Answer: the final answer to the original input
+      question"}, {"role": "user", "content": "\nCurrent Task: Use the failing tool\n\nThis
+      is the expect criteria for your final answer: Error handling result\nyou MUST
+      return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to use the failing tool.\nAction: failing_tool\nAction Input: {\"input_str\":
+      \"test\"}\nObservation: \nI encountered an error while trying to use the tool.
+      This was the error: Tool execution failed.\n Tool failing_tool accepts these
+      inputs: Tool Name: failing_tool\nTool Arguments: {''input_str'': {''description'':
+      None, ''type'': ''str''}}\nTool Description: A tool that always fails.\nMoving
+      on then. I MUST either use a tool (use one at time) OR give my best final answer
+      not both at the same time. To Use the following format:\n\nThought: you should
+      always think about what to do\nAction: the action to take, should be one of
+      [failing_tool]\nAction Input: the input to the action, dictionary enclosed in
+      curly braces\nObservation: the result of the action\n... (this Thought/Action/Action
+      Input/Result can repeat N times)\nThought: I now can give a great answer\nFinal
+      Answer: Your final answer must be the great and the most complete as possible,
+      it must be outcome described"}, {"role": "assistant", "content": "Thought: I
+      need to use the failing tool again to ensure error handling is properly tested.\nAction:
+      failing_tool\nAction Input: {\"input_str\": \"another test\"}\nObservation:
+      \nI encountered an error while trying to use the tool. This was the error: Tool
+      execution failed.\n Tool failing_tool accepts these inputs: Tool Name: failing_tool\nTool
+      Arguments: {''input_str'': {''description'': None, ''type'': ''str''}}\nTool
+      Description: A tool that always fails.\nMoving on then. I MUST either use a
+      tool (use one at time) OR give my best final answer not both at the same time.
+      To Use the following format:\n\nThought: you should always think about what
+      to do\nAction: the action to take, should be one of [failing_tool]\nAction Input:
+      the input to the action, dictionary enclosed in curly braces\nObservation: the
+      result of the action\n... (this Thought/Action/Action Input/Result can repeat
+      N times)\nThought: I now can give a great answer\nFinal Answer: Your final answer
+      must be the great and the most complete as possible, it must be outcome described"}],
+      "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3372'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Error handling result: The failing
+        tool was used twice with different input strings (\"test\" and \"another test\").
+        Each time, the tool failed as expected, returning the error message \"Tool
+        execution failed.\" This confirms that the error handling for the failing
+        tool is functioning correctly. The tool consistently rejects all inputs, as
+        described in its documentation. No further action is required.","role":"assistant"}}],"created":1771989512,"id":"chatcmpl-39db412b-acae-9153-ab0e-b56ddeb2e54d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":86,"prompt_tokens":714,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":800}}'
+    headers:
+      content-length:
+      - '788'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:33 GMT
+      req-arrive-time:
+      - '1771989512809'
+      req-cost-time:
+      - '1227'
+      resp-start-time:
+      - '1771989514037'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1227'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

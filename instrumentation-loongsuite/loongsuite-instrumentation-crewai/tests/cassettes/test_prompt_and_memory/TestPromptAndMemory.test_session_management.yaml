@@ -1,0 +1,336 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Session Agent. Expert
+      in session management\nYour personal goal is: Manage conversation sessions\nTo
+      give my best complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Start a conversation\n\nThis is the expect criteria for your final answer:
+      Greeting\nyou MUST return the actual complete content as the final answer, not
+      a summary.\n\nBegin! This is VERY important to you, use the tools available
+      and give your best Final Answer, your job depends on it!\n\nThought:"}], "model":
+      "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '831'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Hello! How can I assist you today?","role":"assistant"}}],"created":1771988800,"id":"chatcmpl-ad0bb0d9-a67c-90f3-bc1e-0402d628e3bb","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":22,"prompt_tokens":161,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":183}}'
+    headers:
+      content-length:
+      - '418'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:41 GMT
+      req-arrive-time:
+      - '1771988800446'
+      req-cost-time:
+      - '793'
+      resp-start-time:
+      - '1771988801240'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '793'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Session Agent. Expert
+      in session management\nYour personal goal is: Manage conversation sessions\nTo
+      give my best complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Continue the conversation\n\nThis is the expect criteria for your final
+      answer: Response\nyou MUST return the actual complete content as the final answer,
+      not a summary.\n\nThis is the context you''re working with:\nHello! How can
+      I assist you today?\n\nBegin! This is VERY important to you, use the tools available
+      and give your best Final Answer, your job depends on it!\n\nThought:"}], "model":
+      "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '916'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        now can give a great answer\nFinal Answer: Hello! How can I assist you today?","role":"assistant"}}],"created":1771988801,"id":"chatcmpl-63c03d5e-c03c-90d1-8f51-cfd9f3394744","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":20,"prompt_tokens":178,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":198}}'
+    headers:
+      content-length:
+      - '409'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:41 GMT
+      req-arrive-time:
+      - '1771988801441'
+      req-cost-time:
+      - '604'
+      resp-start-time:
+      - '1771988802045'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '604'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Session Agent. Expert
+      in session management\nYour personal goal is: Manage conversation sessions\nTo
+      give my best complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Start a conversation\n\nThis is the expect criteria for your final answer:
+      Greeting\nyou MUST return the actual complete content as the final answer, not
+      a summary.\n\nBegin! This is VERY important to you, use the tools available
+      and give your best Final Answer, your job depends on it!\n\nThought:"}], "model":
+      "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '831'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I now can give a great answer\nFinal Answer: Hello! How can I assist you today?","role":"assistant"}}],"created":1771989469,"id":"chatcmpl-2a45f674-0aab-9ed6-991d-2dd45f25334d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":22,"prompt_tokens":161,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":183}}'
+    headers:
+      content-length:
+      - '418'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:49 GMT
+      req-arrive-time:
+      - '1771989469068'
+      req-cost-time:
+      - '454'
+      resp-start-time:
+      - '1771989469523'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '454'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Session Agent. Expert
+      in session management\nYour personal goal is: Manage conversation sessions\nTo
+      give my best complete final answer to the task use the exact following format:\n\nThought:
+      I now can give a great answer\nFinal Answer: Your final answer must be the great
+      and the most complete as possible, it must be outcome described.\n\nI MUST use
+      these formats, my job depends on it!"}, {"role": "user", "content": "\nCurrent
+      Task: Continue the conversation\n\nThis is the expect criteria for your final
+      answer: Response\nyou MUST return the actual complete content as the final answer,
+      not a summary.\n\nThis is the context you''re working with:\nHello! How can
+      I assist you today?\n\nBegin! This is VERY important to you, use the tools available
+      and give your best Final Answer, your job depends on it!\n\nThought:"}], "model":
+      "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '916'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        now can give a great answer\nFinal Answer: Hello! How can I assist you today?","role":"assistant"}}],"created":1771989469,"id":"chatcmpl-aa6537e5-e874-97f3-aa0a-eb3583623cfa","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":20,"prompt_tokens":178,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":198}}'
+    headers:
+      content-length:
+      - '409'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:49 GMT
+      req-arrive-time:
+      - '1771989469741'
+      req-cost-time:
+      - '505'
+      resp-start-time:
+      - '1771989470246'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '505'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1
