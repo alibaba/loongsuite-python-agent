@@ -24,6 +24,7 @@ import os
 import sys
 
 import pysqlite3
+import pytest
 from crewai import Agent, Crew, Process, Task
 
 from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
@@ -43,6 +44,7 @@ except ImportError:
 sys.modules["sqlite3"] = pysqlite3
 
 
+@pytest.mark.vcr
 class TestAgentWorkflow(TestBase):
     """Test Agent workflow orchestration scenarios."""
 

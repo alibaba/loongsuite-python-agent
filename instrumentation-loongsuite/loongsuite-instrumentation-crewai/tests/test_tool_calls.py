@@ -29,6 +29,7 @@ import os
 import sys
 
 import pysqlite3
+import pytest
 from crewai import Agent, Crew, Task
 from crewai.tools.base_tool import BaseTool
 
@@ -101,6 +102,7 @@ class CalculatorTool(BaseTool):
             return f"Error: {str(e)}"
 
 
+@pytest.mark.vcr
 class TestToolCalls(TestBase):
     """Test tool call scenarios."""
 
