@@ -1,0 +1,1281 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001273,"id":"chatcmpl-f241255e-0e4e-97a5-ba48-0cc6eb83b252","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:33 GMT
+      req-arrive-time:
+      - '1772001272962'
+      req-cost-time:
+      - '381'
+      resp-start-time:
+      - '1772001273343'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '380'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001358,"id":"chatcmpl-5caf7806-ca0a-95d4-9bd4-119110b4f840","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:58 GMT
+      req-arrive-time:
+      - '1772001358497'
+      req-cost-time:
+      - '365'
+      resp-start-time:
+      - '1772001358862'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '364'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001399,"id":"chatcmpl-ffe2140a-c88c-9239-a0c4-295c16ef52d7","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:39 GMT
+      req-arrive-time:
+      - '1772001399529'
+      req-cost-time:
+      - '425'
+      resp-start-time:
+      - '1772001399954'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '424'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772001469,\"id\":\"chatcmpl-c54fef31-6836-92f6-bd16-ef22b3d163a8\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:50 GMT
+      req-arrive-time:
+      - '1772001469857'
+      req-cost-time:
+      - '521'
+      resp-start-time:
+      - '1772001470379'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '521'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001513,"id":"chatcmpl-6dcb69ab-e7b4-9b26-a822-170046695ac8","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:33 GMT
+      req-arrive-time:
+      - '1772001513839'
+      req-cost-time:
+      - '452'
+      resp-start-time:
+      - '1772001514292'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '452'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001539,"id":"chatcmpl-d4a84b65-db2d-905a-b9c1-68ded0c4ef25","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:59 GMT
+      req-arrive-time:
+      - '1772001539539'
+      req-cost-time:
+      - '416'
+      resp-start-time:
+      - '1772001539956'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '416'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001635,"id":"chatcmpl-ebc8a7c6-2c29-97c2-96a3-181d3462674f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:36 GMT
+      req-arrive-time:
+      - '1772001635673'
+      req-cost-time:
+      - '529'
+      resp-start-time:
+      - '1772001636202'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '528'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772001934,"id":"chatcmpl-76e469bf-5003-926a-849e-57bee74c1321","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:34 GMT
+      req-arrive-time:
+      - '1772001934057'
+      req-cost-time:
+      - '506'
+      resp-start-time:
+      - '1772001934563'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '506'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772002065,"id":"chatcmpl-8567f003-f1ee-950e-a36c-e9a021937bc5","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:45 GMT
+      req-arrive-time:
+      - '1772002065533'
+      req-cost-time:
+      - '517'
+      resp-start-time:
+      - '1772002066051'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '517'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772002096,\"id\":\"chatcmpl-296fa002-3b8a-9498-ab1b-803acda1347c\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:16 GMT
+      req-arrive-time:
+      - '1772002096157'
+      req-cost-time:
+      - '342'
+      resp-start-time:
+      - '1772002096499'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '341'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772002334,"id":"chatcmpl-898e8f75-1db1-9a02-8772-05abb37dc32e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:14 GMT
+      req-arrive-time:
+      - '1772002334658'
+      req-cost-time:
+      - '416'
+      resp-start-time:
+      - '1772002335074'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '416'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Tell me a short joke."}], "model":
+      "qwen-turbo", "max_tokens": 100, "seed": 42, "stop": ["END"], "temperature":
+      0.9, "top_p": 0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772002370,"id":"chatcmpl-389938ce-ea56-97ae-8108-48f09a952a59","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:50 GMT
+      req-arrive-time:
+      - '1772002370273'
+      req-cost-time:
+      - '504'
+      resp-start-time:
+      - '1772002370778'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '504'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Tell me a short joke."}],"model":"qwen-turbo","max_tokens":100,"seed":42,"stop":["END"],"temperature":0.9,"top_p":0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772003341,\"id\":\"chatcmpl-4726254a-709c-993b-ae54-a2bad05aa6e8\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:02 GMT
+      req-arrive-time:
+      - '1772003341798'
+      req-cost-time:
+      - '658'
+      resp-start-time:
+      - '1772003342457'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '658'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Tell me a short joke."}],"model":"qwen-turbo","max_tokens":100,"seed":42,"stop":["END"],"temperature":0.9,"top_p":0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772003446,\"id\":\"chatcmpl-430a63a4-9b0e-923e-a587-6e11cbaed228\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:46 GMT
+      req-arrive-time:
+      - '1772003446600'
+      req-cost-time:
+      - '390'
+      resp-start-time:
+      - '1772003446991'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '389'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Tell me a short joke."}],"model":"qwen-turbo","max_tokens":100,"seed":42,"stop":["END"],"temperature":0.9,"top_p":0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Why
+        don''t skeletons fight each other?  \nThey don''t have the guts.","role":"assistant"}}],"created":1772003821,"id":"chatcmpl-1d301316-0655-97bf-be86-cf28967bc092","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":16,"prompt_tokens":18,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":34}}'
+    headers:
+      content-length:
+      - '394'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:01 GMT
+      req-arrive-time:
+      - '1772003821363'
+      req-cost-time:
+      - '450'
+      resp-start-time:
+      - '1772003821813'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '449'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Tell me a short joke."}],"model":"qwen-turbo","max_tokens":100,"seed":42,"stop":["END"],"temperature":0.9,"top_p":0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772004213,\"id\":\"chatcmpl-6845e0ce-6b22-9ca1-a052-c5699f4a2a35\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:34 GMT
+      req-arrive-time:
+      - '1772004213287'
+      req-cost-time:
+      - '967'
+      resp-start-time:
+      - '1772004214254'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '966'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Tell me a short joke."}],"model":"qwen-turbo","max_tokens":100,"seed":42,"stop":["END"],"temperature":0.9,"top_p":0.95}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Why
+        don't skeletons fight each other?  \\nThey don't have the guts. \U0001F604\",\"role\":\"assistant\"}}],\"created\":1772004246,\"id\":\"chatcmpl-5ec289a1-0f91-9374-860f-69616216af2f\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":18,\"prompt_tokens\":18,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":36}}"
+    headers:
+      content-length:
+      - '399'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:06 GMT
+      req-arrive-time:
+      - '1772004246639'
+      req-cost-time:
+      - '479'
+      resp-start-time:
+      - '1772004247119'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '479'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,1206 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-e5b3ddf3-3b93-9cbc-98b5-585ae9ec84fe","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_0c3e599b0680468b9202f5","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001279,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:39 GMT
+      req-arrive-time:
+      - '1772001279338'
+      req-cost-time:
+      - '739'
+      resp-start-time:
+      - '1772001280077'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '737'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-6f1ff6f3-a7f6-98d7-919f-257b4b6e8f2b","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_bad5666762f24dbb9d0390","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001364,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:04 GMT
+      req-arrive-time:
+      - '1772001364603'
+      req-cost-time:
+      - '507'
+      resp-start-time:
+      - '1772001365110'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '507'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-a3e09464-4ee9-95e1-8be9-bd416e9b7144","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_467dd21f9e504f4a9189f5","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001406,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:46 GMT
+      req-arrive-time:
+      - '1772001406052'
+      req-cost-time:
+      - '548'
+      resp-start-time:
+      - '1772001406600'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '548'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-2aa0744b-16a0-9007-a46e-bec77c12e7af","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_935aeb2932ed4e34bce81b","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001476,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:56 GMT
+      req-arrive-time:
+      - '1772001476360'
+      req-cost-time:
+      - '608'
+      resp-start-time:
+      - '1772001476969'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '608'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-15fbf3c6-fe31-9031-a130-3458bd0f7efa","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_801c260beb2446658e6b2c","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001520,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:40 GMT
+      req-arrive-time:
+      - '1772001520463'
+      req-cost-time:
+      - '754'
+      resp-start-time:
+      - '1772001521218'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '754'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-4f915b7c-db38-97a8-99fa-63575e88afeb","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_51298a38184744578c8344","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001545,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:39:06 GMT
+      req-arrive-time:
+      - '1772001545805'
+      req-cost-time:
+      - '541'
+      resp-start-time:
+      - '1772001546346'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '540'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-eefcfeff-0337-968f-89a9-cade2ab50279","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_6ad3671cbbe04ba58773e4","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001641,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:42 GMT
+      req-arrive-time:
+      - '1772001641932'
+      req-cost-time:
+      - '519'
+      resp-start-time:
+      - '1772001642452'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '519'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-69917bdf-ce33-9df7-9b0a-63a4b426f89a","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_daca3bbcf7f0444398bce9","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001940,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:40 GMT
+      req-arrive-time:
+      - '1772001939970'
+      req-cost-time:
+      - '514'
+      resp-start-time:
+      - '1772001940484'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '514'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-57462570-9126-9ba2-8322-3bffe9752228","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d098b76d9a37441d86aee0","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002071,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":64}}}'
+    headers:
+      content-length:
+      - '462'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:52 GMT
+      req-arrive-time:
+      - '1772002071653'
+      req-cost-time:
+      - '593'
+      resp-start-time:
+      - '1772002072247'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '593'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-f9776d30-d05e-9bd8-92f0-76d231e9d782","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_a26388ba217b4c848166c4","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002102,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:22 GMT
+      req-arrive-time:
+      - '1772002102203'
+      req-cost-time:
+      - '517'
+      resp-start-time:
+      - '1772002102720'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '517'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Format this"}], "model": "qwen-plus",
+      "tool_choice": "required", "tools": [{"type": "function", "function": {"name":
+      "format", "description": "Format resp", "parameters": {"type": "object", "properties":
+      {}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-4789d8b4-051d-933f-bd2a-355f30dd10f7","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_5b6b7961943642aba626a2","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002376,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:56 GMT
+      req-arrive-time:
+      - '1772002376474'
+      req-cost-time:
+      - '519'
+      resp-start-time:
+      - '1772002376993'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '519'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Format this"}],"model":"qwen-plus","tool_choice":"required","tools":[{"type":"function","function":{"name":"format","description":"Format
+      resp","parameters":{"type":"object","properties":{}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-ca50aef8-5e11-9202-a78f-30b4196dbb78","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_4b6c0d8c55474d39be8864","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003348,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:08 GMT
+      req-arrive-time:
+      - '1772003348328'
+      req-cost-time:
+      - '533'
+      resp-start-time:
+      - '1772003348862'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '533'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Format this"}],"model":"qwen-plus","tool_choice":"required","tools":[{"type":"function","function":{"name":"format","description":"Format
+      resp","parameters":{"type":"object","properties":{}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-fd0119db-5395-9f84-ab6e-950b5a1e6b90","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_24c5ac5760d146788a7acb","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003452,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:52 GMT
+      req-arrive-time:
+      - '1772003452557'
+      req-cost-time:
+      - '567'
+      resp-start-time:
+      - '1772003453125'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '567'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Format this"}],"model":"qwen-plus","tool_choice":"required","tools":[{"type":"function","function":{"name":"format","description":"Format
+      resp","parameters":{"type":"object","properties":{}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-c455d28b-5126-90c1-a1a7-09ea93813450","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_6d058e1b1e1d41bfa42b0d","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003827,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:07 GMT
+      req-arrive-time:
+      - '1772003827521'
+      req-cost-time:
+      - '490'
+      resp-start-time:
+      - '1772003828012'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '490'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Format this"}],"model":"qwen-plus","tool_choice":"required","tools":[{"type":"function","function":{"name":"format","description":"Format
+      resp","parameters":{"type":"object","properties":{}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-24c2030d-1158-9fb5-aabd-a072238918fa","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_90b4a91e9d2c4e58bda3e7","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004220,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:40 GMT
+      req-arrive-time:
+      - '1772004220466'
+      req-cost-time:
+      - '473'
+      resp-start-time:
+      - '1772004220940'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '473'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Format this"}],"model":"qwen-plus","tool_choice":"required","tools":[{"type":"function","function":{"name":"format","description":"Format
+      resp","parameters":{"type":"object","properties":{}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '233'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-f803058d-5964-95e6-86fc-7869de512c6f","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_6bcd2586b87e40aebf92f6","type":"function","function":{"name":"format","arguments":"{}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004252,"object":"chat.completion","usage":{"total_tokens":142,"completion_tokens":11,"prompt_tokens":131,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:13 GMT
+      req-arrive-time:
+      - '1772004252852'
+      req-cost-time:
+      - '502'
+      resp-start-time:
+      - '1772004253355'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '502'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

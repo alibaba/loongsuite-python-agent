@@ -2,7 +2,10 @@ litellm>=1.0.0
 pytest
 pytest-asyncio
 openai
--e aliyun-semantic-conventions
+opentelemetry-test-utils
+vcrpy
+pytest-recording
 -e util/opentelemetry-util-http
--e instrumentation/opentelemetry-instrumentation-litellm
+-e util/opentelemetry-util-genai
+-e instrumentation-loongsuite/loongsuite-instrumentation-litellm
 
