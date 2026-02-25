@@ -1,0 +1,482 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"3e1ae270-471f-9bef-a10e-add2239b0270"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:27 GMT
+      req-arrive-time:
+      - '1771988787515'
+      req-cost-time:
+      - '55'
+      resp-start-time:
+      - '1771988787570'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '54'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"b4f1fde8-555d-950f-b9e2-fd65be9bd8f5"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:27 GMT
+      req-arrive-time:
+      - '1771988787819'
+      req-cost-time:
+      - '56'
+      resp-start-time:
+      - '1771988787875'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '56'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"377c4244-c045-9dfb-a9ee-568594385d26"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:06:27 GMT
+      req-arrive-time:
+      - '1771988788104'
+      req-cost-time:
+      - '57'
+      resp-start-time:
+      - '1771988788161'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '56'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"d0bf6b58-86db-9278-a087-30490db5dc97"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:34 GMT
+      req-arrive-time:
+      - '1771989454117'
+      req-cost-time:
+      - '54'
+      resp-start-time:
+      - '1771989454172'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '54'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"4bf6990a-aee3-9ce2-912e-203fe5258322"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:34 GMT
+      req-arrive-time:
+      - '1771989454404'
+      req-cost-time:
+      - '53'
+      resp-start-time:
+      - '1771989454457'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '53'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Test Agent. Test agent\nYour
+      personal goal is: Test authentication failure\nTo give my best complete final
+      answer to the task use the exact following format:\n\nThought: I now can give
+      a great answer\nFinal Answer: Your final answer must be the great and the most
+      complete as possible, it must be outcome described.\n\nI MUST use these formats,
+      my job depends on it!"}, {"role": "user", "content": "\nCurrent Task: Execute
+      a task\n\nThis is the expect criteria for your final answer: Task output\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '806'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"error":{"message":"You didn''t provide an API key. You need to provide
+        your API key in an Authorization header using Bearer auth (i.e. Authorization:
+        Bearer YOUR_KEY). ","type":"invalid_request_error","param":null,"code":null},"request_id":"6785bfd6-4a0e-95fb-a07b-259c8ff97818"}'
+    headers:
+      content-length:
+      - '280'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:17:34 GMT
+      req-arrive-time:
+      - '1771989454697'
+      req-cost-time:
+      - '54'
+      resp-start-time:
+      - '1771989454751'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '54'
+      x-request-id:
+      - <masked>
+    status:
+      code: 401
+      message: Unauthorized
+version: 1
