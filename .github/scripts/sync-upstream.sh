@@ -23,14 +23,7 @@ BASE_BRANCH="main"
 SYNC_BRANCH=""
 RESUME=false
 SKIP_PR=false
-SKIP_MAPPING_UPDATE=false
 DRY_RUN=false
-
-MAPPING_FILE="$REPO_ROOT/util/opentelemetry-util-genai/upstream_version_map.json"
-VERSION_FILE="$REPO_ROOT/util/opentelemetry-util-genai/src/opentelemetry/util/genai/version.py"
-UPDATE_MAPPING_SCRIPT="$REPO_ROOT/util/opentelemetry-util-genai/scripts/update_upstream_version_map.py"
-GENERATE_TABLE_SCRIPT="$REPO_ROOT/util/opentelemetry-util-genai/scripts/generate_version_mapping_table.py"
-README_FILE="$REPO_ROOT/util/opentelemetry-util-genai/README-loongsuite.rst"
 
 usage() {
   cat <<'EOF'
@@ -46,7 +39,6 @@ Options:
   --sync-branch <name>        Sync working branch (default: auto-generated)
   --resume                    Continue after manual conflict resolution
   --skip-pr                   Do not create pull request automatically
-  --skip-mapping-update       Do not update util-genai upstream mapping files
   --dry-run                   Do everything except push and create PR (local validation).
                               Uses current branch as base so script stays available.
   -h, --help                  Show this help message
@@ -99,10 +91,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-pr)
       SKIP_PR=true
-      shift
-      ;;
-    --skip-mapping-update)
-      SKIP_MAPPING_UPDATE=true
       shift
       ;;
     --dry-run)
@@ -161,43 +149,6 @@ get_upstream_target() {
   fi
 }
 
-extract_upstream_version() {
-  local target
-  target=$(get_upstream_target)
-  git show "${target}:util/opentelemetry-util-genai/src/opentelemetry/util/genai/version.py" \
-    | python3 -c 'import re,sys; m=re.search(r"__version__\s*=\s*\"([^\"]+)\"", sys.stdin.read()); print(m.group(1) if m else "unknown")'
-}
-
-update_mapping_and_readme() {
-  local target upstream_commit upstream_version ref_type ref_val
-  target=$(get_upstream_target)
-  upstream_commit=$(git rev-parse "$target")
-  upstream_version=$(extract_upstream_version)
-
-  if [[ -n "$UPSTREAM_COMMIT" ]]; then
-    ref_type="commit"
-    ref_val="$upstream_commit"
-  else
-    ref_type="branch"
-    ref_val="$UPSTREAM_BRANCH"
-  fi
-
-  python3 "$UPDATE_MAPPING_SCRIPT" \
-    --mapping-file "$MAPPING_FILE" \
-    --version-file "$VERSION_FILE" \
-    --upstream-version "$upstream_version" \
-    --upstream-commit "$upstream_commit" \
-    --upstream-ref-type "$ref_type" \
-    --upstream-ref "$ref_val"
-
-  python3 "$GENERATE_TABLE_SCRIPT" --mapping "$MAPPING_FILE" --readme "$README_FILE"
-
-  if ! git diff --quiet -- "$MAPPING_FILE" "$README_FILE"; then
-    git add "$MAPPING_FILE" "$README_FILE"
-    git commit -m "chore(util-genai): update upstream mapping after sync"
-  fi
-}
-
 push_branch() {
   if [[ "$DRY_RUN" == true ]]; then
     echo "[DRY-RUN] Would push branch: $SYNC_BRANCH -> origin"
@@ -227,7 +178,6 @@ create_pr() {
 ## Summary
 - Merge upstream \`${upstream_desc}\` into \`${BASE_BRANCH}\`
 - Preserve upstream commit history for incremental future syncs
-- Auto-update util-genai upstream version mapping
 
 ## Notes
 - This PR can be merged into \`${BASE_BRANCH}\` without conflicts (conflicts were resolved during the upstream merge)
@@ -245,7 +195,6 @@ EOF
 # ── Main ──────────────────────────────────────────────────────────────
 
 require_command git
-require_command python3
 
 if [[ "$DRY_RUN" == true ]]; then
   echo "=== DRY-RUN mode: will not push or create PR ==="
@@ -294,7 +243,7 @@ else
     SYNC_BRANCH="sync/upstream-$(date -u +%Y%m%d-%H%M%S)"
   fi
 
-  # Dry-run: use current branch as base so sync script and mapping infra stay in place
+  # Dry-run: use current branch as base so sync script stays available
   if [[ "$DRY_RUN" == true ]]; then
     BASE_REF="HEAD"
     echo "Creating sync branch: $SYNC_BRANCH (from current branch $ORIG_BRANCH)"
@@ -332,11 +281,7 @@ else
   echo "Merge completed without conflicts."
 fi
 
-# ── Finalize: update mapping, push, create PR ──
-
-if [[ "$SKIP_MAPPING_UPDATE" == false ]]; then
-  update_mapping_and_readme
-fi
+# ── Finalize: push, create PR ──
 
 push_branch
 create_pr

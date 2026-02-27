@@ -20,11 +20,6 @@ on:
         required: false
         default: false
         type: boolean
-      skip_mapping_update:
-        description: "Skip util-genai mapping update"
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: write
@@ -46,7 +41,6 @@ jobs:
       - name: Run upstream sync
         env:
           SKIP_PR: ${{ inputs.skip_pr }}
-          SKIP_MAPPING_UPDATE: ${{ inputs.skip_mapping_update }}
           GH_TOKEN: ${{ github.token }}
         run: |
           chmod +x .github/scripts/sync-upstream.sh
@@ -58,9 +52,6 @@ jobs:
 
           if [[ "$SKIP_PR" == "true" ]]; then
             cmd="$cmd --skip-pr"
-          fi
-          if [[ "$SKIP_MAPPING_UPDATE" == "true" ]]; then
-            cmd="$cmd --skip-mapping-update"
           fi
 
           eval "$cmd"
