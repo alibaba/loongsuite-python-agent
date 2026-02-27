@@ -1,4 +1,4 @@
-name: Sync upstream with rebase
+name: Sync upstream
 
 on:
   workflow_dispatch:
@@ -49,8 +49,8 @@ jobs:
           SKIP_MAPPING_UPDATE: ${{ inputs.skip_mapping_update }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          chmod +x .github/scripts/sync-upstream-with-rebase.sh
-          cmd=".github/scripts/sync-upstream-with-rebase.sh \
+          chmod +x .github/scripts/sync-upstream.sh
+          cmd=".github/scripts/sync-upstream.sh \
             --upstream-url ${{ inputs.upstream_url }} \
             --upstream-branch ${{ inputs.upstream_branch }} \
             --base-branch ${{ inputs.base_branch }} \

@@ -1,4 +1,4 @@
-  #!/usr/bin/env bash
+#!/usr/bin/env bash
 #
 # Sync upstream changes into a local branch via "git merge" (not rebase).
 #
@@ -35,7 +35,7 @@ README_FILE="$REPO_ROOT/util/opentelemetry-util-genai/README-loongsuite.rst"
 usage() {
   cat <<'EOF'
 Usage:
-  .github/scripts/sync-upstream-with-rebase.sh [options]
+  .github/scripts/sync-upstream.sh [options]
 
 Options:
   --upstream-remote <name>    Upstream git remote name (default: upstream)
@@ -53,17 +53,17 @@ Options:
 
 Typical flow:
   1) Start sync:
-     .github/scripts/sync-upstream-with-rebase.sh --upstream-url <url>
+     .github/scripts/sync-upstream.sh --upstream-url <url>
 
   2) Sync to a specific upstream commit:
-     .github/scripts/sync-upstream-with-rebase.sh --upstream-url <url> \\
+     .github/scripts/sync-upstream.sh --upstream-url <url> \\
        --upstream-commit <sha-or-ref>
 
   3) If conflict occurs, resolve conflicts, then:
      git add <resolved-files>
      git commit                # finish the merge commit
-     .github/scripts/sync-upstream-with-rebase.sh --resume --sync-branch <branch>
-       (or /tmp/sync-upstream-with-rebase.sh if script not on current branch)
+     .github/scripts/sync-upstream.sh --resume --sync-branch <branch>
+       (or /tmp/sync-upstream.sh if script not on current branch)
 EOF
 }
 
@@ -279,7 +279,7 @@ if [[ "$RESUME" == true ]]; then
     echo "  git add <resolved-files>"
     echo "  git commit"
     echo "Then re-run:"
-    echo "  .github/scripts/sync-upstream-with-rebase.sh --resume --sync-branch $SYNC_BRANCH"
+    echo "  .github/scripts/sync-upstream.sh --resume --sync-branch $SYNC_BRANCH"
     exit 2
   fi
 
@@ -323,7 +323,7 @@ else
     echo "    2) git add <resolved-files>"
     echo "    3) git commit          # finishes the merge commit"
     echo "    4) Re-run this script:"
-    echo "       .github/scripts/sync-upstream-with-rebase.sh \\"
+    echo "       .github/scripts/sync-upstream.sh \\"
     echo "         --resume --sync-branch $SYNC_BRANCH"
     echo "════════════════════════════════════════════════════════════"
     exit 2
