@@ -1293,10 +1293,10 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         inv1.context_token = None
         inv1.span = MagicMock()
         self.assertFalse(
-            handler.process_multimodal_stop(inv1, method="stop_llm")
+            handler.process_multimodal_stop(inv1, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
         )
         self.assertFalse(
-            handler.process_multimodal_fail(inv1, error, method="fail_llm")
+            handler.process_multimodal_fail(inv1, error, method="fail_llm")  # pylint: disable=unexpected-keyword-arg
         )
 
         # span is None
@@ -1304,7 +1304,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         inv2.context_token = MagicMock()
         inv2.span = None
         self.assertFalse(
-            handler.process_multimodal_stop(inv2, method="stop_llm")
+            handler.process_multimodal_stop(inv2, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
         )
 
         # No multimodal data
@@ -1315,14 +1315,14 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             InputMessage(role="user", parts=[Text(content="Hi")])
         ]
         self.assertFalse(
-            handler.process_multimodal_stop(inv3, method="stop_llm")
+            handler.process_multimodal_stop(inv3, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
         )
 
         # multimodal_enabled=False
         handler_disabled = self._create_mock_handler(enabled=False)
         inv4 = self._create_invocation_with_multimodal(with_context=True)
         self.assertFalse(
-            handler_disabled.process_multimodal_stop(inv4, method="stop_llm")
+            handler_disabled.process_multimodal_stop(inv4, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
         )
 
     @patch_env_vars(
@@ -1341,7 +1341,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             MultimodalProcessingMixin._async_queue = None
             with patch.object(handler, "_fallback_stop") as mock_end:
                 self.assertTrue(
-                    handler.process_multimodal_stop(inv, method="stop_llm")
+                    handler.process_multimodal_stop(inv, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
                 )
                 mock_end.assert_called_once()
 
@@ -1349,7 +1349,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             inv.context_token = MagicMock()
             with patch.object(handler, "_fallback_fail") as mock_fail:
                 self.assertTrue(
-                    handler.process_multimodal_fail(
+                    handler.process_multimodal_fail(  # pylint: disable=unexpected-keyword-arg
                         inv, error, method="fail_llm"
                     )
                 )
@@ -1361,7 +1361,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             inv.context_token = MagicMock()
             with patch.object(handler, "_fallback_stop") as mock_end2:
                 self.assertTrue(
-                    handler.process_multimodal_stop(inv, method="stop_llm")
+                    handler.process_multimodal_stop(inv, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
                 )
                 mock_end2.assert_called_once()
 
@@ -1381,7 +1381,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             # stop
             inv1 = self._create_invocation_with_multimodal(with_context=True)
             self.assertTrue(
-                handler.process_multimodal_stop(inv1, method="stop_llm")
+                handler.process_multimodal_stop(inv1, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
             )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
             self.assertEqual(task.method, "stop_llm")
@@ -1389,7 +1389,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             # fail
             inv2 = self._create_invocation_with_multimodal(with_context=True)
             self.assertTrue(
-                handler.process_multimodal_fail(inv2, error, method="fail_llm")
+                handler.process_multimodal_fail(inv2, error, method="fail_llm")  # pylint: disable=unexpected-keyword-arg
             )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
             self.assertEqual(task.method, "fail_llm")
@@ -1404,8 +1404,8 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         inv.span = None
 
         # Should not raise
-        handler._fallback_stop(inv, "stop_llm")
-        handler._fallback_fail(
+        handler._fallback_stop(inv, "stop_llm")  # pylint: disable=no-member
+        handler._fallback_fail(  # pylint: disable=no-member
             inv, Error(message="err", type=RuntimeError), "fail_llm"
         )
         handler._async_stop_llm(
@@ -1448,12 +1448,12 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         ) as m2, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_llm_event"
         ):  # fmt: skip
-            handler._fallback_stop(inv, "stop_llm")
+            handler._fallback_stop(inv, "stop_llm")  # pylint: disable=no-member
             m1.assert_called_with(mock_span, inv)
             mock_span.end.assert_called_once()
 
             mock_span.reset_mock()
-            handler._fallback_fail(inv, error, "fail_llm")
+            handler._fallback_fail(inv, error, "fail_llm")  # pylint: disable=no-member
             m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
 
@@ -1565,7 +1565,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
         ):  # fmt: skip
             # stop_agent
-            handler._dispatch_task(
+            handler._dispatch_task(  # pylint: disable=no-member
                 _MultimodalAsyncTask(
                     invocation=inv, method="stop_agent", handler=handler
                 )
@@ -1577,7 +1577,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             m_attr.reset_mock()
 
             # fail_agent
-            handler._dispatch_task(
+            handler._dispatch_task(  # pylint: disable=no-member
                 _MultimodalAsyncTask(
                     invocation=inv,
                     method="fail_agent",
@@ -1605,7 +1605,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         ) as m2, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
         ):  # fmt: skip
-            handler._async_stop_invoke_agent(
+            handler._async_stop_invoke_agent(  # pylint: disable=no-member
                 _MultimodalAsyncTask(
                     invocation=inv, method="stop_agent", handler=handler
                 )
@@ -1616,7 +1616,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
 
             mock_span.reset_mock()
             error = Error(message="err", type=ValueError)
-            handler._async_fail_invoke_agent(
+            handler._async_fail_invoke_agent(  # pylint: disable=no-member
                 _MultimodalAsyncTask(
                     invocation=inv,
                     method="fail_agent",
@@ -1634,12 +1634,12 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         inv.span = None
 
         # Should not raise
-        handler._async_stop_invoke_agent(
+        handler._async_stop_invoke_agent(  # pylint: disable=no-member
             _MultimodalAsyncTask(
                 invocation=inv, method="stop_agent", handler=handler
             )
         )
-        handler._async_fail_invoke_agent(
+        handler._async_fail_invoke_agent(  # pylint: disable=no-member
             _MultimodalAsyncTask(
                 invocation=inv,
                 method="fail_agent",
@@ -1662,7 +1662,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         ) as m1, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
         ):  # fmt: skip
-            handler._fallback_stop(inv, "stop_agent")
+            handler._fallback_stop(inv, "stop_agent")  # pylint: disable=no-member
             m1.assert_called_with(mock_span, inv)
             mock_span.end.assert_called_once()
 
@@ -1683,7 +1683,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         ) as m2, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
         ):  # fmt: skip
-            handler._fallback_fail(inv, error, "fail_agent")
+            handler._fallback_fail(inv, error, "fail_agent")  # pylint: disable=no-member
             m1.assert_called_with(mock_span, inv)
             m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
@@ -1951,7 +1951,7 @@ class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
             ("uploader", timeout)
         )
 
-        ExtendedTelemetryHandler.shutdown(
+        ExtendedTelemetryHandler.shutdown(  # pylint: disable=no-member
             worker_timeout=1.0,
             pre_uploader_timeout=2.0,
             uploader_timeout=3.0,
@@ -1971,8 +1971,8 @@ class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
         mock_shutdown_pre_uploader: MagicMock,
         mock_shutdown_uploader: MagicMock,
     ):
-        ExtendedTelemetryHandler.shutdown()
-        ExtendedTelemetryHandler.shutdown()
+        ExtendedTelemetryHandler.shutdown()  # pylint: disable=no-member
+        ExtendedTelemetryHandler.shutdown()  # pylint: disable=no-member
 
         mock_shutdown_worker.assert_called_once()
         mock_shutdown_pre_uploader.assert_called_once()

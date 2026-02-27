@@ -158,7 +158,6 @@ class TelemetryHandler:
 
         span = invocation.span
         _apply_llm_finish_attributes(span, invocation)
-
         self._record_llm_metrics(invocation, span)
         _maybe_emit_llm_event(self._logger, span, invocation)
         # Detach context and end span

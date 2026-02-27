@@ -77,7 +77,7 @@ from opentelemetry.util.genai.types import (
     OutputMessage,
     Uri,
 )
-from opentelemetry.util.genai.utils import (
+from opentelemetry.util.genai.utils import (  # pylint: disable=no-name-in-module
     gen_ai_json_dumps,
     get_content_capturing_mode,
     get_multimodal_upload_mode,
@@ -750,7 +750,7 @@ class MultimodalProcessingMixin:
         Note: Keep as instance method for consistency with other methods in this mixin
         """
         try:
-            from opentelemetry.util.genai._multimodal_upload import (  # pylint: disable=import-outside-toplevel  # noqa: PLC0415
+            from opentelemetry.util.genai._multimodal_upload import (  # pylint: disable=import-outside-toplevel,no-name-in-module  # noqa: PLC0415
                 get_or_load_uploader_pair,
             )
 

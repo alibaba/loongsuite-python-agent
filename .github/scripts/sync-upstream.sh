@@ -173,7 +173,7 @@ create_pr() {
   title="chore: sync ${upstream_desc} into ${BASE_BRANCH}"
   local body_file
   body_file=$(mktemp)
-  trap 'rm -f "$body_file"' EXIT
+  trap 'rm -f "${body_file:-}"' EXIT
   cat <<EOF >"$body_file"
 ## Summary
 - Merge upstream \`${upstream_desc}\` into \`${BASE_BRANCH}\`

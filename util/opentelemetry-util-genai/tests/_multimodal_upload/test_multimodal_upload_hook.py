@@ -24,7 +24,7 @@ from opentelemetry.util.genai._multimodal_upload._base import (
     Uploader,
     UploadItem,
 )
-from opentelemetry.util.genai.extended_environment_variables import (
+from opentelemetry.util.genai.extended_environment_variables import (  # pylint: disable=no-name-in-module
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,

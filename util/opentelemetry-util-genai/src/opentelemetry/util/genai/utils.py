@@ -15,7 +15,7 @@
 import json
 import logging
 import os
-import re
+import re  # LoongSuite Extension
 from base64 import b64encode
 from functools import partial
 from typing import Any, List, Optional
@@ -29,16 +29,16 @@ from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
 )
-from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,
+from opentelemetry.util.genai.extended_environment_variables import (  # pylint: disable=no-name-in-module
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,  # LoongSuite Extension
 )
 from opentelemetry.util.genai.types import ContentCapturingMode
 
@@ -81,22 +81,49 @@ def should_emit_event() -> bool:
     """Check if event emission is enabled.
 
     Returns True if event emission is enabled, False otherwise.
-    Defaults to False if the environment variable is not set.
+
+    If the environment variable OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is explicitly set,
+    its value takes precedence. Otherwise, the default value is determined by
+    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT:
+    - NO_CONTENT or SPAN_ONLY: defaults to False
+    - EVENT_ONLY or SPAN_AND_EVENT: defaults to True
     """
     envvar = os.environ.get(OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT)
-    if not envvar:
+    # If explicitly set (and not empty), use the user's value (highest priority)
+    if envvar and envvar.strip():
+        envvar_lower = envvar.lower().strip()
+        if envvar_lower == "true":
+            return True
+        if envvar_lower == "false":
+            return False
+        logger.warning(
+            "%s is not a valid option for `%s` environment variable. Must be one of true or false (case-insensitive). Defaulting based on content capturing mode.",
+            envvar,
+            OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
+        )
+        # Invalid value falls through to default logic below
+
+    # If not explicitly set (or invalid), determine default based on content capturing mode
+    try:
+        if not is_experimental_mode():
+            # Not in experimental mode, default to False
+            return False
+        content_mode = get_content_capturing_mode()
+        # EVENT_ONLY and SPAN_AND_EVENT require events, so default to True
+        if content_mode in (
+            ContentCapturingMode.EVENT_ONLY,
+            ContentCapturingMode.SPAN_AND_EVENT,
+        ):
+            return True
+        # NO_CONTENT and SPAN_ONLY don't require events, so default to False
         return False
-    envvar_lower = envvar.lower()
-    if envvar_lower == "true":
-        return True
-    if envvar_lower == "false":
+    except ValueError:
+        # If get_content_capturing_mode raises ValueError (not in experimental mode),
+        # default to False
         return False
-    logger.warning(
-        "%s is not a valid option for `%s` environment variable. Must be one of true or false (case-insensitive). Defaulting to `false`.",
-        envvar,
-        OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
-    )
-    return False
+
+
+# LoongSuite Extension
 
 
 def _parse_env_bool(value: Optional[str], default: bool) -> bool:
