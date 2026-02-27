@@ -41,6 +41,9 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import SpanKind, Status, StatusCode
+from opentelemetry.util.genai._extended_semconv import (
+    gen_ai_extended_attributes,
+)
 
 try:
     import crewai.agent
@@ -166,6 +169,7 @@ class _CrewKickoffWrapper:
             attributes={
                 gen_ai_attributes.GEN_AI_OPERATION_NAME: OP_NAME_CREW,
                 gen_ai_attributes.GEN_AI_SYSTEM: "crewai",
+                gen_ai_extended_attributes.GEN_AI_SPAN_KIND: gen_ai_extended_attributes.GenAiSpanKindValues.AGENT.value,
             },
         ) as span:
             try:
@@ -206,6 +210,7 @@ class _FlowKickoffAsyncWrapper:
             attributes={
                 gen_ai_attributes.GEN_AI_OPERATION_NAME: OP_NAME_CREW,
                 gen_ai_attributes.GEN_AI_SYSTEM: "crewai",
+                gen_ai_extended_attributes.GEN_AI_SPAN_KIND: gen_ai_extended_attributes.GenAiSpanKindValues.AGENT.value,
             },
         ) as span:
             try:
@@ -246,6 +251,7 @@ class _AgentExecuteTaskWrapper:
                 gen_ai_attributes.GEN_AI_OPERATION_NAME: OP_NAME_AGENT,
                 gen_ai_attributes.GEN_AI_SYSTEM: "crewai",
                 "gen_ai.agent.name": agent_role,
+                gen_ai_extended_attributes.GEN_AI_SPAN_KIND: gen_ai_extended_attributes.GenAiSpanKindValues.AGENT.value,
             },
         ) as span:
             try:
@@ -283,6 +289,7 @@ class _TaskExecuteSyncWrapper:
             attributes={
                 gen_ai_attributes.GEN_AI_OPERATION_NAME: OP_NAME_TASK,
                 gen_ai_attributes.GEN_AI_SYSTEM: "crewai",
+                gen_ai_extended_attributes.GEN_AI_SPAN_KIND: gen_ai_extended_attributes.GenAiSpanKindValues.AGENT.value,
             },
         ) as span:
             try:
@@ -325,6 +332,7 @@ class _ToolUseWrapper:
                 gen_ai_attributes.GEN_AI_OPERATION_NAME: OP_NAME_TOOL,
                 gen_ai_attributes.GEN_AI_SYSTEM: "crewai",
                 gen_ai_attributes.GEN_AI_TOOL_NAME: tool_name,
+                gen_ai_extended_attributes.GEN_AI_SPAN_KIND: gen_ai_extended_attributes.GenAiSpanKindValues.TOOL.value,
             },
         ) as span:
             # Set tool description
