@@ -91,50 +91,51 @@ LoongSuite 采用**双轨发布策略**：
 
 ### 2.1 发布架构
 
+发布流程由统一脚本 `scripts/loongsuite/loongsuite_release.sh` 驱动，同时支持本地执行和 GitHub Actions 调用：
+
 ```
                     ┌─────────────────────────────────────┐
                     │       Release Trigger               │
-                    │  (Manual dispatch / Git tag push)   │
+                    │  (本地 CLI / GitHub workflow_dispatch)│
                     └───────────────┬─────────────────────┘
                                     │
                     ┌───────────────▼─────────────────────┐
-                    │     loongsuite-release.yml          │
-                    │     (GitHub Actions Workflow)       │
+                    │     loongsuite_release.sh           │
+                    │     (统一发布脚本)                    │
                     └───────────────┬─────────────────────┘
                                     │
-              ┌─────────────────────┼─────────────────────┐
-              │                     │                     │
-    ┌─────────▼───────────┐ ┌───────▼──────────┐ ┌────────▼─────────┐
-    │ generate_loongsuite │ │ build_loongsuite │ │ build_loongsuite │
-    │ _bootstrap.py       │ │ _package.py      │ │ _package.py      │
-    │                     │ │ --build-pypi     │ │ --build-github   │
-    └─────────┬───────────┘ └────────┬─────────┘ └────────┬─────────┘
-              │                      │                    │
-    ┌─────────▼────────────┐ ┌───────▼────────┐ ┌─────────▼───────┐
-    │  bootstrap_gen.py    │ │  dist-pypi/    │ │  dist/          │
-    │  (version mapping)   │ │  *.whl         │ │  *.tar.gz       │
-    └──────────────────────┘ └───────┬────────┘ └────────┬────────┘
-                                     │                   │
-                            ┌────────▼────────┐ ┌────────▼────────┐
-                            │     PyPI        │ │  GitHub Release │
-                            └─────────────────┘ └─────────────────┘
+    ┌───────────────────────────────┼───────────────────────────────┐
+    │                               │                               │
+    ▼                               ▼                               ▼
+ 创建 release/{version} 分支    构建包 (PyPI + GitHub tar)    收集/归档 changelog
+ 生成 bootstrap_gen.py          验证产物                      提交 & 推送
+                                    │                               │
+                            ┌───────▼────────┐              ┌───────▼────────┐
+                            │  dist-pypi/    │              │ dist/release-  │
+                            │  *.whl         │              │ notes.md       │
+                            └───────┬────────┘              └───────┬────────┘
+                                    │                               │
+                            ┌───────▼────────┐              ┌───────▼────────┐
+                            │     PyPI       │              │ GitHub Release │
+                            └────────────────┘              └────────────────┘
 ```
 
 ### 2.2 核心脚本
 
 | 脚本 | 作用 |
 |------|------|
-| `scripts/generate_loongsuite_bootstrap.py` | 生成 `bootstrap_gen.py`，定义包名映射和版本 |
-| `scripts/build_loongsuite_package.py` | 构建 wheel 包，处理包名重命名和依赖替换 |
-| `scripts/dry_run_loongsuite_release.sh` | 本地验证脚本，模拟完整发布流程 |
-| `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流 |
+| `scripts/loongsuite/loongsuite_release.sh` | **统一发布脚本**，支持 `--dry-run` 验证和正式发布两种模式 |
+| `scripts/loongsuite/collect_loongsuite_changelog.py` | 收集 Unreleased changelog 生成 release notes，以及归档 changelog |
+| `scripts/loongsuite/generate_loongsuite_bootstrap.py` | 生成 `bootstrap_gen.py`，定义包名映射和版本 |
+| `scripts/loongsuite/build_loongsuite_package.py` | 构建 wheel 包，处理包名重命名和依赖替换 |
+| `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流（调用统一脚本） |
 
 ### 2.3 构建流程详解
 
 #### Step 1: 生成 bootstrap_gen.py
 
 ```bash
-python scripts/generate_loongsuite_bootstrap.py \
+python scripts/loongsuite/generate_loongsuite_bootstrap.py \
   --upstream-version 0.60b1 \
   --loongsuite-version 0.1.0
 ```
@@ -147,7 +148,7 @@ python scripts/generate_loongsuite_bootstrap.py \
 #### Step 2: 构建 PyPI 包
 
 ```bash
-python scripts/build_loongsuite_package.py --build-pypi \
+python scripts/loongsuite/build_loongsuite_package.py --build-pypi \
   --version 0.1.0 --util-genai-version 0.1.0
 ```
 
@@ -159,7 +160,7 @@ python scripts/build_loongsuite_package.py --build-pypi \
 #### Step 3: 构建 GitHub Release 包
 
 ```bash
-python scripts/build_loongsuite_package.py --build-github-release \
+python scripts/loongsuite/build_loongsuite_package.py --build-github-release \
   --version 0.1.0 --util-genai-version 0.1.0
 ```
 
@@ -383,55 +384,92 @@ pytest instrumentation-loongsuite/loongsuite-instrumentation-dashscope/tests/
 ### 5.2 本地验证 (Dry Run)
 
 ```bash
-# 完整验证
-./scripts/dry_run_loongsuite_release.sh \
-  --loongsuite-version 0.1.0 \
-  --upstream-version 0.60b1
+# 完整验证（含安装测试）
+./scripts/loongsuite/loongsuite_release.sh \
+  -l 0.1.0 -u 0.60b1 --dry-run
 
 # 快速验证（跳过安装测试）
-./scripts/dry_run_loongsuite_release.sh \
-  -l 0.1.0 -u 0.60b1 --skip-install
+./scripts/loongsuite/loongsuite_release.sh \
+  -l 0.1.0 -u 0.60b1 --dry-run --skip-install
 ```
+
+Dry Run 模式**不会**创建分支、归档 changelog、提交代码或创建 GitHub Release，仅执行构建和验证。
 
 **验证步骤：**
 
 | 步骤 | 说明 | 产物 |
 |------|------|------|
 | 1 | 安装构建依赖 | - |
-| 2 | 生成 bootstrap_gen.py | `loongsuite-distro/src/.../bootstrap_gen.py` |
-| 3 | 构建 PyPI 包 | `dist-pypi/*.whl` |
-| 4 | 构建 GitHub Release 包 | `dist/*.tar.gz` |
-| 5 | 验证 tar 内容 | - |
-| 6 | 生成 release notes | `dist/release-notes-dryrun.txt` |
-| 7 | 安装验证 | 临时 venv 中测试 |
+| 3 | 生成 bootstrap_gen.py | `loongsuite-distro/src/.../bootstrap_gen.py` |
+| 4 | 构建 PyPI 包 | `dist-pypi/*.whl` |
+| 5 | 构建 GitHub Release 包 | `dist/*.tar.gz` |
+| 6 | 验证 tar 内容 | - |
+| 7 | 收集 changelog 生成 release notes | `dist/release-notes.md` |
+| 10 | 安装验证（可选） | 临时 venv 中测试 |
 
 **验证要点：**
 
-- ✅ `loongsuite-util-genai` 在 `dist-pypi/` 中（发布到 PyPI）
-- ✅ `loongsuite-util-genai` 不在 `tar.gz` 中
-- ✅ `loongsuite-instrumentation-*` 在 `tar.gz` 中
-- ✅ `opentelemetry-util-genai` 不在任何产物中（避免冲突）
-- ✅ 安装后依赖关系正确
+- `loongsuite-util-genai` 在 `dist-pypi/` 中（发布到 PyPI）
+- `loongsuite-util-genai` 不在 `tar.gz` 中
+- `loongsuite-instrumentation-*` 在 `tar.gz` 中
+- `opentelemetry-util-genai` 不在任何产物中（避免冲突）
+- 安装后依赖关系正确
 
 ### 5.3 正式发布
 
-#### 方式 1: 手动触发 (推荐)
+发布使用统一脚本 `scripts/loongsuite/loongsuite_release.sh`，支持本地和 CI 两种方式。
+
+**发布流程会自动完成：**
+
+1. 从 main 创建 `release/{version}` 分支
+2. 生成 `bootstrap_gen.py`
+3. 构建 PyPI 包和 GitHub Release tar.gz
+4. 收集 changelog 生成 release notes
+5. 归档 changelog（将 `Unreleased` 替换为 `Version X.Y.Z (YYYY-MM-DD)`）
+6. 提交并推送 release 分支
+7. 创建 GitHub Release
+
+#### 方式 1: 本地执行（推荐）
+
+```bash
+# 完整发布
+./scripts/loongsuite/loongsuite_release.sh \
+  -l 0.1.0 -u 0.60b1
+
+# 跳过 GitHub Release（没有 gh CLI 时）
+./scripts/loongsuite/loongsuite_release.sh \
+  -l 0.1.0 -u 0.60b1 --skip-github-release
+```
+
+#### 方式 2: GitHub Actions 手动触发
 
 1. 进入 GitHub 仓库 → **Actions** → **LoongSuite Release**
 2. 点击 **Run workflow**
 3. 填写参数：
    - `loongsuite_version`: `0.1.0`
    - `upstream_version`: `0.60b1`
-   - `release_notes`: 可选
    - `skip_pypi`: 测试时可勾选
 4. 执行
 
-#### 方式 2: Tag 触发
+CI 工作流会调用同一个脚本完成构建和分支管理，然后在独立 job 中发布 PyPI 和创建 GitHub Release。
+
+#### 方式 3: Tag 触发
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+#### 本地执行 vs CI 执行对比
+
+| 步骤 | 本地 (`loongsuite_release.sh`) | CI (`loongsuite-release.yml`) |
+|------|------|------|
+| 创建 release 分支 | 脚本内 `git checkout -b` | 同上 |
+| 构建包 | 脚本内调用 | 同上 |
+| 收集/归档 changelog | 脚本内调用 Python 脚本 | 同上 |
+| Commit + Push | 脚本内 `git commit` + `git push` | 同上 |
+| GitHub Release | 脚本内 `gh release create`（可 skip） | 独立 job |
+| PyPI publish | 不执行（本地不做） | 独立 job 通过 OIDC/Token |
 
 #### PyPI / Test PyPI 发布配置
 
@@ -456,15 +494,14 @@ git push origin v0.1.0
 
 - 只有 `loongsuite_util_genai-*.whl` 和 `loongsuite_distro-*.whl` 会上传到 PyPI
 - `loongsuite-python-agent-*.tar.gz` 仅用于 GitHub Release，**禁止**上传到 PyPI
-- 若手动使用 `twine upload dist/*`，请先 `rm dist/loongsuite-python-agent-*.tar.gz`，否则会报错 `InvalidDistribution: Too many top-level members in sdist archive`
 
 #### 发布检查清单
 
-- [ ] 本地 dry run 通过
-- [ ] `CHANGELOG-loongsuite.md` 已更新
+- [ ] 本地 dry run 通过 (`--dry-run`)
+- [ ] `CHANGELOG-loongsuite.md` 等 changelog 已更新
 - [ ] 版本号格式正确（不带 `v` 前缀）
 - [ ] `upstream_version` 与当前上游稳定版本匹配
-- [ ] PyPI 权限已配置
+- [ ] PyPI 权限已配置（CI 发布时需要）
 
 ---
 
@@ -498,8 +535,8 @@ origin/feature/* ─────────────────────
 | `util/opentelemetry-util-genai/` | 同步上游，**保留我们的扩展** |
 | `instrumentation-loongsuite/` | **我们独有**，不受上游影响 |
 | `loongsuite-distro/` | **我们独有**，不受上游影响 |
-| `scripts/generate_loongsuite_*.py` | **我们独有** |
-| `scripts/build_loongsuite_*.py` | **我们独有** |
+| `scripts/loongsuite/generate_loongsuite_*.py` | **我们独有** |
+| `scripts/loongsuite/build_loongsuite_*.py` | **我们独有** |
 
 ### 6.2 同步步骤
 
@@ -533,7 +570,7 @@ git push origin main
 
 2. **`scripts/` 目录冲突**
    - 上游的 `scripts/generate_instrumentation_bootstrap.py` 等可能更新
-   - 我们的 `scripts/generate_loongsuite_*.py` 依赖它们
+   - 我们的 `scripts/loongsuite/generate_loongsuite_*.py` 依赖它们
    - 需要检查 API 兼容性
 
 3. **`pyproject.toml` 冲突**
@@ -547,7 +584,7 @@ git push origin main
 tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-dashscope-latest
 
 # 运行 dry run 确保发布流程正常
-./scripts/dry_run_loongsuite_release.sh -l 0.1.0 -u 0.60b1 --skip-install
+./scripts/loongsuite/loongsuite_release.sh -l 0.1.0 -u 0.60b1 --dry-run --skip-install
 ```
 
 ---
@@ -607,12 +644,15 @@ pip install loongsuite-util-genai
 
 | 文件 | 说明 |
 |------|------|
-| `scripts/build_loongsuite_package.py` | 构建脚本，处理包名重命名和依赖替换 |
-| `scripts/generate_loongsuite_bootstrap.py` | 生成 bootstrap_gen.py |
-| `scripts/dry_run_loongsuite_release.sh` | 本地验证脚本 |
-| `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流 |
+| `scripts/loongsuite/loongsuite_release.sh` | **统一发布脚本**（本地 + CI 共用，支持 `--dry-run`） |
+| `scripts/loongsuite/collect_loongsuite_changelog.py` | changelog 收集（`--collect`）与归档（`--archive`） |
+| `scripts/loongsuite/build_loongsuite_package.py` | 构建脚本，处理包名重命名和依赖替换 |
+| `scripts/loongsuite/generate_loongsuite_bootstrap.py` | 生成 bootstrap_gen.py |
+| `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流（调用统一脚本） |
 | `loongsuite-distro/src/loongsuite/distro/bootstrap.py` | Bootstrap 安装逻辑 |
 | `loongsuite-distro/src/loongsuite/distro/bootstrap_gen.py` | 生成的包名映射配置 |
 | `tox-loongsuite.ini` | 测试配置 |
 | `pkg-requirements.txt` | 构建依赖 |
-| `CHANGELOG-loongsuite.md` | 变更日志 |
+| `CHANGELOG-loongsuite.md` | 根目录变更日志 |
+| `util/opentelemetry-util-genai/CHANGELOG-loongsuite.md` | util-genai 变更日志 |
+| `instrumentation-loongsuite/*/CHANGELOG.md` | 各 instrumentation 包变更日志 |

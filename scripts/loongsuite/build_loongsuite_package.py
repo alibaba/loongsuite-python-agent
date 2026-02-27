@@ -510,7 +510,7 @@ Examples:
     parser.add_argument(
         "--base-dir",
         type=Path,
-        default=Path(__file__).parent.parent,
+        default=Path(__file__).parent.parent.parent,
         help="Project root directory",
     )
     parser.add_argument(
