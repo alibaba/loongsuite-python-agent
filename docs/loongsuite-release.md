@@ -54,7 +54,6 @@ LoongSuite Python Agent 是基于 [OpenTelemetry Python Contrib](https://github.
 | **GenAI instrumentations** | `instrumentation-genai/*` | 来自上游的 GenAI 插桩，如 OpenAI、VertexAI 等 |
 | **LoongSuite instrumentations** | `instrumentation-loongsuite/*` | LoongSuite 自研插桩，如 DashScope、AgentScope、MCP 等 |
 | **标准 instrumentations** | `instrumentation/*` | 标准微服务插桩（Flask、Django、Redis 等），由上游发布 |
-| **processor** | `processor/loongsuite-processor-baggage` | Baggage 处理器 |
 
 ### 1.3 发布渠道
 
@@ -170,7 +169,6 @@ python scripts/build_loongsuite_package.py --build-github-release \
   - **规则 2**：动态检测依赖，将 `opentelemetry-util-genai` 替换为 `loongsuite-util-genai`
 - 遍历 `instrumentation-loongsuite/` 目录：
   - 仅应用依赖替换规则
-- 遍历 `processor/loongsuite-processor-baggage/`
 - 所有 `.whl` 打包为 `loongsuite-python-agent-{version}.tar.gz`
 
 **规则匹配（无需硬编码包名）：**

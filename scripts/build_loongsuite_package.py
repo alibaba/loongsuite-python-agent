@@ -11,7 +11,6 @@ This script supports the following release modes:
 2. --build-github-release: Build packages for GitHub Release (tar.gz)
    - instrumentation-genai/ packages (renamed to loongsuite-*, depends on loongsuite-util-genai)
    - instrumentation-loongsuite/ packages (depends on loongsuite-util-genai)
-   - processor/loongsuite-processor-baggage/
 
 Version replacement:
 - --version: Sets version for all packages being built
@@ -306,7 +305,6 @@ def build_github_release_packages(
     Build packages for GitHub Release (tar.gz):
     - instrumentation-genai/ (renamed to loongsuite-*, depends on loongsuite-util-genai)
     - instrumentation-loongsuite/ (depends on loongsuite-util-genai)
-    - processor/loongsuite-processor-baggage/
     """
     all_whl_files = []
     existing_whl_files = set(dist_dir.glob("*.whl"))
@@ -425,29 +423,6 @@ def build_github_release_packages(
                     )
                     all_whl_files.extend(whl_files)
                     existing_whl_files.update(whl_files)
-
-    # 3. Build processor/loongsuite-processor-baggage/
-    processor_baggage_dir = (
-        base_dir / "processor" / "loongsuite-processor-baggage"
-    )
-    if (
-        processor_baggage_dir.exists()
-        and (processor_baggage_dir / "pyproject.toml").exists()
-    ):
-        pkg_name = processor_baggage_dir.name
-        if pkg_name not in skip_packages:
-            version_py = find_version_py(processor_baggage_dir)
-            logger.info(f"Building {pkg_name} (version {version})...")
-            with (
-                _patch_version_py(version_py, version)
-                if version_py
-                else nullcontext()
-            ):
-                whl_files = build_package(
-                    processor_baggage_dir, dist_dir, existing_whl_files
-                )
-                all_whl_files.extend(whl_files)
-                existing_whl_files.update(whl_files)
 
     return all_whl_files
 
