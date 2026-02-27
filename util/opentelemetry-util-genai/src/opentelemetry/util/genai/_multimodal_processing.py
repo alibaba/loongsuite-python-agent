@@ -70,6 +70,7 @@ from opentelemetry.util.genai.span_utils import (
 from opentelemetry.util.genai.types import (
     Base64Blob,
     Blob,
+    ContentCapturingMode,
     Error,
     InputMessage,
     LLMInvocation,
@@ -78,7 +79,9 @@ from opentelemetry.util.genai.types import (
 )
 from opentelemetry.util.genai.utils import (
     gen_ai_json_dumps,
+    get_content_capturing_mode,
     get_multimodal_upload_mode,
+    is_experimental_mode,
 )
 
 if TYPE_CHECKING:
@@ -137,14 +140,26 @@ class MultimodalProcessingMixin:
 
     def _init_multimodal(self) -> None:
         """Initialize multimodal-related instance attributes, called in subclass __init__"""
-        upload_mode = get_multimodal_upload_mode()
+        self._multimodal_enabled = False
+
+        if get_multimodal_upload_mode() == "none":
+            return
+
+        try:
+            capture_enabled = is_experimental_mode() and get_content_capturing_mode() in (
+                ContentCapturingMode.SPAN_ONLY,
+                ContentCapturingMode.SPAN_AND_EVENT,
+            )
+        except ValueError:
+            # get_content_capturing_mode raises ValueError when GEN_AI stability mode is DEFAULT
+            capture_enabled = False
+
+        if not capture_enabled:
+            return
 
         uploader, pre_uploader = self._get_uploader_and_pre_uploader()
-        self._multimodal_enabled = (
-            upload_mode != "none"
-            and uploader is not None
-            and pre_uploader is not None
-        )
+        if uploader is not None and pre_uploader is not None:
+            self._multimodal_enabled = True
 
     # ==================== Public Methods ====================
 
@@ -748,6 +763,7 @@ class MultimodalProcessingMixin:
     ) -> None:
         """Upload multimodal data and set metadata attributes on span"""
         self._separate_and_upload(span, invocation, uploader, pre_uploader)
+
         input_metadata, output_metadata = (
             MultimodalProcessingMixin._extract_multimodal_metadata(
                 invocation.input_messages, invocation.output_messages

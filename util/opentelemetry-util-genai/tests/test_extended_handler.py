@@ -79,6 +79,7 @@ from opentelemetry.util.genai.extended_types import (
 from opentelemetry.util.genai.types import (
     Base64Blob,
     Blob,
+    ContentCapturingMode,
     Error,
     FunctionToolDefinition,
     InputMessage,
@@ -89,7 +90,7 @@ from opentelemetry.util.genai.types import (
 )
 
 
-def patch_env_vars(stability_mode, content_capturing=None, emit_event=None):
+def patch_env_vars(stability_mode, content_capturing=None, emit_event=None, **extra_env_vars):
     def decorator(test_case):
         env_vars = {
             OTEL_SEMCONV_STABILITY_OPT_IN: stability_mode,
@@ -100,6 +101,8 @@ def patch_env_vars(stability_mode, content_capturing=None, emit_event=None):
             )
         if emit_event is not None:
             env_vars[OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT] = emit_event
+            
+        env_vars.update(extra_env_vars)
 
         @patch.dict(os.environ, env_vars)
         def wrapper(*args, **kwargs):
@@ -1253,10 +1256,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
         handler._init_multimodal()
         self.assertFalse(handler._multimodal_enabled)
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
-    )
+    @patch_env_vars("gen_ai_latest_experimental", content_capturing="SPAN_ONLY", OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both")
     def test_init_multimodal_enabled_or_disabled_by_uploader(self):
         """Test _init_multimodal enabled when uploader available, disabled when None."""
 
@@ -1320,10 +1320,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             handler_disabled.process_multimodal_stop(inv4, method="stop_llm")
         )
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
-    )
+    @patch_env_vars("gen_ai_latest_experimental", content_capturing="SPAN_ONLY", OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both")
     def test_process_multimodal_fallback_on_queue_issues(self):
         """Test process_multimodal_stop/fail uses fallback when queue is None or full."""
         handler = self._create_mock_handler()
@@ -1359,10 +1356,7 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
                 )
                 mock_end2.assert_called_once()
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
-    )
+    @patch_env_vars("gen_ai_latest_experimental", content_capturing="SPAN_ONLY", OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both")
     def test_process_multimodal_enqueues_task(self):
         """Test process_multimodal_stop/fail enqueues tasks correctly."""
         handler = self._create_mock_handler()
