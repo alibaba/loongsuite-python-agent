@@ -180,6 +180,7 @@ class InvokeAgentInvocation:
     server_address: str | None = None
     server_port: int | None = None
     monotonic_start_s: float | None = None
+    monotonic_end_s: float | None = None
 
 
 @dataclass

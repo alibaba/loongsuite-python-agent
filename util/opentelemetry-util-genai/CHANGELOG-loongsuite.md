@@ -16,3 +16,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `gen_ai.usage.total_tokens` attribute for LLM, Agent, and Embedding operations. ([#108](https://github.com/alibaba/loongsuite-python-agent/pull/108))
 
 - Add `gen_ai.response.time_to_first_token` attribute for LLM operations. ([#113](https://github.com/alibaba/loongsuite-python-agent/pull/113))
+
+- Enhance multimodal pre-upload pipeline with Data URI and local path support, add AgentInvocation multimodal data handling, introduce configurable pre-upload hooks and uploader entry points, add graceful shutdown processor for GenAI components, improve multimodal metadata extraction and docs. ([#119](https://github.com/alibaba/loongsuite-python-agent/pull/119))

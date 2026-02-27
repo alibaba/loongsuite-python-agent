@@ -1,0 +1,57 @@
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_url:
+        description: "Upstream repository URL"
+        required: true
+        default: "https://github.com/open-telemetry/opentelemetry-python-contrib.git"
+      upstream_branch:
+        description: "Upstream branch to sync from"
+        required: true
+        default: "main"
+      base_branch:
+        description: "Target base branch in this repo"
+        required: true
+        default: "main"
+      skip_pr:
+        description: "Skip creating pull request"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run upstream sync
+        env:
+          SKIP_PR: ${{ inputs.skip_pr }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x .github/scripts/sync-upstream.sh
+          cmd=".github/scripts/sync-upstream.sh \
+            --upstream-url ${{ inputs.upstream_url }} \
+            --upstream-branch ${{ inputs.upstream_branch }} \
+            --base-branch ${{ inputs.base_branch }} \
+            --sync-branch sync/upstream-${{ github.run_id }}"
+
+          if [[ "$SKIP_PR" == "true" ]]; then
+            cmd="$cmd --skip-pr"
+          fi
+
+          eval "$cmd"

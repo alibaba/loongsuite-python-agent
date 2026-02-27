@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "loongsuite-instrumentation-dashscope"
+name = "loongsuite-distro"
 dynamic = ["version"]
-description = "LoongSuite DashScope instrumentation"
+description = "LoongSuite Python Agent Distro"
 readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -23,27 +23,36 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
 ]
 dependencies = [
-  "opentelemetry-api ~= 1.37",
+  "opentelemetry-api ~= 1.12",
+  "opentelemetry-sdk ~= 1.13",
   "opentelemetry-instrumentation >= 0.58b0",
-  "opentelemetry-semantic-conventions >= 0.58b0",
-  "opentelemetry-util-genai > 0.2b0",
+  "packaging",
 ]
 
 [project.optional-dependencies]
-instruments = [
-  "dashscope >= 1.0.0",
+otlp = [
+  "opentelemetry-exporter-otlp ~= 1.40",
 ]
 
-[project.entry-points.opentelemetry_instrumentor]
-dashscope = "opentelemetry.instrumentation.dashscope:DashScopeInstrumentor"
+[project.entry-points.opentelemetry_configurator]
+loongsuite = "loongsuite.distro:LoongSuiteConfigurator"
+
+[project.entry-points.opentelemetry_distro]
+loongsuite = "loongsuite.distro:LoongSuiteDistro"
+
+[project.scripts]
+loongsuite-bootstrap = "loongsuite.distro.bootstrap:main"
+loongsuite-instrument = "opentelemetry.instrumentation.auto_instrumentation:run"
 
 [project.urls]
 Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
-path = "src/opentelemetry/instrumentation/dashscope/version.py"
+path = "src/loongsuite/distro/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -52,5 +61,6 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/opentelemetry"]
+packages = ["src/loongsuite"]
+
 
