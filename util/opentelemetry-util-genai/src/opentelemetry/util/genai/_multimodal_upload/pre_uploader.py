@@ -54,7 +54,7 @@ from opentelemetry.util.genai.extended_environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
 )
 from opentelemetry.util.genai.types import Base64Blob, Blob, Modality, Uri
-from opentelemetry.util.genai.utils import (
+from opentelemetry.util.genai.utils import (  # pylint: disable=no-name-in-module
     get_multimodal_allowed_root_paths,
     get_multimodal_storage_base_path,
     is_multimodal_audio_conversion_enabled,

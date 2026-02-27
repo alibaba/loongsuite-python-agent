@@ -21,7 +21,7 @@ from typing import Any, Literal, Type, Union
 
 from typing_extensions import TypeAlias
 
-from opentelemetry.context import Context
+from opentelemetry.context import Context  # pylint: disable=unused-import
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )

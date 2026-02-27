@@ -15,7 +15,7 @@
 import json
 import logging
 import os
-import re
+import re  # LoongSuite Extension
 from base64 import b64encode
 from functools import partial
 from typing import Any, List, Optional
@@ -29,16 +29,16 @@ from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
 )
-from opentelemetry.util.genai.extended_environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,
-    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,
+from opentelemetry.util.genai.extended_environment_variables import (  # pylint: disable=no-name-in-module
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_ALLOWED_ROOT_PATHS,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_SSL_VERIFY,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_LOCAL_FILE_ENABLED,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_PRE_UPLOADER,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_STORAGE_BASE_PATH,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE,  # LoongSuite Extension
+    OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOADER,  # LoongSuite Extension
 )
 from opentelemetry.util.genai.types import ContentCapturingMode
 
@@ -121,6 +121,9 @@ def should_emit_event() -> bool:
         # If get_content_capturing_mode raises ValueError (not in experimental mode),
         # default to False
         return False
+
+
+# LoongSuite Extension
 
 
 def _parse_env_bool(value: Optional[str], default: bool) -> bool:

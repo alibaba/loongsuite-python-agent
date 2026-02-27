@@ -5,7 +5,7 @@ from importlib import metadata
 from typing import Any, Optional, Protocol, runtime_checkable
 
 from opentelemetry.util._once import Once
-from opentelemetry.util.genai.utils import (
+from opentelemetry.util.genai.utils import (  # pylint: disable=no-name-in-module
     get_multimodal_pre_uploader_hook_name,
     get_multimodal_upload_mode,
     get_multimodal_uploader_hook_name,

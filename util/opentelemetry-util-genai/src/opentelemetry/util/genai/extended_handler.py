@@ -143,7 +143,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         # Initialize multimodal processing (from Mixin)
         self._init_multimodal()
-        self.__class__._ensure_multimodal_shutdown_atexit_registered()
+        self.__class__._ensure_multimodal_shutdown_atexit_registered()  # pylint: disable=no-member
 
     # ==================== Metrics Helper ====================
 
@@ -192,7 +192,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_stop(invocation, method="stop_llm"):
+        if self.process_multimodal_stop(invocation, method="stop_llm"):  # pylint: disable=unexpected-keyword-arg
             return invocation
 
         # No multimodal: use parent's sync path
@@ -212,7 +212,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_fail(invocation, error, method="fail_llm"):
+        if self.process_multimodal_fail(invocation, error, method="fail_llm"):  # pylint: disable=unexpected-keyword-arg
             return invocation
 
         # No multimodal: use parent's sync path
@@ -462,7 +462,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_stop(invocation, method="stop_agent"):
+        if self.process_multimodal_stop(invocation, method="stop_agent"):  # pylint: disable=unexpected-keyword-arg
             return invocation
 
         # No multimodal: sync path
@@ -487,7 +487,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation.monotonic_end_s = timeit.default_timer()
 
         # Try async multimodal processing
-        if self.process_multimodal_fail(
+        if self.process_multimodal_fail(  # pylint: disable=unexpected-keyword-arg
             invocation, error, method="fail_agent"
         ):
             return invocation

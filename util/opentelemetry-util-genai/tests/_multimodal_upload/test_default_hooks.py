@@ -16,11 +16,11 @@ import logging
 from unittest import TestCase
 from unittest.mock import patch
 
-from opentelemetry.util.genai._multimodal_upload.fs_uploader import (
+from opentelemetry.util.genai._multimodal_upload.fs_uploader import (  # pylint: disable=no-name-in-module
     FsUploader,
     fs_uploader_hook,
 )
-from opentelemetry.util.genai._multimodal_upload.pre_uploader import (
+from opentelemetry.util.genai._multimodal_upload.pre_uploader import (  # pylint: disable=no-name-in-module
     MultimodalPreUploader,
     fs_pre_uploader_hook,
 )
