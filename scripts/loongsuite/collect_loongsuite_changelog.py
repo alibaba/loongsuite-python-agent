@@ -25,7 +25,6 @@ Usage:
 
 import argparse
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -44,7 +43,9 @@ def _changelog_sources(repo: Path) -> List[Tuple[str, Path]]:
     if root_cl.exists():
         sources.append(("loongsuite", root_cl))
 
-    util_cl = repo / "util" / "opentelemetry-util-genai" / "CHANGELOG-loongsuite.md"
+    util_cl = (
+        repo / "util" / "opentelemetry-util-genai" / "CHANGELOG-loongsuite.md"
+    )
     if util_cl.exists():
         sources.append(("loongsuite-util-genai", util_cl))
 
@@ -88,7 +89,9 @@ def _extract_unreleased(path: Path) -> Optional[str]:
     return content if content else None
 
 
-def collect(version: str, upstream_version: str, output: Path, repo: Path) -> None:
+def collect(
+    version: str, upstream_version: str, output: Path, repo: Path
+) -> None:
     """Collect all Unreleased sections into a single release-notes file."""
     parts: List[str] = []
     parts.append(f"# LoongSuite Python Agent v{version}\n")
@@ -173,13 +176,17 @@ def _next_dev_version(released_version: str) -> str:
     """
     parts = released_version.split(".")
     if len(parts) < 2:
-        raise ValueError(f"Cannot compute next dev version from '{released_version}'")
+        raise ValueError(
+            f"Cannot compute next dev version from '{released_version}'"
+        )
     major = int(parts[0])
     minor = int(parts[1])
     return f"{major}.{minor + 1}.0.dev"
 
 
-def bump_dev(released_version: str, repo: Path, next_version: Optional[str] = None) -> None:
+def bump_dev(
+    released_version: str, repo: Path, next_version: Optional[str] = None
+) -> None:
     """Bump all instrumentation-loongsuite module versions to the next dev version."""
     next_ver = next_version or _next_dev_version(released_version)
     inst_dir = repo / "instrumentation-loongsuite"
@@ -196,26 +203,62 @@ def bump_dev(released_version: str, repo: Path, next_version: Optional[str] = No
         text = vf.read_text(encoding="utf-8")
         m = VERSION_RE.search(text)
         if m:
-            new_text = VERSION_RE.sub(rf'\g<1>{next_ver}\2', text)
+            new_text = VERSION_RE.sub(rf"\g<1>{next_ver}\2", text)
             vf.write_text(new_text, encoding="utf-8")
-            print(f"Bumped {vf.relative_to(repo)}: {m.group(0).strip()} -> __version__ = \"{next_ver}\"")
+            print(
+                f'Bumped {vf.relative_to(repo)}: {m.group(0).strip()} -> __version__ = "{next_ver}"'
+            )
         else:
             print(f"WARNING: no __version__ found in {vf.relative_to(repo)}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Collect/archive LoongSuite changelogs")
+    parser = argparse.ArgumentParser(
+        description="Collect/archive LoongSuite changelogs"
+    )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--collect", action="store_true", help="Collect Unreleased into release notes")
-    group.add_argument("--archive", action="store_true", help="Archive Unreleased to versioned header")
-    group.add_argument("--bump-dev", action="store_true", help="Bump module versions to next dev")
+    group.add_argument(
+        "--collect",
+        action="store_true",
+        help="Collect Unreleased into release notes",
+    )
+    group.add_argument(
+        "--archive",
+        action="store_true",
+        help="Archive Unreleased to versioned header",
+    )
+    group.add_argument(
+        "--bump-dev",
+        action="store_true",
+        help="Bump module versions to next dev",
+    )
 
-    parser.add_argument("--version", required=True, help="LoongSuite version (e.g. 0.1.0)")
-    parser.add_argument("--upstream-version", default="", help="Upstream OTel version (for --collect header)")
-    parser.add_argument("--output", default="dist/release-notes.md", help="Output file for --collect")
-    parser.add_argument("--repo-root", default=str(REPO_ROOT), help="Repository root")
-    parser.add_argument("--date", default=None, help="Release date (YYYY-MM-DD), default: today")
-    parser.add_argument("--next-dev-version", default=None, help="Override next dev version (default: auto-computed)")
+    parser.add_argument(
+        "--version", required=True, help="LoongSuite version (e.g. 0.1.0)"
+    )
+    parser.add_argument(
+        "--upstream-version",
+        default="",
+        help="Upstream OTel version (for --collect header)",
+    )
+    parser.add_argument(
+        "--output",
+        default="dist/release-notes.md",
+        help="Output file for --collect",
+    )
+    parser.add_argument(
+        "--repo-root", default=str(REPO_ROOT), help="Repository root"
+    )
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="Release date (YYYY-MM-DD), default: today",
+    )
+    parser.add_argument(
+        "--next-dev-version",
+        default=None,
+        help="Override next dev version (default: auto-computed)",
+    )
 
     args = parser.parse_args()
     repo = Path(args.repo_root)
