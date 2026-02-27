@@ -622,4 +622,3 @@ OpenTelemetry GenAI Utils 的设计文档: `Design Document <https://docs.google
 * `OpenTelemetry Project <https://opentelemetry.io/>`_
 * `OpenTelemetry GenAI Semantic Conventions <https://opentelemetry.io/docs/specs/semconv/gen-ai/>`_
 * `LoongSuite OpenTelemetry Python Agent <https://github.com/loongsuite/loongsuite-python-agent>`_
-
