@@ -126,3 +126,16 @@ class PreUploader(ABC):
             - Passed messages will be modified in-place, replacing BlobPart with UriPart
             - Returned PreUploadItem needs to be uploaded via Uploader.upload()
         """
+
+    def shutdown(  # pylint: disable=no-self-use,unused-argument,useless-return
+        self, timeout: float = 5.0
+    ) -> None:
+        """Gracefully shutdown the pre-uploader.
+
+        Default implementation is no-op for lightweight/stateless implementations.
+
+        Args:
+            timeout: Maximum wait time (seconds)
+        """
+        # Default no-op for stateless implementations.
+        return None
