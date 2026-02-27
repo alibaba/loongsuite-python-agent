@@ -24,6 +24,7 @@ SYNC_BRANCH=""
 RESUME=false
 SKIP_PR=false
 SKIP_MAPPING_UPDATE=false
+DRY_RUN=false
 
 MAPPING_FILE="$REPO_ROOT/util/opentelemetry-util-genai/upstream_version_map.json"
 VERSION_FILE="$REPO_ROOT/util/opentelemetry-util-genai/src/opentelemetry/util/genai/version.py"
@@ -46,6 +47,8 @@ Options:
   --resume                    Continue after manual conflict resolution
   --skip-pr                   Do not create pull request automatically
   --skip-mapping-update       Do not update util-genai upstream mapping files
+  --dry-run                   Do everything except push and create PR (local validation).
+                              Uses current branch as base so script stays available.
   -h, --help                  Show this help message
 
 Typical flow:
@@ -100,6 +103,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-mapping-update)
       SKIP_MAPPING_UPDATE=true
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=true
       shift
       ;;
     -h|--help)
@@ -192,11 +199,18 @@ update_mapping_and_readme() {
 }
 
 push_branch() {
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would push branch: $SYNC_BRANCH -> origin"
+    return
+  fi
   git push -u origin "$SYNC_BRANCH"
 }
 
 create_pr() {
-  if [[ "$SKIP_PR" == true ]]; then
+  if [[ "$SKIP_PR" == true ]] || [[ "$DRY_RUN" == true ]]; then
+    if [[ "$DRY_RUN" == true ]]; then
+      echo "[DRY-RUN] Would create PR for branch: $SYNC_BRANCH -> $BASE_BRANCH"
+    fi
     return
   fi
   require_command gh
@@ -232,6 +246,10 @@ EOF
 
 require_command git
 require_command python3
+
+if [[ "$DRY_RUN" == true ]]; then
+  echo "=== DRY-RUN mode: will not push or create PR ==="
+fi
 
 ensure_remote
 git fetch origin "$BASE_BRANCH"
@@ -271,12 +289,20 @@ else
   # ── Start a new sync ──
   ensure_clean_worktree
 
+  ORIG_BRANCH=$(git branch --show-current)  # save for dry-run cleanup hint
   if [[ -z "$SYNC_BRANCH" ]]; then
     SYNC_BRANCH="sync/upstream-$(date -u +%Y%m%d-%H%M%S)"
   fi
 
-  echo "Creating sync branch: $SYNC_BRANCH (from origin/$BASE_BRANCH)"
-  git checkout -B "$SYNC_BRANCH" "origin/$BASE_BRANCH"
+  # Dry-run: use current branch as base so sync script and mapping infra stay in place
+  if [[ "$DRY_RUN" == true ]]; then
+    BASE_REF="HEAD"
+    echo "Creating sync branch: $SYNC_BRANCH (from current branch $ORIG_BRANCH)"
+  else
+    BASE_REF="origin/$BASE_BRANCH"
+    echo "Creating sync branch: $SYNC_BRANCH (from origin/$BASE_BRANCH)"
+  fi
+  git checkout -B "$SYNC_BRANCH" "$BASE_REF"
 
   UPSTREAM_TARGET=$(get_upstream_target)
   if [[ -n "$UPSTREAM_COMMIT" ]]; then
@@ -316,4 +342,10 @@ push_branch
 create_pr
 
 echo ""
-echo "Done. Sync branch: $SYNC_BRANCH"
+if [[ "$DRY_RUN" == true ]]; then
+  echo "DRY-RUN complete. Sync branch exists locally: $SYNC_BRANCH"
+  echo "To discard: git checkout ${ORIG_BRANCH:-$BASE_BRANCH} && git branch -D $SYNC_BRANCH"
+  echo "To push manually: git push -u origin $SYNC_BRANCH"
+else
+  echo "Done. Sync branch: $SYNC_BRANCH"
+fi
