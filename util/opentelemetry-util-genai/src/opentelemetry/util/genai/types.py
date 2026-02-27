@@ -21,7 +21,7 @@ from typing import Any, Literal, Type, Union
 
 from typing_extensions import TypeAlias
 
-from opentelemetry.context import Context  # pylint: disable=W0611
+from opentelemetry.context import Context
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
@@ -138,6 +138,26 @@ class Uri:
     type: Literal["uri"] = "uri"
 
 
+@dataclass()
+class FunctionToolDefinition:
+    """Represents a function tool definition sent to the model"""
+
+    name: str
+    description: str | None
+    parameters: Any
+    type: Literal["function"] = "function"
+
+
+@dataclass()
+class GenericToolDefinition:
+    """Represents a generic tool definition sent to the model"""
+
+    name: str
+    type: str
+
+
+ToolDefinition = Union[FunctionToolDefinition, GenericToolDefinition]
+
 MessagePart = Union[
     Text, ToolCall, ToolCallResponse, Blob, File, Uri, Reasoning, Any
 ]
@@ -178,17 +198,6 @@ class Base64Blob:
     type: Literal["base64_blob"] = "base64_blob"
 
 
-@dataclass()
-class FunctionToolDefinition:
-    name: str
-    description: str | None
-    parameters: Any | None
-    type: Literal["function"] = "function"
-
-
-ToolDefinition = Union[FunctionToolDefinition, Any]
-
-
 def _new_input_messages() -> list[InputMessage]:
     return []
 
@@ -213,18 +222,23 @@ def _new_tool_definitions() -> list[ToolDefinition]:
 
 
 @dataclass
-class LLMInvocation:
+class GenAIInvocation:
+    context_token: ContextToken | None = None
+    span: Span | None = None
+    attributes: dict[str, Any] = field(default_factory=_new_str_any_dict)
+
+
+@dataclass
+class LLMInvocation(GenAIInvocation):
     """
     Represents a single LLM call invocation. When creating an LLMInvocation object,
     only update the data attributes. The span and context_token attributes are
     set by the TelemetryHandler.
     """
 
-    request_model: str
+    request_model: str | None = None
     # Chat by default
     operation_name: str = GenAI.GenAiOperationNameValues.CHAT.value
-    context_token: ContextToken | None = None
-    span: Span | None = None
     input_messages: list[InputMessage] = field(
         default_factory=_new_input_messages
     )
@@ -244,6 +258,17 @@ class LLMInvocation:
     input_tokens: int | None = None
     output_tokens: int | None = None
     attributes: dict[str, Any] = field(default_factory=_new_str_any_dict)
+    """
+    Additional attributes to set on spans and/or events. These attributes
+    will not be set on metrics.
+    """
+    metric_attributes: dict[str, Any] = field(
+        default_factory=_new_str_any_dict
+    )
+    """
+    Additional attributes to set on metrics. Must be of a low cardinality.
+    These attributes will not be set on spans or events.
+    """
     temperature: float | None = None
     top_p: float | None = None
     frequency_penalty: float | None = None
@@ -251,6 +276,11 @@ class LLMInvocation:
     max_tokens: int | None = None
     stop_sequences: list[str] | None = None
     seed: int | None = None
+    server_address: str | None = None
+    server_port: int | None = None
+    # Monotonic start time in seconds (from timeit.default_timer) used
+    # for duration calculations to avoid mixing clock sources. This is
+    # populated by the TelemetryHandler when starting an invocation.
     monotonic_start_s: float | None = None
     """
     Monotonic start time in seconds (from timeit.default_timer) used

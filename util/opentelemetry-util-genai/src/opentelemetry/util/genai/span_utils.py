@@ -23,7 +23,8 @@ from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
 from opentelemetry.semconv.attributes import (
-    error_attributes as ErrorAttributes,
+    error_attributes,
+    server_attributes,
 )
 from opentelemetry.trace import (
     Span,
@@ -64,18 +65,19 @@ def _get_llm_common_attributes(
 
     Returns a dictionary of attributes.
     """
-    attributes: dict[str, Any] = {}
-    attributes[GenAI.GEN_AI_OPERATION_NAME] = invocation.operation_name
+    # TODO: clean provider name to match GenAiProviderNameValues?
+    optional_attrs = (
+        (GenAI.GEN_AI_REQUEST_MODEL, invocation.request_model),
+        (GenAI.GEN_AI_PROVIDER_NAME, invocation.provider),
+        (server_attributes.SERVER_ADDRESS, invocation.server_address),
+        (server_attributes.SERVER_PORT, invocation.server_port),
+    )
 
-    # LoongSuite Extension: Logical span kind
-    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.LLM.value
-
-    if invocation.request_model:
-        attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
-    if invocation.provider is not None:
-        # TODO: clean provider name to match GenAiProviderNameValues?
-        attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
-    return attributes
+    return {
+        GenAI.GEN_AI_OPERATION_NAME: invocation.operation_name,
+        GEN_AI_SPAN_KIND: GenAiSpanKindValues.LLM.value,  # LoongSuite Extension: Logical span kind
+        **{key: value for key, value in optional_attrs if value is not None},
+    }
 
 
 def _get_llm_span_name(invocation: LLMInvocation) -> str:
@@ -92,25 +94,34 @@ def _get_llm_messages_attributes_for_span(
 
     Returns empty dict if not in experimental mode or content capturing is disabled.
     """
-    attributes: dict[str, Any] = {}
     if not is_experimental_mode() or get_content_capturing_mode() not in (
         ContentCapturingMode.SPAN_ONLY,
         ContentCapturingMode.SPAN_AND_EVENT,
     ):
-        return attributes
-    if input_messages:
-        attributes[GenAI.GEN_AI_INPUT_MESSAGES] = gen_ai_json_dumps(
-            [asdict(message) for message in input_messages]
-        )
-    if output_messages:
-        attributes[GenAI.GEN_AI_OUTPUT_MESSAGES] = gen_ai_json_dumps(
-            [asdict(message) for message in output_messages]
-        )
-    if system_instruction:
-        attributes[GenAI.GEN_AI_SYSTEM_INSTRUCTIONS] = gen_ai_json_dumps(
-            [asdict(part) for part in system_instruction]
-        )
-    return attributes
+        return {}
+
+    optional_attrs = (
+        (
+            GenAI.GEN_AI_INPUT_MESSAGES,
+            gen_ai_json_dumps([asdict(m) for m in input_messages])
+            if input_messages
+            else None,
+        ),
+        (
+            GenAI.GEN_AI_OUTPUT_MESSAGES,
+            gen_ai_json_dumps([asdict(m) for m in output_messages])
+            if output_messages
+            else None,
+        ),
+        (
+            GenAI.GEN_AI_SYSTEM_INSTRUCTIONS,
+            gen_ai_json_dumps([asdict(p) for p in system_instruction])
+            if system_instruction
+            else None,
+        ),
+    )
+
+    return {key: value for key, value in optional_attrs if value is not None}
 
 
 def _get_llm_messages_attributes_for_event(
@@ -122,25 +133,30 @@ def _get_llm_messages_attributes_for_event(
 
     Returns empty dict if not in experimental mode or content capturing is disabled.
     """
-    attributes: dict[str, Any] = {}
     if not is_experimental_mode() or get_content_capturing_mode() not in (
         ContentCapturingMode.EVENT_ONLY,
         ContentCapturingMode.SPAN_AND_EVENT,
     ):
-        return attributes
-    if input_messages:
-        attributes[GenAI.GEN_AI_INPUT_MESSAGES] = [
-            asdict(message) for message in input_messages
-        ]
-    if output_messages:
-        attributes[GenAI.GEN_AI_OUTPUT_MESSAGES] = [
-            asdict(message) for message in output_messages
-        ]
-    if system_instruction:
-        attributes[GenAI.GEN_AI_SYSTEM_INSTRUCTIONS] = [
-            asdict(part) for part in system_instruction
-        ]
-    return attributes
+        return {}
+
+    optional_attrs = (
+        (
+            GenAI.GEN_AI_INPUT_MESSAGES,
+            [asdict(m) for m in input_messages] if input_messages else None,
+        ),
+        (
+            GenAI.GEN_AI_OUTPUT_MESSAGES,
+            [asdict(m) for m in output_messages] if output_messages else None,
+        ),
+        (
+            GenAI.GEN_AI_SYSTEM_INSTRUCTIONS,
+            [asdict(p) for p in system_instruction]
+            if system_instruction
+            else None,
+        ),
+    )
+
+    return {key: value for key, value in optional_attrs if value is not None}
 
 
 # LoongSuite Extension
@@ -248,7 +264,7 @@ def _maybe_emit_llm_event(
 
     # Add error.type if operation ended in error
     if error is not None:
-        attributes[ErrorAttributes.ERROR_TYPE] = error.type.__qualname__
+        attributes[error_attributes.ERROR_TYPE] = error.type.__qualname__
 
     # Create and emit the event
     context = set_span_in_context(span, get_current())
@@ -293,43 +309,32 @@ def _apply_error_attributes(span: Span, error: Error) -> None:
     """Apply status and error attributes common to error() paths."""
     span.set_status(Status(StatusCode.ERROR, error.message))
     if span.is_recording():
-        span.set_attribute(ErrorAttributes.ERROR_TYPE, error.type.__qualname__)
+        span.set_attribute(
+            error_attributes.ERROR_TYPE, error.type.__qualname__
+        )
 
 
 def _get_llm_request_attributes(
     invocation: LLMInvocation,
 ) -> dict[str, Any]:
     """Get GenAI request semantic convention attributes."""
-    attributes: dict[str, Any] = {}
-    if invocation.temperature is not None:
-        attributes[GenAI.GEN_AI_REQUEST_TEMPERATURE] = invocation.temperature
-    if invocation.top_p is not None:
-        attributes[GenAI.GEN_AI_REQUEST_TOP_P] = invocation.top_p
-    if invocation.frequency_penalty is not None:
-        attributes[GenAI.GEN_AI_REQUEST_FREQUENCY_PENALTY] = (
-            invocation.frequency_penalty
-        )
-    if invocation.presence_penalty is not None:
-        attributes[GenAI.GEN_AI_REQUEST_PRESENCE_PENALTY] = (
-            invocation.presence_penalty
-        )
-    if invocation.max_tokens is not None:
-        attributes[GenAI.GEN_AI_REQUEST_MAX_TOKENS] = invocation.max_tokens
-    if invocation.stop_sequences is not None:
-        attributes[GenAI.GEN_AI_REQUEST_STOP_SEQUENCES] = (
-            invocation.stop_sequences
-        )
-    if invocation.seed is not None:
-        attributes[GenAI.GEN_AI_REQUEST_SEED] = invocation.seed
-    return attributes
+    optional_attrs = (
+        (GenAI.GEN_AI_REQUEST_TEMPERATURE, invocation.temperature),
+        (GenAI.GEN_AI_REQUEST_TOP_P, invocation.top_p),
+        (GenAI.GEN_AI_REQUEST_FREQUENCY_PENALTY, invocation.frequency_penalty),
+        (GenAI.GEN_AI_REQUEST_PRESENCE_PENALTY, invocation.presence_penalty),
+        (GenAI.GEN_AI_REQUEST_MAX_TOKENS, invocation.max_tokens),
+        (GenAI.GEN_AI_REQUEST_STOP_SEQUENCES, invocation.stop_sequences),
+        (GenAI.GEN_AI_REQUEST_SEED, invocation.seed),
+    )
+
+    return {key: value for key, value in optional_attrs if value is not None}
 
 
-def _get_llm_response_attributes(  # pylint: disable=too-many-branches
+def _get_llm_response_attributes(
     invocation: LLMInvocation,
 ) -> dict[str, Any]:
     """Get GenAI response semantic convention attributes."""
-    attributes: dict[str, Any] = {}
-
     finish_reasons: list[str] | None
     if invocation.finish_reasons is not None:
         finish_reasons = invocation.finish_reasons
@@ -342,24 +347,23 @@ def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     else:
         finish_reasons = None
 
-    if finish_reasons:
-        # De-duplicate finish reasons
-        unique_finish_reasons = sorted(set(finish_reasons))
-        if unique_finish_reasons:
-            attributes[GenAI.GEN_AI_RESPONSE_FINISH_REASONS] = (
-                unique_finish_reasons
-            )
+    # De-duplicate finish reasons
+    unique_finish_reasons = (
+        sorted(set(finish_reasons)) if finish_reasons else None
+    )
 
-    if invocation.response_model_name is not None:
-        attributes[GenAI.GEN_AI_RESPONSE_MODEL] = (
-            invocation.response_model_name
-        )
-    if invocation.response_id is not None:
-        attributes[GenAI.GEN_AI_RESPONSE_ID] = invocation.response_id
-    if invocation.input_tokens is not None:
-        attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
-    if invocation.output_tokens is not None:
-        attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
+    optional_attrs = (
+        (
+            GenAI.GEN_AI_RESPONSE_FINISH_REASONS,
+            unique_finish_reasons if unique_finish_reasons else None,
+        ),
+        (GenAI.GEN_AI_RESPONSE_MODEL, invocation.response_model_name),
+        (GenAI.GEN_AI_RESPONSE_ID, invocation.response_id),
+        (GenAI.GEN_AI_USAGE_INPUT_TOKENS, invocation.input_tokens),
+        (GenAI.GEN_AI_USAGE_OUTPUT_TOKENS, invocation.output_tokens),
+    )
+
+    result = {key: value for key, value in optional_attrs if value is not None}
 
     # LoongSuite Extension: Calculate total_tokens as sum of input and output tokens when both are available
     total_tokens = 0
@@ -368,7 +372,7 @@ def _get_llm_response_attributes(  # pylint: disable=too-many-branches
     if invocation.output_tokens is not None:
         total_tokens += invocation.output_tokens
     if total_tokens > 0:
-        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
+        result[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
 
     # LoongSuite Extension: Time to first token for streaming responses (in nanoseconds)
     if (
@@ -380,9 +384,9 @@ def _get_llm_response_attributes(  # pylint: disable=too-many-branches
             (invocation.monotonic_first_token_s - invocation.monotonic_start_s)
             * 1_000_000_000
         )
-        attributes[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = ttft_ns
+        result[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = ttft_ns
 
-    return attributes
+    return result
 
 
 __all__ = [
