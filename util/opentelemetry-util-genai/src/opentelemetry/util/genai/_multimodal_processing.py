@@ -146,9 +146,13 @@ class MultimodalProcessingMixin:
             return
 
         try:
-            capture_enabled = is_experimental_mode() and get_content_capturing_mode() in (
-                ContentCapturingMode.SPAN_ONLY,
-                ContentCapturingMode.SPAN_AND_EVENT,
+            capture_enabled = (
+                is_experimental_mode()
+                and get_content_capturing_mode()
+                in (
+                    ContentCapturingMode.SPAN_ONLY,
+                    ContentCapturingMode.SPAN_AND_EVENT,
+                )
             )
         except ValueError:
             # get_content_capturing_mode raises ValueError when GEN_AI stability mode is DEFAULT
