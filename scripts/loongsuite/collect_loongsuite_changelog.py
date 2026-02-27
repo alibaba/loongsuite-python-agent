@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Collect and archive LoongSuite changelogs.
+Collect, archive, and bump LoongSuite changelogs / versions.
 
-Two modes:
-  --collect   Gather all Unreleased sections and emit a release-notes markdown file.
-  --archive   Replace Unreleased headers with a versioned header in-place.
+Modes:
+  --collect    Gather all Unreleased sections and emit a release-notes markdown file.
+  --archive    Replace Unreleased headers with a versioned header in-place.
+  --bump-dev   Bump instrumentation-loongsuite module versions to the next dev version.
 
 Changelog sources (in order):
   1. CHANGELOG-loongsuite.md              (root, label: loongsuite)
@@ -16,6 +17,9 @@ Usage:
       --version 0.1.0 --upstream-version 0.60b1 --output dist/release-notes.md
 
   python scripts/loongsuite/collect_loongsuite_changelog.py --archive \\
+      --version 0.1.0
+
+  python scripts/loongsuite/collect_loongsuite_changelog.py --bump-dev \\
       --version 0.1.0
 """
 
@@ -159,17 +163,59 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
             print(f"No Unreleased section in {label}: {path} (skipped)")
 
 
+VERSION_RE = re.compile(r'^(__version__\s*=\s*["\']).*(["\'])', re.MULTILINE)
+
+
+def _next_dev_version(released_version: str) -> str:
+    """Compute the next development version by bumping the minor segment.
+
+    Examples: "0.1.0" -> "0.2.0.dev", "1.3.2" -> "1.4.0.dev"
+    """
+    parts = released_version.split(".")
+    if len(parts) < 2:
+        raise ValueError(f"Cannot compute next dev version from '{released_version}'")
+    major = int(parts[0])
+    minor = int(parts[1])
+    return f"{major}.{minor + 1}.0.dev"
+
+
+def bump_dev(released_version: str, repo: Path, next_version: Optional[str] = None) -> None:
+    """Bump all instrumentation-loongsuite module versions to the next dev version."""
+    next_ver = next_version or _next_dev_version(released_version)
+    inst_dir = repo / "instrumentation-loongsuite"
+    if not inst_dir.is_dir():
+        print(f"WARNING: {inst_dir} not found, skipping version bump")
+        return
+
+    version_files = sorted(inst_dir.rglob("version.py"))
+    if not version_files:
+        print(f"WARNING: no version.py files found in {inst_dir}")
+        return
+
+    for vf in version_files:
+        text = vf.read_text(encoding="utf-8")
+        m = VERSION_RE.search(text)
+        if m:
+            new_text = VERSION_RE.sub(rf'\g<1>{next_ver}\2', text)
+            vf.write_text(new_text, encoding="utf-8")
+            print(f"Bumped {vf.relative_to(repo)}: {m.group(0).strip()} -> __version__ = \"{next_ver}\"")
+        else:
+            print(f"WARNING: no __version__ found in {vf.relative_to(repo)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Collect/archive LoongSuite changelogs")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--collect", action="store_true", help="Collect Unreleased into release notes")
     group.add_argument("--archive", action="store_true", help="Archive Unreleased to versioned header")
+    group.add_argument("--bump-dev", action="store_true", help="Bump module versions to next dev")
 
     parser.add_argument("--version", required=True, help="LoongSuite version (e.g. 0.1.0)")
     parser.add_argument("--upstream-version", default="", help="Upstream OTel version (for --collect header)")
     parser.add_argument("--output", default="dist/release-notes.md", help="Output file for --collect")
     parser.add_argument("--repo-root", default=str(REPO_ROOT), help="Repository root")
     parser.add_argument("--date", default=None, help="Release date (YYYY-MM-DD), default: today")
+    parser.add_argument("--next-dev-version", default=None, help="Override next dev version (default: auto-computed)")
 
     args = parser.parse_args()
     repo = Path(args.repo_root)
@@ -180,6 +226,8 @@ def main() -> None:
         collect(args.version, args.upstream_version, Path(args.output), repo)
     elif args.archive:
         archive(args.version, repo, args.date)
+    elif args.bump_dev:
+        bump_dev(args.version, repo, args.next_dev_version)
 
 
 if __name__ == "__main__":

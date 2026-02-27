@@ -125,7 +125,7 @@ LoongSuite 采用**双轨发布策略**：
 | 脚本 | 作用 |
 |------|------|
 | `scripts/loongsuite/loongsuite_release.sh` | **统一发布脚本**，支持 `--dry-run` 验证和正式发布两种模式 |
-| `scripts/loongsuite/collect_loongsuite_changelog.py` | 收集 Unreleased changelog 生成 release notes，以及归档 changelog |
+| `scripts/loongsuite/collect_loongsuite_changelog.py` | changelog 收集、归档、模块版本升级（`--collect` / `--archive` / `--bump-dev`） |
 | `scripts/loongsuite/generate_loongsuite_bootstrap.py` | 生成 `bootstrap_gen.py`，定义包名映射和版本 |
 | `scripts/loongsuite/build_loongsuite_package.py` | 构建 wheel 包，处理包名重命名和依赖替换 |
 | `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流（调用统一脚本） |
@@ -428,6 +428,7 @@ Dry Run 模式**不会**创建分支、归档 changelog、提交代码或创建 
 5. 归档 changelog（将 `Unreleased` 替换为 `Version X.Y.Z (YYYY-MM-DD)`）
 6. 提交并推送 release 分支
 7. 创建 GitHub Release
+8. 创建 post-release PR 到 main（归档 changelog + 升级模块版本为下一个 `.dev`）
 
 #### 方式 1: 本地执行（推荐）
 
@@ -451,7 +452,7 @@ Dry Run 模式**不会**创建分支、归档 changelog、提交代码或创建 
    - `skip_pypi`: 测试时可勾选
 4. 执行
 
-CI 工作流会调用同一个脚本完成构建和分支管理，然后在独立 job 中发布 PyPI 和创建 GitHub Release。
+CI 工作流会调用同一个脚本完成构建和分支管理，然后在独立 job 中发布 PyPI、创建 GitHub Release，并自动创建 post-release PR 到 main。
 
 #### 方式 3: Tag 触发
 
@@ -470,6 +471,7 @@ git push origin v0.1.0
 | Commit + Push | 脚本内 `git commit` + `git push` | 同上 |
 | GitHub Release | 脚本内 `gh release create`（可 skip） | 独立 job |
 | PyPI publish | 不执行（本地不做） | 独立 job 通过 OIDC/Token |
+| Post-release PR | 脚本内创建 PR（需 `gh` CLI） | 独立 job，自动创建 |
 
 #### PyPI / Test PyPI 发布配置
 
@@ -495,6 +497,29 @@ git push origin v0.1.0
 - 只有 `loongsuite_util_genai-*.whl` 和 `loongsuite_distro-*.whl` 会上传到 PyPI
 - `loongsuite-python-agent-*.tar.gz` 仅用于 GitHub Release，**禁止**上传到 PyPI
 
+### 5.4 Post-Release PR
+
+发布完成后，脚本会自动创建一个 PR 到 `main` 分支，完成两件事：
+
+1. **归档 Changelog**：将各 changelog 文件中的 `Unreleased` 部分标记为已发布的版本号和日期
+2. **升级模块版本**：将 `instrumentation-loongsuite/` 下所有模块的 `version.py` 升级为下一个开发版本
+
+**版本升级规则：** 发布 `0.1.0` → 模块版本改为 `0.2.0.dev`（minor 版本 +1，后缀 `.dev`）
+
+**受影响的文件：**
+- `CHANGELOG-loongsuite.md`、`util/opentelemetry-util-genai/CHANGELOG-loongsuite.md`、`instrumentation-loongsuite/*/CHANGELOG.md`
+- `instrumentation-loongsuite/*/src/**/version.py`
+
+**本地执行时**，脚本通过 `gh pr create` 自动创建 PR（需要 `gh` CLI）。  
+**CI 执行时**，`post-release-pr` job 独立完成 PR 创建。
+
+如果需要跳过此步骤：
+
+```bash
+./scripts/loongsuite/loongsuite_release.sh \
+  -l 0.1.0 -u 0.60b1 --skip-post-release-pr
+```
+
 #### 发布检查清单
 
 - [ ] 本地 dry run 通过 (`--dry-run`)
@@ -502,6 +527,7 @@ git push origin v0.1.0
 - [ ] 版本号格式正确（不带 `v` 前缀）
 - [ ] `upstream_version` 与当前上游稳定版本匹配
 - [ ] PyPI 权限已配置（CI 发布时需要）
+- [ ] 发布完成后检查 post-release PR 已创建并合入 main
 
 ---
 
@@ -645,7 +671,7 @@ pip install loongsuite-util-genai
 | 文件 | 说明 |
 |------|------|
 | `scripts/loongsuite/loongsuite_release.sh` | **统一发布脚本**（本地 + CI 共用，支持 `--dry-run`） |
-| `scripts/loongsuite/collect_loongsuite_changelog.py` | changelog 收集（`--collect`）与归档（`--archive`） |
+| `scripts/loongsuite/collect_loongsuite_changelog.py` | changelog 收集（`--collect`）、归档（`--archive`）、版本升级（`--bump-dev`） |
 | `scripts/loongsuite/build_loongsuite_package.py` | 构建脚本，处理包名重命名和依赖替换 |
 | `scripts/loongsuite/generate_loongsuite_bootstrap.py` | 生成 bootstrap_gen.py |
 | `.github/workflows/loongsuite-release.yml` | GitHub Actions 发布工作流（调用统一脚本） |
