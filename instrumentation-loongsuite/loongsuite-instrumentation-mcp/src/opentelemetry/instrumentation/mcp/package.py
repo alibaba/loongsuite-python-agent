@@ -12,5 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-_instruments = ("mcp>=1.3.0",)
-_supports_metrics = True
+_instruments = ("mcp >= 1.3.0",)
+
+_supports_metrics = False

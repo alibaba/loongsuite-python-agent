@@ -118,11 +118,21 @@ def fix(repo: Path, header: str) -> list[Path]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Check/fix OTel license headers")
+    parser = argparse.ArgumentParser(
+        description="Check/fix OTel license headers"
+    )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--check", action="store_true", help="Check for missing headers (exit 1 if found)")
-    group.add_argument("--fix", action="store_true", help="Add missing headers automatically")
-    parser.add_argument("--repo-root", default=str(REPO_ROOT), help="Repository root")
+    group.add_argument(
+        "--check",
+        action="store_true",
+        help="Check for missing headers (exit 1 if found)",
+    )
+    group.add_argument(
+        "--fix", action="store_true", help="Add missing headers automatically"
+    )
+    parser.add_argument(
+        "--repo-root", default=str(REPO_ROOT), help="Repository root"
+    )
 
     args = parser.parse_args()
     repo = Path(args.repo_root)
@@ -139,7 +149,7 @@ def main() -> None:
             print(f"Found {len(missing)} file(s) missing license header:\n")
             for f in missing:
                 print(f"  {f.relative_to(repo)}")
-            print(f"\nRun with --fix to add headers automatically.")
+            print("\nRun with --fix to add headers automatically.")
             sys.exit(1)
         else:
             print("All files have license headers.")

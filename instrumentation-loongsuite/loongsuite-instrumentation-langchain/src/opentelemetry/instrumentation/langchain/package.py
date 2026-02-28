@@ -13,4 +13,5 @@
 # limitations under the License.
 
 _instruments = ("langchain_core >= 0.1.0",)
-_supports_metrics = True
+
+_supports_metrics = False

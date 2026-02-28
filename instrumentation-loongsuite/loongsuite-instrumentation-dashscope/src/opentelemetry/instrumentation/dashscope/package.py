@@ -13,3 +13,5 @@
 # limitations under the License.
 
 _instruments = ("dashscope",)
+
+_supports_metrics = False
