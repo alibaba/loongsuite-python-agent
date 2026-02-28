@@ -89,12 +89,17 @@ def _extract_unreleased(path: Path) -> Optional[str]:
     return content if content else None
 
 
+def _collapse_link_linebreaks(text: str) -> str:
+    r"""Join lines where a link reference like ``([#N](url))`` is on its own indented line."""
+    return re.sub(r"\n[ \t]+(\(\[#)", r" \1", text)
+
+
 def collect(
     version: str, upstream_version: str, output: Path, repo: Path
 ) -> None:
     """Collect all Unreleased sections into a single release-notes file."""
     parts: List[str] = []
-    parts.append(f"# LoongSuite Python Agent v{version}\n")
+    parts.append(f"# loongsuite-python-agent {version}\n")
     parts.append("## Installation\n")
     parts.append("```bash")
     parts.append(f"pip install loongsuite-distro=={version}")
@@ -104,14 +109,18 @@ def collect(
     parts.append(f"- loongsuite-* packages: {version}")
     parts.append(f"- opentelemetry-* packages: {upstream_version}\n")
     parts.append("---\n")
-    parts.append("## Changes\n")
 
     found_any = False
+    first = True
     for label, path in _changelog_sources(repo):
         content = _extract_unreleased(path)
         if content:
             found_any = True
-            parts.append(f"### {label}\n")
+            content = _collapse_link_linebreaks(content)
+            if not first:
+                parts.append("---\n")
+            first = False
+            parts.append(f"## {label}\n")
             parts.append(content)
             parts.append("")
 
@@ -144,9 +153,9 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
                 new_lines.append(original_header)
                 new_lines.append("")
                 new_lines.append(version_header)
+                new_lines.append("")
 
                 # Skip blank lines immediately after the old Unreleased header
-                # so the content flows under the new version header
                 i += 1
                 while i < len(lines) and lines[i].strip() == "":
                     i += 1

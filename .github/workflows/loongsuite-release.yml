@@ -194,7 +194,7 @@ jobs:
         run: |
           VERSION="${{ needs.build.outputs.loongsuite_version }}"
           gh release create "v${VERSION}" \
-            --title "LoongSuite Python Agent v${VERSION}" \
+            --title "loongsuite-python-agent ${VERSION}" \
             --notes-file dist/release-notes.md \
             dist/loongsuite-python-agent-${VERSION}.tar.gz
 
@@ -225,7 +225,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.build.outputs.loongsuite_version }}"
-          BRANCH="post-release/v${VERSION}"
+          BRANCH="post-release/${VERSION}"
           TODAY=$(date -u +%Y-%m-%d)
 
           git checkout -b "$BRANCH"
