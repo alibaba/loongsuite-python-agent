@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Collect, archive, and bump LoongSuite changelogs / versions.
 
@@ -230,21 +245,27 @@ def rename_packages(version: str, repo: Path) -> None:
     and dependencies already reflect the published names.
     """
     try:
-        import tomlkit
+        import tomlkit  # noqa: PLC0415
     except ImportError:
-        print("ERROR: tomlkit is required for --rename-packages. Install with: pip install tomlkit")
+        print(
+            "ERROR: tomlkit is required for --rename-packages. Install with: pip install tomlkit"
+        )
         sys.exit(1)
 
     util_dep_spec = f"loongsuite-util-genai ~= {version}"
 
     # 1. Rename util/opentelemetry-util-genai itself
-    util_pyproject = repo / "util" / "opentelemetry-util-genai" / "pyproject.toml"
+    util_pyproject = (
+        repo / "util" / "opentelemetry-util-genai" / "pyproject.toml"
+    )
     if util_pyproject.exists():
         doc = tomlkit.parse(util_pyproject.read_text(encoding="utf-8"))
         old_name = doc["project"]["name"]
         doc["project"]["name"] = "loongsuite-util-genai"
         util_pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
-        print(f"Renamed {util_pyproject.relative_to(repo)}: {old_name} -> loongsuite-util-genai")
+        print(
+            f"Renamed {util_pyproject.relative_to(repo)}: {old_name} -> loongsuite-util-genai"
+        )
     else:
         print(f"WARNING: {util_pyproject} not found")
 
@@ -262,7 +283,9 @@ def rename_packages(version: str, repo: Path) -> None:
             changed = False
             new_deps = []
             for dep in deps:
-                dep_name = re.split(r"[<>=~!\s\[]", str(dep).strip())[0].strip()
+                dep_name = re.split(r"[<>=~!\s\[]", str(dep).strip())[
+                    0
+                ].strip()
                 if dep_name == "opentelemetry-util-genai":
                     new_deps.append(util_dep_spec)
                     changed = True
