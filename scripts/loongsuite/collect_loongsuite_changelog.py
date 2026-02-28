@@ -281,18 +281,14 @@ def rename_packages(version: str, repo: Path) -> None:
             doc = tomlkit.parse(text)
             deps = doc.get("project", {}).get("dependencies", [])
             changed = False
-            new_deps = []
-            for dep in deps:
+            for i, dep in enumerate(deps):
                 dep_name = re.split(r"[<>=~!\s\[]", str(dep).strip())[
                     0
                 ].strip()
                 if dep_name == "opentelemetry-util-genai":
-                    new_deps.append(util_dep_spec)
+                    deps[i] = util_dep_spec
                     changed = True
-                else:
-                    new_deps.append(dep)
             if changed:
-                doc["project"]["dependencies"] = new_deps
                 pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
                 print(f"Updated dependency in {pyproject.relative_to(repo)}")
 
