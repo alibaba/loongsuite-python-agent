@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 #
 # LoongSuite Release Script
 #
@@ -8,17 +23,18 @@
 #   Default (no --dry-run):
 #     1. Create release/{version} branch from main
 #     2. Generate bootstrap_gen.py
-#     3. Build PyPI + GitHub Release packages
-#     4. Verify artifacts
-#     5. Collect changelogs into release notes
-#     6. Archive changelogs (Unreleased -> versioned)
-#     7. Commit & push release branch
-#     8. (Optional) Installation verification
-#     9. (Optional) Create GitHub Release via gh CLI
-#     10. Create post-release PR to main (archive changelogs + bump dev versions)
+#     3. Rename package names in pyproject.toml (opentelemetry-util-genai -> loongsuite-util-genai)
+#     4. Build PyPI + GitHub Release packages
+#     5. Verify artifacts
+#     6. Collect changelogs into release notes
+#     7. Archive changelogs (Unreleased -> versioned)
+#     8. Commit & push release branch
+#     9. (Optional) Installation verification
+#     10. (Optional) Create GitHub Release via gh CLI
+#     11. Create post-release PR to main (archive changelogs + bump dev versions)
 #
 #   --dry-run:
-#     Runs steps 2-5, 8 only (no branch creation, no changelog archive, no commit, no release).
+#     Runs steps 2, 4-6, 9 only (no branch creation, no rename, no changelog archive, no commit, no release).
 #
 # Usage:
 #   # Local dry run (validate build)
@@ -166,6 +182,18 @@ echo "    Preview (first 20 lines):"
 head -20 loongsuite-distro/src/loongsuite/distro/bootstrap_gen.py | sed 's/^/    /'
 echo ""
 
+# ── Step 3.5: Rename packages in pyproject.toml (skip in dry-run) ──────────
+if [[ "$DRY_RUN" != "true" ]]; then
+  echo ">>> Step 3.5: Renaming opentelemetry-util-genai -> loongsuite-util-genai in pyproject.toml..."
+  python scripts/loongsuite/collect_loongsuite_changelog.py \
+    --version "$LOONGSUITE_VERSION"
+  echo "    OK"
+  echo ""
+else
+  echo ">>> Step 3.5: Skipped (dry-run mode)"
+  echo ""
+fi
+
 # ── Step 4: Build PyPI packages ────────────────────────────────────────────
 rm -rf "$PYPI_DIST_DIR"
 mkdir -p "$PYPI_DIST_DIR"
@@ -262,6 +290,10 @@ fi
 
 # ── Step 9: Commit & push release branch (skip in dry-run) ────────────────
 if [[ "$DRY_RUN" != "true" ]]; then
+  echo ">>> Step 9: Running precommit checks..."
+  tox -e precommit || echo "    WARN: precommit had issues, please review"
+  echo ""
+
   echo ">>> Step 9: Committing changes to ${RELEASE_BRANCH}..."
   git add -A
   git commit -m "release: LoongSuite v${LOONGSUITE_VERSION}
@@ -355,12 +387,12 @@ else
     echo "    WARN: gh CLI not found, skipping GitHub Release creation."
     echo "    Run manually:"
     echo "      gh release create v$LOONGSUITE_VERSION \\"
-    echo "        --title \"LoongSuite Python Agent v$LOONGSUITE_VERSION\" \\"
+    echo "        --title \"loongsuite-python-agent $LOONGSUITE_VERSION\" \\"
     echo "        --notes-file $RELEASE_NOTES_FILE \\"
     echo "        $TAR_PATH"
   else
     gh release create "v${LOONGSUITE_VERSION}" \
-      --title "LoongSuite Python Agent v${LOONGSUITE_VERSION}" \
+      --title "loongsuite-python-agent ${LOONGSUITE_VERSION}" \
       --notes-file "$RELEASE_NOTES_FILE" \
       "$TAR_PATH"
     echo "    OK: GitHub Release v${LOONGSUITE_VERSION} created"
@@ -374,7 +406,7 @@ if [[ "$DRY_RUN" == "true" || "$SKIP_POST_RELEASE_PR" == "true" ]]; then
   echo ""
 else
   echo ">>> Step 12: Creating post-release PR to main..."
-  POST_RELEASE_BRANCH="post-release/v${LOONGSUITE_VERSION}"
+  POST_RELEASE_BRANCH="post-release/${LOONGSUITE_VERSION}"
 
   git checkout main
   git checkout -b "$POST_RELEASE_BRANCH"
@@ -390,6 +422,9 @@ else
     --bump-dev \
     --version "$LOONGSUITE_VERSION"
 
+  echo "    Running precommit checks..."
+  tox -e precommit || echo "    WARN: precommit had issues, please review"
+
   git add -A
   git commit -m "chore: post-release v${LOONGSUITE_VERSION} - archive changelogs & bump dev versions
 
@@ -403,13 +438,15 @@ else
     gh pr create \
       --base main \
       --head "$POST_RELEASE_BRANCH" \
-      --title "chore: post-release v${LOONGSUITE_VERSION}" \
-      --body "## Post-release updates for v${LOONGSUITE_VERSION}
+      --title "chore: post-release ${LOONGSUITE_VERSION} — archive changelogs & bump dev versions" \
+      --body "## Post-release updates for loongsuite-python-agent ${LOONGSUITE_VERSION}
 
-- Archive \`Unreleased\` changelog sections as \`Version ${LOONGSUITE_VERSION} (${TODAY})\`
-- Bump \`instrumentation-loongsuite\` module versions to next \`.dev\`
+Automated housekeeping after the \`${LOONGSUITE_VERSION}\` release:
 
-This PR was auto-generated by the release script."
+- **Archive changelogs**: move \`Unreleased\` sections to \`Version ${LOONGSUITE_VERSION} (${TODAY})\` in all \`CHANGELOG\` files
+- **Bump dev versions**: update \`instrumentation-loongsuite/*/version.py\` to the next \`.dev\` iteration
+
+> This PR was auto-generated by \`scripts/loongsuite/loongsuite_release.sh\`."
     echo "    OK: Post-release PR created"
   else
     echo "    WARN: gh CLI not found, skipping PR creation."

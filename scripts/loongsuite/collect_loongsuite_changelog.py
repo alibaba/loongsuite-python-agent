@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
+
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Collect, archive, and bump LoongSuite changelogs / versions.
 
 Modes:
-  --collect    Gather all Unreleased sections and emit a release-notes markdown file.
-  --archive    Replace Unreleased headers with a versioned header in-place.
-  --bump-dev   Bump instrumentation-loongsuite module versions to the next dev version.
+  --collect          Gather all Unreleased sections and emit a release-notes markdown file.
+  --archive          Replace Unreleased headers with a versioned header in-place.
+  --bump-dev         Bump instrumentation-loongsuite module versions to the next dev version.
+  --rename-packages  Rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
 
 Changelog sources (in order):
   1. CHANGELOG-loongsuite.md              (root, label: loongsuite)
@@ -25,6 +41,7 @@ Usage:
 
 import argparse
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -89,12 +106,17 @@ def _extract_unreleased(path: Path) -> Optional[str]:
     return content if content else None
 
 
+def _collapse_link_linebreaks(text: str) -> str:
+    r"""Join lines where a link reference like ``([#N](url))`` is on its own indented line."""
+    return re.sub(r"\n[ \t]+(\(\[#)", r" \1", text)
+
+
 def collect(
     version: str, upstream_version: str, output: Path, repo: Path
 ) -> None:
     """Collect all Unreleased sections into a single release-notes file."""
     parts: List[str] = []
-    parts.append(f"# LoongSuite Python Agent v{version}\n")
+    parts.append(f"# loongsuite-python-agent {version}\n")
     parts.append("## Installation\n")
     parts.append("```bash")
     parts.append(f"pip install loongsuite-distro=={version}")
@@ -104,14 +126,18 @@ def collect(
     parts.append(f"- loongsuite-* packages: {version}")
     parts.append(f"- opentelemetry-* packages: {upstream_version}\n")
     parts.append("---\n")
-    parts.append("## Changes\n")
 
     found_any = False
+    first = True
     for label, path in _changelog_sources(repo):
         content = _extract_unreleased(path)
         if content:
             found_any = True
-            parts.append(f"### {label}\n")
+            content = _collapse_link_linebreaks(content)
+            if not first:
+                parts.append("---\n")
+            first = False
+            parts.append(f"## {label}\n")
             parts.append(content)
             parts.append("")
 
@@ -144,9 +170,9 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
                 new_lines.append(original_header)
                 new_lines.append("")
                 new_lines.append(version_header)
+                new_lines.append("")
 
                 # Skip blank lines immediately after the old Unreleased header
-                # so the content flows under the new version header
                 i += 1
                 while i < len(lines) and lines[i].strip() == "":
                     i += 1
@@ -212,11 +238,66 @@ def bump_dev(
             print(f"WARNING: no __version__ found in {vf.relative_to(repo)}")
 
 
+def rename_packages(version: str, repo: Path) -> None:
+    """Permanently rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
+
+    This makes the release branch a self-contained snapshot where package names
+    and dependencies already reflect the published names.
+    """
+    try:
+        import tomlkit  # noqa: PLC0415
+    except ImportError:
+        print(
+            "ERROR: tomlkit is required for --rename-packages. Install with: pip install tomlkit"
+        )
+        sys.exit(1)
+
+    util_dep_spec = f"loongsuite-util-genai ~= {version}"
+
+    # 1. Rename util/opentelemetry-util-genai itself
+    util_pyproject = (
+        repo / "util" / "opentelemetry-util-genai" / "pyproject.toml"
+    )
+    if util_pyproject.exists():
+        doc = tomlkit.parse(util_pyproject.read_text(encoding="utf-8"))
+        old_name = doc["project"]["name"]
+        doc["project"]["name"] = "loongsuite-util-genai"
+        util_pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
+        print(
+            f"Renamed {util_pyproject.relative_to(repo)}: {old_name} -> loongsuite-util-genai"
+        )
+    else:
+        print(f"WARNING: {util_pyproject} not found")
+
+    # 2. Replace dependency in instrumentation-loongsuite and instrumentation-genai
+    for search_dir in ("instrumentation-loongsuite", "instrumentation-genai"):
+        inst_dir = repo / search_dir
+        if not inst_dir.is_dir():
+            continue
+        for pyproject in sorted(inst_dir.rglob("pyproject.toml")):
+            text = pyproject.read_text(encoding="utf-8")
+            if "opentelemetry-util-genai" not in text:
+                continue
+            doc = tomlkit.parse(text)
+            deps = doc.get("project", {}).get("dependencies", [])
+            changed = False
+            for i, dep in enumerate(deps):
+                dep_name = re.split(r"[<>=~!\s\[]", str(dep).strip())[
+                    0
+                ].strip()
+                if dep_name == "opentelemetry-util-genai":
+                    deps[i] = util_dep_spec
+                    changed = True
+            if changed:
+                pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
+                print(f"Updated dependency in {pyproject.relative_to(repo)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Collect/archive LoongSuite changelogs"
     )
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--collect",
         action="store_true",
@@ -231,6 +312,12 @@ def main() -> None:
         "--bump-dev",
         action="store_true",
         help="Bump module versions to next dev",
+    )
+    parser.add_argument(
+        "--rename-packages",
+        action="store_true",
+        default=True,
+        help="Rename opentelemetry-util-genai to loongsuite-util-genai (default, always runs unless other mode specified)",
     )
 
     parser.add_argument(
@@ -271,6 +358,8 @@ def main() -> None:
         archive(args.version, repo, args.date)
     elif args.bump_dev:
         bump_dev(args.version, repo, args.next_dev_version)
+    else:
+        rename_packages(args.version, repo)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 {
-  "skip_packages": [],
+  "skip_packages": [
+    "opentelemetry-instrumentation-langchain"
+  ],
   "description": "Build configuration file, defines packages to skip during build",
   "notes": [
     "Packages in upstream packages_to_exclude are already excluded automatically.",

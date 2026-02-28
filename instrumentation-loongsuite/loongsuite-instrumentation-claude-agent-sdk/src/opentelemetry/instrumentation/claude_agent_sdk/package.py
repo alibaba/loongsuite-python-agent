@@ -13,3 +13,5 @@
 # limitations under the License.
 
 _instruments = ("claude-agent-sdk >= 0.1.0",)
+
+_supports_metrics = False
