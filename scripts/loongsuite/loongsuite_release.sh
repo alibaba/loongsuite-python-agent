@@ -355,12 +355,12 @@ else
     echo "    WARN: gh CLI not found, skipping GitHub Release creation."
     echo "    Run manually:"
     echo "      gh release create v$LOONGSUITE_VERSION \\"
-    echo "        --title \"LoongSuite Python Agent v$LOONGSUITE_VERSION\" \\"
+    echo "        --title \"loongsuite-python-agent $LOONGSUITE_VERSION\" \\"
     echo "        --notes-file $RELEASE_NOTES_FILE \\"
     echo "        $TAR_PATH"
   else
     gh release create "v${LOONGSUITE_VERSION}" \
-      --title "LoongSuite Python Agent v${LOONGSUITE_VERSION}" \
+      --title "loongsuite-python-agent ${LOONGSUITE_VERSION}" \
       --notes-file "$RELEASE_NOTES_FILE" \
       "$TAR_PATH"
     echo "    OK: GitHub Release v${LOONGSUITE_VERSION} created"
@@ -374,7 +374,7 @@ if [[ "$DRY_RUN" == "true" || "$SKIP_POST_RELEASE_PR" == "true" ]]; then
   echo ""
 else
   echo ">>> Step 12: Creating post-release PR to main..."
-  POST_RELEASE_BRANCH="post-release/v${LOONGSUITE_VERSION}"
+  POST_RELEASE_BRANCH="post-release/${LOONGSUITE_VERSION}"
 
   git checkout main
   git checkout -b "$POST_RELEASE_BRANCH"
