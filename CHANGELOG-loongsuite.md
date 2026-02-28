@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Version 0.1.0 (2026-02-28)
+
 ### Fixed
 
 - Add `from __future__ import annotations` to fix Python 3.9 compatibility for union type syntax (`X | Y`)
