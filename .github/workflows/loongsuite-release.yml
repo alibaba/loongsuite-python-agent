@@ -1,0 +1,259 @@
+# LoongSuite Release Workflow
+#
+# This workflow handles the complete LoongSuite release process:
+#
+# 1. Create release/{version} branch from main
+# 2. Build packages (bootstrap_gen.py, PyPI wheels, GitHub Release tar.gz)
+# 3. Collect changelogs and archive Unreleased sections
+# 4. Commit & push release branch
+# 5. Create GitHub Release
+# 6. Publish to PyPI / Test PyPI
+# 7. Create post-release PR to main (archive changelogs + bump dev versions)
+#
+# The core logic lives in scripts/loongsuite/loongsuite_release.sh, which can also be
+# run locally for the same workflow.
+#
+# Trigger:
+# - workflow_dispatch: Manual trigger with version inputs
+# - push tags: Automatic trigger on v* tags
+#
+# PyPI / Test PyPI configuration:
+# - Production PyPI: Set PYPI_API_TOKEN secret, or configure OIDC trusted publishing on pypi.org
+# - Test PyPI: Set TEST_PYPI_TOKEN secret (pypi-xxx from https://test.pypi.org/manage/account/token/)
+# - Use publish_target: testpypi to publish to Test PyPI instead of production
+#
+# IMPORTANT: Only loongsuite_util_genai-*.whl and loongsuite_distro-*.whl are uploaded to PyPI.
+# loongsuite-python-agent-*.tar.gz is for GitHub Release only and must NOT be uploaded to PyPI.
+#
+name: LoongSuite Release
+
+run-name: "LoongSuite Release ${{ github.event.inputs.loongsuite_version || github.ref_name }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      loongsuite_version:
+        description: 'LoongSuite version (e.g., 0.1.0) - for loongsuite-* packages'
+        required: true
+      upstream_version:
+        description: 'Upstream OTel version (e.g., 0.60b1) - for opentelemetry-* packages in bootstrap_gen.py'
+        required: true
+      skip_pypi:
+        description: 'Skip PyPI publish (for testing)'
+        type: boolean
+        default: false
+      publish_target:
+        description: 'Publish target: pypi or testpypi'
+        type: choice
+        options:
+          - pypi
+          - testpypi
+        default: pypi
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Build all packages, create release branch, archive changelogs
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      loongsuite_version: ${{ steps.version.outputs.loongsuite_version }}
+      upstream_version: ${{ steps.version.outputs.upstream_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set versions from tag or input
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            tag="${GITHUB_REF#refs/tags/}"
+            loongsuite_version="${tag#v}"
+            upstream_version="${UPSTREAM_VERSION:-0.60b1}"
+          else
+            loongsuite_version="${{ github.event.inputs.loongsuite_version }}"
+            upstream_version="${{ github.event.inputs.upstream_version }}"
+          fi
+
+          if [[ -z "$loongsuite_version" ]]; then
+            echo "ERROR: loongsuite_version is required"
+            exit 1
+          fi
+          if [[ -z "$upstream_version" ]]; then
+            echo "ERROR: upstream_version is required"
+            exit 1
+          fi
+
+          echo "loongsuite_version=$loongsuite_version" >> $GITHUB_OUTPUT
+          echo "upstream_version=$upstream_version" >> $GITHUB_OUTPUT
+
+          echo "LoongSuite version: $loongsuite_version"
+          echo "Upstream version: $upstream_version"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure git for CI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release script
+        run: |
+          ./scripts/loongsuite/loongsuite_release.sh \
+            --loongsuite-version ${{ steps.version.outputs.loongsuite_version }} \
+            --upstream-version ${{ steps.version.outputs.upstream_version }} \
+            --skip-install \
+            --skip-github-release \
+            --skip-post-release-pr
+
+      - name: Upload PyPI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-packages
+          path: |
+            dist-pypi/loongsuite_util_genai-*.whl
+            dist-pypi/loongsuite_distro-*.whl
+
+      - name: Upload GitHub Release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-release
+          path: |
+            dist/loongsuite-python-agent-*.tar.gz
+            dist/release-notes.md
+
+  # Publish to production PyPI
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name != 'workflow_dispatch' || !inputs.skip_pypi) &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.publish_target != 'testpypi')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/loongsuite-distro/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download PyPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  # Publish to Test PyPI (for testing before production)
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_pypi && inputs.publish_target == 'testpypi' }}
+    steps:
+      - name: Download PyPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-packages
+          path: dist/
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          username: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          skip-existing: true
+
+  # Create GitHub Release
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download GitHub Release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: github-release
+          path: dist/
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.build.outputs.loongsuite_version }}"
+          gh release create "v${VERSION}" \
+            --title "LoongSuite Python Agent v${VERSION}" \
+            --notes-file dist/release-notes.md \
+            dist/loongsuite-python-agent-${VERSION}.tar.gz
+
+  # Create post-release PR to main (archive changelogs + bump dev versions)
+  post-release-pr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure git for CI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create post-release branch and PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.build.outputs.loongsuite_version }}"
+          BRANCH="post-release/v${VERSION}"
+          TODAY=$(date -u +%Y-%m-%d)
+
+          git checkout -b "$BRANCH"
+
+          python scripts/loongsuite/collect_loongsuite_changelog.py \
+            --archive \
+            --version "$VERSION" \
+            --date "$TODAY"
+
+          python scripts/loongsuite/collect_loongsuite_changelog.py \
+            --bump-dev \
+            --version "$VERSION"
+
+          git add -A
+          git commit -m "chore: post-release v${VERSION} - archive changelogs & bump dev versions
+
+          - Archive Unreleased changelogs as Version ${VERSION}
+          - Bump instrumentation-loongsuite module versions to next dev"
+
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: post-release v${VERSION}" \
+            --body "## Post-release updates for v${VERSION}
+
+          - Archive \`Unreleased\` changelog sections as \`Version ${VERSION} (${TODAY})\`
+          - Bump \`instrumentation-loongsuite\` module versions to next \`.dev\`
+
+          This PR was auto-generated by the release workflow."

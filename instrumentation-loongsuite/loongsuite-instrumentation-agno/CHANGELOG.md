@@ -1,0 +1,22 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Unreleased
+
+### Fixed
+
+- Fix aresponse missing await and double wrapped() calls
+  ([#107](https://github.com/alibaba/loongsuite-python-agent/pull/107))
+- Fix broken trace caused by the improper setting of the parent context
+  ([#23](https://github.com/alibaba/loongsuite-python-agent/pull/23))
+- Correct span name of tool call
+  ([#21](https://github.com/alibaba/loongsuite-python-agent/pull/21))
+
+### Added
+
+- Initial implementation of Agno instrumentation
+  ([#13](https://github.com/alibaba/loongsuite-python-agent/pull/13))
