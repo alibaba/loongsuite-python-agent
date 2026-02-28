@@ -32,6 +32,25 @@ env:
 
 jobs:
 
+  check-license-header:
+    name: LoongSuite check-license-header
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e check-license-header
+
   generate-loongsuite:
     name: LoongSuite generate-loongsuite
     runs-on: ubuntu-latest
@@ -50,23 +69,4 @@ jobs:
 
       - name: Run tests
         run: tox -c tox-loongsuite.ini -e generate-loongsuite
-
-  check-license-header:
-    name: LoongSuite License Header Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repo @ SHA - ${{ github.sha }}
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install tox
-        run: pip install tox-uv
-
-      - name: Check license headers
-        run: tox -c tox-loongsuite.ini -e check-license-header
 
