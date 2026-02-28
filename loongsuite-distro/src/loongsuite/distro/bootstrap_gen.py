@@ -218,35 +218,35 @@ libraries = [
     },
     {
         "library": "agentscope >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-agentscope==1.0.0",
+        "instrumentation": "loongsuite-instrumentation-agentscope==0.1.0.dev",
     },
     {
         "library": "agno",
-        "instrumentation": "loongsuite-instrumentation-agno==0.1b0.dev",
+        "instrumentation": "loongsuite-instrumentation-agno==0.1.0.dev",
     },
     {
         "library": "claude-agent-sdk >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-claude-agent-sdk==0.1.0.dev0",
+        "instrumentation": "loongsuite-instrumentation-claude-agent-sdk==0.1.0.dev",
     },
     {
         "library": "dashscope >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-dashscope==0.1.0.dev0",
+        "instrumentation": "loongsuite-instrumentation-dashscope==0.1.0.dev",
     },
     {
         "library": "google-adk >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-google-adk==0.1.0",
+        "instrumentation": "loongsuite-instrumentation-google-adk==0.1.0.dev",
     },
     {
         "library": "langchain_core >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-langchain==1.0.0",
+        "instrumentation": "loongsuite-instrumentation-langchain==0.1.0.dev",
     },
     {
         "library": "mcp >= 1.3.0, <= 1.25.0",
-        "instrumentation": "loongsuite-instrumentation-mcp==0.1.0",
+        "instrumentation": "loongsuite-instrumentation-mcp==0.1.0.dev",
     },
     {
         "library": "mem0ai >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-mem0==0.1.0",
+        "instrumentation": "loongsuite-instrumentation-mem0==0.1.0.dev",
     },
 ]
 
@@ -258,5 +258,5 @@ default_instrumentations = [
     "opentelemetry-instrumentation-threading==0.61b0.dev",
     "opentelemetry-instrumentation-urllib==0.61b0.dev",
     "opentelemetry-instrumentation-wsgi==0.61b0.dev",
-    "loongsuite-instrumentation-dify==1.1.0",
+    "loongsuite-instrumentation-dify==0.1.0.dev",
 ]
