@@ -8,17 +8,18 @@
 #   Default (no --dry-run):
 #     1. Create release/{version} branch from main
 #     2. Generate bootstrap_gen.py
-#     3. Build PyPI + GitHub Release packages
-#     4. Verify artifacts
-#     5. Collect changelogs into release notes
-#     6. Archive changelogs (Unreleased -> versioned)
-#     7. Commit & push release branch
-#     8. (Optional) Installation verification
-#     9. (Optional) Create GitHub Release via gh CLI
-#     10. Create post-release PR to main (archive changelogs + bump dev versions)
+#     3. Rename package names in pyproject.toml (opentelemetry-util-genai -> loongsuite-util-genai)
+#     4. Build PyPI + GitHub Release packages
+#     5. Verify artifacts
+#     6. Collect changelogs into release notes
+#     7. Archive changelogs (Unreleased -> versioned)
+#     8. Commit & push release branch
+#     9. (Optional) Installation verification
+#     10. (Optional) Create GitHub Release via gh CLI
+#     11. Create post-release PR to main (archive changelogs + bump dev versions)
 #
 #   --dry-run:
-#     Runs steps 2-5, 8 only (no branch creation, no changelog archive, no commit, no release).
+#     Runs steps 2, 4-6, 9 only (no branch creation, no rename, no changelog archive, no commit, no release).
 #
 # Usage:
 #   # Local dry run (validate build)
@@ -166,6 +167,18 @@ echo "    Preview (first 20 lines):"
 head -20 loongsuite-distro/src/loongsuite/distro/bootstrap_gen.py | sed 's/^/    /'
 echo ""
 
+# ── Step 3.5: Rename packages in pyproject.toml (skip in dry-run) ──────────
+if [[ "$DRY_RUN" != "true" ]]; then
+  echo ">>> Step 3.5: Renaming opentelemetry-util-genai -> loongsuite-util-genai in pyproject.toml..."
+  python scripts/loongsuite/collect_loongsuite_changelog.py \
+    --version "$LOONGSUITE_VERSION"
+  echo "    OK"
+  echo ""
+else
+  echo ">>> Step 3.5: Skipped (dry-run mode)"
+  echo ""
+fi
+
 # ── Step 4: Build PyPI packages ────────────────────────────────────────────
 rm -rf "$PYPI_DIST_DIR"
 mkdir -p "$PYPI_DIST_DIR"
@@ -262,6 +275,10 @@ fi
 
 # ── Step 9: Commit & push release branch (skip in dry-run) ────────────────
 if [[ "$DRY_RUN" != "true" ]]; then
+  echo ">>> Step 9: Running precommit checks..."
+  tox -e precommit || echo "    WARN: precommit had issues, please review"
+  echo ""
+
   echo ">>> Step 9: Committing changes to ${RELEASE_BRANCH}..."
   git add -A
   git commit -m "release: LoongSuite v${LOONGSUITE_VERSION}
@@ -389,6 +406,9 @@ else
   python scripts/loongsuite/collect_loongsuite_changelog.py \
     --bump-dev \
     --version "$LOONGSUITE_VERSION"
+
+  echo "    Running precommit checks..."
+  tox -e precommit || echo "    WARN: precommit had issues, please review"
 
   git add -A
   git commit -m "chore: post-release v${LOONGSUITE_VERSION} - archive changelogs & bump dev versions

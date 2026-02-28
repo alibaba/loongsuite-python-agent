@@ -239,6 +239,9 @@ jobs:
             --bump-dev \
             --version "$VERSION"
 
+          pip install tox
+          tox -e precommit || echo "WARN: precommit had issues, please review"
+
           git add -A
           git commit -m "chore: post-release v${VERSION} - archive changelogs & bump dev versions
 

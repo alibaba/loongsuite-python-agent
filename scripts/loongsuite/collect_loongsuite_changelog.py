@@ -3,9 +3,10 @@
 Collect, archive, and bump LoongSuite changelogs / versions.
 
 Modes:
-  --collect    Gather all Unreleased sections and emit a release-notes markdown file.
-  --archive    Replace Unreleased headers with a versioned header in-place.
-  --bump-dev   Bump instrumentation-loongsuite module versions to the next dev version.
+  --collect          Gather all Unreleased sections and emit a release-notes markdown file.
+  --archive          Replace Unreleased headers with a versioned header in-place.
+  --bump-dev         Bump instrumentation-loongsuite module versions to the next dev version.
+  --rename-packages  Rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
 
 Changelog sources (in order):
   1. CHANGELOG-loongsuite.md              (root, label: loongsuite)
@@ -25,6 +26,7 @@ Usage:
 
 import argparse
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -221,11 +223,62 @@ def bump_dev(
             print(f"WARNING: no __version__ found in {vf.relative_to(repo)}")
 
 
+def rename_packages(version: str, repo: Path) -> None:
+    """Permanently rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
+
+    This makes the release branch a self-contained snapshot where package names
+    and dependencies already reflect the published names.
+    """
+    try:
+        import tomlkit
+    except ImportError:
+        print("ERROR: tomlkit is required for --rename-packages. Install with: pip install tomlkit")
+        sys.exit(1)
+
+    util_dep_spec = f"loongsuite-util-genai ~= {version}"
+
+    # 1. Rename util/opentelemetry-util-genai itself
+    util_pyproject = repo / "util" / "opentelemetry-util-genai" / "pyproject.toml"
+    if util_pyproject.exists():
+        doc = tomlkit.parse(util_pyproject.read_text(encoding="utf-8"))
+        old_name = doc["project"]["name"]
+        doc["project"]["name"] = "loongsuite-util-genai"
+        util_pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
+        print(f"Renamed {util_pyproject.relative_to(repo)}: {old_name} -> loongsuite-util-genai")
+    else:
+        print(f"WARNING: {util_pyproject} not found")
+
+    # 2. Replace dependency in instrumentation-loongsuite and instrumentation-genai
+    for search_dir in ("instrumentation-loongsuite", "instrumentation-genai"):
+        inst_dir = repo / search_dir
+        if not inst_dir.is_dir():
+            continue
+        for pyproject in sorted(inst_dir.rglob("pyproject.toml")):
+            text = pyproject.read_text(encoding="utf-8")
+            if "opentelemetry-util-genai" not in text:
+                continue
+            doc = tomlkit.parse(text)
+            deps = doc.get("project", {}).get("dependencies", [])
+            changed = False
+            new_deps = []
+            for dep in deps:
+                dep_name = re.split(r"[<>=~!\s\[]", str(dep).strip())[0].strip()
+                if dep_name == "opentelemetry-util-genai":
+                    new_deps.append(util_dep_spec)
+                    changed = True
+                else:
+                    new_deps.append(dep)
+            if changed:
+                doc["project"]["dependencies"] = new_deps
+                pyproject.write_text(tomlkit.dumps(doc), encoding="utf-8")
+                print(f"Updated dependency in {pyproject.relative_to(repo)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Collect/archive LoongSuite changelogs"
     )
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--collect",
         action="store_true",
@@ -240,6 +293,12 @@ def main() -> None:
         "--bump-dev",
         action="store_true",
         help="Bump module versions to next dev",
+    )
+    parser.add_argument(
+        "--rename-packages",
+        action="store_true",
+        default=True,
+        help="Rename opentelemetry-util-genai to loongsuite-util-genai (default, always runs unless other mode specified)",
     )
 
     parser.add_argument(
@@ -280,6 +339,8 @@ def main() -> None:
         archive(args.version, repo, args.date)
     elif args.bump_dev:
         bump_dev(args.version, repo, args.next_dev_version)
+    else:
+        rename_packages(args.version, repo)
 
 
 if __name__ == "__main__":
