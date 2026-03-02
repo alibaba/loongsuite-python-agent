@@ -1,0 +1,1253 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001262,"id":"chatcmpl-94472f6b-eea0-99d3-8ccc-734973d45863","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:22 GMT
+      req-arrive-time:
+      - '1772001262501'
+      req-cost-time:
+      - '181'
+      resp-start-time:
+      - '1772001262683'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '181'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001347,"id":"chatcmpl-d7fa8828-d03a-914f-8282-7091c42bbf5d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:47 GMT
+      req-arrive-time:
+      - '1772001347091'
+      req-cost-time:
+      - '325'
+      resp-start-time:
+      - '1772001347416'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '324'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001388,"id":"chatcmpl-09d5325a-15ef-94b8-9035-cfc7b724f6ec","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:28 GMT
+      req-arrive-time:
+      - '1772001388623'
+      req-cost-time:
+      - '369'
+      resp-start-time:
+      - '1772001388993'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '369'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001457,"id":"chatcmpl-d577b821-7cdd-9f6b-9632-f0e3aafe78ba","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:37 GMT
+      req-arrive-time:
+      - '1772001457146'
+      req-cost-time:
+      - '180'
+      resp-start-time:
+      - '1772001457326'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '179'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001502,"id":"chatcmpl-def57183-5420-98e7-a15d-be325161020b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:23 GMT
+      req-arrive-time:
+      - '1772001502625'
+      req-cost-time:
+      - '613'
+      resp-start-time:
+      - '1772001503239'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '613'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001529,"id":"chatcmpl-abd1b1d8-1194-9900-a853-8b6634167cd8","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:48 GMT
+      req-arrive-time:
+      - '1772001529051'
+      req-cost-time:
+      - '203'
+      resp-start-time:
+      - '1772001529255'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '203'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001625,"id":"chatcmpl-d4983f11-1e13-9c4f-aad1-3e260fc36940","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:25 GMT
+      req-arrive-time:
+      - '1772001625495'
+      req-cost-time:
+      - '266'
+      resp-start-time:
+      - '1772001625761'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '266'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772001922,"id":"chatcmpl-8fa1dd19-febf-956b-a0ab-c479ac7fa3c7","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:22 GMT
+      req-arrive-time:
+      - '1772001922916'
+      req-cost-time:
+      - '273'
+      resp-start-time:
+      - '1772001923190'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '273'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772002054,"id":"chatcmpl-2cf2673b-de6d-9002-8451-ef51aec7adb7","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:34 GMT
+      req-arrive-time:
+      - '1772002054809'
+      req-cost-time:
+      - '291'
+      resp-start-time:
+      - '1772002055101'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '291'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772002084,"id":"chatcmpl-d1fc328f-5533-9f17-a830-526f359669f4","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:04 GMT
+      req-arrive-time:
+      - '1772002084149'
+      req-cost-time:
+      - '297'
+      resp-start-time:
+      - '1772002084447'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '297'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772002322,"id":"chatcmpl-4d2920ff-0b31-9925-a947-93084787bd6e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:02 GMT
+      req-arrive-time:
+      - '1772002322793'
+      req-cost-time:
+      - '208'
+      resp-start-time:
+      - '1772002323002'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '208'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772002359,"id":"chatcmpl-52472625-76ce-9595-be53-4faaf54379ab","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:39 GMT
+      req-arrive-time:
+      - '1772002359555'
+      req-cost-time:
+      - '214'
+      resp-start-time:
+      - '1772002359769'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '214'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Write a 500 word essay"}], "model":
+      "qwen-turbo", "max_tokens": 2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772002490,"id":"chatcmpl-bc7fad51-1ce7-9bda-ba48-10e97a119460","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:54:50 GMT
+      req-arrive-time:
+      - '1772002490741'
+      req-cost-time:
+      - '278'
+      resp-start-time:
+      - '1772002491020'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '278'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Write a 500 word essay"}],"model":"qwen-turbo","max_tokens":2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772003330,"id":"chatcmpl-9112d424-0407-93ed-a523-ed54d602c655","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:08:49 GMT
+      req-arrive-time:
+      - '1772003330012'
+      req-cost-time:
+      - '271'
+      resp-start-time:
+      - '1772003330283'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '271'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Write a 500 word essay"}],"model":"qwen-turbo","max_tokens":2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772003435,"id":"chatcmpl-ca53cc34-4236-90fc-a41f-c0f7ceb00f26","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:35 GMT
+      req-arrive-time:
+      - '1772003435568'
+      req-cost-time:
+      - '228'
+      resp-start-time:
+      - '1772003435796'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '227'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Write a 500 word essay"}],"model":"qwen-turbo","max_tokens":2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772003809,"id":"chatcmpl-df6e4b24-7a98-9212-b88d-39d6fedff1e2","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:16:49 GMT
+      req-arrive-time:
+      - '1772003809234'
+      req-cost-time:
+      - '176'
+      resp-start-time:
+      - '1772003809410'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '175'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Write a 500 word essay"}],"model":"qwen-turbo","max_tokens":2}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '101'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"length","index":0,"message":{"content":"**The","role":"assistant"}}],"created":1772004235,"id":"chatcmpl-27310d25-f93d-9957-b689-256f3309b105","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":20,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}'
+    headers:
+      content-length:
+      - '334'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:55 GMT
+      req-arrive-time:
+      - '1772004235322'
+      req-cost-time:
+      - '220'
+      resp-start-time:
+      - '1772004235543'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '220'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

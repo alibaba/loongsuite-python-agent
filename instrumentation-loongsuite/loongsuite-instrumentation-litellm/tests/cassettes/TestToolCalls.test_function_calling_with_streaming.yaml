@@ -1,0 +1,1505 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-4a1105c5-020f-913f-a542-bd035d2fa6a7","created":1772001278,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_0e4e055c658b4076bf302b","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4a1105c5-020f-913f-a542-bd035d2fa6a7","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_0e4e055c658b4076bf302b","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001278,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4a1105c5-020f-913f-a542-bd035d2fa6a7","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001278,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4a1105c5-020f-913f-a542-bd035d2fa6a7","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001278,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4a1105c5-020f-913f-a542-bd035d2fa6a7","choices":[],"created":1772001278,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:34:38 GMT
+      req-arrive-time:
+      - '1772001278471'
+      req-cost-time:
+      - '501'
+      resp-start-time:
+      - '1772001278973'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '500'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-d7f949d4-0ec9-9963-b33a-d6161158aafb","created":1772001363,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_4aba5a19b0574369bc1124","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-d7f949d4-0ec9-9963-b33a-d6161158aafb","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_4aba5a19b0574369bc1124","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001363,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-d7f949d4-0ec9-9963-b33a-d6161158aafb","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001363,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-d7f949d4-0ec9-9963-b33a-d6161158aafb","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001363,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-d7f949d4-0ec9-9963-b33a-d6161158aafb","choices":[],"created":1772001363,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:36:04 GMT
+      req-arrive-time:
+      - '1772001363706'
+      req-cost-time:
+      - '532'
+      resp-start-time:
+      - '1772001364239'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '532'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-6a754114-4b72-93d4-a003-6cce811bce33","created":1772001405,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_056598ba37364494b49c38","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-6a754114-4b72-93d4-a003-6cce811bce33","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_056598ba37364494b49c38","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001405,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-6a754114-4b72-93d4-a003-6cce811bce33","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001405,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-6a754114-4b72-93d4-a003-6cce811bce33","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001405,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-6a754114-4b72-93d4-a003-6cce811bce33","choices":[],"created":1772001405,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:36:45 GMT
+      req-arrive-time:
+      - '1772001405116'
+      req-cost-time:
+      - '560'
+      resp-start-time:
+      - '1772001405677'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '560'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-ed0981b9-0e99-94e7-9ea9-dbe5492f50d4","created":1772001475,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_51df232597934458a4b295","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ed0981b9-0e99-94e7-9ea9-dbe5492f50d4","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_51df232597934458a4b295","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001475,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ed0981b9-0e99-94e7-9ea9-dbe5492f50d4","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001475,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ed0981b9-0e99-94e7-9ea9-dbe5492f50d4","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001475,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ed0981b9-0e99-94e7-9ea9-dbe5492f50d4","choices":[],"created":1772001475,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:37:55 GMT
+      req-arrive-time:
+      - '1772001475110'
+      req-cost-time:
+      - '885'
+      resp-start-time:
+      - '1772001475995'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '884'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-14c97a4b-f01b-9364-8bde-8c717de8c787","created":1772001519,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_2c3ad1e55e224a6fa58728","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-14c97a4b-f01b-9364-8bde-8c717de8c787","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_2c3ad1e55e224a6fa58728","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001519,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-14c97a4b-f01b-9364-8bde-8c717de8c787","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001519,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-14c97a4b-f01b-9364-8bde-8c717de8c787","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001519,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-14c97a4b-f01b-9364-8bde-8c717de8c787","choices":[],"created":1772001519,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:38:40 GMT
+      req-arrive-time:
+      - '1772001519425'
+      req-cost-time:
+      - '666'
+      resp-start-time:
+      - '1772001520091'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '666'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-f242318b-e4c3-9280-9d76-c0f14443237c","created":1772001544,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_69191a2f244e45f086748b","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-f242318b-e4c3-9280-9d76-c0f14443237c","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_69191a2f244e45f086748b","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001544,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-f242318b-e4c3-9280-9d76-c0f14443237c","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001544,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-f242318b-e4c3-9280-9d76-c0f14443237c","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001544,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-f242318b-e4c3-9280-9d76-c0f14443237c","choices":[],"created":1772001544,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:39:05 GMT
+      req-arrive-time:
+      - '1772001544769'
+      req-cost-time:
+      - '651'
+      resp-start-time:
+      - '1772001545420'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '650'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-8af96e26-8c5b-9f9a-bd59-a9d0afba09ae","created":1772001641,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_1958a464a39c4ce296ab82","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-8af96e26-8c5b-9f9a-bd59-a9d0afba09ae","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_1958a464a39c4ce296ab82","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001641,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-8af96e26-8c5b-9f9a-bd59-a9d0afba09ae","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001641,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-8af96e26-8c5b-9f9a-bd59-a9d0afba09ae","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001641,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-8af96e26-8c5b-9f9a-bd59-a9d0afba09ae","choices":[],"created":1772001641,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":64}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:40:41 GMT
+      req-arrive-time:
+      - '1772001641026'
+      req-cost-time:
+      - '561'
+      resp-start-time:
+      - '1772001641587'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '560'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-4834a0a0-11fe-972a-bada-46a8427b5a10","created":1772001939,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_29f855f6f8d841c7863899","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4834a0a0-11fe-972a-bada-46a8427b5a10","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_29f855f6f8d841c7863899","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772001939,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4834a0a0-11fe-972a-bada-46a8427b5a10","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772001939,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4834a0a0-11fe-972a-bada-46a8427b5a10","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772001939,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4834a0a0-11fe-972a-bada-46a8427b5a10","choices":[],"created":1772001939,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:45:39 GMT
+      req-arrive-time:
+      - '1772001939047'
+      req-cost-time:
+      - '543'
+      resp-start-time:
+      - '1772001939591'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '543'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-ad7d523b-2558-9657-be0a-5fe92403ac2b","created":1772002070,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_a726f83a49b54f93a87368","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ad7d523b-2558-9657-be0a-5fe92403ac2b","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_a726f83a49b54f93a87368","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772002070,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ad7d523b-2558-9657-be0a-5fe92403ac2b","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772002070,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ad7d523b-2558-9657-be0a-5fe92403ac2b","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772002070,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-ad7d523b-2558-9657-be0a-5fe92403ac2b","choices":[],"created":1772002070,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:47:51 GMT
+      req-arrive-time:
+      - '1772002070684'
+      req-cost-time:
+      - '553'
+      resp-start-time:
+      - '1772002071238'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '553'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-fbf7cc9e-d2ab-98e5-81a7-47d0b0235947","created":1772002101,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_57c88b4a67cd46ffb5f3dc","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-fbf7cc9e-d2ab-98e5-81a7-47d0b0235947","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_57c88b4a67cd46ffb5f3dc","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772002101,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-fbf7cc9e-d2ab-98e5-81a7-47d0b0235947","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772002101,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-fbf7cc9e-d2ab-98e5-81a7-47d0b0235947","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772002101,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-fbf7cc9e-d2ab-98e5-81a7-47d0b0235947","choices":[],"created":1772002101,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:48:21 GMT
+      req-arrive-time:
+      - '1772002101226'
+      req-cost-time:
+      - '584'
+      resp-start-time:
+      - '1772002101811'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '584'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Search AI news"}], "model":
+      "qwen-plus", "stream": true, "stream_options": {"include_usage": true}, "tools":
+      [{"type": "function", "function": {"name": "search", "description": "Search
+      info", "parameters": {"type": "object", "properties": {"query": {"type": "string"}},
+      "required": ["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-0ef12e33-efb3-98af-b2ab-c8ede4015099","created":1772002375,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_def62fdcabba481bb8124a","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-0ef12e33-efb3-98af-b2ab-c8ede4015099","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_def62fdcabba481bb8124a","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772002375,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-0ef12e33-efb3-98af-b2ab-c8ede4015099","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772002375,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-0ef12e33-efb3-98af-b2ab-c8ede4015099","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772002375,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-0ef12e33-efb3-98af-b2ab-c8ede4015099","choices":[],"created":1772002375,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 06:52:55 GMT
+      req-arrive-time:
+      - '1772002375405'
+      req-cost-time:
+      - '653'
+      resp-start-time:
+      - '1772002376058'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '653'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Search AI news"}],"model":"qwen-plus","stream":true,"stream_options":{"include_usage":true},"tools":[{"type":"function","function":{"name":"search","description":"Search
+      info","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-730a1946-2df1-94a2-87e6-a35f72bd07fb","created":1772003347,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_39e84c0552884cf59885b2","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-730a1946-2df1-94a2-87e6-a35f72bd07fb","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_39e84c0552884cf59885b2","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772003347,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-730a1946-2df1-94a2-87e6-a35f72bd07fb","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772003347,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-730a1946-2df1-94a2-87e6-a35f72bd07fb","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772003347,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-730a1946-2df1-94a2-87e6-a35f72bd07fb","choices":[],"created":1772003347,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 07:09:07 GMT
+      req-arrive-time:
+      - '1772003347285'
+      req-cost-time:
+      - '603'
+      resp-start-time:
+      - '1772003347889'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '603'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Search AI news"}],"model":"qwen-plus","stream":true,"stream_options":{"include_usage":true},"tools":[{"type":"function","function":{"name":"search","description":"Search
+      info","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-b2fa7d2c-8eea-9c3c-a978-c636125d11b5","created":1772003451,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_8d8fe14083e8419eb09772","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b2fa7d2c-8eea-9c3c-a978-c636125d11b5","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_8d8fe14083e8419eb09772","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772003451,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b2fa7d2c-8eea-9c3c-a978-c636125d11b5","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772003451,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b2fa7d2c-8eea-9c3c-a978-c636125d11b5","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772003451,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b2fa7d2c-8eea-9c3c-a978-c636125d11b5","choices":[],"created":1772003451,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 07:10:51 GMT
+      req-arrive-time:
+      - '1772003451594'
+      req-cost-time:
+      - '536'
+      resp-start-time:
+      - '1772003452130'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '535'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Search AI news"}],"model":"qwen-plus","stream":true,"stream_options":{"include_usage":true},"tools":[{"type":"function","function":{"name":"search","description":"Search
+      info","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-b4afa2a1-1f51-97ca-b2db-0c2c4f10918c","created":1772003826,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_52a8e680e5b24cf3b4a109","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b4afa2a1-1f51-97ca-b2db-0c2c4f10918c","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_52a8e680e5b24cf3b4a109","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772003826,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b4afa2a1-1f51-97ca-b2db-0c2c4f10918c","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772003826,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b4afa2a1-1f51-97ca-b2db-0c2c4f10918c","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772003826,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-b4afa2a1-1f51-97ca-b2db-0c2c4f10918c","choices":[],"created":1772003826,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 07:17:06 GMT
+      req-arrive-time:
+      - '1772003826572'
+      req-cost-time:
+      - '565'
+      resp-start-time:
+      - '1772003827137'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '564'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Search AI news"}],"model":"qwen-plus","stream":true,"stream_options":{"include_usage":true},"tools":[{"type":"function","function":{"name":"search","description":"Search
+      info","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-4f670189-f698-9c29-a5b5-8b606e5f0364","created":1772004219,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_33d68ba3a9ca43e1afdac9","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4f670189-f698-9c29-a5b5-8b606e5f0364","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_33d68ba3a9ca43e1afdac9","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772004219,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4f670189-f698-9c29-a5b5-8b606e5f0364","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772004219,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4f670189-f698-9c29-a5b5-8b606e5f0364","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772004219,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-4f670189-f698-9c29-a5b5-8b606e5f0364","choices":[],"created":1772004219,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 07:23:39 GMT
+      req-arrive-time:
+      - '1772004219338'
+      req-cost-time:
+      - '750'
+      resp-start-time:
+      - '1772004220088'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '749'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Search AI news"}],"model":"qwen-plus","stream":true,"stream_options":{"include_usage":true},"tools":[{"type":"function","function":{"name":"search","description":"Search
+      info","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '311'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: 'data: {"model":"qwen-plus","id":"chatcmpl-96c42c06-8056-9248-b905-ec1b42da3fed","created":1772004251,"object":"chat.completion.chunk","usage":null,"choices":[{"logprobs":null,"index":0,"delta":{"content":"","role":"assistant","tool_calls":[{"index":0,"id":"call_69a6b6701dd448aca41d9f","type":"function","function":{"name":"search","arguments":""}}]}}]}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-96c42c06-8056-9248-b905-ec1b42da3fed","choices":[{"delta":{"content":"","tool_calls":[{"index":0,"id":"call_69a6b6701dd448aca41d9f","type":"function","function":{"name":"","arguments":"{\"query\":
+        \"AI"}}],"role":null},"index":0}],"created":1772004251,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-96c42c06-8056-9248-b905-ec1b42da3fed","choices":[{"delta":{"tool_calls":[{"function":{"arguments":"
+        news\"}"},"index":0,"id":"","type":"function"}],"content":""},"index":0}],"created":1772004251,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-96c42c06-8056-9248-b905-ec1b42da3fed","choices":[{"delta":{},"index":0,"finish_reason":"tool_calls"}],"created":1772004251,"object":"chat.completion.chunk","usage":null}
+
+
+        data: {"model":"qwen-plus","id":"chatcmpl-96c42c06-8056-9248-b905-ec1b42da3fed","choices":[],"created":1772004251,"object":"chat.completion.chunk","usage":{"total_tokens":163,"completion_tokens":19,"prompt_tokens":144,"prompt_tokens_details":{"cached_tokens":0}}}
+
+
+        data: [DONE]
+
+
+        '
+    headers:
+      content-type:
+      - text/event-stream;charset=UTF-8
+      date:
+      - Wed, 25 Feb 2026 07:24:12 GMT
+      req-arrive-time:
+      - '1772004251878'
+      req-cost-time:
+      - '592'
+      resp-start-time:
+      - '1772004252470'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '592'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

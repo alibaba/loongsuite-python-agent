@@ -1,0 +1,1292 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and is home to important landmarks such as the Forbidden
+        City, Tiananmen Square, and the Great Wall of China.","role":"assistant"}}],"created":1772001265,"id":"chatcmpl-d7b7cab2-c66b-9b48-912a-8c52dc9e0e4a","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":47,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":66}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '543'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:25 GMT
+      req-arrive-time:
+      - '1772001265064'
+      req-cost-time:
+      - '707'
+      resp-start-time:
+      - '1772001265772'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '707'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001349,"id":"chatcmpl-b92bb5c4-3b4a-9cfe-be60-c1144bc2c55c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:50 GMT
+      req-arrive-time:
+      - '1772001349888'
+      req-cost-time:
+      - '680'
+      resp-start-time:
+      - '1772001350568'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '679'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001391,"id":"chatcmpl-fa41e974-2ebe-95fe-98d8-002b214e4b4e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:32 GMT
+      req-arrive-time:
+      - '1772001391784'
+      req-cost-time:
+      - '566'
+      resp-start-time:
+      - '1772001392350'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '565'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001459,"id":"chatcmpl-a3373da3-661d-9ac2-b9cb-abdee6bb055a","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:39 GMT
+      req-arrive-time:
+      - '1772001459511'
+      req-cost-time:
+      - '858'
+      resp-start-time:
+      - '1772001460370'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '858'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001505,"id":"chatcmpl-5a805627-73c3-91ef-8ce6-19b90d1c58b1","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:26 GMT
+      req-arrive-time:
+      - '1772001505600'
+      req-cost-time:
+      - '945'
+      resp-start-time:
+      - '1772001506545'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '944'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001531,"id":"chatcmpl-f669c96a-837f-9ae1-b612-a6a5022cac5f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:52 GMT
+      req-arrive-time:
+      - '1772001531387'
+      req-cost-time:
+      - '891'
+      resp-start-time:
+      - '1772001532279'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '890'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001628,"id":"chatcmpl-129fef9e-cf62-951d-af80-adb1c033680d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:28 GMT
+      req-arrive-time:
+      - '1772001628093'
+      req-cost-time:
+      - '607'
+      resp-start-time:
+      - '1772001628700'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '606'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772001925,"id":"chatcmpl-092c0be4-90bc-9484-8ed6-ca390ab06f55","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:25 GMT
+      req-arrive-time:
+      - '1772001925533'
+      req-cost-time:
+      - '561'
+      resp-start-time:
+      - '1772001926094'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '560'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772002057,"id":"chatcmpl-95c67ec8-d973-96e4-8523-d5b2c07e0b5e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:37 GMT
+      req-arrive-time:
+      - '1772002057547'
+      req-cost-time:
+      - '682'
+      resp-start-time:
+      - '1772002058230'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '682'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government. Beijing
+        is also known for its historical landmarks, such as the Forbidden City, the
+        Great Wall of China (nearby), and the Temple of Heaven.","role":"assistant"}}],"created":1772002087,"id":"chatcmpl-ce666f26-db3b-9043-bfce-908ef0eb2c8d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":63,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":82}}'
+    headers:
+      content-length:
+      - '623'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:08 GMT
+      req-arrive-time:
+      - '1772002087047'
+      req-cost-time:
+      - '1542'
+      resp-start-time:
+      - '1772002088589'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1542'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government. Beijing
+        is also home to significant landmarks such as the Forbidden City, Tiananmen
+        Square, and the Great Wall of China.","role":"assistant"}}],"created":1772002325,"id":"chatcmpl-5d628765-21cb-9492-8498-4a2f2381e442","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":58,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":77}}'
+    headers:
+      content-length:
+      - '604'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:06 GMT
+      req-arrive-time:
+      - '1772002325316'
+      req-cost-time:
+      - '995'
+      resp-start-time:
+      - '1772002326311'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '995'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of China?"}],
+      "model": "qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772002362,"id":"chatcmpl-9b2d0749-bd7d-9fe7-8772-4bb68c781514","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:42 GMT
+      req-arrive-time:
+      - '1772002361963'
+      req-cost-time:
+      - '613'
+      resp-start-time:
+      - '1772002362576'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '613'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of China?"}],"model":"qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772003332,"id":"chatcmpl-415710fe-8ffc-9a82-b938-733e20db0ae3","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:08:53 GMT
+      req-arrive-time:
+      - '1772003332528'
+      req-cost-time:
+      - '868'
+      resp-start-time:
+      - '1772003333396'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '868'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of China?"}],"model":"qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772003438,"id":"chatcmpl-4943f8d8-f196-91f1-a102-1bf14d075b88","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:38 GMT
+      req-arrive-time:
+      - '1772003438436'
+      req-cost-time:
+      - '672'
+      resp-start-time:
+      - '1772003439109'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '672'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of China?"}],"model":"qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772003811,"id":"chatcmpl-65276c17-f600-99e2-98f7-487d1bd35e8e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:16:52 GMT
+      req-arrive-time:
+      - '1772003811707'
+      req-cost-time:
+      - '603'
+      resp-start-time:
+      - '1772003812311'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '603'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of China?"}],"model":"qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '3'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and serves as the seat of the Chinese government.","role":"assistant"}}],"created":1772004204,"id":"chatcmpl-b81561ae-1b39-9462-bb2b-2dbaa49d797c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":52}}'
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:24 GMT
+      req-arrive-time:
+      - '1772004204135'
+      req-cost-time:
+      - '955'
+      resp-start-time:
+      - '1772004205091'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '954'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of China?"}],"model":"qwen-turbo"}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"The
+        capital of China is **Beijing**. It is the political, cultural, and educational
+        center of the country and is home to important landmarks such as the Forbidden
+        City, Tiananmen Square, and the Great Wall of China.","role":"assistant"}}],"created":1772004237,"id":"chatcmpl-d29168ca-a4b5-9b26-b7d0-5d2b3342c82b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":47,"prompt_tokens":19,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":66}}'
+    headers:
+      content-length:
+      - '543'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:58 GMT
+      req-arrive-time:
+      - '1772004237870'
+      req-cost-time:
+      - '942'
+      resp-start-time:
+      - '1772004238812'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '941'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

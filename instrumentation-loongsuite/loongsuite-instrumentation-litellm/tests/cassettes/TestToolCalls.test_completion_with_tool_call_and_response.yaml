@@ -1,0 +1,2593 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-87a903f3-815b-9a8b-a3f9-03320c29b5ed","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d14612d90e364d5496c009","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001274,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:35 GMT
+      req-arrive-time:
+      - '1772001274752'
+      req-cost-time:
+      - '1270'
+      resp-start-time:
+      - '1772001276022'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1269'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_d14612d90e364d5496c009", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_d14612d90e364d5496c009", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-3fb02e6c-9eea-9cb7-b73c-ef9f9ef025b5","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001276,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:36 GMT
+      req-arrive-time:
+      - '1772001276244'
+      req-cost-time:
+      - '635'
+      resp-start-time:
+      - '1772001276879'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '634'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-4639609c-4738-9513-b3f3-d1befa06e1e5","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_27c0cfd434ac4a889435e0","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001360,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":64}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '514'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:01 GMT
+      req-arrive-time:
+      - '1772001360220'
+      req-cost-time:
+      - '1035'
+      resp-start-time:
+      - '1772001361256'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1035'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_27c0cfd434ac4a889435e0", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_27c0cfd434ac4a889435e0", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-f05c2224-0a0f-9231-b401-8ddf09ff6c06","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001361,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:01 GMT
+      req-arrive-time:
+      - '1772001361461'
+      req-cost-time:
+      - '692'
+      resp-start-time:
+      - '1772001362153'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '691'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-009ace06-8bbe-9aaa-88a6-35ae3a4ddecc","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d1f81d2ea44d416e810890","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001401,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:42 GMT
+      req-arrive-time:
+      - '1772001401265'
+      req-cost-time:
+      - '937'
+      resp-start-time:
+      - '1772001402203'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '936'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_d1f81d2ea44d416e810890", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_d1f81d2ea44d416e810890", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-0a59c061-1d94-93d6-a721-d64df1aeea4d","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001402,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:43 GMT
+      req-arrive-time:
+      - '1772001402391'
+      req-cost-time:
+      - '1365'
+      resp-start-time:
+      - '1772001403757'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1365'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-a9ac9d49-51e3-9989-9955-44a880b5b51f","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_475d6130fa304304afbbf7","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001471,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:52 GMT
+      req-arrive-time:
+      - '1772001471590'
+      req-cost-time:
+      - '965'
+      resp-start-time:
+      - '1772001472556'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '965'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_475d6130fa304304afbbf7", "type": "function"}], "provider_specific_fields":
+      {"refusal": null}}, {"role": "tool", "tool_call_id": "call_475d6130fa304304afbbf7",
+      "content": "105"}], "model": "qwen-plus", "tools": [{"type": "function", "function":
+      {"name": "calculator", "description": "Perform basic arithmetic operations",
+      "parameters": {"type": "object", "properties": {"operation": {"type": "string",
+      "enum": ["add", "subtract", "multiply", "divide"]}, "a": {"type": "number"},
+      "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '704'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-086c1433-565a-91da-aa09-d389e279ff4b","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001472,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:53 GMT
+      req-arrive-time:
+      - '1772001472769'
+      req-cost-time:
+      - '638'
+      resp-start-time:
+      - '1772001473408'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '638'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-c4784f51-35e7-94a8-95af-57f5565f6e9d","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_721a3e80c0be4e41922618","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001515,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:36 GMT
+      req-arrive-time:
+      - '1772001515538'
+      req-cost-time:
+      - '1080'
+      resp-start-time:
+      - '1772001516618'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1080'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_721a3e80c0be4e41922618", "type": "function"}], "provider_specific_fields":
+      {"refusal": null}}, {"role": "tool", "tool_call_id": "call_721a3e80c0be4e41922618",
+      "content": "105"}], "model": "qwen-plus", "tools": [{"type": "function", "function":
+      {"name": "calculator", "description": "Perform basic arithmetic operations",
+      "parameters": {"type": "object", "properties": {"operation": {"type": "string",
+      "enum": ["add", "subtract", "multiply", "divide"]}, "a": {"type": "number"},
+      "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '704'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-6a7f576f-67cf-9814-8340-a846b2b89a46","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001516,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:37 GMT
+      req-arrive-time:
+      - '1772001516854'
+      req-cost-time:
+      - '1033'
+      resp-start-time:
+      - '1772001517888'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1033'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-cacb6839-9a49-9453-9372-865f333c51a2","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_ae08decb0e0642ceb39d04","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001541,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":64}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '514'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:39:01 GMT
+      req-arrive-time:
+      - '1772001541188'
+      req-cost-time:
+      - '1030'
+      resp-start-time:
+      - '1772001542219'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1030'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_ae08decb0e0642ceb39d04", "type": "function"}], "provider_specific_fields":
+      {"refusal": null}}, {"role": "tool", "tool_call_id": "call_ae08decb0e0642ceb39d04",
+      "content": "105"}], "model": "qwen-plus", "tools": [{"type": "function", "function":
+      {"name": "calculator", "description": "Perform basic arithmetic operations",
+      "parameters": {"type": "object", "properties": {"operation": {"type": "string",
+      "enum": ["add", "subtract", "multiply", "divide"]}, "a": {"type": "number"},
+      "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '704'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-4f1560e2-8e35-9afb-b6a2-a29d80468b94","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001542,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:39:03 GMT
+      req-arrive-time:
+      - '1772001542425'
+      req-cost-time:
+      - '906'
+      resp-start-time:
+      - '1772001543331'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '905'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-47099c81-40c5-9b1e-96a5-89ac7f741f69","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_7f5964e704854ed9bbddc0","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001637,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":64}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '514'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:38 GMT
+      req-arrive-time:
+      - '1772001637417'
+      req-cost-time:
+      - '1290'
+      resp-start-time:
+      - '1772001638707'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1290'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_7f5964e704854ed9bbddc0", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_7f5964e704854ed9bbddc0", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-d971f867-4b9c-9449-8d84-5fa3b9bccb6f","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001638,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:39 GMT
+      req-arrive-time:
+      - '1772001638936'
+      req-cost-time:
+      - '679'
+      resp-start-time:
+      - '1772001639616'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '679'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-b929e969-7350-9429-b85d-da939d10518f","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_80b3a06bd1834dcb8dc659","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001935,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:36 GMT
+      req-arrive-time:
+      - '1772001935841'
+      req-cost-time:
+      - '962'
+      resp-start-time:
+      - '1772001936803'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '961'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_80b3a06bd1834dcb8dc659", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_80b3a06bd1834dcb8dc659", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-bdba7b54-4744-9979-b6eb-70295bd25e94","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772001937,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:37 GMT
+      req-arrive-time:
+      - '1772001936993'
+      req-cost-time:
+      - '669'
+      resp-start-time:
+      - '1772001937662'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '669'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-8d7fd415-7439-9939-85b5-a4eae8201730","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_614bec2859ff419db73b4f","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002067,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:48 GMT
+      req-arrive-time:
+      - '1772002067250'
+      req-cost-time:
+      - '1106'
+      resp-start-time:
+      - '1772002068356'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1106'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_614bec2859ff419db73b4f", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_614bec2859ff419db73b4f", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-514e5916-5ad5-9bd2-bbb9-48a7b9063493","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772002068,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:49 GMT
+      req-arrive-time:
+      - '1772002068558'
+      req-cost-time:
+      - '651'
+      resp-start-time:
+      - '1772002069210'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '651'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-bfd7d73a-071b-912d-923d-44feba3c3f1f","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_e9d893d44dc54c60bb79ca","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002097,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":64}}}'
+    headers:
+      content-length:
+      - '514'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:18 GMT
+      req-arrive-time:
+      - '1772002097743'
+      req-cost-time:
+      - '1054'
+      resp-start-time:
+      - '1772002098798'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1054'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_e9d893d44dc54c60bb79ca", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_e9d893d44dc54c60bb79ca", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-9852d49b-657e-94cd-83b7-a4d5492b3ea2","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772002099,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:19 GMT
+      req-arrive-time:
+      - '1772002098993'
+      req-cost-time:
+      - '680'
+      resp-start-time:
+      - '1772002099674'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '680'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-92631a67-b221-9b39-92ad-196c8570c5d9","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_3ef871cea7a24989a98663","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002336,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:17 GMT
+      req-arrive-time:
+      - '1772002336426'
+      req-cost-time:
+      - '1013'
+      resp-start-time:
+      - '1772002337440'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1013'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-1feb7c50-d310-9776-8954-818ff61b1aa5","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_a713eeb2cddf4dda88c16a","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002372,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:52 GMT
+      req-arrive-time:
+      - '1772002372062'
+      req-cost-time:
+      - '971'
+      resp-start-time:
+      - '1772002373034'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '971'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is 15 multiplied by 7?"},
+      {"content": "", "role": "assistant", "tool_calls": [{"index": 0, "function":
+      {"arguments": "{\"a\": 15, \"b\": 7, \"operation\": \"multiply\"}", "name":
+      "calculator"}, "id": "call_a713eeb2cddf4dda88c16a", "type": "function"}]}, {"role":
+      "tool", "tool_call_id": "call_a713eeb2cddf4dda88c16a", "content": "105"}], "model":
+      "qwen-plus", "tools": [{"type": "function", "function": {"name": "calculator",
+      "description": "Perform basic arithmetic operations", "parameters": {"type":
+      "object", "properties": {"operation": {"type": "string", "enum": ["add", "subtract",
+      "multiply", "divide"]}, "a": {"type": "number"}, "b": {"type": "number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-bd68c53b-fc5a-93ed-a0c1-60336c8e9caa","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772002373,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:53 GMT
+      req-arrive-time:
+      - '1772002373367'
+      req-cost-time:
+      - '601'
+      resp-start-time:
+      - '1772002373968'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '601'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-dec02cee-387a-9ef3-8a5c-a2af082b0f23","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_ab9777dc2af54fe3aa8c57","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003343,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:04 GMT
+      req-arrive-time:
+      - '1772003343898'
+      req-cost-time:
+      - '1179'
+      resp-start-time:
+      - '1772003345078'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1179'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"},{"content":"","role":"assistant","tool_calls":[{"index":0,"function":{"arguments":"{\"a\":
+      15, \"b\": 7, \"operation\": \"multiply\"}","name":"calculator"},"id":"call_ab9777dc2af54fe3aa8c57","type":"function"}]},{"role":"tool","tool_call_id":"call_ab9777dc2af54fe3aa8c57","content":"105"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-d0938759-d5c5-95e0-844b-9dc2ca2f52f8","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772003345,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:05 GMT
+      req-arrive-time:
+      - '1772003345287'
+      req-cost-time:
+      - '655'
+      resp-start-time:
+      - '1772003345942'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '654'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-423a17ff-4a27-9760-ae0a-896f47f5fcfd","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_50d607eedc6e4586ab5c17","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003448,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:48 GMT
+      req-arrive-time:
+      - '1772003448254'
+      req-cost-time:
+      - '929'
+      resp-start-time:
+      - '1772003449184'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '929'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"},{"content":"","role":"assistant","tool_calls":[{"index":0,"function":{"arguments":"{\"a\":
+      15, \"b\": 7, \"operation\": \"multiply\"}","name":"calculator"},"id":"call_50d607eedc6e4586ab5c17","type":"function"}]},{"role":"tool","tool_call_id":"call_50d607eedc6e4586ab5c17","content":"105"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-0c9849b2-9897-93dd-b554-bbe57b85d758","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772003449,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:49 GMT
+      req-arrive-time:
+      - '1772003449369'
+      req-cost-time:
+      - '738'
+      resp-start-time:
+      - '1772003450108'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '738'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-afa12fa4-bf87-909c-8329-f3662dc44378","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_8816b4308e9e4664960d5a","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003823,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:04 GMT
+      req-arrive-time:
+      - '1772003823304'
+      req-cost-time:
+      - '1020'
+      resp-start-time:
+      - '1772003824325'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1019'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"},{"content":"","role":"assistant","tool_calls":[{"index":0,"function":{"arguments":"{\"a\":
+      15, \"b\": 7, \"operation\": \"multiply\"}","name":"calculator"},"id":"call_8816b4308e9e4664960d5a","type":"function"}]},{"role":"tool","tool_call_id":"call_8816b4308e9e4664960d5a","content":"105"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-40f230e9-9516-9447-8303-817d19fd4c08","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772003824,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:05 GMT
+      req-arrive-time:
+      - '1772003824568'
+      req-cost-time:
+      - '630'
+      resp-start-time:
+      - '1772003825198'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '629'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-6bf5c7c1-1f8b-9e60-9675-da5d4b1fa761","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_a1ffb86a4bda4f2c9e4f62","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004215,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:36 GMT
+      req-arrive-time:
+      - '1772004215771'
+      req-cost-time:
+      - '1009'
+      resp-start-time:
+      - '1772004216780'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1009'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"},{"content":"","role":"assistant","tool_calls":[{"index":0,"function":{"arguments":"{\"a\":
+      15, \"b\": 7, \"operation\": \"multiply\"}","name":"calculator"},"id":"call_a1ffb86a4bda4f2c9e4f62","type":"function"}]},{"role":"tool","tool_call_id":"call_a1ffb86a4bda4f2c9e4f62","content":"105"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-603c6074-0dae-9448-a313-3f0f33d29a1e","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772004217,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:37 GMT
+      req-arrive-time:
+      - '1772004216958'
+      req-cost-time:
+      - '635'
+      resp-start-time:
+      - '1772004217594'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '635'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '371'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-3fe94772-d62a-9542-9876-a51e68a97c6e","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_75885f98753c4552bfe9ff","type":"function","function":{"name":"calculator","arguments":"{\"a\":
+        15, \"b\": 7, \"operation\": \"multiply\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004248,"object":"chat.completion","usage":{"total_tokens":211,"completion_tokens":31,"prompt_tokens":180,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '513'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:09 GMT
+      req-arrive-time:
+      - '1772004248678'
+      req-cost-time:
+      - '943'
+      resp-start-time:
+      - '1772004249622'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '943'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is 15 multiplied by 7?"},{"content":"","role":"assistant","tool_calls":[{"index":0,"function":{"arguments":"{\"a\":
+      15, \"b\": 7, \"operation\": \"multiply\"}","name":"calculator"},"id":"call_75885f98753c4552bfe9ff","type":"function"}]},{"role":"tool","tool_call_id":"call_75885f98753c4552bfe9ff","content":"105"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"calculator","description":"Perform
+      basic arithmetic operations","parameters":{"type":"object","properties":{"operation":{"type":"string","enum":["add","subtract","multiply","divide"]},"a":{"type":"number"},"b":{"type":"number"}}}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '660'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-15ee80df-e1be-9826-accf-2a9821cff0f7","choices":[{"message":{"content":"The
+        result of 15 multiplied by 7 is 105.","role":"assistant"},"index":0,"finish_reason":"stop"}],"created":1772004249,"object":"chat.completion","usage":{"total_tokens":244,"completion_tokens":16,"prompt_tokens":228,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '369'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:10 GMT
+      req-arrive-time:
+      - '1772004249814'
+      req-cost-time:
+      - '619'
+      resp-start-time:
+      - '1772004250433'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '618'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

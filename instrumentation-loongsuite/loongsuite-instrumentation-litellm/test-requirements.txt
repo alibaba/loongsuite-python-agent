@@ -1,0 +1,11 @@
+litellm>=1.0.0
+pytest
+pytest-asyncio
+openai
+opentelemetry-test-utils
+vcrpy
+pytest-recording
+-e util/opentelemetry-util-http
+-e util/opentelemetry-util-genai
+-e instrumentation-loongsuite/loongsuite-instrumentation-litellm
+
