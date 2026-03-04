@@ -1,0 +1,12 @@
+# Test requirements for oldest supported versions
+langchain_core==0.1.8
+langchain==0.1.0
+langchain-community==0.0.10
+pytest
+wrapt
+opentelemetry-api==1.37
+opentelemetry-sdk==1.37
+opentelemetry-instrumentation==0.58b0
+opentelemetry-semantic-conventions==0.58b0
+
+-e instrumentation-loongsuite/loongsuite-instrumentation-langchain
