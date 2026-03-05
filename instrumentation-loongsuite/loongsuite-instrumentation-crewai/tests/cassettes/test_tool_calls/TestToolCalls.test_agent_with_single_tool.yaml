@@ -1,0 +1,368 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Weather Assistant.
+      Expert in weather forecasting\nYour personal goal is: Provide weather information\nYou
+      ONLY have access to the following tools, and should NEVER make up tools that
+      are not listed here:\n\nTool Name: get_weather\nTool Arguments: {''location'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Get current weather
+      for a location\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather],
+      just the name, exactly as it''s written.\nAction Input: the input to the action,
+      just a simple python dictionary, enclosed in curly braces, using \" to wrap
+      keys and values.\nObservation: the result of the action\n\nOnce all necessary
+      information is gathered:\n\nThought: I now know the final answer\nFinal Answer:
+      the final answer to the original input question"}, {"role": "user", "content":
+      "\nCurrent Task: Get the weather for San Francisco\n\nThis is the expect criteria
+      for your final answer: Weather information\nyou MUST return the actual complete
+      content as the final answer, not a summary.\n\nBegin! This is VERY important
+      to you, use the tools available and give your best Final Answer, your job depends
+      on it!\n\nThought:"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1323'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to get the current weather for San Francisco.\nAction: get_weather\nAction
+        Input: {\"location\": \"San Francisco\"}","role":"assistant"}}],"created":1771988291,"id":"chatcmpl-167ba67d-5015-9f8f-9638-a2709fdaf130","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":31,"prompt_tokens":262,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":293}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:12 GMT
+      req-arrive-time:
+      - '1771988291813'
+      req-cost-time:
+      - '498'
+      resp-start-time:
+      - '1771988292312'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '498'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Weather Assistant.
+      Expert in weather forecasting\nYour personal goal is: Provide weather information\nYou
+      ONLY have access to the following tools, and should NEVER make up tools that
+      are not listed here:\n\nTool Name: get_weather\nTool Arguments: {''location'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Get current weather
+      for a location\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather],
+      just the name, exactly as it''s written.\nAction Input: the input to the action,
+      just a simple python dictionary, enclosed in curly braces, using \" to wrap
+      keys and values.\nObservation: the result of the action\n\nOnce all necessary
+      information is gathered:\n\nThought: I now know the final answer\nFinal Answer:
+      the final answer to the original input question"}, {"role": "user", "content":
+      "\nCurrent Task: Get the weather for San Francisco\n\nThis is the expect criteria
+      for your final answer: Weather information\nyou MUST return the actual complete
+      content as the final answer, not a summary.\n\nBegin! This is VERY important
+      to you, use the tools available and give your best Final Answer, your job depends
+      on it!\n\nThought:"}, {"role": "assistant", "content": "Thought: I need to get
+      the current weather for San Francisco.\nAction: get_weather\nAction Input: {\"location\":
+      \"San Francisco\"}\nObservation: Weather in San Francisco: Sunny, 72\u00b0F"}],
+      "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1541'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now know the final answer\\nFinal Answer: Weather in San Francisco: Sunny,
+        72\xB0F\",\"role\":\"assistant\"}}],\"created\":1771988292,\"id\":\"chatcmpl-7b290e6f-ce2f-9ad7-81cd-9b8320929738\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":23,\"prompt_tokens\":304,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":327}}"
+    headers:
+      content-length:
+      - '420'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:12 GMT
+      req-arrive-time:
+      - '1771988292514'
+      req-cost-time:
+      - '436'
+      resp-start-time:
+      - '1771988292950'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '435'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Weather Assistant.
+      Expert in weather forecasting\nYour personal goal is: Provide weather information\nYou
+      ONLY have access to the following tools, and should NEVER make up tools that
+      are not listed here:\n\nTool Name: get_weather\nTool Arguments: {''location'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Get current weather
+      for a location\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather],
+      just the name, exactly as it''s written.\nAction Input: the input to the action,
+      just a simple python dictionary, enclosed in curly braces, using \" to wrap
+      keys and values.\nObservation: the result of the action\n\nOnce all necessary
+      information is gathered:\n\nThought: I now know the final answer\nFinal Answer:
+      the final answer to the original input question"}, {"role": "user", "content":
+      "\nCurrent Task: Get the weather for San Francisco\n\nThis is the expect criteria
+      for your final answer: Weather information\nyou MUST return the actual complete
+      content as the final answer, not a summary.\n\nBegin! This is VERY important
+      to you, use the tools available and give your best Final Answer, your job depends
+      on it!\n\nThought:"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1323'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to get the current weather for San Francisco.\nAction: get_weather\nAction
+        Input: {\"location\": \"San Francisco\"}","role":"assistant"}}],"created":1771989509,"id":"chatcmpl-c568e4ec-0919-9950-b5c6-8fff56e62eb2","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":31,"prompt_tokens":262,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":293}}'
+    headers:
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:30 GMT
+      req-arrive-time:
+      - '1771989509831'
+      req-cost-time:
+      - '676'
+      resp-start-time:
+      - '1771989510508'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '676'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Weather Assistant.
+      Expert in weather forecasting\nYour personal goal is: Provide weather information\nYou
+      ONLY have access to the following tools, and should NEVER make up tools that
+      are not listed here:\n\nTool Name: get_weather\nTool Arguments: {''location'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Get current weather
+      for a location\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather],
+      just the name, exactly as it''s written.\nAction Input: the input to the action,
+      just a simple python dictionary, enclosed in curly braces, using \" to wrap
+      keys and values.\nObservation: the result of the action\n\nOnce all necessary
+      information is gathered:\n\nThought: I now know the final answer\nFinal Answer:
+      the final answer to the original input question"}, {"role": "user", "content":
+      "\nCurrent Task: Get the weather for San Francisco\n\nThis is the expect criteria
+      for your final answer: Weather information\nyou MUST return the actual complete
+      content as the final answer, not a summary.\n\nBegin! This is VERY important
+      to you, use the tools available and give your best Final Answer, your job depends
+      on it!\n\nThought:"}, {"role": "assistant", "content": "Thought: I need to get
+      the current weather for San Francisco.\nAction: get_weather\nAction Input: {\"location\":
+      \"San Francisco\"}\nObservation: Weather in San Francisco: Sunny, 72\u00b0F"}],
+      "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1541'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now know the final answer\\nFinal Answer: Weather in San Francisco: Sunny,
+        72\xB0F\",\"role\":\"assistant\"}}],\"created\":1771989510,\"id\":\"chatcmpl-df46a894-4df9-94ed-9673-10f5504e05d6\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":23,\"prompt_tokens\":304,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":327}}"
+    headers:
+      content-length:
+      - '420'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:30 GMT
+      req-arrive-time:
+      - '1771989510695'
+      req-cost-time:
+      - '422'
+      resp-start-time:
+      - '1771989511117'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '422'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

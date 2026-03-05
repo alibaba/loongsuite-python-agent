@@ -1,0 +1,689 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1520'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        need to get the current weather for a location and calculate the temperature
+        difference.\nAction: get_weather\nAction Input: {\"location\": \"New York\"}","role":"assistant"}}],"created":1771988288,"id":"chatcmpl-3c52caae-1ff9-9e34-bf0e-d39f80a5cc05","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":34,"prompt_tokens":301,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":335}}'
+    headers:
+      content-length:
+      - '485'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:08 GMT
+      req-arrive-time:
+      - '1771988288265'
+      req-cost-time:
+      - '602'
+      resp-start-time:
+      - '1771988288867'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '601'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to get the current weather for a location and calculate the temperature
+      difference.\nAction: get_weather\nAction Input: {\"location\": \"New York\"}\nObservation:
+      Weather in New York: Sunny, 72\u00b0F"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1757'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to calculate the temperature difference between New York and another
+        location.\nAction: get_weather\nAction Input: {\"location\": \"Los Angeles\"}","role":"assistant"}}],"created":1771988289,"id":"chatcmpl-60261994-163f-94ff-a805-9c1d218a5e43","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":34,"prompt_tokens":346,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":380}}'
+    headers:
+      content-length:
+      - '492'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:09 GMT
+      req-arrive-time:
+      - '1771988289150'
+      req-cost-time:
+      - '732'
+      resp-start-time:
+      - '1771988289882'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '731'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to get the current weather for a location and calculate the temperature
+      difference.\nAction: get_weather\nAction Input: {\"location\": \"New York\"}\nObservation:
+      Weather in New York: Sunny, 72\u00b0F"}, {"role": "assistant", "content": "Thought:
+      I need to calculate the temperature difference between New York and another
+      location.\nAction: get_weather\nAction Input: {\"location\": \"Los Angeles\"}\nObservation:
+      Weather in Los Angeles: Sunny, 72\u00b0F"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2004'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to calculate the temperature difference between New York and Los Angeles.\nAction:
+        calculator\nAction Input: {\"expression\": \"72 - 72\"}","role":"assistant"}}],"created":1771988290,"id":"chatcmpl-259d51a0-5250-946a-91d8-095ea8ef6b73","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":37,"prompt_tokens":392,"prompt_tokens_details":{"cached_tokens":256},"total_tokens":429}}'
+    headers:
+      content-length:
+      - '486'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:10 GMT
+      req-arrive-time:
+      - '1771988290078'
+      req-cost-time:
+      - '585'
+      resp-start-time:
+      - '1771988290663'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '583'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to get the current weather for a location and calculate the temperature
+      difference.\nAction: get_weather\nAction Input: {\"location\": \"New York\"}\nObservation:
+      Weather in New York: Sunny, 72\u00b0F"}, {"role": "assistant", "content": "Thought:
+      I need to calculate the temperature difference between New York and another
+      location.\nAction: get_weather\nAction Input: {\"location\": \"Los Angeles\"}\nObservation:
+      Weather in Los Angeles: Sunny, 72\u00b0F"}, {"role": "assistant", "content":
+      "Thought: I need to calculate the temperature difference between New York and
+      Los Angeles.\nAction: calculator\nAction Input: {\"expression\": \"72 - 72\"}\nObservation:
+      Result: 0\n\n\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}], "model": "qwen-turbo",
+      "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3134'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now know the final answer\\nFinal Answer: Weather in New York: Sunny, 72\xB0F;
+        Weather in Los Angeles: Sunny, 72\xB0F; Temperature difference: 0\",\"role\":\"assistant\"}}],\"created\":1771988290,\"id\":\"chatcmpl-c0c8d0a6-b2fd-93ba-a39b-5369bb7f74d8\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":41,\"prompt_tokens\":625,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":666}}"
+    headers:
+      content-length:
+      - '480'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 02:58:11 GMT
+      req-arrive-time:
+      - '1771988290861'
+      req-cost-time:
+      - '692'
+      resp-start-time:
+      - '1771988291554'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '691'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1520'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"I
+        need to get the weather for a location and calculate the temperature difference.\nAction:
+        get_weather\nAction Input: {\"location\": \"New York\"}","role":"assistant"}}],"created":1771989506,"id":"chatcmpl-d48f1b16-4581-9df1-842e-40b9d0b13b3c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":33,"prompt_tokens":301,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":334}}'
+    headers:
+      content-length:
+      - '477'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:27 GMT
+      req-arrive-time:
+      - '1771989506707'
+      req-cost-time:
+      - '998'
+      resp-start-time:
+      - '1771989507706'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '998'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to get the weather for a location and calculate the temperature difference.\nAction:
+      get_weather\nAction Input: {\"location\": \"New York\"}\nObservation: Weather
+      in New York: Sunny, 72\u00b0F"}], "model": "qwen-turbo", "stop": ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1749'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Thought:
+        I need to calculate the temperature difference between New York and another
+        location.\nAction: get_weather\nAction Input: {\"location\": \"Los Angeles\"}","role":"assistant"}}],"created":1771989508,"id":"chatcmpl-425d7908-37cc-937c-94ce-a5d28a17c0a5","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":34,"prompt_tokens":345,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":379}}'
+    headers:
+      content-length:
+      - '492'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:28 GMT
+      req-arrive-time:
+      - '1771989507983'
+      req-cost-time:
+      - '711'
+      resp-start-time:
+      - '1771989508694'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '711'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are Multi-Tool Assistant.
+      Expert in using multiple tools\nYour personal goal is: Use various tools to
+      complete tasks\nYou ONLY have access to the following tools, and should NEVER
+      make up tools that are not listed here:\n\nTool Name: get_weather\nTool Arguments:
+      {''location'': {''description'': None, ''type'': ''str''}}\nTool Description:
+      Get current weather for a location\nTool Name: calculator\nTool Arguments: {''expression'':
+      {''description'': None, ''type'': ''str''}}\nTool Description: Perform mathematical
+      calculations\n\nUse the following format:\n\nThought: you should always think
+      about what to do\nAction: the action to take, only one name of [get_weather,
+      calculator], just the name, exactly as it''s written.\nAction Input: the input
+      to the action, just a simple python dictionary, enclosed in curly braces, using
+      \" to wrap keys and values.\nObservation: the result of the action\n\nOnce all
+      necessary information is gathered:\n\nThought: I now know the final answer\nFinal
+      Answer: the final answer to the original input question"}, {"role": "user",
+      "content": "\nCurrent Task: Get weather and calculate temperature difference\n\nThis
+      is the expect criteria for your final answer: Weather and calculation results\nyou
+      MUST return the actual complete content as the final answer, not a summary.\n\nBegin!
+      This is VERY important to you, use the tools available and give your best Final
+      Answer, your job depends on it!\n\nThought:"}, {"role": "assistant", "content":
+      "I need to get the weather for a location and calculate the temperature difference.\nAction:
+      get_weather\nAction Input: {\"location\": \"New York\"}\nObservation: Weather
+      in New York: Sunny, 72\u00b0F"}, {"role": "assistant", "content": "Thought:
+      I need to calculate the temperature difference between New York and another
+      location.\nAction: get_weather\nAction Input: {\"location\": \"Los Angeles\"}\nObservation:
+      Weather in Los Angeles: Sunny, 72\u00b0F"}], "model": "qwen-turbo", "stop":
+      ["\nObservation:"]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1996'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Thought:
+        I now know the final answer\\nFinal Answer: Weather in New York: Sunny, 72\xB0F;
+        Weather in Los Angeles: Sunny, 72\xB0F; Temperature difference: 0\xB0F\",\"role\":\"assistant\"}}],\"created\":1771989508,\"id\":\"chatcmpl-b6e2951c-3765-9e4c-aad8-0d05898647a7\",\"model\":\"qwen-turbo\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":42,\"prompt_tokens\":391,\"prompt_tokens_details\":{\"cached_tokens\":0},\"total_tokens\":433}}"
+    headers:
+      content-length:
+      - '483'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 03:18:29 GMT
+      req-arrive-time:
+      - '1771989508877'
+      req-cost-time:
+      - '727'
+      resp-start-time:
+      - '1771989509605'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '727'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1
