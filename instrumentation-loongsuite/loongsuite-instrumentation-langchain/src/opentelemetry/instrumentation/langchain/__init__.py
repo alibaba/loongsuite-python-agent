@@ -64,11 +64,26 @@ class LangChainInstrumentor(BaseInstrumentor):
         from opentelemetry.instrumentation.langchain.internal._tracer import (  # noqa: PLC0415
             LoongsuiteTracer,
         )
+        from opentelemetry.util.genai.extended_handler import (  # noqa: PLC0415
+            ExtendedTelemetryHandler,
+        )
+
+        tracer_provider = kwargs.get("tracer_provider")
+        meter_provider = kwargs.get("meter_provider")
+        logger_provider = kwargs.get("logger_provider")
+
+        handler = ExtendedTelemetryHandler(
+            tracer_provider=tracer_provider,
+            meter_provider=meter_provider,
+            logger_provider=logger_provider,
+        )
 
         wrap_function_wrapper(
             module="langchain_core.callbacks",
             name="BaseCallbackManager.__init__",
-            wrapper=_BaseCallbackManagerInit(cls=LoongsuiteTracer),
+            wrapper=_BaseCallbackManagerInit(
+                cls=LoongsuiteTracer, handler=handler
+            ),
         )
 
     def _uninstrument(self, **kwargs: Any) -> None:
@@ -86,8 +101,12 @@ class LangChainInstrumentor(BaseInstrumentor):
 class _BaseCallbackManagerInit:
     __slots__ = ("_tracer_instance",)
 
-    def __init__(self, cls: Type["LoongsuiteTracer"]):
-        self._tracer_instance = cls()
+    def __init__(
+        self,
+        cls: Type["LoongsuiteTracer"],
+        handler: Any,
+    ):
+        self._tracer_instance = cls(handler=handler)
 
     def __call__(
         self,
@@ -98,14 +117,8 @@ class _BaseCallbackManagerInit:
     ) -> None:
         wrapped(*args, **kwargs)
 
-        print(
-            f"[INSTRUMENTATION] BaseCallbackManager.__init__ called, "
-            f"handlers count: {len(instance.inheritable_handlers)}"
-        )
-
-        for handler in instance.inheritable_handlers:
-            if isinstance(handler, type(self._tracer_instance)):
+        for h in instance.inheritable_handlers:
+            if isinstance(h, type(self._tracer_instance)):
                 break
         else:
             instance.add_handler(self._tracer_instance, True)
-            print("[INSTRUMENTATION] LoongsuiteTracer added to handler list")

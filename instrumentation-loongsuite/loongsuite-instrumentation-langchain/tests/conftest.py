@@ -12,19 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test Configuration for LangChain Instrumentation"""
-
-import os
+"""Test configuration for LangChain Instrumentation."""
 
 import pytest
 
-# Skip the old tests under instrumentation/ that depend on
-# data-extraction logic not yet re-implemented in this refactor.
-collect_ignore_glob = [
-    os.path.join(os.path.dirname(__file__), "instrumentation", "*"),
-]
-
+from opentelemetry._logs import set_logger_provider
 from opentelemetry.instrumentation.langchain import LangChainInstrumentor
+from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.sdk._logs.export import (
+    InMemoryLogExporter,
+    SimpleLogRecordProcessor,
+)
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 from opentelemetry.sdk.trace import TracerProvider
@@ -49,6 +47,12 @@ def fixture_metric_reader():
     yield reader
 
 
+@pytest.fixture(scope="function", name="log_exporter")
+def fixture_log_exporter():
+    exporter = InMemoryLogExporter()
+    yield exporter
+
+
 # ==================== Providers ====================
 
 
@@ -67,15 +71,24 @@ def fixture_meter_provider(metric_reader):
     return meter_provider
 
 
+@pytest.fixture(scope="function", name="logger_provider")
+def fixture_logger_provider(log_exporter):
+    provider = LoggerProvider()
+    provider.add_log_record_processor(SimpleLogRecordProcessor(log_exporter))
+    set_logger_provider(provider)
+    return provider
+
+
 # ==================== Instrumentation Fixtures ====================
 
 
 @pytest.fixture(scope="function")
-def instrument(tracer_provider, meter_provider, span_exporter):
+def instrument(tracer_provider, meter_provider, logger_provider, span_exporter):
     instrumentor = LangChainInstrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider,
         meter_provider=meter_provider,
+        logger_provider=logger_provider,
     )
     yield instrumentor
     instrumentor.uninstrument()
