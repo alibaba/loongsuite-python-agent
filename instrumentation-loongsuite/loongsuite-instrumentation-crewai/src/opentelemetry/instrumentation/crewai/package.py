@@ -14,4 +14,4 @@
 
 _instruments = ("crewai >= 0.70.0",)
 
-_supports_metrics = True
+_supports_metrics = False
