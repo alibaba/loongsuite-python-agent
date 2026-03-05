@@ -107,7 +107,7 @@ from opentelemetry.util.genai.extended_types import (
     RerankInvocation,
     RetrieveInvocation,
 )
-from opentelemetry.util.genai.handler import TelemetryHandler
+from opentelemetry.util.genai.handler import TelemetryHandler, _safe_detach
 from opentelemetry.util.genai.span_utils import _apply_error_attributes
 from opentelemetry.util.genai.types import Error, LLMInvocation
 
@@ -253,7 +253,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -270,7 +270,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -320,7 +320,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_embedding_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -337,7 +337,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -387,7 +387,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -404,7 +404,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -472,7 +472,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         )
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -501,7 +501,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
@@ -551,7 +551,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -568,7 +568,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -614,7 +614,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_rerank_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -631,7 +631,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -681,7 +681,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _maybe_emit_memory_event(self._logger, invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -696,7 +696,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_memory_finish_attributes(span, invocation)
         _apply_error_attributes(span, error)
         _maybe_emit_memory_event(self._logger, span, invocation, error)  # pylint: disable=too-many-function-args
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 

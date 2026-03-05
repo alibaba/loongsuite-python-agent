@@ -6,4 +6,5 @@ pytest
 wrapt
 
 -e opentelemetry-instrumentation
+-e util/opentelemetry-util-genai
 -e instrumentation-loongsuite/loongsuite-instrumentation-langchain

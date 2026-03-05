@@ -15,16 +15,23 @@
 from __future__ import annotations
 
 import ast
+import json
 import logging
 import sys
-from os import environ
 from typing import Any
 
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT = (
-    "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
+from opentelemetry.util.genai.types import (
+    InputMessage,
+    OutputMessage,
+    Text,
+    ToolCall,
 )
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Base64 image filtering (used by Chain content processing)
+# ---------------------------------------------------------------------------
 
 
 def recursive_size(obj: Any, max_size: int = 10240) -> int:
@@ -66,8 +73,6 @@ def _is_base64_image(item: Any) -> bool:
 
 def _filter_base64_images(obj: Any) -> Any:
     """递归过滤掉base64图片数据，保留其他信息"""
-    # 使用内存大小检测 - 如果数据量不大，直接返回
-    # 256x256 图片 base64 约 12K 字符长度，这里设置阈值为 10KB
     if recursive_size(obj) < 10240:  # 10KB
         return obj
 
@@ -75,8 +80,6 @@ def _filter_base64_images(obj: Any) -> Any:
         filtered_list = []
         for item in obj:
             if isinstance(item, str) and "data:image/" in item:
-                # 处理字符串中包含base64图片数据的情况
-                # 例如: "Human: [{'type': 'text', 'text': '简述这个图片'}, {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,...'}}]"
                 start_idx = item.find("[")
                 end_idx = item.rfind("]")
 
@@ -86,14 +89,11 @@ def _filter_base64_images(obj: Any) -> Any:
 
                 try:
                     filtered_obj = item[start_idx : end_idx + 1]
-                    # 解析列表
                     parsed_list = ast.literal_eval(filtered_obj)
                     if isinstance(parsed_list, list):
-                        # 递归处理解析后的列表
                         filtered_parsed_list = _filter_base64_images(
                             parsed_list
                         )
-                        # 替换原字符串中的列表
                         filtered_item = (
                             item[:start_idx]
                             + str(filtered_parsed_list)
@@ -103,10 +103,8 @@ def _filter_base64_images(obj: Any) -> Any:
                     else:
                         filtered_list.append(item)
                 except Exception:
-                    # 如果解析失败，保持原样
                     filtered_list.append(item)
             elif _is_base64_image(item):
-                # 保留图片信息但不包含base64数据
                 filtered_item = {
                     "type": item.get("type", "image_url"),
                     "image_url": {"url": "BASE64_IMAGE_DATA_FILTERED"},
@@ -119,7 +117,6 @@ def _filter_base64_images(obj: Any) -> Any:
         filtered_dict = {}
         for key, value in obj.items():
             if _is_base64_image(value):
-                # 如果字典值本身就是base64图片
                 filtered_dict[key] = {
                     "type": value.get("type", "image_url"),
                     "image_url": {"url": "BASE64_IMAGE_DATA_FILTERED"},
@@ -131,33 +128,223 @@ def _filter_base64_images(obj: Any) -> Any:
         return obj
 
 
-max_content_length = 4 * 1024
+# ---------------------------------------------------------------------------
+# Agent detection
+# ---------------------------------------------------------------------------
+
+AGENT_RUN_NAMES = frozenset(
+    {
+        "AgentExecutor",
+        "MRKLChain",
+        "ReActChain",
+        "ReActTextWorldAgent",
+        "SelfAskWithSearchChain",
+    }
+)
 
 
-def process_content(content: str | None) -> str:
-    if is_capture_content_enabled():
-        if content is not None and len(content) > max_content_length:
-            content = content[:max_content_length] + "..."
-        return content
-    elif content is None:
-        return "<0size>"
-    else:
-        return to_size(content)
+def _is_agent_run(run: Any) -> bool:
+    name = getattr(run, "name", "") or ""
+    return name in AGENT_RUN_NAMES
 
 
-def to_size(content: str) -> str:
-    if content is None:
-        return "<0size>"
-    size = len(content)
-    return f"<{size}size>"
+# ---------------------------------------------------------------------------
+# Run data extraction helpers
+# ---------------------------------------------------------------------------
 
 
-def is_capture_content_enabled() -> bool:
-    capture_content = environ.get(
-        OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, "true"
+def _extract_model_name(run: Any) -> str | None:
+    extra = getattr(run, "extra", None) or {}
+    params = extra.get("invocation_params") or {}
+    return (
+        params.get("model_name")
+        or params.get("model")
+        or params.get("model_id")
     )
-    return is_true_value(capture_content)
 
 
-def is_true_value(value) -> bool:
-    return value.lower() in {"1", "y", "yes", "true"}
+def _extract_provider(run: Any) -> str:
+    serialized = getattr(run, "serialized", None) or {}
+    id_list = serialized.get("id") or []
+    if len(id_list) >= 3:
+        return id_list[2]
+    return "langchain"
+
+
+def _extract_invocation_params(run: Any) -> dict[str, Any]:
+    extra = getattr(run, "extra", None) or {}
+    return extra.get("invocation_params") or {}
+
+
+# ---------------------------------------------------------------------------
+# LangChain message ↔ util-genai message conversion
+# ---------------------------------------------------------------------------
+
+
+def _convert_lc_message_to_input(msg: Any) -> InputMessage | None:
+    """Convert a LangChain message dict (dumpd format) to InputMessage."""
+    if isinstance(msg, dict):
+        kwargs = msg.get("kwargs") or {}
+        role = msg.get("id", ["", "", ""])
+        if isinstance(role, list) and len(role) >= 3:
+            role_name = role[-1].lower().replace("message", "")
+            role_map = {
+                "human": "user",
+                "ai": "assistant",
+                "system": "system",
+                "function": "tool",
+                "tool": "tool",
+                "chat": "user",
+            }
+            role_str = role_map.get(role_name, role_name)
+        else:
+            role_str = "user"
+
+        content = kwargs.get("content", "")
+        parts = []
+        if isinstance(content, str) and content:
+            parts.append(Text(content=content))
+        elif isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    parts.append(Text(content=part.get("text", "")))
+                elif isinstance(part, str):
+                    parts.append(Text(content=part))
+
+        tool_calls = kwargs.get("tool_calls") or []
+        for tc in tool_calls:
+            if isinstance(tc, dict):
+                parts.append(
+                    ToolCall(
+                        name=tc.get("name", ""),
+                        arguments=tc.get("args", {}),
+                        id=tc.get("id"),
+                    )
+                )
+        if parts:
+            return InputMessage(role=role_str, parts=parts)
+    return None
+
+
+def _extract_llm_input_messages(run: Any) -> list[InputMessage]:
+    """Extract input messages from a Run's inputs."""
+    inputs = getattr(run, "inputs", None) or {}
+    messages: list[InputMessage] = []
+
+    raw_messages = inputs.get("messages")
+    if raw_messages:
+        for batch in raw_messages:
+            if isinstance(batch, list):
+                for msg in batch:
+                    converted = _convert_lc_message_to_input(msg)
+                    if converted:
+                        messages.append(converted)
+        if messages:
+            return messages
+
+    prompts = inputs.get("prompts")
+    if prompts and isinstance(prompts, list):
+        for p in prompts:
+            if isinstance(p, str):
+                messages.append(InputMessage(role="user", parts=[Text(content=p)]))
+        return messages
+
+    return messages
+
+
+def _extract_llm_output_messages(run: Any) -> list[OutputMessage]:
+    """Extract output messages from a completed Run."""
+    outputs = getattr(run, "outputs", None) or {}
+    result: list[OutputMessage] = []
+
+    generations = outputs.get("generations") or []
+    for gen_list in generations:
+        if not isinstance(gen_list, list):
+            continue
+        for gen in gen_list:
+            if not isinstance(gen, dict):
+                continue
+            text = gen.get("text", "")
+            parts = []
+            if text:
+                parts.append(Text(content=text))
+
+            msg_data = gen.get("message") or {}
+            msg_kwargs = {}
+            if isinstance(msg_data, dict):
+                msg_kwargs = msg_data.get("kwargs") or {}
+
+            tool_calls = msg_kwargs.get("tool_calls") or []
+            for tc in tool_calls:
+                if isinstance(tc, dict):
+                    parts.append(
+                        ToolCall(
+                            name=tc.get("name", ""),
+                            arguments=tc.get("args", {}),
+                            id=tc.get("id"),
+                        )
+                    )
+
+            finish_reason = (gen.get("generation_info") or {}).get(
+                "finish_reason", "stop"
+            )
+            if parts:
+                result.append(
+                    OutputMessage(
+                        role="assistant",
+                        parts=parts,
+                        finish_reason=finish_reason or "stop",
+                    )
+                )
+    return result
+
+
+def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
+    """Return (input_tokens, output_tokens) from a completed LLM Run."""
+    outputs = getattr(run, "outputs", None) or {}
+    llm_output = outputs.get("llm_output") or {}
+    token_usage = llm_output.get("token_usage") or llm_output.get("usage") or {}
+
+    input_tokens = token_usage.get("prompt_tokens") or token_usage.get("input_tokens")
+    output_tokens = token_usage.get("completion_tokens") or token_usage.get("output_tokens")
+    return (
+        int(input_tokens) if input_tokens is not None else None,
+        int(output_tokens) if output_tokens is not None else None,
+    )
+
+
+def _extract_finish_reasons(run: Any) -> list[str] | None:
+    outputs = getattr(run, "outputs", None) or {}
+    reasons: list[str] = []
+    for gen_list in outputs.get("generations") or []:
+        if not isinstance(gen_list, list):
+            continue
+        for gen in gen_list:
+            if not isinstance(gen, dict):
+                continue
+            info = gen.get("generation_info") or {}
+            reason = info.get("finish_reason")
+            if reason:
+                reasons.append(reason)
+    return reasons or None
+
+
+def _extract_response_model(run: Any) -> str | None:
+    outputs = getattr(run, "outputs", None) or {}
+    llm_output = outputs.get("llm_output") or {}
+    return llm_output.get("model_name") or llm_output.get("model")
+
+
+# ---------------------------------------------------------------------------
+# JSON serialisation helper
+# ---------------------------------------------------------------------------
+
+
+def _safe_json(obj: Any, max_len: int = 4096) -> str:
+    try:
+        s = json.dumps(obj, ensure_ascii=False, default=str)
+    except Exception:
+        s = str(obj)
+    if len(s) > max_len:
+        s = s[:max_len] + "..."
+    return s

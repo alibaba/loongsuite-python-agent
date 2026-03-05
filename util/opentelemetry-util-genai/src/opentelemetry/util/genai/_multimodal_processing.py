@@ -51,9 +51,9 @@ from typing import (
     cast,
 )
 
-from opentelemetry import context as otel_context
 from opentelemetry._logs import Logger as OtelLogger
 from opentelemetry.trace import Span
+from opentelemetry.util.genai.handler import _safe_detach
 from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIEx,
 )
@@ -188,7 +188,7 @@ class MultimodalProcessingMixin:
             return False
 
         # 1. Detach context immediately (let user code continue)
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
 
         # 2. Ensure worker is started
         self._ensure_async_worker()

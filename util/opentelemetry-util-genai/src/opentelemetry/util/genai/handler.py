@@ -60,6 +60,8 @@ Usage:
 
 from __future__ import annotations
 
+# LoongSuite Extension
+import logging
 import timeit
 from contextlib import contextmanager
 from typing import Iterator
@@ -86,6 +88,26 @@ from opentelemetry.util.genai.span_utils import (
 )
 from opentelemetry.util.genai.types import Error, LLMInvocation
 from opentelemetry.util.genai.version import __version__
+
+# LoongSuite Extension
+logger = logging.getLogger(__name__)
+
+
+# LoongSuite Extension
+def _safe_detach(token: object) -> None:
+    """Safely detach an OpenTelemetry context token.
+
+    In async or cross-thread scenarios the token may already have been
+    consumed or belong to a different context, causing ``detach`` to raise.
+    This helper silently absorbs those failures so that span finalisation
+    can always proceed.
+    """
+    if token is None:
+        return
+    try:
+        otel_context.detach(token)  # type: ignore[arg-type]
+    except Exception:  # noqa: BLE001
+        logger.debug("Context detach failed (cross-thread/async scenario)")
 
 
 class TelemetryHandler:
@@ -161,7 +183,8 @@ class TelemetryHandler:
         self._record_llm_metrics(invocation, span)
         _maybe_emit_llm_event(self._logger, span, invocation)
         # Detach context and end span
-        otel_context.detach(invocation.context_token)
+        # LoongSuite Extension
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
@@ -180,7 +203,8 @@ class TelemetryHandler:
         self._record_llm_metrics(invocation, span, error_type=error_type)
         _maybe_emit_llm_event(self._logger, span, invocation, error)
         # Detach context and end span
-        otel_context.detach(invocation.context_token)
+        # LoongSuite Extension
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
