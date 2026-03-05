@@ -23,10 +23,8 @@ from typing import Callable
 from opentelemetry import context
 from opentelemetry.context import _SUPPRESS_INSTRUMENTATION_KEY
 from opentelemetry.instrumentation.litellm._utils import (
-    SUPPRESS_LLM_SDK_KEY,
     create_embedding_invocation_from_litellm,
 )
-from opentelemetry.trace import get_current_span
 from opentelemetry.util.genai.types import Error
 
 logger = logging.getLogger(__name__)
@@ -55,23 +53,8 @@ class EmbeddingWrapper:
         if context.get_value(_SUPPRESS_INSTRUMENTATION_KEY):
             return self.original_func(*args, **kwargs)
 
-        # Check if LLM SDK is suppressed
-        if context.get_value(SUPPRESS_LLM_SDK_KEY):
-            if get_current_span().get_span_context().is_valid:
-                return self.original_func(*args, **kwargs)
-
         # Create invocation object
         invocation = create_embedding_invocation_from_litellm(**kwargs)
-
-        # Set SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-        suppress_token = None
-        try:
-            suppress_token = context.attach(
-                context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-            )
-        except Exception:
-            # If context setting fails, continue without suppression token
-            pass
 
         # Start Embedding invocation
         self._handler.start_embedding(invocation)
@@ -129,13 +112,6 @@ class EmbeddingWrapper:
                 invocation, Error(message=str(e), type=type(e))
             )
             raise
-        finally:
-            # Detach suppress context
-            if suppress_token:
-                try:
-                    context.detach(suppress_token)
-                except Exception:
-                    pass
 
 
 class AsyncEmbeddingWrapper:
@@ -155,23 +131,8 @@ class AsyncEmbeddingWrapper:
         if context.get_value(_SUPPRESS_INSTRUMENTATION_KEY):
             return await self.original_func(*args, **kwargs)
 
-        # Check if LLM SDK is suppressed
-        if context.get_value(SUPPRESS_LLM_SDK_KEY):
-            if get_current_span().get_span_context().is_valid:
-                return await self.original_func(*args, **kwargs)
-
         # Create invocation object
         invocation = create_embedding_invocation_from_litellm(**kwargs)
-
-        # Set SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-        suppress_token = None
-        try:
-            suppress_token = context.attach(
-                context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-            )
-        except Exception:
-            # If context setting fails, continue without suppression token
-            pass
 
         # Start Embedding invocation
         self._handler.start_embedding(invocation)
@@ -229,10 +190,3 @@ class AsyncEmbeddingWrapper:
                 invocation, Error(message=str(e), type=type(e))
             )
             raise
-        finally:
-            # Detach suppress context
-            if suppress_token:
-                try:
-                    context.detach(suppress_token)
-                except Exception:
-                    pass

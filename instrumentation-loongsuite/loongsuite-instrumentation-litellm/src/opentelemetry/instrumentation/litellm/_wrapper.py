@@ -28,11 +28,9 @@ from opentelemetry.instrumentation.litellm._stream_wrapper import (
     StreamWrapper,
 )
 from opentelemetry.instrumentation.litellm._utils import (
-    SUPPRESS_LLM_SDK_KEY,
     create_llm_invocation_from_litellm,
     extract_output_from_litellm_response,
 )
-from opentelemetry.trace import get_current_span
 from opentelemetry.util.genai.types import (
     Error,
     OutputMessage,
@@ -69,11 +67,6 @@ class CompletionWrapper:
         if context.get_value(_SUPPRESS_INSTRUMENTATION_KEY):
             return self.original_func(*args, **kwargs)
 
-        # Check if LLM SDK is suppressed
-        if context.get_value(SUPPRESS_LLM_SDK_KEY):
-            if get_current_span().get_span_context().is_valid:
-                return self.original_func(*args, **kwargs)
-
         # Extract request parameters
         is_stream = kwargs.get("stream", False)
 
@@ -86,16 +79,6 @@ class CompletionWrapper:
         if is_stream:
             # Create invocation object
             invocation = create_llm_invocation_from_litellm(**kwargs)
-
-            # Set _SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-            suppress_token = None
-            try:
-                suppress_token = context.attach(
-                    context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-                )
-            except Exception:
-                # If context setting fails, continue without suppression token
-                pass
 
             # Start LLM invocation
             self._handler.start_llm(invocation)
@@ -127,26 +110,10 @@ class CompletionWrapper:
                     invocation, Error(message=str(e), type=type(e))
                 )
                 raise
-            finally:
-                # Detach suppress context
-                if suppress_token:
-                    try:
-                        context.detach(suppress_token)
-                    except Exception:
-                        pass
+
         else:
             # Create invocation object
             invocation = create_llm_invocation_from_litellm(**kwargs)
-
-            # Set _SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-            suppress_token = None
-            try:
-                suppress_token = context.attach(
-                    context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-                )
-            except Exception:
-                # If context setting fails, continue without suppression token
-                pass
 
             # Start LLM invocation (handler creates and manages span)
             self._handler.start_llm(invocation)
@@ -198,13 +165,6 @@ class CompletionWrapper:
                     invocation, Error(message=str(e), type=type(e))
                 )
                 raise
-            finally:
-                # Detach suppress context
-                if suppress_token:
-                    try:
-                        context.detach(suppress_token)
-                    except Exception:
-                        pass
 
     def _handle_stream_end_with_handler(
         self,
@@ -331,11 +291,6 @@ class AsyncCompletionWrapper:
         if context.get_value(_SUPPRESS_INSTRUMENTATION_KEY):
             return await self.original_func(*args, **kwargs)
 
-        # Check if LLM SDK is suppressed
-        if context.get_value(SUPPRESS_LLM_SDK_KEY):
-            if get_current_span().get_span_context().is_valid:
-                return await self.original_func(*args, **kwargs)
-
         # Extract request parameters
         is_stream = kwargs.get("stream", False)
 
@@ -347,16 +302,6 @@ class AsyncCompletionWrapper:
         if is_stream:
             # Create invocation object
             invocation = create_llm_invocation_from_litellm(**kwargs)
-
-            # Set _SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-            suppress_token = None
-            try:
-                suppress_token = context.attach(
-                    context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-                )
-            except Exception:
-                # If context setting fails, continue without suppression token
-                pass
 
             # Start LLM invocation
             self._handler.start_llm(invocation)
@@ -387,27 +332,11 @@ class AsyncCompletionWrapper:
                     invocation, Error(message=str(e), type=type(e))
                 )
                 raise
-            finally:
-                # Detach suppress context
-                if suppress_token:
-                    try:
-                        context.detach(suppress_token)
-                    except Exception:
-                        pass
+
         else:
             # Non-streaming: use Handler pattern
             # Create invocation object
             invocation = create_llm_invocation_from_litellm(**kwargs)
-
-            # Set _SUPPRESS_LLM_SDK_KEY to prevent nested SDK instrumentation
-            suppress_token = None
-            try:
-                suppress_token = context.attach(
-                    context.set_value(SUPPRESS_LLM_SDK_KEY, True)
-                )
-            except Exception:
-                # If context setting fails, continue without suppression token
-                pass
 
             # Start LLM invocation
             self._handler.start_llm(invocation)
@@ -459,13 +388,6 @@ class AsyncCompletionWrapper:
                     invocation, Error(message=str(e), type=type(e))
                 )
                 raise
-            finally:
-                # Detach suppress context
-                if suppress_token:
-                    try:
-                        context.detach(suppress_token)
-                    except Exception:
-                        pass
 
     def _handle_stream_end_with_handler(
         self,

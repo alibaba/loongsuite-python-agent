@@ -20,7 +20,6 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from opentelemetry import context
 from opentelemetry.semconv._incubating.attributes.gen_ai_attributes import (
     GenAiOperationNameValues,
 )
@@ -36,11 +35,6 @@ from opentelemetry.util.genai.types import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Global Context key to suppress nested LLM SDK instrumentation
-# This prevents double instrumentation when litellm calls underlying SDKs like OpenAI
-# Defining it here ensures all wrappers share the same key instance.
-SUPPRESS_LLM_SDK_KEY = context.create_key("suppress_llm_sdk_instrumentation")
 
 
 def convert_messages_to_structured_format(

@@ -14,4 +14,4 @@
 
 _instruments = ("litellm >= 1.0.0",)
 
-_supports_metrics = True
+_supports_metrics = False

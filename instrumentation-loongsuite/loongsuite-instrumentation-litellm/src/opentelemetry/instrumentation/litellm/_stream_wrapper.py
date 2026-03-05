@@ -74,14 +74,6 @@ class StreamWrapper:
             logger.debug(f"Error during streaming: {e}")
             self._finalize(error=e)
             raise
-        finally:
-            # CRITICAL: Prevent context leak from generator iteration
-            # If the underlying generator (litellm) attached a context but didn't detach it yet
-            # (because it's still yields), we explicitly ensure the current thread's context
-            # doesn't keep the SUPPRESS_LLM_SDK_KEY=True value.
-            # However, since context is immutable in OTEL, we handle it by being careful.
-            # Actually, the leakage happens because LiteLLM might be doing background work.
-            pass
 
     def __enter__(self):
         """Support context manager protocol."""
