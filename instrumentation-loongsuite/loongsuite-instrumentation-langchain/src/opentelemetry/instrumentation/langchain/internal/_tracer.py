@@ -19,6 +19,14 @@ Extends ``langchain_core.tracers.base.BaseTracer`` and overrides the
 fine-grained ``_on_*`` hooks to extract telemetry data from LangChain
 ``Run`` objects and emit OpenTelemetry spans via ``util-genai``.
 
+Context propagation follows the Robin/OpenLLMetry pattern: parent-child
+span relationships are established by passing ``context`` explicitly to
+``start_span`` / ``handler.start_*``, rather than using hazardous
+``context_api.attach`` / ``detach`` in a callback system.
+
+The only exception is Chain spans: they use ``attach``/``detach`` so that
+non-LangChain child operations (e.g. HTTP calls) nest correctly.
+
 Run type → handler mapping
 --------------------------
 * **LLM / chat_model** → ``handler.start_llm`` / ``stop_llm`` / ``fail_llm``
@@ -31,11 +39,14 @@ Run type → handler mapping
 from __future__ import annotations
 
 import logging
+import timeit
 from dataclasses import dataclass
-from typing import Any, Literal
+from threading import RLock
+from typing import Any, Literal, Optional
 from uuid import UUID
 
 from opentelemetry import context as otel_context
+from opentelemetry.context import Context
 from opentelemetry.trace import Span, SpanKind, StatusCode, set_span_in_context
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
@@ -50,6 +61,11 @@ from opentelemetry.util.genai.types import (
     LLMInvocation,
     OutputMessage,
     Text,
+)
+from opentelemetry.util.genai.utils import (
+    ContentCapturingMode,
+    get_content_capturing_mode,
+    is_experimental_mode,
 )
 
 from langchain_core.tracers.base import BaseTracer
@@ -79,9 +95,23 @@ RunKind = Literal["llm", "agent", "chain", "tool", "retriever"]
 @dataclass
 class _RunData:
     run_kind: RunKind
-    invocation: Any = None  # util-genai invocation object (LLM/Agent/Tool/Retriever)
-    span: Span | None = None  # only used for generic chain spans
-    parent_context_token: object | None = None  # token from attaching parent ctx
+    span: Span | None = None
+    context: Context | None = None
+    invocation: Any = None
+    context_token: object | None = None  # only used for Chain attach/detach
+
+
+def _should_capture_chain_content() -> bool:
+    """Check if chain input/output content should be recorded."""
+    try:
+        if not is_experimental_mode():
+            return False
+        return get_content_capturing_mode() in (
+            ContentCapturingMode.SPAN_ONLY,
+            ContentCapturingMode.SPAN_AND_EVENT,
+        )
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -89,35 +119,45 @@ class _RunData:
 # ---------------------------------------------------------------------------
 
 class LoongsuiteTracer(BaseTracer):
-    """LangChain tracer that emits OpenTelemetry spans via util-genai."""
+    """LangChain tracer that emits OpenTelemetry spans via util-genai.
+
+    Context propagation is done explicitly — parent-child relationships
+    are established by passing the stored ``Context`` of the parent run
+    to ``handler.start_*(…, context=parent_ctx)`` or to
+    ``tracer.start_span(…, context=parent_ctx)``.
+
+    Chain spans are the sole exception: they ``attach``/``detach`` the
+    context so that non-LangChain child operations nest correctly.
+
+    All access to ``self._runs`` is protected by an ``RLock`` because
+    LangChain callbacks may be fired from different threads.
+    """
 
     def __init__(self, handler: ExtendedTelemetryHandler, **kwargs: Any) -> None:
         super().__init__(_schema_format="original+chat", **kwargs)
         self._handler = handler
         self._runs: dict[UUID, _RunData] = {}
+        self._lock = RLock()
 
     def _persist_run(self, run: Run) -> None:
         pass
 
     # ------------------------------------------------------------------
-    # Context helpers
+    # Context helper
     # ------------------------------------------------------------------
 
-    def _attach_parent_context(self, run: Run) -> object | None:
-        """Attach the parent run's span context so child spans nest correctly."""
+    def _get_parent_context(self, run: Run) -> Context | None:
+        """Return the stored context of the parent run, or *None*."""
         parent_id = getattr(run, "parent_run_id", None)
-        if parent_id and parent_id in self._runs:
-            parent_data = self._runs[parent_id]
-            span = parent_data.invocation.span if parent_data.invocation else parent_data.span
-            if span is not None:
-                return otel_context.attach(set_span_in_context(span))
+        if parent_id:
+            with self._lock:
+                rd = self._runs.get(parent_id)
+            if rd is not None:
+                return rd.context
         return None
 
-    def _detach_parent_context(self, token: object | None) -> None:
-        _safe_detach(token)
-
     # ------------------------------------------------------------------
-    # _start_trace / _end_trace — context lifecycle only
+    # _start_trace / _end_trace
     # ------------------------------------------------------------------
 
     def _start_trace(self, run: Run) -> None:
@@ -125,8 +165,28 @@ class LoongsuiteTracer(BaseTracer):
 
     def _end_trace(self, run: Run) -> None:
         super()._end_trace(run)
-        # Cleanup of self._runs is done in _on_*_end / _on_*_error hooks,
-        # which are called AFTER _end_trace in the BaseTracer lifecycle.
+
+    # ------------------------------------------------------------------
+    # TTFT (Time To First Token) — streaming support
+    # ------------------------------------------------------------------
+
+    def on_llm_new_token(  # type: ignore[override]
+        self,
+        token: str,
+        *,
+        chunk: Optional[Any] = None,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Run | None:
+        """Record the first-token timestamp for TTFT calculation."""
+        with self._lock:
+            rd = self._runs.get(run_id)
+        if rd is not None and rd.run_kind == "llm" and rd.invocation is not None:
+            inv: LLMInvocation = rd.invocation
+            if inv.monotonic_first_token_s is None:
+                inv.monotonic_first_token_s = timeit.default_timer()
+        return None
 
     # ------------------------------------------------------------------
     # LLM hooks
@@ -139,8 +199,8 @@ class LoongsuiteTracer(BaseTracer):
         self._handle_llm_start(run)
 
     def _handle_llm_start(self, run: Run) -> None:
-        parent_token = self._attach_parent_context(run)
         try:
+            parent_ctx = self._get_parent_context(run)
             params = _extract_invocation_params(run)
             invocation = LLMInvocation(
                 request_model=_extract_model_name(run) or run.name or "",
@@ -150,20 +210,21 @@ class LoongsuiteTracer(BaseTracer):
                 top_p=params.get("top_p"),
                 max_tokens=params.get("max_tokens") or params.get("max_output_tokens"),
             )
-            self._handler.start_llm(invocation)
-            self._detach_parent_context(parent_token)
-            _safe_detach(invocation.context_token)
-            self._runs[run.id] = _RunData(
+            self._handler.start_llm(invocation, context=parent_ctx)
+            rd = _RunData(
                 run_kind="llm",
+                span=invocation.span,
+                context=set_span_in_context(invocation.span) if invocation.span else None,
                 invocation=invocation,
-                parent_context_token=None,
             )
+            with self._lock:
+                self._runs[run.id] = rd
         except Exception:
-            self._detach_parent_context(parent_token)
             logger.debug("Failed to start LLM span", exc_info=True)
 
     def _on_llm_end(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "llm":
             return
         try:
@@ -177,7 +238,8 @@ class LoongsuiteTracer(BaseTracer):
             logger.debug("Failed to stop LLM span", exc_info=True)
 
     def _on_llm_error(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "llm":
             return
         try:
@@ -194,17 +256,16 @@ class LoongsuiteTracer(BaseTracer):
     # ------------------------------------------------------------------
 
     def _on_chain_start(self, run: Run) -> None:
-        parent_token = self._attach_parent_context(run)
         try:
             if _is_agent_run(run):
-                self._start_agent(run, parent_token)
+                self._start_agent(run)
             else:
-                self._start_chain(run, parent_token)
+                self._start_chain(run)
         except Exception:
-            self._detach_parent_context(parent_token)
             logger.debug("Failed to start Chain/Agent span", exc_info=True)
 
-    def _start_agent(self, run: Run, parent_token: object | None) -> None:
+    def _start_agent(self, run: Run) -> None:
+        parent_ctx = self._get_parent_context(run)
         inputs = getattr(run, "inputs", None) or {}
         input_messages: list[InputMessage] = []
         input_val = inputs.get("input") or inputs.get("query") or ""
@@ -218,37 +279,46 @@ class LoongsuiteTracer(BaseTracer):
             agent_name=run.name,
             input_messages=input_messages,
         )
-        self._handler.start_invoke_agent(invocation)
-        self._detach_parent_context(parent_token)
-        _safe_detach(invocation.context_token)
-        self._runs[run.id] = _RunData(
+        self._handler.start_invoke_agent(invocation, context=parent_ctx)
+        rd = _RunData(
             run_kind="agent",
+            span=invocation.span,
+            context=set_span_in_context(invocation.span) if invocation.span else None,
             invocation=invocation,
         )
+        with self._lock:
+            self._runs[run.id] = rd
 
-    def _start_chain(self, run: Run, parent_token: object | None) -> None:
+    def _start_chain(self, run: Run) -> None:
+        parent_ctx = self._get_parent_context(run)
         tracer = self._handler._tracer  # noqa: SLF001
         span = tracer.start_span(
             name=f"chain {run.name}",
             kind=SpanKind.INTERNAL,
+            context=parent_ctx,
         )
-        ctx_token = otel_context.attach(set_span_in_context(span))
 
-        inputs = getattr(run, "inputs", None) or {}
-        span.set_attribute("gen_ai.span.kind", "chain")
-        input_str = _safe_json(inputs)
-        span.set_attribute("input.value", input_str)
+        span.set_attribute("gen_ai.span.kind", "CHAIN")
+        if _should_capture_chain_content():
+            inputs = getattr(run, "inputs", None) or {}
+            span.set_attribute("input.value", _safe_json(inputs))
 
-        self._detach_parent_context(parent_token)
-        _safe_detach(ctx_token)
+        # Attach chain span context so non-LangChain children nest correctly.
+        ctx = set_span_in_context(span)
+        token = otel_context.attach(ctx)
 
-        self._runs[run.id] = _RunData(
+        rd = _RunData(
             run_kind="chain",
             span=span,
+            context=ctx,
+            context_token=token,
         )
+        with self._lock:
+            self._runs[run.id] = rd
 
     def _on_chain_end(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None:
             return
         try:
@@ -277,14 +347,16 @@ class LoongsuiteTracer(BaseTracer):
         span = rd.span
         if span is None:
             return
-        outputs = getattr(run, "outputs", None) or {}
-        output_str = _safe_json(outputs)
-        span.set_attribute("output.value", output_str)
+        if _should_capture_chain_content():
+            outputs = getattr(run, "outputs", None) or {}
+            span.set_attribute("output.value", _safe_json(outputs))
         span.set_status(StatusCode.OK)
         span.end()
+        _safe_detach(rd.context_token)
 
     def _on_chain_error(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None:
             return
         try:
@@ -300,6 +372,7 @@ class LoongsuiteTracer(BaseTracer):
                     span.set_status(StatusCode.ERROR, str(err_str))
                     span.record_exception(Exception(str(err_str)))
                     span.end()
+                _safe_detach(rd.context_token)
         except Exception:
             logger.debug("Failed to fail Chain/Agent span", exc_info=True)
 
@@ -308,8 +381,8 @@ class LoongsuiteTracer(BaseTracer):
     # ------------------------------------------------------------------
 
     def _on_tool_start(self, run: Run) -> None:
-        parent_token = self._attach_parent_context(run)
         try:
+            parent_ctx = self._get_parent_context(run)
             inputs = getattr(run, "inputs", None) or {}
             input_str = inputs.get("input") or inputs.get("query") or ""
             if not isinstance(input_str, str):
@@ -319,19 +392,21 @@ class LoongsuiteTracer(BaseTracer):
                 tool_name=run.name or "unknown_tool",
                 tool_call_arguments=input_str,
             )
-            self._handler.start_execute_tool(invocation)
-            self._detach_parent_context(parent_token)
-            _safe_detach(invocation.context_token)
-            self._runs[run.id] = _RunData(
+            self._handler.start_execute_tool(invocation, context=parent_ctx)
+            rd = _RunData(
                 run_kind="tool",
+                span=invocation.span,
+                context=set_span_in_context(invocation.span) if invocation.span else None,
                 invocation=invocation,
             )
+            with self._lock:
+                self._runs[run.id] = rd
         except Exception:
-            self._detach_parent_context(parent_token)
             logger.debug("Failed to start Tool span", exc_info=True)
 
     def _on_tool_end(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "tool":
             return
         try:
@@ -346,7 +421,8 @@ class LoongsuiteTracer(BaseTracer):
             logger.debug("Failed to stop Tool span", exc_info=True)
 
     def _on_tool_error(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "tool":
             return
         try:
@@ -363,25 +439,27 @@ class LoongsuiteTracer(BaseTracer):
     # ------------------------------------------------------------------
 
     def _on_retriever_start(self, run: Run) -> None:
-        parent_token = self._attach_parent_context(run)
         try:
+            parent_ctx = self._get_parent_context(run)
             inputs = getattr(run, "inputs", None) or {}
             query = inputs.get("query") or ""
 
             invocation = RetrieveInvocation(query=query)
-            self._handler.start_retrieve(invocation)
-            self._detach_parent_context(parent_token)
-            _safe_detach(invocation.context_token)
-            self._runs[run.id] = _RunData(
+            self._handler.start_retrieve(invocation, context=parent_ctx)
+            rd = _RunData(
                 run_kind="retriever",
+                span=invocation.span,
+                context=set_span_in_context(invocation.span) if invocation.span else None,
                 invocation=invocation,
             )
+            with self._lock:
+                self._runs[run.id] = rd
         except Exception:
-            self._detach_parent_context(parent_token)
             logger.debug("Failed to start Retriever span", exc_info=True)
 
     def _on_retriever_end(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "retriever":
             return
         try:
@@ -395,7 +473,8 @@ class LoongsuiteTracer(BaseTracer):
             logger.debug("Failed to stop Retriever span", exc_info=True)
 
     def _on_retriever_error(self, run: Run) -> None:
-        rd = self._runs.pop(run.id, None)
+        with self._lock:
+            rd = self._runs.pop(run.id, None)
         if rd is None or rd.run_kind != "retriever":
             return
         try:
