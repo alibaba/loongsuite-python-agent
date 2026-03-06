@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Breaking Changes
+
+- Rewrite the instrumentation for LangChain with `genai-util`
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  - Replaced the legacy `wrapt`-based function wrapping with `BaseTracer` callback mechanism
+  - Migrated to `ExtendedTelemetryHandler` from `opentelemetry-util-genai` for standardized GenAI semantic conventions
+  - Added Agent detection by `run.name`, TTFT tracking, content capture gating, and `RLock` thread safety
+  - Added new test suite (98 tests) with `oldest`/`latest` dependency matrices
+
 ## Version 0.1.0 (2026-02-28)
 
 ### Added

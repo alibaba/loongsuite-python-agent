@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Add optional `context` parameter to all `start_*` methods in `TelemetryHandler` and `ExtendedTelemetryHandler` for explicit parent-child span linking
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+- Unify `attach`/`detach` strategy in `ExtendedTelemetryHandler`: always `attach` regardless of whether `context` is provided; `stop_*`/`fail_*` guards restored to `context_token is None or span is None`
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+
+### Fixed
+
+- Fix `_safe_detach` to use `_RUNTIME_CONTEXT.detach` directly, avoiding noisy `ERROR` log from OTel SDK's `context_api.detach` wrapper
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+- Fix undefined `otel_context` reference in `_multimodal_processing.py` `process_multimodal_fail`, replaced with `_safe_detach`
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+
 ## Version 0.1.0 (2026-02-28)
 
 ### Fixed
