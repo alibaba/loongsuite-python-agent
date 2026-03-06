@@ -83,6 +83,11 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _is_agent_run,
     _safe_json,
 )
+from opentelemetry.instrumentation.langchain.internal.semconv import (
+    INPUT_VALUE,
+    LLM_SPAN_KIND,
+    OUTPUT_VALUE,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -298,10 +303,10 @@ class LoongsuiteTracer(BaseTracer):
             context=parent_ctx,
         )
 
-        span.set_attribute("gen_ai.span.kind", "CHAIN")
+        span.set_attribute(LLM_SPAN_KIND, "CHAIN")
         if _should_capture_chain_content():
             inputs = getattr(run, "inputs", None) or {}
-            span.set_attribute("input.value", _safe_json(inputs))
+            span.set_attribute(INPUT_VALUE, _safe_json(inputs))
 
         # Attach chain span context so non-LangChain children nest correctly.
         ctx = set_span_in_context(span)
@@ -349,7 +354,7 @@ class LoongsuiteTracer(BaseTracer):
             return
         if _should_capture_chain_content():
             outputs = getattr(run, "outputs", None) or {}
-            span.set_attribute("output.value", _safe_json(outputs))
+            span.set_attribute(OUTPUT_VALUE, _safe_json(outputs))
         span.set_status(StatusCode.OK)
         span.end()
         _safe_detach(rd.context_token)

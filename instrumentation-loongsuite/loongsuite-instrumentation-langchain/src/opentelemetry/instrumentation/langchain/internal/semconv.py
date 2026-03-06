@@ -13,14 +13,19 @@
 # limitations under the License.
 
 """
-Custom semantic convention attributes for LangChain Chain spans.
+Semantic convention attributes for LangChain instrumentation.
 
-LLM, Tool, Retriever, and Agent attributes are managed by ``util-genai``.
-Only Chain-specific custom attributes are defined here.
+Re-exports attributes from ``util-genai`` extended semconv so that the
+plugin and its tests have a single import source.
 """
 
-# Span kind attribute (used for Chain spans)
-LLM_SPAN_KIND = "gen_ai.span.kind"
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+    GEN_AI_RETRIEVAL_DOCUMENTS,
+    GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_SPAN_KIND as LLM_SPAN_KIND,
+    GEN_AI_TOOL_CALL_ARGUMENTS,
+    GEN_AI_TOOL_CALL_RESULT,
+)
 
 # Input/Output attributes (used for Chain spans)
 INPUT_VALUE = "input.value"

@@ -21,6 +21,10 @@ from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
+from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_RETRIEVAL_DOCUMENTS,
+    GEN_AI_RETRIEVAL_QUERY,
+)
 from opentelemetry.trace import StatusCode
 
 
@@ -87,7 +91,7 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
-        query_val = attrs.get("gen_ai.retrieval.query", "")
+        query_val = attrs.get(GEN_AI_RETRIEVAL_QUERY, "")
         assert "machine learning basics" in query_val, (
             f"Expected 'machine learning basics' in retrieval.query, got: {query_val}"
         )
@@ -100,7 +104,7 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
-        docs_val = attrs.get("gen_ai.retrieval.documents", "")
+        docs_val = attrs.get(GEN_AI_RETRIEVAL_DOCUMENTS, "")
         assert "Result for: test docs query" in docs_val, (
             f"Expected document content in retrieval.documents, got: {docs_val}"
         )
@@ -114,7 +118,7 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
-        assert "gen_ai.retrieval.documents" not in attrs, (
+        assert GEN_AI_RETRIEVAL_DOCUMENTS not in attrs, (
             "Retrieval documents should NOT be captured when content capture is disabled"
         )
-        assert attrs.get("gen_ai.retrieval.query") == "secret query"
+        assert attrs.get(GEN_AI_RETRIEVAL_QUERY) == "secret query"
