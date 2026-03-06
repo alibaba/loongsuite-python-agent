@@ -80,6 +80,12 @@ from opentelemetry.trace import (
     TracerProvider,
     set_span_in_context,
 )
+from opentelemetry.util.genai._extended_common import (
+    EntryInvocation,
+    ReactStepInvocation,
+    _apply_entry_finish_attributes,
+    _apply_react_step_finish_attributes,
+)
 from opentelemetry.util.genai._extended_memory import (
     MemoryInvocation,
     _apply_memory_finish_attributes,
@@ -125,6 +131,8 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     - Retrieve documents operations
     - Rerank documents operations
     - Memory operations
+    - Entry operations (AI application system entry point)
+    - ReAct Step operations (Reasoning-Acting iteration)
     - All operations supported by the base TelemetryHandler (LLM/chat)
     - Async multimodal processing (via MultimodalProcessingMixin)
     """
@@ -160,6 +168,8 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             RetrieveInvocation,
             RerankInvocation,
             MemoryInvocation,
+            EntryInvocation,
+            ReactStepInvocation,
         ],
         *,
         error_type: str | None = None,
@@ -742,6 +752,148 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             )
             raise
         self.stop_memory(invocation)
+
+    # ==================== Entry Operations ====================
+
+    def start_entry(
+        self,
+        invocation: EntryInvocation,
+        context: Context | None = None,
+    ) -> EntryInvocation:
+        """Start an entry invocation and create a pending span entry.
+
+        Entry identifies the call entry point to an AI application system.
+        Span name: enter_ai_application_system (per LoongSuite semantic conventions).
+        """
+        span = self._tracer.start_span(
+            name="enter_ai_application_system",
+            kind=SpanKind.INTERNAL,
+            context=context,
+        )
+        invocation.monotonic_start_s = timeit.default_timer()
+        invocation.span = span
+        invocation.context_token = otel_context.attach(
+            set_span_in_context(span)
+        )
+        return invocation
+
+    def stop_entry(self, invocation: EntryInvocation) -> EntryInvocation:  # pylint: disable=no-self-use
+        """Finalize an entry invocation successfully and end its span."""
+        if invocation.context_token is None or invocation.span is None:
+            return invocation
+
+        _apply_entry_finish_attributes(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
+
+        _safe_detach(invocation.context_token)
+        invocation.span.end()
+        return invocation
+
+    def fail_entry(
+        self, invocation: EntryInvocation, error: Error
+    ) -> EntryInvocation:  # pylint: disable=no-self-use
+        """Fail an entry invocation and end its span with error status."""
+        if invocation.context_token is None or invocation.span is None:
+            return invocation
+
+        _apply_entry_finish_attributes(invocation.span, invocation)
+        _apply_error_attributes(invocation.span, error)
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
+
+        _safe_detach(invocation.context_token)
+        invocation.span.end()
+        return invocation
+
+    @contextmanager
+    def entry(
+        self, invocation: EntryInvocation | None = None
+    ) -> Iterator[EntryInvocation]:
+        """Context manager for entry invocations."""
+        if invocation is None:
+            invocation = EntryInvocation()
+        self.start_entry(invocation)
+        try:
+            yield invocation
+        except Exception as exc:
+            self.fail_entry(
+                invocation, Error(message=str(exc), type=type(exc))
+            )
+            raise
+        self.stop_entry(invocation)
+
+    # ==================== ReAct Step Operations ====================
+
+    def start_react_step(
+        self,
+        invocation: ReactStepInvocation,
+        context: Context | None = None,
+    ) -> ReactStepInvocation:
+        """Start a ReAct step invocation and create a pending span entry.
+
+        ReAct Step identifies one Reasoning-Acting iteration in an Agent.
+        Span name: react step (per LoongSuite semantic conventions).
+        """
+        span = self._tracer.start_span(
+            name="react step",
+            kind=SpanKind.INTERNAL,
+            context=context,
+        )
+        invocation.monotonic_start_s = timeit.default_timer()
+        invocation.span = span
+        invocation.context_token = otel_context.attach(
+            set_span_in_context(span)
+        )
+        return invocation
+
+    def stop_react_step(
+        self, invocation: ReactStepInvocation
+    ) -> ReactStepInvocation:  # pylint: disable=no-self-use
+        """Finalize a ReAct step invocation successfully and end its span."""
+        if invocation.context_token is None or invocation.span is None:
+            return invocation
+
+        _apply_react_step_finish_attributes(invocation.span, invocation)
+        self._record_extended_metrics(invocation.span, invocation)
+
+        _safe_detach(invocation.context_token)
+        invocation.span.end()
+        return invocation
+
+    def fail_react_step(
+        self, invocation: ReactStepInvocation, error: Error
+    ) -> ReactStepInvocation:  # pylint: disable=no-self-use
+        """Fail a ReAct step invocation and end its span with error status."""
+        if invocation.context_token is None or invocation.span is None:
+            return invocation
+
+        _apply_react_step_finish_attributes(invocation.span, invocation)
+        _apply_error_attributes(invocation.span, error)
+        self._record_extended_metrics(
+            invocation.span, invocation, error_type=error.type.__qualname__
+        )
+
+        _safe_detach(invocation.context_token)
+        invocation.span.end()
+        return invocation
+
+    @contextmanager
+    def react_step(
+        self, invocation: ReactStepInvocation | None = None
+    ) -> Iterator[ReactStepInvocation]:
+        """Context manager for ReAct step invocations."""
+        if invocation is None:
+            invocation = ReactStepInvocation()
+        self.start_react_step(invocation)
+        try:
+            yield invocation
+        except Exception as exc:
+            self.fail_react_step(
+                invocation, Error(message=str(exc), type=type(exc))
+            )
+            raise
+        self.stop_react_step(invocation)
 
 
 def get_extended_telemetry_handler(

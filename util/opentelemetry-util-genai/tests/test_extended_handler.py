@@ -47,14 +47,24 @@ from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace.status import StatusCode
+from opentelemetry.util.genai._extended_common import (
+    EntryInvocation,
+    ReactStepInvocation,
+)
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
+    GEN_AI_REACT_FINISH_REASON,
+    GEN_AI_REACT_ROUND,
     GEN_AI_RERANK_DOCUMENTS_COUNT,
     GEN_AI_RETRIEVAL_DOCUMENTS,
     GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_SESSION_ID,
+    GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
     GEN_AI_USAGE_TOTAL_TOKENS,
+    GEN_AI_USER_ID,
+    GenAiSpanKindValues,
 )
 from opentelemetry.util.genai._multimodal_processing import (
     MultimodalProcessingMixin,
@@ -1032,6 +1042,144 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             span_attrs,
             {
                 ErrorAttributes.ERROR_TYPE: RerankError.__qualname__,
+            },
+        )
+
+    # ==================== Entry Tests ====================
+
+    def test_entry_start_and_stop_creates_span(self):
+        with self.telemetry_handler.entry() as invocation:
+            invocation.session_id = "ddde34343-f93a-4477-33333-sdfsdaf"
+            invocation.user_id = "u-lK8JddD"
+            invocation.response_time_to_first_token = 1000000
+            invocation.attributes = {"custom": "entry_attr"}
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "enter_ai_application_system")
+        self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
+        _assert_span_time_order(span)
+
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "enter",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.ENTRY.value,
+                GEN_AI_SESSION_ID: "ddde34343-f93a-4477-33333-sdfsdaf",
+                GEN_AI_USER_ID: "u-lK8JddD",
+                "gen_ai.response.time_to_first_token": 1000000,
+                "custom": "entry_attr",
+            },
+        )
+
+    def test_entry_manual_start_and_stop(self):
+        invocation = EntryInvocation(
+            session_id="session_123",
+            user_id="user_456",
+        )
+
+        self.telemetry_handler.start_entry(invocation)
+        assert invocation.span is not None
+        invocation.response_time_to_first_token = 500000
+        self.telemetry_handler.stop_entry(invocation)
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "enter_ai_application_system")
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "enter",
+                GEN_AI_SESSION_ID: "session_123",
+                GEN_AI_USER_ID: "user_456",
+                "gen_ai.response.time_to_first_token": 500000,
+            },
+        )
+
+    def test_entry_error_handling(self):
+        class EntryError(RuntimeError):
+            pass
+
+        with self.assertRaises(EntryError):
+            with self.telemetry_handler.entry() as invocation:
+                invocation.session_id = "session_err"
+                raise EntryError("Entry failed")
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.status.status_code, StatusCode.ERROR)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                ErrorAttributes.ERROR_TYPE: EntryError.__qualname__,
+            },
+        )
+
+    # ==================== ReAct Step Tests ====================
+
+    def test_react_step_start_and_stop_creates_span(self):
+        with self.telemetry_handler.react_step() as invocation:
+            invocation.finish_reason = "stop"
+            invocation.round = 1
+            invocation.attributes = {"custom": "react_attr"}
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "react step")
+        self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
+        _assert_span_time_order(span)
+
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "react",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.STEP.value,
+                GEN_AI_REACT_FINISH_REASON: "stop",
+                GEN_AI_REACT_ROUND: 1,
+                "custom": "react_attr",
+            },
+        )
+
+    def test_react_step_manual_start_and_stop(self):
+        invocation = ReactStepInvocation(
+            finish_reason="error",
+            round=1,
+        )
+
+        self.telemetry_handler.start_react_step(invocation)
+        assert invocation.span is not None
+        invocation.finish_reason = "stop"
+        invocation.round = 2
+        self.telemetry_handler.stop_react_step(invocation)
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "react step")
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "react",
+                GEN_AI_REACT_FINISH_REASON: "stop",
+                GEN_AI_REACT_ROUND: 2,
+            },
+        )
+
+    def test_react_step_error_handling(self):
+        class ReactStepError(RuntimeError):
+            pass
+
+        with self.assertRaises(ReactStepError):
+            with self.telemetry_handler.react_step() as invocation:
+                invocation.round = 1
+                raise ReactStepError("ReAct step failed")
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.status.status_code, StatusCode.ERROR)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                ErrorAttributes.ERROR_TYPE: ReactStepError.__qualname__,
             },
         )
 
