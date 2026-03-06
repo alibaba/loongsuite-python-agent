@@ -19,6 +19,11 @@ import json
 import pytest
 from langchain_core.runnables import RunnableLambda
 
+from opentelemetry.instrumentation.langchain.internal.semconv import (
+    INPUT_VALUE,
+    LLM_SPAN_KIND,
+    OUTPUT_VALUE,
+)
 from opentelemetry.trace import StatusCode
 
 
@@ -44,8 +49,8 @@ class TestChainSpanCreation:
         assert len(chain_spans) >= 1
 
         attrs = dict(chain_spans[0].attributes)
-        assert "input.value" in attrs
-        assert "output.value" in attrs
+        assert INPUT_VALUE in attrs
+        assert OUTPUT_VALUE in attrs
 
     def test_chain_span_kind_attribute(self, instrument, span_exporter):
         chain = RunnableLambda(lambda x: x)
@@ -54,7 +59,7 @@ class TestChainSpanCreation:
         chain_spans = _find_chain_spans(span_exporter)
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
-        assert attrs.get("gen_ai.span.kind") == "CHAIN"
+        assert attrs.get(LLM_SPAN_KIND) == "CHAIN"
 
 
 class TestChainInputOutputContent:
@@ -68,7 +73,7 @@ class TestChainInputOutputContent:
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
 
-        input_val = attrs.get("input.value", "")
+        input_val = attrs.get(INPUT_VALUE, "")
         assert "hello_chain" in input_val, (
             f"Expected 'hello_chain' in input.value, got: {input_val}"
         )
@@ -81,7 +86,7 @@ class TestChainInputOutputContent:
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
 
-        output_val = attrs.get("output.value", "")
+        output_val = attrs.get(OUTPUT_VALUE, "")
         assert "processed(data)" in output_val, (
             f"Expected 'processed(data)' in output.value, got: {output_val}"
         )
@@ -95,7 +100,7 @@ class TestChainInputOutputContent:
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
 
-        input_val = attrs.get("input.value", "")
+        input_val = attrs.get(INPUT_VALUE, "")
         parsed = json.loads(input_val)
         assert parsed.get("msg") == "payload"
         assert parsed.get("key") == 42
@@ -109,8 +114,8 @@ class TestChainInputOutputContent:
         chain_spans = _find_chain_spans(span_exporter)
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
-        assert "input.value" not in attrs
-        assert "output.value" not in attrs
+        assert INPUT_VALUE not in attrs
+        assert OUTPUT_VALUE not in attrs
 
 
 class TestChainComposition:
@@ -135,7 +140,7 @@ class TestChainComposition:
 
         chain_spans = _find_chain_spans(span_exporter)
         all_outputs = [
-            dict(s.attributes).get("output.value", "") for s in chain_spans
+            dict(s.attributes).get(OUTPUT_VALUE, "") for s in chain_spans
         ]
         has_step1_output = any("step1(start)" in o for o in all_outputs)
         has_step2_output = any("step2(step1(start))" in o for o in all_outputs)

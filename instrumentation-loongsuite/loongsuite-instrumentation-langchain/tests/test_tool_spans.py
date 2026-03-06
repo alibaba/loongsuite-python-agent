@@ -17,6 +17,10 @@
 import pytest
 from langchain_core.tools import tool
 
+from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_TOOL_CALL_ARGUMENTS,
+    GEN_AI_TOOL_CALL_RESULT,
+)
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAIAttributes,
 )
@@ -88,7 +92,7 @@ class TestToolInputOutputContent:
         assert len(tool_spans) >= 1
         attrs = dict(tool_spans[0].attributes)
 
-        tool_args = attrs.get("gen_ai.tool.call.arguments", "")
+        tool_args = attrs.get(GEN_AI_TOOL_CALL_ARGUMENTS, "")
         assert "hello_tool" in tool_args, (
             f"Expected 'hello_tool' in tool.call.arguments, got: {tool_args}"
         )
@@ -100,7 +104,7 @@ class TestToolInputOutputContent:
         assert len(tool_spans) >= 1
         attrs = dict(tool_spans[0].attributes)
 
-        tool_result = attrs.get("gen_ai.tool.call.result", "")
+        tool_result = attrs.get(GEN_AI_TOOL_CALL_RESULT, "")
         assert "echo: world" in tool_result, (
             f"Expected 'echo: world' in tool.call.result, got: {tool_result}"
         )
@@ -113,10 +117,10 @@ class TestToolInputOutputContent:
         assert len(tool_spans) >= 1
         attrs = dict(tool_spans[0].attributes)
 
-        assert "gen_ai.tool.call.arguments" not in attrs, (
+        assert GEN_AI_TOOL_CALL_ARGUMENTS not in attrs, (
             "Tool arguments should NOT be captured when content capture is disabled"
         )
-        assert "gen_ai.tool.call.result" not in attrs, (
+        assert GEN_AI_TOOL_CALL_RESULT not in attrs, (
             "Tool result should NOT be captured when content capture is disabled"
         )
         assert attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
