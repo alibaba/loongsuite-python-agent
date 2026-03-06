@@ -71,14 +71,18 @@ class TestToolSpanCreation:
         tool_spans = _find_tool_spans(span_exporter)
         assert len(tool_spans) >= 1
         attrs = dict(tool_spans[0].attributes)
-        assert attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
+        assert (
+            attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
+        )
 
     def test_tool_error_span(self, instrument, span_exporter):
         with pytest.raises(Exception):
             failing_tool.invoke({"x": "fail"})
 
         spans = span_exporter.get_finished_spans()
-        error_spans = [s for s in spans if s.status.status_code == StatusCode.ERROR]
+        error_spans = [
+            s for s in spans if s.status.status_code == StatusCode.ERROR
+        ]
         assert len(error_spans) >= 1
 
 
@@ -109,7 +113,9 @@ class TestToolInputOutputContent:
             f"Expected 'echo: world' in tool.call.result, got: {tool_result}"
         )
 
-    def test_no_content_when_disabled(self, instrument_no_content, span_exporter):
+    def test_no_content_when_disabled(
+        self, instrument_no_content, span_exporter
+    ):
         """When content capture is disabled, tool arguments/result should NOT appear."""
         echo_tool.invoke({"text": "secret"})
 
@@ -123,4 +129,6 @@ class TestToolInputOutputContent:
         assert GEN_AI_TOOL_CALL_RESULT not in attrs, (
             "Tool result should NOT be captured when content capture is disabled"
         )
-        assert attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
+        assert (
+            attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
+        )

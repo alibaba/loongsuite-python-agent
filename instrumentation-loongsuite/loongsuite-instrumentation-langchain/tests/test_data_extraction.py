@@ -56,7 +56,9 @@ class TestExtractModelName:
 
 class TestExtractProvider:
     def test_from_serialized_id(self):
-        run = _FakeRun(serialized={"id": ["langchain", "llms", "openai", "ChatOpenAI"]})
+        run = _FakeRun(
+            serialized={"id": ["langchain", "llms", "openai", "ChatOpenAI"]}
+        )
         assert _extract_provider(run) == "openai"
 
     def test_default_langchain(self):
@@ -215,9 +217,7 @@ class TestExtractFinishReasons:
 
 class TestExtractResponseModel:
     def test_from_llm_output(self):
-        run = _FakeRun(
-            outputs={"llm_output": {"model_name": "gpt-4-turbo"}}
-        )
+        run = _FakeRun(outputs={"llm_output": {"model_name": "gpt-4-turbo"}})
         assert _extract_response_model(run) == "gpt-4-turbo"
 
     def test_none_when_missing(self):

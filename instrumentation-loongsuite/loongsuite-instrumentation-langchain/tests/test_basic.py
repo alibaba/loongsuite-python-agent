@@ -43,13 +43,25 @@ class TestTracerInjection:
     def test_singleton(self, instrument):
         m1 = BaseCallbackManager(handlers=[])
         m2 = BaseCallbackManager(handlers=[])
-        t1 = next(h for h in m1.inheritable_handlers if isinstance(h, LoongsuiteTracer))
-        t2 = next(h for h in m2.inheritable_handlers if isinstance(h, LoongsuiteTracer))
+        t1 = next(
+            h
+            for h in m1.inheritable_handlers
+            if isinstance(h, LoongsuiteTracer)
+        )
+        t2 = next(
+            h
+            for h in m2.inheritable_handlers
+            if isinstance(h, LoongsuiteTracer)
+        )
         assert t1 is t2
 
     def test_not_duplicated(self, instrument):
         m = BaseCallbackManager(handlers=[])
-        count = sum(1 for h in m.inheritable_handlers if isinstance(h, LoongsuiteTracer))
+        count = sum(
+            1
+            for h in m.inheritable_handlers
+            if isinstance(h, LoongsuiteTracer)
+        )
         assert count == 1
 
 
@@ -64,7 +76,9 @@ class TestSyncChainSpans:
         assert len(chain_spans) >= 1
 
     def test_multi_step_chain(self, instrument, span_exporter):
-        chain = RunnableLambda(lambda x: f"a({x})") | RunnableLambda(lambda x: f"b({x})")
+        chain = RunnableLambda(lambda x: f"a({x})") | RunnableLambda(
+            lambda x: f"b({x})"
+        )
         result = chain.invoke("hi")
         assert result == "b(a(hi))"
         spans = span_exporter.get_finished_spans()

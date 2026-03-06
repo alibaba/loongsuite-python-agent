@@ -19,13 +19,11 @@ Re-exports attributes from ``util-genai`` extended semconv so that the
 plugin and its tests have a single import source.
 """
 
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
-    GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY,
-    GEN_AI_SPAN_KIND as LLM_SPAN_KIND,
-    GEN_AI_TOOL_CALL_ARGUMENTS,
-    GEN_AI_TOOL_CALL_RESULT,
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # noqa: E501
+    GEN_AI_SPAN_KIND,
 )
+
+LLM_SPAN_KIND = GEN_AI_SPAN_KIND
 
 # Input/Output attributes (used for Chain spans)
 INPUT_VALUE = "input.value"

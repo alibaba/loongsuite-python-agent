@@ -105,8 +105,9 @@ class TestChainInputOutputContent:
         assert parsed.get("msg") == "payload"
         assert parsed.get("key") == 42
 
-
-    def test_no_content_when_disabled(self, instrument_no_content, span_exporter):
+    def test_no_content_when_disabled(
+        self, instrument_no_content, span_exporter
+    ):
         """Chain input/output should NOT be recorded when content capture is off."""
         chain = RunnableLambda(lambda x: f"result({x})")
         chain.invoke("secret_data")
@@ -120,9 +121,8 @@ class TestChainInputOutputContent:
 
 class TestChainComposition:
     def test_multi_step_chain(self, instrument, span_exporter):
-        chain = (
-            RunnableLambda(lambda x: f"a({x})")
-            | RunnableLambda(lambda x: f"b({x})")
+        chain = RunnableLambda(lambda x: f"a({x})") | RunnableLambda(
+            lambda x: f"b({x})"
         )
         result = chain.invoke("in")
         assert result == "b(a(in))"
@@ -132,9 +132,8 @@ class TestChainComposition:
 
     def test_multi_step_chain_data_flows(self, instrument, span_exporter):
         """Verify intermediate data flows through chain spans."""
-        chain = (
-            RunnableLambda(lambda x: f"step1({x})")
-            | RunnableLambda(lambda x: f"step2({x})")
+        chain = RunnableLambda(lambda x: f"step1({x})") | RunnableLambda(
+            lambda x: f"step2({x})"
         )
         chain.invoke("start")
 

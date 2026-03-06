@@ -20,7 +20,12 @@ from typing import Any, List, Optional
 import pytest
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+)
 from langchain_core.outputs import ChatGeneration, ChatResult
 
 from opentelemetry.semconv._incubating.attributes import (
@@ -112,8 +117,7 @@ class TestLLMSpanCreation:
         assert len(chat_spans) >= 1
         span = chat_spans[0]
         assert "test-gpt" in span.name or any(
-            "test-gpt" in str(v)
-            for v in span.attributes.values()
+            "test-gpt" in str(v) for v in span.attributes.values()
         )
 
     def test_llm_span_operation_name(self, instrument, span_exporter):
@@ -142,7 +146,9 @@ class TestLLMSpanCreation:
         chat_spans = _find_chat_spans(span_exporter)
         assert len(chat_spans) >= 1
         attrs = dict(chat_spans[0].attributes)
-        finish_reasons = attrs.get(GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS)
+        finish_reasons = attrs.get(
+            GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS
+        )
         assert finish_reasons is not None
         if isinstance(finish_reasons, tuple):
             finish_reasons = list(finish_reasons)
@@ -155,7 +161,9 @@ class TestLLMSpanCreation:
 
         spans = span_exporter.get_finished_spans()
         assert len(spans) >= 1
-        error_spans = [s for s in spans if s.status.status_code == StatusCode.ERROR]
+        error_spans = [
+            s for s in spans if s.status.status_code == StatusCode.ERROR
+        ]
         assert len(error_spans) >= 1
 
 
@@ -181,7 +189,8 @@ class TestLLMInputOutputContent:
         has_user_msg = any(
             m.get("role") == "user"
             and any(
-                p.get("type") == "text" and "Hello world" in p.get("content", "")
+                p.get("type") == "text"
+                and "Hello world" in p.get("content", "")
                 for p in m.get("parts", [])
             )
             for m in input_msgs
@@ -209,7 +218,8 @@ class TestLLMInputOutputContent:
         has_assistant_msg = any(
             m.get("role") == "assistant"
             and any(
-                p.get("type") == "text" and "Test response from LLM" in p.get("content", "")
+                p.get("type") == "text"
+                and "Test response from LLM" in p.get("content", "")
                 for p in m.get("parts", [])
             )
             for m in output_msgs
@@ -221,10 +231,12 @@ class TestLLMInputOutputContent:
     def test_multi_message_input(self, instrument, span_exporter):
         """Verify system + user multi-turn messages are captured."""
         llm = FakeChatModel()
-        llm.invoke([
-            SystemMessage(content="You are a helpful assistant."),
-            HumanMessage(content="What is Python?"),
-        ])
+        llm.invoke(
+            [
+                SystemMessage(content="You are a helpful assistant."),
+                HumanMessage(content="What is Python?"),
+            ]
+        )
 
         chat_spans = _find_chat_spans(span_exporter)
         assert len(chat_spans) >= 1
@@ -240,7 +252,9 @@ class TestLLMInputOutputContent:
         assert "system" in roles, f"Missing system role in {roles}"
         assert "user" in roles, f"Missing user role in {roles}"
 
-    def test_no_content_when_disabled(self, instrument_no_content, span_exporter):
+    def test_no_content_when_disabled(
+        self, instrument_no_content, span_exporter
+    ):
         """When content capture is disabled, messages should NOT appear in span attributes."""
         llm = FakeChatModel()
         llm.invoke([HumanMessage(content="secret data")])
@@ -261,7 +275,9 @@ class TestLLMInputOutputContent:
 
 
 class TestLLMMultipleCalls:
-    def test_multiple_calls_create_multiple_spans(self, instrument, span_exporter):
+    def test_multiple_calls_create_multiple_spans(
+        self, instrument, span_exporter
+    ):
         llm = FakeChatModel()
         llm.invoke([HumanMessage(content="first")])
         llm.invoke([HumanMessage(content="second")])
