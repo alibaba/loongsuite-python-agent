@@ -5,58 +5,48 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-langchain"
 dynamic = ["version"]
-description = "OpenTelemetry LangChain Instrumentation"
+description = "LongSuite LangChain Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-    { name = "LoongSuite Python Agent Authors", email = "" },
+  { name = "LoongSuite Python Agent Authors", email = "" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "opentelemetry-api ~= 1.37",
-    "opentelemetry-instrumentation >= 0.58b0",
-    "opentelemetry-semantic-conventions >= 0.58b0",
+  "opentelemetry-api ~= 1.37",
+  "opentelemetry-instrumentation >= 0.58b0",
+  "opentelemetry-semantic-conventions >= 0.58b0",
+  "opentelemetry-util-genai",
+  "wrapt",
 ]
 
 [project.optional-dependencies]
 instruments = [
-    "langchain_core >= 0.1.0",
+  "langchain_core >= 0.1.0, < 1.0.0",
 ]
-test = [
-    "pytest",
-    "opentelemetry-sdk",
-    "langchain_core == 0.1.8",
-    "langchain == 0.1.0",
-    "langchain_openai == 0.0.2",
-    "langchain-community == 0.0.10",
-    "respx",
-    "numpy",
-    "openai",
-    "httpx",
-]
-type-check = [
-    "langchain_core == 0.1.0",
-]
+
+[project.urls]
+Homepage = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/langchain/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src",
-    "tests",
+  "src",
+  "tests",
 ]
 
 [tool.hatch.build.targets.wheel]

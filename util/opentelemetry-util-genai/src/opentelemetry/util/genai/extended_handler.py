@@ -69,6 +69,7 @@ from typing import Iterator, Optional, Union
 
 from opentelemetry import context as otel_context
 from opentelemetry._logs import LoggerProvider
+from opentelemetry.context import Context
 from opentelemetry.metrics import MeterProvider, get_meter
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
@@ -107,7 +108,7 @@ from opentelemetry.util.genai.extended_types import (
     RerankInvocation,
     RetrieveInvocation,
 )
-from opentelemetry.util.genai.handler import TelemetryHandler
+from opentelemetry.util.genai.handler import TelemetryHandler, _safe_detach
 from opentelemetry.util.genai.span_utils import _apply_error_attributes
 from opentelemetry.util.genai.types import Error, LLMInvocation
 
@@ -221,7 +222,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Create Agent Operations ====================
 
     def start_create_agent(
-        self, invocation: CreateAgentInvocation
+        self,
+        invocation: CreateAgentInvocation,
+        context: Context | None = None,
     ) -> CreateAgentInvocation:
         """Start an agent creation invocation and create a pending span entry."""
         if invocation.agent_name:
@@ -233,6 +236,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         span = self._tracer.start_span(
             name=span_name,
             kind=SpanKind.CLIENT,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -253,7 +257,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_create_agent_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -270,7 +274,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -294,12 +298,15 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Embedding Operations ====================
 
     def start_embedding(
-        self, invocation: EmbeddingInvocation
+        self,
+        invocation: EmbeddingInvocation,
+        context: Context | None = None,
     ) -> EmbeddingInvocation:
         """Start an embedding invocation and create a pending span entry."""
         span = self._tracer.start_span(
             name=f"{GenAI.GenAiOperationNameValues.EMBEDDINGS.value} {invocation.request_model}",
             kind=SpanKind.CLIENT,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -320,7 +327,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_embedding_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -337,7 +344,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -361,12 +368,15 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Execute Tool Operations ====================
 
     def start_execute_tool(
-        self, invocation: ExecuteToolInvocation
+        self,
+        invocation: ExecuteToolInvocation,
+        context: Context | None = None,
     ) -> ExecuteToolInvocation:
         """Start a tool execution invocation and create a pending span entry."""
         span = self._tracer.start_span(
             name=f"{GenAI.GenAiOperationNameValues.EXECUTE_TOOL.value} {invocation.tool_name}",
             kind=SpanKind.INTERNAL,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -387,7 +397,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_execute_tool_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -404,7 +414,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -428,7 +438,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Invoke Agent Operations ====================
 
     def start_invoke_agent(
-        self, invocation: InvokeAgentInvocation
+        self,
+        invocation: InvokeAgentInvocation,
+        context: Context | None = None,
     ) -> InvokeAgentInvocation:
         """Start an agent invocation and create a pending span entry."""
         if invocation.agent_name:
@@ -441,6 +453,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         span = self._tracer.start_span(
             name=span_name,
             kind=SpanKind.INTERNAL,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -472,7 +485,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         )
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -501,7 +514,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
@@ -525,12 +538,15 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     # ==================== Retrieve Documents Operations ====================
 
     def start_retrieve(
-        self, invocation: RetrieveInvocation
+        self,
+        invocation: RetrieveInvocation,
+        context: Context | None = None,
     ) -> RetrieveInvocation:
         """Start a retrieve documents invocation and create a pending span entry."""
         span = self._tracer.start_span(
             name="retrieve_documents",
             kind=SpanKind.INTERNAL,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -551,7 +567,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_retrieve_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -568,7 +584,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -591,11 +607,16 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
     # ==================== Rerank Documents Operations ====================
 
-    def start_rerank(self, invocation: RerankInvocation) -> RerankInvocation:
+    def start_rerank(
+        self,
+        invocation: RerankInvocation,
+        context: Context | None = None,
+    ) -> RerankInvocation:
         """Start a rerank documents invocation and create a pending span entry."""
         span = self._tracer.start_span(
             name="rerank_documents",
             kind=SpanKind.INTERNAL,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -614,7 +635,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_rerank_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -631,7 +652,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             invocation.span, invocation, error_type=error.type.__qualname__
         )
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -654,7 +675,11 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
     # ==================== Memory Operations ====================
 
-    def start_memory(self, invocation: MemoryInvocation) -> MemoryInvocation:
+    def start_memory(
+        self,
+        invocation: MemoryInvocation,
+        context: Context | None = None,
+    ) -> MemoryInvocation:
         """Start a memory operation invocation and create a pending span entry."""
         span_name = f"memory_operation {invocation.operation}"
 
@@ -662,6 +687,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         span = self._tracer.start_span(
             name=span_name,
             kind=SpanKind.CLIENT,
+            context=context,
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -681,7 +707,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _maybe_emit_memory_event(self._logger, invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
@@ -696,7 +722,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         _apply_memory_finish_attributes(span, invocation)
         _apply_error_attributes(span, error)
         _maybe_emit_memory_event(self._logger, span, invocation, error)  # pylint: disable=too-many-function-args
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
