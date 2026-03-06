@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add Entry span (`gen_ai.span.kind=ENTRY`) and ReAct Step span (`gen_ai.span.kind=STEP`) support in `ExtendedTelemetryHandler` with types, utilities, and context-manager APIs
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+- Propagate `gen_ai.session.id` and `gen_ai.user.id` into Baggage during `start_entry`, enabling traffic coloring via `BaggageSpanProcessor` for all child spans within the entry block
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+
 ### Changed
 
 - Add optional `context` parameter to all `start_*` methods in `TelemetryHandler` and `ExtendedTelemetryHandler` for explicit parent-child span linking

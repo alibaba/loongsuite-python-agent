@@ -22,7 +22,10 @@ import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
 
+from opentelemetry import baggage as baggage_api
+from opentelemetry import context as context_api
 from opentelemetry import trace
+from opentelemetry.baggage import get_all as get_all_baggage
 from opentelemetry.instrumentation._semconv import (
     OTEL_SEMCONV_STABILITY_OPT_IN,
     _OpenTelemetrySemanticConventionStability,
@@ -1114,6 +1117,69 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 ErrorAttributes.ERROR_TYPE: EntryError.__qualname__,
             },
         )
+
+    def test_entry_propagates_baggage_for_child_spans(self):
+        """session_id and user_id set at construction time are propagated
+        to Baggage so that BaggageSpanProcessor copies them to child spans."""
+        entry_inv = EntryInvocation(
+            session_id="sess_bag_123",
+            user_id="user_bag_456",
+        )
+        with self.telemetry_handler.entry(entry_inv):
+            current_baggage = get_all_baggage()
+            self.assertEqual(
+                current_baggage.get("gen_ai.session.id"), "sess_bag_123"
+            )
+            self.assertEqual(
+                current_baggage.get("gen_ai.user.id"), "user_bag_456"
+            )
+
+            with self.telemetry_handler.embedding() as emb_inv:
+                emb_inv.request_model = "text-embedding-3-small"
+                emb_inv.provider = "openai"
+
+        restored_baggage = get_all_baggage()
+        self.assertNotIn("gen_ai.session.id", restored_baggage)
+        self.assertNotIn("gen_ai.user.id", restored_baggage)
+
+    def test_entry_baggage_overwrites_existing(self):
+        """If baggage already contains session_id/user_id, entry overwrites them."""
+        ctx = baggage_api.set_baggage("gen_ai.session.id", "old_session")
+        ctx = baggage_api.set_baggage("gen_ai.user.id", "old_user", ctx)
+        token = context_api.attach(ctx)
+
+        try:
+            entry_inv = EntryInvocation(
+                session_id="new_session",
+                user_id="new_user",
+            )
+            with self.telemetry_handler.entry(entry_inv):
+                current_baggage = baggage_api.get_all()
+                self.assertEqual(
+                    current_baggage.get("gen_ai.session.id"), "new_session"
+                )
+                self.assertEqual(
+                    current_baggage.get("gen_ai.user.id"), "new_user"
+                )
+        finally:
+            context_api.detach(token)
+
+    def test_entry_baggage_only_session_id(self):
+        """Only session_id is set, user_id should not appear in baggage."""
+        entry_inv = EntryInvocation(session_id="sess_only")
+        with self.telemetry_handler.entry(entry_inv):
+            current_baggage = get_all_baggage()
+            self.assertEqual(
+                current_baggage.get("gen_ai.session.id"), "sess_only"
+            )
+            self.assertNotIn("gen_ai.user.id", current_baggage)
+
+    def test_entry_no_baggage_when_values_not_set(self):
+        """When neither session_id nor user_id is set, no baggage is propagated."""
+        with self.telemetry_handler.entry():
+            current_baggage = get_all_baggage()
+            self.assertNotIn("gen_ai.session.id", current_baggage)
+            self.assertNotIn("gen_ai.user.id", current_baggage)
 
     # ==================== ReAct Step Tests ====================
 

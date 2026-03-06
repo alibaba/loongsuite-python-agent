@@ -67,6 +67,7 @@ import timeit
 from contextlib import contextmanager
 from typing import Iterator, Optional, Union
 
+from opentelemetry import baggage
 from opentelemetry import context as otel_context
 from opentelemetry._logs import LoggerProvider
 from opentelemetry.context import Context
@@ -90,6 +91,12 @@ from opentelemetry.util.genai._extended_memory import (
     MemoryInvocation,
     _apply_memory_finish_attributes,
     _maybe_emit_memory_event,
+)
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+    GEN_AI_SESSION_ID as _GEN_AI_SESSION_ID,
+)
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+    GEN_AI_USER_ID as _GEN_AI_USER_ID,
 )
 from opentelemetry.util.genai._multimodal_processing import (
     MultimodalProcessingMixin,
@@ -764,6 +771,18 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
 
         Entry identifies the call entry point to an AI application system.
         Span name: enter_ai_application_system (per LoongSuite semantic conventions).
+
+        If ``session_id`` or ``user_id`` are set on the invocation, they are
+        also propagated into Baggage (keys ``gen_ai.session.id`` /
+        ``gen_ai.user.id``).  Combined with a ``BaggageSpanProcessor``, this
+        enables traffic coloring: every child span created inside the entry
+        block will automatically inherit these values as span attributes.
+
+        .. note::
+
+           For baggage propagation to take effect on child spans,
+           ``session_id`` / ``user_id`` must be set **before**
+           ``start_entry`` is called (i.e. at construction time).
         """
         span = self._tracer.start_span(
             name="enter_ai_application_system",
@@ -772,9 +791,15 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         )
         invocation.monotonic_start_s = timeit.default_timer()
         invocation.span = span
-        invocation.context_token = otel_context.attach(
-            set_span_in_context(span)
-        )
+
+        ctx = set_span_in_context(span)
+        if invocation.session_id is not None:
+            ctx = baggage.set_baggage(
+                _GEN_AI_SESSION_ID, invocation.session_id, ctx
+            )
+        if invocation.user_id is not None:
+            ctx = baggage.set_baggage(_GEN_AI_USER_ID, invocation.user_id, ctx)
+        invocation.context_token = otel_context.attach(ctx)
         return invocation
 
     def stop_entry(self, invocation: EntryInvocation) -> EntryInvocation:  # pylint: disable=no-self-use

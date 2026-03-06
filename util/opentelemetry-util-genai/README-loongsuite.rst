@@ -16,6 +16,8 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 - **retrieve**: 文档检索操作（向量数据库查询）
 - **rerank**: 文档重排序操作
 - **memory**: 记忆操作，支持记忆的增删改查等操作
+- **entry**: AI 应用系统入口标识，支持 session_id/user_id 的 Baggage 传播
+- **react_step**: ReAct 轮次标识，记录 Agent 推理-行动迭代
 
 这些扩展操作遵循 OpenTelemetry GenAI 语义约定，并与基础的 LLM 操作保持一致的使用体验。
 
@@ -436,8 +438,112 @@ Token 使用:
         invocation.rerank_output_documents = [...]
 
 
-8. 记忆操作 (memory)
-~~~~~~~~~~~~~~~~~~~~
+8. 入口标识 (entry)
+~~~~~~~~~~~~~~~~~~~
+
+用于标识一次对 AI 应用系统的调用入口。Entry span 会自动将 ``session_id`` 和 ``user_id`` 写入
+Baggage，配合 ``BaggageSpanProcessor`` 可实现流量染色：所有在 Entry 块内创建的子 span 都会
+自动继承这两个值作为 span attribute。
+
+**支持的属性:**
+
+- ``gen_ai.operation.name``: 操作名称，固定为 "enter"
+- ``gen_ai.span.kind``: 固定为 "ENTRY"（LoongSuite 扩展）
+- ``gen_ai.session.id``: 会话 ID（条件必需）
+- ``gen_ai.user.id``: 应用的 C 端用户标识（条件必需）
+- ``gen_ai.input.messages``: 输入消息（受内容捕获模式控制）
+- ``gen_ai.output.messages``: 输出消息（受内容捕获模式控制）
+- ``gen_ai.response.time_to_first_token``: 首包响应耗时（纳秒）
+
+**Baggage 传播机制:**
+
+当 ``session_id`` 或 ``user_id`` 在创建 ``EntryInvocation`` 时设置，``start_entry`` 会将它们
+写入当前上下文的 Baggage（key 分别为 ``gen_ai.session.id`` 和 ``gen_ai.user.id``）。如果
+Baggage 中已有同名 key，则会被覆盖。
+
+配合 ``BaggageSpanProcessor``，所有子 span（如 LLM、Agent、Tool 等）在 ``on_start`` 时会
+自动将 Baggage 中的值拷贝为 span attribute，从而实现全链路的 session/user 标记。
+
+.. important::
+
+   为使 Baggage 传播对子 span 生效，``session_id`` / ``user_id`` 必须在调用
+   ``start_entry`` **之前**设置（即在 ``EntryInvocation`` 构造时传入）。
+
+**使用示例:**
+
+::
+
+    from opentelemetry.util.genai._extended_common import EntryInvocation
+    from opentelemetry.util.genai.extended_handler import get_extended_telemetry_handler
+
+    handler = get_extended_telemetry_handler()
+
+    # session_id 和 user_id 在构造时传入，确保 Baggage 传播生效
+    entry_inv = EntryInvocation(
+        session_id="ddde34343-f93a-4477-33333-sdfsdaf",
+        user_id="u-lK8JddD",
+    )
+    with handler.entry(entry_inv) as invocation:
+        invocation.response_time_to_first_token = 1000000  # 纳秒
+
+        # 在 Entry 块内的所有子操作都会通过 BaggageSpanProcessor 继承
+        # gen_ai.session.id 和 gen_ai.user.id
+        with handler.invoke_agent() as agent_inv:
+            agent_inv.provider = "openai"
+            agent_inv.agent_name = "MyAgent"
+            # ...
+
+**配合 BaggageSpanProcessor 实现流量染色:**
+
+::
+
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.processor.baggage import BaggageSpanProcessor, ALLOW_ALL_BAGGAGE_KEYS
+
+    provider = TracerProvider()
+    provider.add_span_processor(BaggageSpanProcessor(ALLOW_ALL_BAGGAGE_KEYS))
+
+
+9. ReAct 轮次标识 (react_step)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+用于标识 Agent 的一次 Reasoning-Acting 迭代过程。
+
+**支持的属性:**
+
+- ``gen_ai.operation.name``: 操作名称，固定为 "react"
+- ``gen_ai.span.kind``: 固定为 "STEP"（LoongSuite 扩展）
+- ``gen_ai.react.finish_reason``: 本轮 ReAct 结束的原因（推荐）
+- ``gen_ai.react.round``: 本轮 ReAct 的轮次号，从 1 开始（推荐）
+
+**使用示例:**
+
+::
+
+    from opentelemetry.util.genai._extended_common import ReactStepInvocation
+
+    # 在 Agent 调用中记录每一轮 ReAct 迭代
+    with handler.invoke_agent() as agent_inv:
+        agent_inv.provider = "openai"
+        agent_inv.agent_name = "ReActAgent"
+
+        for round_num in range(1, 4):
+            step_inv = ReactStepInvocation(round=round_num)
+            with handler.react_step(step_inv) as step:
+                # Reasoning: LLM 推理
+                with handler.llm(llm_invocation):
+                    pass
+
+                # Acting: 工具调用
+                with handler.execute_tool() as tool_inv:
+                    tool_inv.tool_name = "search"
+                    pass
+
+                step.finish_reason = "stop" if round_num == 3 else "continue"
+
+
+10. 记忆操作 (memory)
+~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪 AI Agent 的记忆操作，支持记忆的增删改查、搜索和历史查询等功能。
 
