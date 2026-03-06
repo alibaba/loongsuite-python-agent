@@ -14,6 +14,8 @@
 
 """Test configuration for LangChain Instrumentation."""
 
+import os
+
 import pytest
 
 from opentelemetry._logs import set_logger_provider
@@ -30,6 +32,13 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
+from opentelemetry.util.genai.environment_variables import (
+    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
+)
+
+
+def pytest_configure(config: pytest.Config):
+    os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"] = "gen_ai_latest_experimental"
 
 
 # ==================== Exporters and Readers ====================
@@ -84,6 +93,8 @@ def fixture_logger_provider(log_exporter):
 
 @pytest.fixture(scope="function")
 def instrument(tracer_provider, meter_provider, logger_provider, span_exporter):
+    """Instrument with content capture enabled (SPAN_ONLY)."""
+    os.environ[OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT] = "SPAN_ONLY"
     instrumentor = LangChainInstrumentor()
     instrumentor.instrument(
         tracer_provider=tracer_provider,
@@ -93,3 +104,20 @@ def instrument(tracer_provider, meter_provider, logger_provider, span_exporter):
     yield instrumentor
     instrumentor.uninstrument()
     span_exporter.clear()
+    os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)
+
+
+@pytest.fixture(scope="function")
+def instrument_no_content(tracer_provider, meter_provider, logger_provider, span_exporter):
+    """Instrument without capturing message content."""
+    os.environ[OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT] = "NO_CONTENT"
+    instrumentor = LangChainInstrumentor()
+    instrumentor.instrument(
+        tracer_provider=tracer_provider,
+        meter_provider=meter_provider,
+        logger_provider=logger_provider,
+    )
+    yield instrumentor
+    instrumentor.uninstrument()
+    span_exporter.clear()
+    os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)

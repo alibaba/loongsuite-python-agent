@@ -52,14 +52,18 @@ class FakeErrorRetriever(BaseRetriever):
         raise ValueError("retriever failure")
 
 
+def _find_retriever_spans(span_exporter):
+    spans = span_exporter.get_finished_spans()
+    return [s for s in spans if "retrieve" in s.name.lower()]
+
+
 class TestRetrieverSpanCreation:
     def test_retriever_creates_span(self, instrument, span_exporter):
         retriever = FakeRetriever()
         docs = retriever.invoke("test query")
         assert len(docs) >= 1
 
-        spans = span_exporter.get_finished_spans()
-        retriever_spans = [s for s in spans if "retrieve" in s.name.lower()]
+        retriever_spans = _find_retriever_spans(span_exporter)
         assert len(retriever_spans) >= 1
 
     def test_retriever_error_span(self, instrument, span_exporter):
@@ -70,3 +74,47 @@ class TestRetrieverSpanCreation:
         spans = span_exporter.get_finished_spans()
         error_spans = [s for s in spans if s.status.status_code == StatusCode.ERROR]
         assert len(error_spans) >= 1
+
+
+class TestRetrieverInputOutputContent:
+    """Verify retriever query and documents in span attributes."""
+
+    def test_retrieval_query_captured(self, instrument, span_exporter):
+        retriever = FakeRetriever()
+        retriever.invoke("machine learning basics")
+
+        retriever_spans = _find_retriever_spans(span_exporter)
+        assert len(retriever_spans) >= 1
+        attrs = dict(retriever_spans[0].attributes)
+
+        query_val = attrs.get("gen_ai.retrieval.query", "")
+        assert "machine learning basics" in query_val, (
+            f"Expected 'machine learning basics' in retrieval.query, got: {query_val}"
+        )
+
+    def test_retrieval_documents_captured(self, instrument, span_exporter):
+        retriever = FakeRetriever()
+        retriever.invoke("test docs query")
+
+        retriever_spans = _find_retriever_spans(span_exporter)
+        assert len(retriever_spans) >= 1
+        attrs = dict(retriever_spans[0].attributes)
+
+        docs_val = attrs.get("gen_ai.retrieval.documents", "")
+        assert "Result for: test docs query" in docs_val, (
+            f"Expected document content in retrieval.documents, got: {docs_val}"
+        )
+
+    def test_no_documents_when_disabled(self, instrument_no_content, span_exporter):
+        """When content capture is disabled, documents should NOT appear."""
+        retriever = FakeRetriever()
+        retriever.invoke("secret query")
+
+        retriever_spans = _find_retriever_spans(span_exporter)
+        assert len(retriever_spans) >= 1
+        attrs = dict(retriever_spans[0].attributes)
+
+        assert "gen_ai.retrieval.documents" not in attrs, (
+            "Retrieval documents should NOT be captured when content capture is disabled"
+        )
+        assert attrs.get("gen_ai.retrieval.query") == "secret query"
