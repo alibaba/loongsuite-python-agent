@@ -71,7 +71,10 @@ from opentelemetry._logs import (
     LoggerProvider,
     get_logger,
 )
-from opentelemetry.context import Context  # LoongSuite Extension
+from opentelemetry.context import (  # LoongSuite Extension
+    _RUNTIME_CONTEXT,
+    Context,
+)
 from opentelemetry.metrics import MeterProvider, get_meter
 from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.trace import (
@@ -106,8 +109,6 @@ def _safe_detach(token: object) -> None:
     if token is None:
         return
     try:
-        from opentelemetry.context import _RUNTIME_CONTEXT  # pylint: disable=import-outside-toplevel
-
         _RUNTIME_CONTEXT.detach(token)  # type: ignore[arg-type]
     except Exception:  # noqa: BLE001
         logger.debug("Context detach failed (cross-thread/async scenario)")

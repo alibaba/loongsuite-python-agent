@@ -246,7 +246,9 @@ def _extract_llm_input_messages(run: Any) -> list[InputMessage]:
     if prompts and isinstance(prompts, list):
         for p in prompts:
             if isinstance(p, str):
-                messages.append(InputMessage(role="user", parts=[Text(content=p)]))
+                messages.append(
+                    InputMessage(role="user", parts=[Text(content=p)])
+                )
         return messages
 
     return messages
@@ -303,10 +305,16 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
     """Return (input_tokens, output_tokens) from a completed LLM Run."""
     outputs = getattr(run, "outputs", None) or {}
     llm_output = outputs.get("llm_output") or {}
-    token_usage = llm_output.get("token_usage") or llm_output.get("usage") or {}
+    token_usage = (
+        llm_output.get("token_usage") or llm_output.get("usage") or {}
+    )
 
-    input_tokens = token_usage.get("prompt_tokens") or token_usage.get("input_tokens")
-    output_tokens = token_usage.get("completion_tokens") or token_usage.get("output_tokens")
+    input_tokens = token_usage.get("prompt_tokens") or token_usage.get(
+        "input_tokens"
+    )
+    output_tokens = token_usage.get("completion_tokens") or token_usage.get(
+        "output_tokens"
+    )
     return (
         int(input_tokens) if input_tokens is not None else None,
         int(output_tokens) if output_tokens is not None else None,

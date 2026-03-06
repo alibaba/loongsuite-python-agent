@@ -45,8 +45,28 @@ from threading import RLock
 from typing import Any, Literal, Optional
 from uuid import UUID
 
+from langchain_core.tracers.base import BaseTracer
+from langchain_core.tracers.schemas import Run
+
 from opentelemetry import context as otel_context
 from opentelemetry.context import Context
+from opentelemetry.instrumentation.langchain.internal._utils import (
+    _extract_finish_reasons,
+    _extract_invocation_params,
+    _extract_llm_input_messages,
+    _extract_llm_output_messages,
+    _extract_model_name,
+    _extract_provider,
+    _extract_response_model,
+    _extract_token_usage,
+    _is_agent_run,
+    _safe_json,
+)
+from opentelemetry.instrumentation.langchain.internal.semconv import (
+    INPUT_VALUE,
+    LLM_SPAN_KIND,
+    OUTPUT_VALUE,
+)
 from opentelemetry.trace import Span, SpanKind, StatusCode, set_span_in_context
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
@@ -66,27 +86,6 @@ from opentelemetry.util.genai.utils import (
     ContentCapturingMode,
     get_content_capturing_mode,
     is_experimental_mode,
-)
-
-from langchain_core.tracers.base import BaseTracer
-from langchain_core.tracers.schemas import Run
-
-from opentelemetry.instrumentation.langchain.internal._utils import (
-    _extract_finish_reasons,
-    _extract_invocation_params,
-    _extract_llm_input_messages,
-    _extract_llm_output_messages,
-    _extract_model_name,
-    _extract_provider,
-    _extract_response_model,
-    _extract_token_usage,
-    _is_agent_run,
-    _safe_json,
-)
-from opentelemetry.instrumentation.langchain.internal.semconv import (
-    INPUT_VALUE,
-    LLM_SPAN_KIND,
-    OUTPUT_VALUE,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,6 +122,7 @@ def _should_capture_chain_content() -> bool:
 # LoongsuiteTracer
 # ---------------------------------------------------------------------------
 
+
 class LoongsuiteTracer(BaseTracer):
     """LangChain tracer that emits OpenTelemetry spans via util-genai.
 
@@ -138,7 +138,9 @@ class LoongsuiteTracer(BaseTracer):
     LangChain callbacks may be fired from different threads.
     """
 
-    def __init__(self, handler: ExtendedTelemetryHandler, **kwargs: Any) -> None:
+    def __init__(
+        self, handler: ExtendedTelemetryHandler, **kwargs: Any
+    ) -> None:
         super().__init__(_schema_format="original+chat", **kwargs)
         self._handler = handler
         self._runs: dict[UUID, _RunData] = {}
@@ -187,7 +189,11 @@ class LoongsuiteTracer(BaseTracer):
         """Record the first-token timestamp for TTFT calculation."""
         with self._lock:
             rd = self._runs.get(run_id)
-        if rd is not None and rd.run_kind == "llm" and rd.invocation is not None:
+        if (
+            rd is not None
+            and rd.run_kind == "llm"
+            and rd.invocation is not None
+        ):
             inv: LLMInvocation = rd.invocation
             if inv.monotonic_first_token_s is None:
                 inv.monotonic_first_token_s = timeit.default_timer()
@@ -213,13 +219,16 @@ class LoongsuiteTracer(BaseTracer):
                 input_messages=_extract_llm_input_messages(run),
                 temperature=params.get("temperature"),
                 top_p=params.get("top_p"),
-                max_tokens=params.get("max_tokens") or params.get("max_output_tokens"),
+                max_tokens=params.get("max_tokens")
+                or params.get("max_output_tokens"),
             )
             self._handler.start_llm(invocation, context=parent_ctx)
             rd = _RunData(
                 run_kind="llm",
                 span=invocation.span,
-                context=set_span_in_context(invocation.span) if invocation.span else None,
+                context=set_span_in_context(invocation.span)
+                if invocation.span
+                else None,
                 invocation=invocation,
             )
             with self._lock:
@@ -288,7 +297,9 @@ class LoongsuiteTracer(BaseTracer):
         rd = _RunData(
             run_kind="agent",
             span=invocation.span,
-            context=set_span_in_context(invocation.span) if invocation.span else None,
+            context=set_span_in_context(invocation.span)
+            if invocation.span
+            else None,
             invocation=invocation,
         )
         with self._lock:
@@ -401,7 +412,9 @@ class LoongsuiteTracer(BaseTracer):
             rd = _RunData(
                 run_kind="tool",
                 span=invocation.span,
-                context=set_span_in_context(invocation.span) if invocation.span else None,
+                context=set_span_in_context(invocation.span)
+                if invocation.span
+                else None,
                 invocation=invocation,
             )
             with self._lock:
@@ -454,7 +467,9 @@ class LoongsuiteTracer(BaseTracer):
             rd = _RunData(
                 run_kind="retriever",
                 span=invocation.span,
-                context=set_span_in_context(invocation.span) if invocation.span else None,
+                context=set_span_in_context(invocation.span)
+                if invocation.span
+                else None,
                 invocation=invocation,
             )
             with self._lock:

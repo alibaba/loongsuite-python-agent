@@ -40,7 +40,10 @@ class FakeRetriever(BaseRetriever):
         run_manager: CallbackManagerForRetrieverRun,
     ) -> List[Document]:
         return self.docs or [
-            Document(page_content=f"Result for: {query}", metadata={"source": "test"})
+            Document(
+                page_content=f"Result for: {query}",
+                metadata={"source": "test"},
+            )
         ]
 
 
@@ -76,7 +79,9 @@ class TestRetrieverSpanCreation:
             retriever.invoke("fail query")
 
         spans = span_exporter.get_finished_spans()
-        error_spans = [s for s in spans if s.status.status_code == StatusCode.ERROR]
+        error_spans = [
+            s for s in spans if s.status.status_code == StatusCode.ERROR
+        ]
         assert len(error_spans) >= 1
 
 
@@ -109,7 +114,9 @@ class TestRetrieverInputOutputContent:
             f"Expected document content in retrieval.documents, got: {docs_val}"
         )
 
-    def test_no_documents_when_disabled(self, instrument_no_content, span_exporter):
+    def test_no_documents_when_disabled(
+        self, instrument_no_content, span_exporter
+    ):
         """When content capture is disabled, documents should NOT appear."""
         retriever = FakeRetriever()
         retriever.invoke("secret query")

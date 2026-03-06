@@ -93,9 +93,7 @@ class LangChainInstrumentor(BaseInstrumentor):
             unwrap(langchain_core.callbacks.BaseCallbackManager, "__init__")
             logger.debug("Uninstrumented BaseCallbackManager.__init__")
         except Exception as e:
-            logger.warning(
-                f"Failed to uninstrument BaseCallbackManager: {e}"
-            )
+            logger.warning(f"Failed to uninstrument BaseCallbackManager: {e}")
 
 
 class _BaseCallbackManagerInit:
