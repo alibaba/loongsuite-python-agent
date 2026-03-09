@@ -343,7 +343,7 @@ class LoongsuiteTracer(BaseTracer):
 
         parent_span_name: str = span.name
         if parent_span_name.startswith("chain "):
-            return parent_span_name[len("chain "):]
+            return parent_span_name[len("chain ") :]
         return name
 
     def _start_agent(self, run: Run) -> None:
@@ -751,9 +751,7 @@ def _extract_langgraph_input_message(msg: Any) -> InputMessage | None:
     if isinstance(msg, (list, tuple)) and len(msg) == 2:
         role, content = msg
         if isinstance(content, str) and content:
-            return InputMessage(
-                role=str(role), parts=[Text(content=content)]
-            )
+            return InputMessage(role=str(role), parts=[Text(content=content)])
         return None
 
     # LangChain message object (HumanMessage, AIMessage, etc.)

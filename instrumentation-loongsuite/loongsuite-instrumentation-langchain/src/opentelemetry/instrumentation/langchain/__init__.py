@@ -79,7 +79,9 @@ def _get_agent_executor_classes() -> list[type]:
         if AgentExecutor not in classes:
             classes.append(AgentExecutor)
     except ImportError as e:
-        logger.debug("langchain_classic.agents.AgentExecutor not available: %s", e)
+        logger.debug(
+            "langchain_classic.agents.AgentExecutor not available: %s", e
+        )
     return classes
 
 

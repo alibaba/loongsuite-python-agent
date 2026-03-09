@@ -19,7 +19,6 @@ that ReAct Step spans are created with correct attributes, and that the
 span hierarchy (Agent > ReAct Step > LLM/Tool) is correct.
 """
 
-import logging
 import unittest
 from typing import Any, List, Optional
 
@@ -30,9 +29,6 @@ from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 
 from opentelemetry.instrumentation.langchain import LangChainInstrumentor
-from opentelemetry.instrumentation.langchain.internal.patch import (
-    _REACT_STEP_LOGGER,
-)
 
 
 class _FakeChatModel(BaseChatModel):
@@ -71,13 +67,13 @@ def _get_agent_executor_classes():
     """Mirror of _get_agent_executor_classes from __init__.py for testing."""
     classes = []
     try:
-        from langchain.agents import AgentExecutor
+        from langchain.agents import AgentExecutor  # noqa: PLC0415
 
         classes.append(AgentExecutor)
     except ImportError:
         pass
     try:
-        from langchain_classic.agents import AgentExecutor
+        from langchain_classic.agents import AgentExecutor  # noqa: PLC0415
 
         if AgentExecutor not in classes:
             classes.append(AgentExecutor)
@@ -102,13 +98,17 @@ class TestReActStepPatchApplied(unittest.TestCase):
         """AgentExecutor._iter_next_step should be wrapped after instrument."""
         classes = _get_agent_executor_classes()
         if not classes:
-            pytest.skip("AgentExecutor not available (langchain not installed)")
+            pytest.skip(
+                "AgentExecutor not available (langchain not installed)"
+            )
 
         self.instrumentor.instrument()
 
         # At least one class should have our wrapper
         patched = [
-            c for c in classes if c._iter_next_step.__name__ == "patched_iter_next_step"
+            c
+            for c in classes
+            if c._iter_next_step.__name__ == "patched_iter_next_step"
         ]
         assert patched, (
             f"Expected at least one patched AgentExecutor, got: "
@@ -119,7 +119,9 @@ class TestReActStepPatchApplied(unittest.TestCase):
         """AgentExecutor._iter_next_step should be original after uninstrument."""
         classes = _get_agent_executor_classes()
         if not classes:
-            pytest.skip("AgentExecutor not available (langchain not installed)")
+            pytest.skip(
+                "AgentExecutor not available (langchain not installed)"
+            )
 
         self.instrumentor.instrument()
         self.instrumentor.uninstrument()
@@ -148,13 +150,17 @@ class TestReActStepInstrumentationLogs(unittest.TestCase):
         """When agent invokes, it should complete without error."""
         classes = _get_agent_executor_classes()
         if not classes:
-            pytest.skip("AgentExecutor not available (langchain not installed)")
+            pytest.skip(
+                "AgentExecutor not available (langchain not installed)"
+            )
         AgentExecutor = classes[0]
 
         try:
-            from langchain.agents import create_react_agent
-            from langchain_core.prompts import ChatPromptTemplate
-            from langchain_core.tools import tool
+            from langchain.agents import create_react_agent  # noqa: PLC0415
+            from langchain_core.prompts import (  # noqa: PLC0415
+                ChatPromptTemplate,
+            )
+            from langchain_core.tools import tool  # noqa: PLC0415
         except ImportError:
             pytest.skip("create_react_agent or tools not available")
 
@@ -199,9 +205,9 @@ def test_react_step_spans_on_agent_invoke(instrument, span_exporter):
     AgentExecutor = classes[0]
 
     try:
-        from langchain.agents import create_react_agent
-        from langchain_core.prompts import ChatPromptTemplate
-        from langchain_core.tools import tool
+        from langchain.agents import create_react_agent  # noqa: PLC0415
+        from langchain_core.prompts import ChatPromptTemplate  # noqa: PLC0415
+        from langchain_core.tools import tool  # noqa: PLC0415
     except ImportError:
         pytest.skip("create_react_agent or tools not available")
 
@@ -235,9 +241,7 @@ def test_react_step_spans_on_agent_invoke(instrument, span_exporter):
 
     spans = span_exporter.get_finished_spans()
     react_step_spans = [
-        s
-        for s in spans
-        if s.attributes.get("gen_ai.span.kind") == "STEP"
+        s for s in spans if s.attributes.get("gen_ai.span.kind") == "STEP"
     ]
     assert len(react_step_spans) >= 1, (
         f"Expected at least 1 ReAct Step span, got: {[s.name for s in spans]}"
@@ -247,7 +251,9 @@ def test_react_step_spans_on_agent_invoke(instrument, span_exporter):
         assert step_span.name == "react step"
         assert step_span.attributes.get("gen_ai.operation.name") == "react"
         assert step_span.attributes.get("gen_ai.react.round") is not None
-        assert step_span.attributes.get("gen_ai.react.finish_reason") is not None
+        assert (
+            step_span.attributes.get("gen_ai.react.finish_reason") is not None
+        )
 
     last_step = react_step_spans[-1]
     assert last_step.attributes.get("gen_ai.react.finish_reason") == "stop"

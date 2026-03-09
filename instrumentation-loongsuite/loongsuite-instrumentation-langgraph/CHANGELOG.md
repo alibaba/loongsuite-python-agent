@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial instrumentation framework for LangGraph
   ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
-  - Patch `create_react_agent` to mark compiled graphs as ReAct agents
-  - `_loongsuite_react_agent = True` flag on `CompiledStateGraph`
-  - Default graph name `"LangGraphReActAgent"` for agent detection by LangChain instrumentation
+  - Patch `create_react_agent` to set `_loongsuite_react_agent = True` flag
+    on `CompiledStateGraph`
+  - Patch `Pregel.stream` / `Pregel.astream` to inject
+    `metadata["_loongsuite_react_agent"]` into `RunnableConfig`, enabling
+    LangChain instrumentation to detect ReAct agents via callback metadata
+  - All patches use `wrapt.wrap_function_wrapper` /
+    `opentelemetry.instrumentation.utils.unwrap` (consistent with
+    `loongsuite-instrumentation-langchain`)

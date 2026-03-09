@@ -82,9 +82,13 @@ def fixture_logger_provider(log_exporter):
 
 
 @pytest.fixture(scope="function")
-def instrument(tracer_provider, meter_provider, logger_provider, span_exporter):
+def instrument(
+    tracer_provider, meter_provider, logger_provider, span_exporter
+):
     """Instrument both LangGraph and LangChain, then clean up."""
-    os.environ[OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT] = "SPAN_ONLY"
+    os.environ[OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT] = (
+        "SPAN_ONLY"
+    )
 
     langgraph_instrumentor = LangGraphInstrumentor()
     langgraph_instrumentor.instrument()

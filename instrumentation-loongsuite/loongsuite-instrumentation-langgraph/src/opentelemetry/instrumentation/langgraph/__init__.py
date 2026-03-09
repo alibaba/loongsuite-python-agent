@@ -73,7 +73,9 @@ def _get_create_react_agent_locations() -> list[tuple[str, str]]:
 
         locations.append(("langgraph.prebuilt", "create_react_agent"))
     except ImportError as exc:
-        logger.debug("langgraph.prebuilt.create_react_agent not available: %s", exc)
+        logger.debug(
+            "langgraph.prebuilt.create_react_agent not available: %s", exc
+        )
 
     try:
         from langgraph.prebuilt.chat_agent_executor import (  # noqa: PLC0415
@@ -114,7 +116,9 @@ class LangGraphInstrumentor(BaseInstrumentor):
             return
 
         for module_path, attr_name in locations:
-            wrap_function_wrapper(module_path, attr_name, _create_react_agent_wrapper)
+            wrap_function_wrapper(
+                module_path, attr_name, _create_react_agent_wrapper
+            )
             logger.debug("Patched %s.%s", module_path, attr_name)
 
         _patched_cra_locations = locations
@@ -126,12 +130,18 @@ class LangGraphInstrumentor(BaseInstrumentor):
         global _pregel_patched
 
         try:
-            wrap_function_wrapper(_PREGEL_MODULE, "Pregel.stream", _stream_wrapper)
-            wrap_function_wrapper(_PREGEL_MODULE, "Pregel.astream", _astream_wrapper)
+            wrap_function_wrapper(
+                _PREGEL_MODULE, "Pregel.stream", _stream_wrapper
+            )
+            wrap_function_wrapper(
+                _PREGEL_MODULE, "Pregel.astream", _astream_wrapper
+            )
             _pregel_patched = True
             logger.debug("Patched Pregel.stream and Pregel.astream")
         except (ImportError, AttributeError) as exc:
-            logger.debug("Pregel class not available; stream patching skipped: %s", exc)
+            logger.debug(
+                "Pregel class not available; stream patching skipped: %s", exc
+            )
 
     def _uninstrument(self, **kwargs: Any) -> None:
         self._uninstrument_create_react_agent()

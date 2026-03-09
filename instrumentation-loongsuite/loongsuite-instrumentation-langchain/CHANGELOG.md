@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ReAct Step spans: `gen_ai.span.kind=STEP`, `gen_ai.operation.name=react`, `gen_ai.react.round`, `gen_ai.react.finish_reason`
   - Span hierarchy: Agent > ReAct Step > LLM/Tool
 
+- LangGraph ReAct agent support (requires `loongsuite-instrumentation-langgraph`)
+  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  - Detect LangGraph agents via `Run.metadata["_loongsuite_react_agent"]`
+    (metadata injected by the LangGraph instrumentation)
+  - Disambiguate the top-level graph (Agent span) from child nodes (chain
+    spans) using `inside_langgraph_react` propagation
+  - Agent name resolution: when the ReAct agent is invoked inside an outer
+    graph node, inherit the node's name (e.g. `invoke_agent product_agent`)
+    instead of the generic default (`invoke_agent LangGraph`)
+  - Track ReAct step boundaries via callback-based detection of the
+    `"agent"` node within the graph
+  - Span hierarchy: Agent > ReAct Step > LLM/Tool (same as AgentExecutor)
+
 ### Breaking Changes
 
 - Rewrite the instrumentation for LangChain with `genai-util`

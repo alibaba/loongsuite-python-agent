@@ -192,7 +192,11 @@ class TestLangGraphReActMultiRound:
         """Two ReAct step spans: round 1 → tool_calls, round 2 → stop."""
         spans = self._invoke_two_rounds(instrument, span_exporter)
         step_spans = sorted(
-            [s for s in spans if s.attributes.get("gen_ai.span.kind") == "STEP"],
+            [
+                s
+                for s in spans
+                if s.attributes.get("gen_ai.span.kind") == "STEP"
+            ],
             key=lambda s: s.attributes.get("gen_ai.react.round", 0),
         )
         assert len(step_spans) == 2, (
@@ -201,16 +205,26 @@ class TestLangGraphReActMultiRound:
         )
 
         assert step_spans[0].attributes.get("gen_ai.react.round") == 1
-        assert step_spans[0].attributes.get("gen_ai.react.finish_reason") == "tool_calls"
+        assert (
+            step_spans[0].attributes.get("gen_ai.react.finish_reason")
+            == "tool_calls"
+        )
 
         assert step_spans[1].attributes.get("gen_ai.react.round") == 2
-        assert step_spans[1].attributes.get("gen_ai.react.finish_reason") == "stop"
+        assert (
+            step_spans[1].attributes.get("gen_ai.react.finish_reason")
+            == "stop"
+        )
 
     def test_llm_spans_parented_under_steps(self, instrument, span_exporter):
         """LLM spans should be descendants of their corresponding step spans."""
         spans = self._invoke_two_rounds(instrument, span_exporter)
         step_spans = sorted(
-            [s for s in spans if s.attributes.get("gen_ai.span.kind") == "STEP"],
+            [
+                s
+                for s in spans
+                if s.attributes.get("gen_ai.span.kind") == "STEP"
+            ],
             key=lambda s: s.attributes.get("gen_ai.react.round", 0),
         )
         assert len(step_spans) >= 2
@@ -226,14 +240,12 @@ class TestLangGraphReActMultiRound:
         llm_in_step1 = [
             s
             for s in spans
-            if s.context.span_id in step_1_descendants
-            and _is_llm_span(s)
+            if s.context.span_id in step_1_descendants and _is_llm_span(s)
         ]
         llm_in_step2 = [
             s
             for s in spans
-            if s.context.span_id in step_2_descendants
-            and _is_llm_span(s)
+            if s.context.span_id in step_2_descendants and _is_llm_span(s)
         ]
         assert len(llm_in_step1) >= 1, "Expected LLM span under step 1"
         assert len(llm_in_step2) >= 1, "Expected LLM span under step 2"
@@ -257,4 +269,6 @@ def _collect_descendants(spans, parent_span_id: int) -> set[int]:
 
 def _is_llm_span(span) -> bool:
     kind = span.attributes.get("gen_ai.span.kind", "")
-    return kind == "LLM" or span.attributes.get("gen_ai.operation.name") == "chat"
+    return (
+        kind == "LLM" or span.attributes.get("gen_ai.operation.name") == "chat"
+    )

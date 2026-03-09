@@ -95,7 +95,9 @@ def _stream_wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any):  # typ
     yield from wrapped(*args, **kwargs)
 
 
-async def _astream_wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any):  # type: ignore[return]
+async def _astream_wrapper(
+    wrapped: Any, instance: Any, args: Any, kwargs: Any
+):  # type: ignore[return]
     """``wrapt`` wrapper for ``Pregel.astream``."""
     if getattr(instance, "_loongsuite_react_agent", False):
         args, kwargs = _rewrite_config(args, kwargs)

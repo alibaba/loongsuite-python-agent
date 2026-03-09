@@ -28,7 +28,9 @@ from uuid import UUID
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-from opentelemetry.instrumentation.langchain.internal._tracer import LoongsuiteTracer
+from opentelemetry.instrumentation.langchain.internal._tracer import (
+    LoongsuiteTracer,
+)
 
 logger = logging.getLogger(__name__)
 
