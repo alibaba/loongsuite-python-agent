@@ -108,6 +108,18 @@ opentelemetry-instrument <your_run_command>
 ```
 
 
+## Traced Operations
+
+| Operation | Span Kind | Attributes |
+|-----------|-----------|------------|
+| LLM / Chat | `LLM` | `gen_ai.operation.name=chat`, `gen_ai.request.model`, token usage |
+| Agent | `AGENT` | `gen_ai.operation.name=invoke_agent` |
+| ReAct Step | `STEP` | `gen_ai.operation.name=react`, `gen_ai.react.round`, `gen_ai.react.finish_reason` |
+| Tool | `TOOL` | `gen_ai.operation.name=execute_tool` |
+| Retriever | `RETRIEVER` | `gen_ai.operation.name=retrieve_documents` |
+
+ReAct Step spans are created for each Reasoning-Acting iteration in an AgentExecutor, with the hierarchy: Agent > ReAct Step > LLM/Tool.
+
 ## Requirements
 
 - Python >= 3.8

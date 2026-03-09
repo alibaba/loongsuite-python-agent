@@ -68,6 +68,7 @@ from opentelemetry.instrumentation.langchain.internal.semconv import (
     OUTPUT_VALUE,
 )
 from opentelemetry.trace import Span, SpanKind, StatusCode, set_span_in_context
+from opentelemetry.util.genai._extended_common import ReactStepInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
@@ -93,7 +94,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # _RunData — per-run bookkeeping
 # ---------------------------------------------------------------------------
-RunKind = Literal["llm", "agent", "chain", "tool", "retriever"]
+RunKind = Literal["llm", "agent", "chain", "tool", "retriever", "react_step"]
 
 
 @dataclass
@@ -103,6 +104,10 @@ class _RunData:
     context: Context | None = None
     invocation: Any = None
     context_token: object | None = None  # only used for Chain attach/detach
+    # Agent run only: ReAct Step state
+    react_round: int = 0
+    active_step: "_RunData | None" = None
+    original_context: Context | None = None
 
 
 def _should_capture_chain_content() -> bool:
@@ -505,6 +510,66 @@ class LoongsuiteTracer(BaseTracer):
             )
         except Exception:
             logger.debug("Failed to fail Retriever span", exc_info=True)
+
+    # ------------------------------------------------------------------
+    # ReAct Step — called from patch wrapper
+    # ------------------------------------------------------------------
+
+    def _enter_react_step(self, agent_run_id: UUID) -> None:
+        """Create a ReAct Step span and redirect child spans to it."""
+        with self._lock:
+            agent_rd = self._runs.get(agent_run_id)
+        if agent_rd is None or agent_rd.run_kind != "agent":
+            return
+
+        if agent_rd.original_context is None:
+            agent_rd.original_context = agent_rd.context
+
+        agent_rd.react_round += 1
+        inv = ReactStepInvocation(round=agent_rd.react_round)
+        self._handler.start_react_step(inv, context=agent_rd.original_context)
+
+        step_ctx = (
+            set_span_in_context(inv.span)
+            if inv.span
+            else agent_rd.original_context
+        )
+        agent_rd.active_step = _RunData(
+            run_kind="react_step",
+            span=inv.span,
+            context=step_ctx,
+            invocation=inv,
+        )
+        agent_rd.context = step_ctx
+
+    def _exit_react_step(self, agent_run_id: UUID, finish_reason: str) -> None:
+        """End the current ReAct Step span and restore Agent context."""
+        with self._lock:
+            agent_rd = self._runs.get(agent_run_id)
+        if agent_rd is None or agent_rd.active_step is None:
+            return
+
+        step_inv: ReactStepInvocation = agent_rd.active_step.invocation
+        step_inv.finish_reason = finish_reason
+        self._handler.stop_react_step(step_inv)
+        agent_rd.active_step = None
+        if agent_rd.original_context is not None:
+            agent_rd.context = agent_rd.original_context
+
+    def _fail_react_step(self, agent_run_id: UUID, error_msg: str) -> None:
+        """Fail the current ReAct Step span and restore Agent context."""
+        with self._lock:
+            agent_rd = self._runs.get(agent_run_id)
+        if agent_rd is None or agent_rd.active_step is None:
+            return
+
+        step_inv: ReactStepInvocation = agent_rd.active_step.invocation
+        self._handler.fail_react_step(
+            step_inv, Error(message=error_msg, type=Exception)
+        )
+        agent_rd.active_step = None
+        if agent_rd.original_context is not None:
+            agent_rd.context = agent_rd.original_context
 
     # ------------------------------------------------------------------
     # Deep copy / copy — return self (shared singleton)
