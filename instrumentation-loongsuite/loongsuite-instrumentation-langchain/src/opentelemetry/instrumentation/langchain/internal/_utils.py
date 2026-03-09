@@ -142,10 +142,34 @@ AGENT_RUN_NAMES = frozenset(
     }
 )
 
+_LANGGRAPH_REACT_METADATA_KEY = "_loongsuite_react_agent"
+
+LANGGRAPH_REACT_STEP_NODE = "agent"
+
 
 def _is_agent_run(run: Any) -> bool:
+    """Return *True* for classic LangChain agents (name-based check only).
+
+    LangGraph agents are detected separately via metadata — see
+    ``_has_langgraph_react_metadata`` — because their metadata propagates
+    to ALL child callbacks and must be disambiguated in the tracer.
+    """
     name = getattr(run, "name", "") or ""
     return name in AGENT_RUN_NAMES
+
+
+def _has_langgraph_react_metadata(run: Any) -> bool:
+    """Return *True* if *run* carries the LangGraph ReAct agent metadata.
+
+    This flag is injected by ``loongsuite-instrumentation-langgraph``
+    into ``config["metadata"]`` when ``Pregel.stream`` is called on a
+    graph marked with ``_loongsuite_react_agent = True``.
+
+    Note: the metadata propagates to child runs, so the caller must
+    distinguish the top-level graph from child nodes.
+    """
+    metadata = getattr(run, "metadata", None) or {}
+    return bool(metadata.get(_LANGGRAPH_REACT_METADATA_KEY))
 
 
 # ---------------------------------------------------------------------------

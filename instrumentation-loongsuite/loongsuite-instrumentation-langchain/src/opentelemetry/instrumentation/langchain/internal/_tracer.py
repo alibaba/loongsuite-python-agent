@@ -51,6 +51,7 @@ from langchain_core.tracers.schemas import Run
 from opentelemetry import context as otel_context
 from opentelemetry.context import Context
 from opentelemetry.instrumentation.langchain.internal._utils import (
+    LANGGRAPH_REACT_STEP_NODE,
     _extract_finish_reasons,
     _extract_invocation_params,
     _extract_llm_input_messages,
@@ -59,6 +60,7 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _extract_provider,
     _extract_response_model,
     _extract_token_usage,
+    _has_langgraph_react_metadata,
     _is_agent_run,
     _safe_json,
 )
@@ -108,6 +110,8 @@ class _RunData:
     react_round: int = 0
     active_step: "_RunData | None" = None
     original_context: Context | None = None
+    is_langgraph_react: bool = False
+    inside_langgraph_react: bool = False
 
 
 def _should_capture_chain_content() -> bool:
@@ -278,24 +282,96 @@ class LoongsuiteTracer(BaseTracer):
         try:
             if _is_agent_run(run):
                 self._start_agent(run)
+            elif _has_langgraph_react_metadata(run):
+                self._handle_langgraph_chain_start(run)
             else:
                 self._start_chain(run)
         except Exception:
             logger.debug("Failed to start Chain/Agent span", exc_info=True)
 
+    def _handle_langgraph_chain_start(self, run: Run) -> None:
+        """Route a chain start that carries LangGraph ReAct metadata.
+
+        Because ``config["metadata"]`` propagates to child callbacks,
+        both the graph-level run and its child nodes carry the flag.
+        We disambiguate by checking whether any ancestor is a LangGraph
+        ReAct agent (``is_langgraph_react``) or inside one
+        (``inside_langgraph_react``):
+
+        * **Inside LangGraph agent** → child node (chain span, with
+          possible ReAct step transition).
+        * **Otherwise** → top-level graph → create Agent span.
+        """
+        parent_id = getattr(run, "parent_run_id", None)
+        with self._lock:
+            parent_rd = self._runs.get(parent_id) if parent_id else None
+
+        inside = parent_rd is not None and (
+            parent_rd.is_langgraph_react or parent_rd.inside_langgraph_react
+        )
+
+        if inside:
+            self._maybe_enter_langgraph_react_step(run)
+            self._start_chain(run)
+        else:
+            self._start_agent(run)
+
+    def _resolve_langgraph_agent_name(self, run: Run) -> str:
+        """Pick a meaningful agent name for a LangGraph ReAct agent.
+
+        When the inner graph uses the default name ``"LangGraph"`` and is
+        invoked as a node inside an outer graph, the parent node's name
+        (e.g. ``"product_agent"``) is far more descriptive.  We prefer it
+        over the generic default.
+        """
+        name = run.name or ""
+        if not _has_langgraph_react_metadata(run) or name != "LangGraph":
+            return name
+
+        parent_id = getattr(run, "parent_run_id", None)
+        if not parent_id:
+            return name
+
+        with self._lock:
+            parent_rd = self._runs.get(parent_id)
+        if parent_rd is None or parent_rd.run_kind != "chain":
+            return name
+
+        span = parent_rd.span
+        if span is None:
+            return name
+
+        parent_span_name: str = span.name
+        if parent_span_name.startswith("chain "):
+            return parent_span_name[len("chain "):]
+        return name
+
     def _start_agent(self, run: Run) -> None:
         parent_ctx = self._get_parent_context(run)
         inputs = getattr(run, "inputs", None) or {}
         input_messages: list[InputMessage] = []
+
+        # AgentExecutor format: {"input": "...", "query": "..."}
         input_val = inputs.get("input") or inputs.get("query") or ""
         if isinstance(input_val, str) and input_val:
             input_messages.append(
                 InputMessage(role="user", parts=[Text(content=input_val)])
             )
 
+        # LangGraph format: {"messages": [...]}
+        if not input_messages:
+            raw_messages = inputs.get("messages")
+            if raw_messages and isinstance(raw_messages, list):
+                for msg in raw_messages:
+                    converted = _extract_langgraph_input_message(msg)
+                    if converted:
+                        input_messages.append(converted)
+
+        agent_name = self._resolve_langgraph_agent_name(run)
+
         invocation = InvokeAgentInvocation(
             provider="langchain",
-            agent_name=run.name,
+            agent_name=agent_name,
             input_messages=input_messages,
         )
         self._handler.start_invoke_agent(invocation, context=parent_ctx)
@@ -306,6 +382,7 @@ class LoongsuiteTracer(BaseTracer):
             if invocation.span
             else None,
             invocation=invocation,
+            is_langgraph_react=_has_langgraph_react_metadata(run),
         )
         with self._lock:
             self._runs[run.id] = rd
@@ -328,11 +405,22 @@ class LoongsuiteTracer(BaseTracer):
         ctx = set_span_in_context(span)
         token = otel_context.attach(ctx)
 
+        # Propagate inside_langgraph_react from parent so that
+        # grandchildren of the graph are also recognised as internal.
+        inside_lg = False
+        parent_id = getattr(run, "parent_run_id", None)
+        if parent_id:
+            with self._lock:
+                p = self._runs.get(parent_id)
+            if p is not None:
+                inside_lg = p.is_langgraph_react or p.inside_langgraph_react
+
         rd = _RunData(
             run_kind="chain",
             span=span,
             context=ctx,
             context_token=token,
+            inside_langgraph_react=inside_lg,
         )
         with self._lock:
             self._runs[run.id] = rd
@@ -351,8 +439,19 @@ class LoongsuiteTracer(BaseTracer):
             logger.debug("Failed to stop Chain/Agent span", exc_info=True)
 
     def _stop_agent(self, run: Run, rd: _RunData) -> None:
+        # End last ReAct step if still active.
+        # Cannot use _exit_react_step here because rd has already been
+        # popped from self._runs by _on_chain_end.
+        if rd.active_step is not None:
+            step_inv: ReactStepInvocation = rd.active_step.invocation
+            step_inv.finish_reason = "stop"
+            self._handler.stop_react_step(step_inv)
+            rd.active_step = None
+
         inv: InvokeAgentInvocation = rd.invocation
         outputs = getattr(run, "outputs", None) or {}
+
+        # AgentExecutor format
         output_val = outputs.get("output") or outputs.get("result") or ""
         if isinstance(output_val, str) and output_val:
             inv.output_messages = [
@@ -362,6 +461,22 @@ class LoongsuiteTracer(BaseTracer):
                     finish_reason="stop",
                 )
             ]
+
+        # LangGraph format: {"messages": [...]}
+        if not inv.output_messages:
+            raw_messages = outputs.get("messages")
+            if raw_messages and isinstance(raw_messages, list):
+                last_msg = raw_messages[-1]
+                content = _extract_message_content(last_msg)
+                if content:
+                    inv.output_messages = [
+                        OutputMessage(
+                            role="assistant",
+                            parts=[Text(content=content)],
+                            finish_reason="stop",
+                        )
+                    ]
+
         self._handler.stop_invoke_agent(inv)
 
     def _stop_chain(self, run: Run, rd: _RunData) -> None:
@@ -383,6 +498,14 @@ class LoongsuiteTracer(BaseTracer):
         try:
             err_str = getattr(run, "error", None) or "Unknown error"
             if rd.run_kind == "agent":
+                # Fail active step directly (rd already popped from _runs).
+                if rd.active_step is not None:
+                    step_inv = rd.active_step.invocation
+                    self._handler.fail_react_step(
+                        step_inv,
+                        Error(message=str(err_str), type=Exception),
+                    )
+                    rd.active_step = None
                 self._handler.fail_invoke_agent(
                     rd.invocation,
                     Error(message=str(err_str), type=Exception),
@@ -512,7 +635,39 @@ class LoongsuiteTracer(BaseTracer):
             logger.debug("Failed to fail Retriever span", exc_info=True)
 
     # ------------------------------------------------------------------
-    # ReAct Step — called from patch wrapper
+    # LangGraph ReAct Step — callback-based detection
+    # ------------------------------------------------------------------
+
+    def _maybe_enter_langgraph_react_step(self, run: Run) -> None:
+        """If *run* is a child node of a LangGraph ReAct agent whose name
+        equals ``LANGGRAPH_REACT_STEP_NODE`` (``"agent"``), trigger a ReAct
+        step transition: end the previous step (with ``"tool_calls"``) and
+        start a new one.
+
+        Must be called **before** ``_start_chain`` so that the chain span
+        is parented under the step span.
+        """
+        parent_id = getattr(run, "parent_run_id", None)
+        if not parent_id:
+            return
+
+        with self._lock:
+            parent_rd = self._runs.get(parent_id)
+        if parent_rd is None or not parent_rd.is_langgraph_react:
+            return
+
+        chain_name = getattr(run, "name", "") or ""
+        if chain_name != LANGGRAPH_REACT_STEP_NODE:
+            return
+
+        # End previous step (it had tool_calls since another round started)
+        if parent_rd.active_step is not None:
+            self._exit_react_step(parent_id, "tool_calls")
+
+        self._enter_react_step(parent_id)
+
+    # ------------------------------------------------------------------
+    # ReAct Step — called from patch wrapper or callback detection
     # ------------------------------------------------------------------
 
     def _enter_react_step(self, agent_run_id: UUID) -> None:
@@ -580,3 +735,48 @@ class LoongsuiteTracer(BaseTracer):
 
     def __copy__(self) -> LoongsuiteTracer:
         return self
+
+
+# ---------------------------------------------------------------------------
+# LangGraph message helpers (module-level, used by _start_agent / _stop_agent)
+# ---------------------------------------------------------------------------
+
+
+def _extract_langgraph_input_message(msg: Any) -> InputMessage | None:
+    """Convert a LangGraph input message to ``InputMessage``.
+
+    LangGraph inputs may be LangChain message objects, tuples, or dicts.
+    """
+    # Tuple: ("user", "hello")
+    if isinstance(msg, (list, tuple)) and len(msg) == 2:
+        role, content = msg
+        if isinstance(content, str) and content:
+            return InputMessage(
+                role=str(role), parts=[Text(content=content)]
+            )
+        return None
+
+    # LangChain message object (HumanMessage, AIMessage, etc.)
+    content = getattr(msg, "content", None)
+    if content and isinstance(content, str):
+        role_map = {
+            "HumanMessage": "user",
+            "AIMessage": "assistant",
+            "SystemMessage": "system",
+            "ToolMessage": "tool",
+        }
+        cls_name = type(msg).__name__
+        role = role_map.get(cls_name, "user")
+        return InputMessage(role=role, parts=[Text(content=content)])
+
+    return None
+
+
+def _extract_message_content(msg: Any) -> str | None:
+    """Extract text content from a LangChain message object or dict."""
+    content = getattr(msg, "content", None)
+    if content and isinstance(content, str):
+        return content
+    if isinstance(msg, dict):
+        return msg.get("content") or msg.get("text")
+    return None
