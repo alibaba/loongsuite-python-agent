@@ -1300,7 +1300,9 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             )
         ]
         if with_context:
-            invocation.context_token = MagicMock()
+            invocation.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
             invocation.span = MagicMock()
         return invocation
 
@@ -1559,8 +1561,10 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
                 )
                 mock_end.assert_called_once()
 
-            # Reset invocation context token
-            inv.context_token = MagicMock()
+            # Reset invocation context token (use real token for _safe_detach)
+            inv.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
             with patch.object(handler, "_fallback_fail") as mock_fail:
                 self.assertTrue(
                     handler.process_multimodal_fail(  # pylint: disable=unexpected-keyword-arg
@@ -1572,7 +1576,9 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             # Queue is full
             MultimodalProcessingMixin._async_queue = queue.Queue(maxsize=1)
             MultimodalProcessingMixin._async_queue.put("dummy")
-            inv.context_token = MagicMock()
+            inv.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
             with patch.object(handler, "_fallback_stop") as mock_end2:
                 self.assertTrue(
                     handler.process_multimodal_stop(inv, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
@@ -1737,7 +1743,9 @@ class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
             )
         ]
         if with_context:
-            invocation.context_token = MagicMock()
+            invocation.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
             invocation.span = MagicMock()
         return invocation
 
