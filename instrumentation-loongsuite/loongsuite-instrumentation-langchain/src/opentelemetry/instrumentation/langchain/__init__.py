@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-LongSuite LangChain instrumentation supporting ``langchain_core >= 0.1.0, < 1.0.0``.
+LongSuite LangChain instrumentation supporting ``langchain_core >= 0.1.0``.
 
 Usage
 -----
@@ -33,6 +33,7 @@ API
 
 from __future__ import annotations
 
+import importlib
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Collection, Type
 
@@ -55,6 +56,9 @@ __all__ = ["LangChainInstrumentor"]
 
 # Stored originals for AgentExecutor uninstrument: {class: (iter, aiter)}
 _patched_agent_executors: dict[type, tuple[Any, Any]] = {}
+
+# Module paths that were successfully patched for create_agent (for uninstrument).
+_patched_create_agent_locations: list[tuple[str, str]] = []
 
 
 def _get_agent_executor_classes() -> list[type]:
@@ -130,6 +134,90 @@ def _uninstrument_agent_executor() -> None:
     _patched_agent_executors.clear()
 
 
+# ------------------------------------------------------------------
+# create_agent patch (langchain >= 1.x)
+# ------------------------------------------------------------------
+
+_REACT_AGENT_GRAPH_ATTR = "_loongsuite_react_agent"
+
+
+def _create_agent_wrapper(
+    wrapped: Any, _instance: Any, args: Any, kwargs: Any
+) -> Any:
+    """``wrapt`` wrapper for ``create_agent``.
+
+    Calls the original factory, then marks the returned graph with
+    ``_loongsuite_react_agent = True`` so that the langgraph Pregel
+    stream/astream wrapper can inject metadata into ``RunnableConfig``.
+    """
+    graph = wrapped(*args, **kwargs)
+    setattr(graph, _REACT_AGENT_GRAPH_ATTR, True)
+    logger.debug(
+        "[INSTRUMENTATION] create_agent patched graph: "
+        "name=%r, %s=%r",
+        getattr(graph, "name", None),
+        _REACT_AGENT_GRAPH_ATTR,
+        True,
+    )
+    return graph
+
+
+def _get_create_agent_locations() -> list[tuple[str, str]]:
+    """Return (module, attribute) pairs for ``create_agent``.
+
+    langchain >= 1.x exposes ``create_agent`` in ``langchain.agents``.
+    """
+    locations: list[tuple[str, str]] = []
+    try:
+        from langchain.agents import create_agent  # noqa: PLC0415, F401
+
+        locations.append(("langchain.agents", "create_agent"))
+    except ImportError as exc:
+        logger.debug("langchain.agents.create_agent not available: %s", exc)
+    return locations
+
+
+def _instrument_create_agent() -> None:
+    """Wrap ``create_agent`` so that the returned graph is marked as a
+    ReAct agent, enabling downstream metadata injection by langgraph
+    instrumentation.
+    """
+    global _patched_create_agent_locations
+
+    locations = _get_create_agent_locations()
+    if not locations:
+        logger.debug(
+            "create_agent not found in langchain.agents; "
+            "create_agent instrumentation skipped."
+        )
+        return
+
+    for module_path, attr_name in locations:
+        wrap_function_wrapper(
+            module_path, attr_name, _create_agent_wrapper
+        )
+        logger.debug("Patched %s.%s", module_path, attr_name)
+
+    _patched_create_agent_locations = locations
+
+
+def _uninstrument_create_agent() -> None:
+    """Restore original ``create_agent`` functions."""
+    global _patched_create_agent_locations
+
+    for module_path, attr_name in _patched_create_agent_locations:
+        try:
+            mod = importlib.import_module(module_path)
+            unwrap(mod, attr_name)
+            logger.debug("Restored %s.%s", module_path, attr_name)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(
+                "Failed to restore %s.%s: %s", module_path, attr_name, exc
+            )
+
+    _patched_create_agent_locations = []
+
+
 class LangChainInstrumentor(BaseInstrumentor):
     """An instrumentor for LangChain."""
 
@@ -163,6 +251,7 @@ class LangChainInstrumentor(BaseInstrumentor):
         )
 
         _instrument_agent_executor()
+        _instrument_create_agent()
 
     def _uninstrument(self, **kwargs: Any) -> None:
         try:
@@ -174,6 +263,7 @@ class LangChainInstrumentor(BaseInstrumentor):
             logger.warning("Failed to uninstrument BaseCallbackManager: %s", e)
 
         _uninstrument_agent_executor()
+        _uninstrument_create_agent()
 
 
 class _BaseCallbackManagerInit:
