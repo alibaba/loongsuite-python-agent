@@ -110,9 +110,9 @@ def _safe_detach(token: object) -> None:
         return
     try:
         _RUNTIME_CONTEXT.detach(token)  # type: ignore[arg-type]
-    except (ValueError, RuntimeError) as e:
+    except (ValueError, RuntimeError) as exc:
         logger.debug(
-            "Context detach failed (cross-thread/async scenario): %s", e
+            "Context detach failed (cross-thread/async scenario): %s", exc
         )
 
 
