@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix `gen_ai.retrieval.query` to respect content capturing mode: when `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` is `NO_CONTENT`, both query and documents are now omitted from retrieve spans (previously only documents were gated)
+  ([#139](https://github.com/alibaba/loongsuite-python-agent/pull/139))
 - Fix `_safe_detach` to use `_RUNTIME_CONTEXT.detach` directly, avoiding noisy `ERROR` log from OTel SDK's `context_api.detach` wrapper
   ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Fix undefined `otel_context` reference in `_multimodal_processing.py` `process_multimodal_fail`, replaced with `_safe_detach`

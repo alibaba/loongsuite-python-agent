@@ -114,10 +114,10 @@ class TestRetrieverInputOutputContent:
             f"Expected document content in retrieval.documents, got: {docs_val}"
         )
 
-    def test_no_documents_when_disabled(
+    def test_no_content_when_disabled(
         self, instrument_no_content, span_exporter
     ):
-        """When content capture is disabled, documents should NOT appear."""
+        """When content capture is disabled, query and documents should NOT appear."""
         retriever = FakeRetriever()
         retriever.invoke("secret query")
 
@@ -125,7 +125,9 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
+        assert GEN_AI_RETRIEVAL_QUERY not in attrs, (
+            "Retrieval query should NOT be captured when content capture is disabled"
+        )
         assert GEN_AI_RETRIEVAL_DOCUMENTS not in attrs, (
             "Retrieval documents should NOT be captured when content capture is disabled"
         )
-        assert attrs.get(GEN_AI_RETRIEVAL_QUERY) == "secret query"

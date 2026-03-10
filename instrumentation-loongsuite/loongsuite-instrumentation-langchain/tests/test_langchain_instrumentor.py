@@ -39,6 +39,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_OPERATION_NAME,
     GEN_AI_RETRIEVAL_DOCUMENTS,
     GEN_AI_RETRIEVAL_QUERY,
     GEN_AI_SPAN_KIND,
@@ -210,6 +211,7 @@ def test_retrieval_qa_chain_spans(
     )
     assert rqa_span.parent is None
     rqa_attrs = dict(rqa_span.attributes or {})
+    assert rqa_attrs.pop(GEN_AI_OPERATION_NAME, None) == "chain"
     assert rqa_attrs.pop(GEN_AI_SPAN_KIND, None) == "CHAIN"
     # INPUT_VALUE is JSON; RetrievalQA input is {"query": question}
     input_val = rqa_attrs.pop(INPUT_VALUE, None)
@@ -219,7 +221,7 @@ def test_retrieval_qa_chain_spans(
     )
     assert input_parsed.get("query") == question
     if status_code == 200:
-        assert rqa_span.status.status_code == StatusCode.OK
+        assert rqa_span.status.status_code == StatusCode.UNSET
         out_val = rqa_attrs.pop(OUTPUT_VALUE, None)
         assert out_val is not None
         out_parsed = (
@@ -238,10 +240,11 @@ def test_retrieval_qa_chain_spans(
     assert sd_span.parent is not None
     assert sd_span.parent.span_id == rqa_span.context.span_id
     sd_attrs = dict(sd_span.attributes or {})
+    assert sd_attrs.pop(GEN_AI_OPERATION_NAME, None) == "chain"
     assert sd_attrs.pop(GEN_AI_SPAN_KIND, None) == "CHAIN"
     assert sd_attrs.pop(INPUT_VALUE, None) is not None
     if status_code == 200:
-        assert sd_span.status.status_code == StatusCode.OK
+        assert sd_span.status.status_code == StatusCode.UNSET
         assert sd_attrs.pop(OUTPUT_VALUE, None) is not None
     elif status_code == 400:
         assert sd_span.status.status_code == StatusCode.ERROR
@@ -294,10 +297,9 @@ def test_retrieval_qa_chain_spans(
         or "input" in str(oai_attrs).lower()
     )
     if status_code == 200:
-        assert oai_span.status.status_code in (
-            StatusCode.OK,
-            StatusCode.UNSET,
-        ), f"Expected OK or UNSET, got {oai_span.status.status_code}"
+        assert oai_span.status.status_code == StatusCode.UNSET, (
+            f"Expected UNSET, got {oai_span.status.status_code}"
+        )
         assert (
             GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in oai_attrs
             or "output" in str(oai_attrs).lower()

@@ -19,6 +19,9 @@ Re-exports attributes from ``util-genai`` extended semconv so that the
 plugin and its tests have a single import source.
 """
 
+from opentelemetry.semconv._incubating.attributes import (
+    gen_ai_attributes as GenAI,
+)
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # noqa: E501
     GEN_AI_RETRIEVAL_DOCUMENTS,
     GEN_AI_RETRIEVAL_QUERY,
@@ -27,7 +30,10 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_TOOL_CALL_RESULT,
 )
 
+GEN_AI_OPERATION_NAME = GenAI.GEN_AI_OPERATION_NAME
+
 __all__ = [
+    "GEN_AI_OPERATION_NAME",
     "GEN_AI_RETRIEVAL_DOCUMENTS",
     "GEN_AI_RETRIEVAL_QUERY",
     "GEN_AI_SPAN_KIND",

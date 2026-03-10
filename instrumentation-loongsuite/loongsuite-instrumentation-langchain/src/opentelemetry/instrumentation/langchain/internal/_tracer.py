@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-LongSuite LangChain Tracer — data extraction phase.
+LoongSuite LangChain Tracer — data extraction phase.
 
 Extends ``langchain_core.tracers.base.BaseTracer`` and overrides the
 fine-grained ``_on_*`` hooks to extract telemetry data from LangChain
@@ -65,11 +65,19 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _safe_json,
 )
 from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_OPERATION_NAME,
     GEN_AI_SPAN_KIND,
     INPUT_VALUE,
     OUTPUT_VALUE,
 )
-from opentelemetry.trace import Span, SpanKind, StatusCode, set_span_in_context
+from opentelemetry.instrumentation.langchain.version import __version__
+from opentelemetry.trace import (
+    Span,
+    SpanKind,
+    StatusCode,
+    get_tracer,
+    set_span_in_context,
+)
 from opentelemetry.util.genai._extended_common import ReactStepInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
@@ -152,10 +160,18 @@ class LoongsuiteTracer(BaseTracer):
     """
 
     def __init__(
-        self, handler: ExtendedTelemetryHandler, **kwargs: Any
+        self,
+        handler: ExtendedTelemetryHandler,
+        tracer_provider: Any = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(_schema_format="original+chat", **kwargs)
         self._handler = handler
+        self._tracer = get_tracer(
+            __name__,
+            __version__,
+            tracer_provider=tracer_provider,
+        )
         self._runs: dict[UUID, _RunData] = {}
         self._lock = RLock()
 
@@ -393,13 +409,13 @@ class LoongsuiteTracer(BaseTracer):
 
     def _start_chain(self, run: Run) -> None:
         parent_ctx = self._get_parent_context(run)
-        tracer = self._handler._tracer  # noqa: SLF001
-        span = tracer.start_span(
+        span = self._tracer.start_span(
             name=f"chain {run.name}",
             kind=SpanKind.INTERNAL,
             context=parent_ctx,
         )
 
+        span.set_attribute(GEN_AI_OPERATION_NAME, "chain")
         span.set_attribute(GEN_AI_SPAN_KIND, "CHAIN")
         if _should_capture_chain_content():
             inputs = getattr(run, "inputs", None) or {}
@@ -490,7 +506,6 @@ class LoongsuiteTracer(BaseTracer):
         if _should_capture_chain_content():
             outputs = getattr(run, "outputs", None) or {}
             span.set_attribute(OUTPUT_VALUE, _safe_json(outputs))
-        span.set_status(StatusCode.OK)
         span.end()
         _safe_detach(rd.context_token)
 

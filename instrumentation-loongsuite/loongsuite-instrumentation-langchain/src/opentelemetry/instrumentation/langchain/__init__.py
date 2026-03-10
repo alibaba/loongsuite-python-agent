@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-LongSuite LangChain instrumentation supporting ``langchain_core >= 0.1.0``.
+LoongSuite LangChain instrumentation supporting ``langchain_core >= 0.1.0``.
 
 Usage
 -----
@@ -96,7 +96,6 @@ def _instrument_agent_executor() -> bool:
         logger.debug("AgentExecutor not available, skipping ReAct patch")
         return False
 
-    global _patched_agent_executors
     from opentelemetry.instrumentation.langchain.internal.patch import (  # noqa: PLC0415
         _make_aiter_next_step_wrapper,
         _make_iter_next_step_wrapper,
@@ -118,7 +117,6 @@ def _instrument_agent_executor() -> bool:
 
 def _uninstrument_agent_executor() -> None:
     """Restore original AgentExecutor methods."""
-    global _patched_agent_executors
     if not _patched_agent_executors:
         return
     for cls, (orig_iter, orig_aiter) in list(_patched_agent_executors.items()):
@@ -179,8 +177,6 @@ def _instrument_create_agent() -> None:
     ReAct agent, enabling downstream metadata injection by langgraph
     instrumentation.
     """
-    global _patched_create_agent_locations
-
     locations = _get_create_agent_locations()
     if not locations:
         logger.debug(
@@ -193,13 +189,12 @@ def _instrument_create_agent() -> None:
         wrap_function_wrapper(module_path, attr_name, _create_agent_wrapper)
         logger.debug("Patched %s.%s", module_path, attr_name)
 
-    _patched_create_agent_locations = locations
+    _patched_create_agent_locations.clear()
+    _patched_create_agent_locations.extend(locations)
 
 
 def _uninstrument_create_agent() -> None:
     """Restore original ``create_agent`` functions."""
-    global _patched_create_agent_locations
-
     for module_path, attr_name in _patched_create_agent_locations:
         try:
             mod = importlib.import_module(module_path)
@@ -210,7 +205,7 @@ def _uninstrument_create_agent() -> None:
                 "Failed to restore %s.%s: %s", module_path, attr_name, exc
             )
 
-    _patched_create_agent_locations = []
+    _patched_create_agent_locations.clear()
 
 
 class LangChainInstrumentor(BaseInstrumentor):
@@ -241,7 +236,9 @@ class LangChainInstrumentor(BaseInstrumentor):
             module="langchain_core.callbacks",
             name="BaseCallbackManager.__init__",
             wrapper=_BaseCallbackManagerInit(
-                cls=LoongsuiteTracer, handler=handler
+                cls=LoongsuiteTracer,
+                handler=handler,
+                tracer_provider=tracer_provider,
             ),
         )
 
@@ -268,8 +265,12 @@ class _BaseCallbackManagerInit:
         self,
         cls: Type["LoongsuiteTracer"],
         handler: Any,
+        tracer_provider: Any = None,
     ):
-        self._tracer_instance = cls(handler=handler)
+        self._tracer_instance = cls(
+            handler=handler,
+            tracer_provider=tracer_provider,
+        )
 
     def __call__(
         self,

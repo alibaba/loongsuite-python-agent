@@ -124,7 +124,7 @@ loongsuite-instrument <your_run_command>
 
 | Operation | Span Kind | Attributes |
 |-----------|-----------|------------|
-| Chain | `CHAIN` | `gen_ai.span.kind=CHAIN`, `input.value`, `output.value` (when content capture enabled). Span name: `chain {run.name}` (e.g. RetrievalQA, StuffDocumentsChain, LLMChain) |
+| Chain | `CHAIN` | `gen_ai.operation.name=chain`, `gen_ai.span.kind=CHAIN`, `input.value`, `output.value` (when content capture enabled). Span name: `chain {run.name}` (e.g. RetrievalQA, StuffDocumentsChain, LLMChain) |
 | LLM / Chat | `LLM` | `gen_ai.operation.name=chat`, `gen_ai.request.model`, token usage |
 | Agent | `AGENT` | `gen_ai.operation.name=invoke_agent` |
 | ReAct Step | `STEP` | `gen_ai.operation.name=react`, `gen_ai.react.round`, `gen_ai.react.finish_reason` |

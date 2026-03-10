@@ -844,6 +844,10 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
 
     # ==================== Retrieve Documents Tests ====================
 
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
     def test_retrieve_start_and_stop_creates_span(self):
         with self.telemetry_handler.retrieve() as invocation:
             invocation.query = "Who is John's father?"
@@ -898,6 +902,34 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Documents should not be present without opt-in
         self.assertNotIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="NO_CONTENT",
+    )
+    def test_retrieve_no_content_when_disabled(self):
+        """When content capture is NO_CONTENT, query and documents should NOT appear."""
+        documents = [{"id": "123", "content": "sensitive doc"}]
+        with self.telemetry_handler.retrieve() as invocation:
+            invocation.query = "secret query"
+            invocation.documents = documents
+
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        self.assertNotIn(
+            GEN_AI_RETRIEVAL_QUERY,
+            span_attrs,
+            "Retrieval query should NOT be captured when content capture is disabled",
+        )
+        self.assertNotIn(
+            GEN_AI_RETRIEVAL_DOCUMENTS,
+            span_attrs,
+            "Retrieval documents should NOT be captured when content capture is disabled",
+        )
+
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
     def test_retrieve_manual_start_and_stop(self):
         invocation = RetrieveInvocation()
         invocation.query = "manual query"

@@ -581,8 +581,15 @@ def _apply_retrieve_finish_attributes(
     # LoongSuite Extension: span kind
     attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.RETRIEVER.value
 
-    # Recommended attributes
-    if invocation.query is not None:
+    # Recommended attributes (query is sensitive - controlled by content capturing mode)
+    if invocation.query is not None and (
+        is_experimental_mode()
+        and get_content_capturing_mode()
+        in (
+            ContentCapturingMode.SPAN_ONLY,
+            ContentCapturingMode.SPAN_AND_EVENT,
+        )
+    ):
         attributes[GEN_AI_RETRIEVAL_QUERY] = invocation.query
     if invocation.server_address is not None:
         attributes[ServerAttributes.SERVER_ADDRESS] = invocation.server_address

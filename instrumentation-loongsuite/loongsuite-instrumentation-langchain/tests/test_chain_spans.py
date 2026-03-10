@@ -20,6 +20,7 @@ import pytest
 from langchain_core.runnables import RunnableLambda
 
 from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_OPERATION_NAME,
     GEN_AI_SPAN_KIND,
     INPUT_VALUE,
     OUTPUT_VALUE,
@@ -60,6 +61,16 @@ class TestChainSpanCreation:
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
         assert attrs.get(GEN_AI_SPAN_KIND) == "CHAIN"
+
+    def test_chain_span_operation_name(self, instrument, span_exporter):
+        """Chain spans must have gen_ai.operation.name=chain."""
+        chain = RunnableLambda(lambda x: x)
+        chain.invoke("test")
+
+        chain_spans = _find_chain_spans(span_exporter)
+        assert len(chain_spans) >= 1
+        attrs = dict(chain_spans[0].attributes)
+        assert attrs.get(GEN_AI_OPERATION_NAME) == "chain"
 
 
 class TestChainInputOutputContent:
