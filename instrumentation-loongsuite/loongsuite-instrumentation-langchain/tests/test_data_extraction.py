@@ -191,6 +191,135 @@ class TestExtractTokenUsage:
         assert inp == 5
         assert out == 15
 
+    def test_from_generation_info_token_usage(self):
+        """Providers that don't populate llm_output may put token_usage in generation_info."""
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Hello",
+                            "generation_info": {
+                                "finish_reason": "stop",
+                                "token_usage": {
+                                    "input_tokens": 39,
+                                    "output_tokens": 8,
+                                },
+                            },
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 39
+        assert out == 8
+
+    def test_from_generation_info_usage(self):
+        """generation_info may use 'usage' key with prompt_tokens/completion_tokens."""
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Hi",
+                            "generation_info": {
+                                "usage": {
+                                    "prompt_tokens": 12,
+                                    "completion_tokens": 6,
+                                }
+                            },
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 12
+        assert out == 6
+
+    def test_from_message_response_metadata_dict(self):
+        """Token usage may be in message.kwargs.response_metadata (serialized format)."""
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Response",
+                            "message": {
+                                "kwargs": {
+                                    "content": "Response",
+                                    "response_metadata": {
+                                        "token_usage": {
+                                            "prompt_tokens": 100,
+                                            "completion_tokens": 25,
+                                        }
+                                    },
+                                }
+                            },
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 100
+        assert out == 25
+
+    def test_from_message_response_metadata_object(self):
+        """Token usage may be in message.response_metadata (object format, not serialized)."""
+        class _FakeMessage:
+            response_metadata = {
+                "token_usage": {
+                    "prompt_tokens": 50,
+                    "completion_tokens": 10,
+                }
+            }
+
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Response",
+                            "message": _FakeMessage(),
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 50
+        assert out == 10
+
+    def test_llm_output_takes_precedence(self):
+        """When both llm_output and generation_info have token_usage, prefer llm_output."""
+        run = _FakeRun(
+            outputs={
+                "llm_output": {
+                    "token_usage": {
+                        "prompt_tokens": 1,
+                        "completion_tokens": 2,
+                    }
+                },
+                "generations": [
+                    [
+                        {
+                            "generation_info": {
+                                "token_usage": {
+                                    "input_tokens": 99,
+                                    "output_tokens": 99,
+                                }
+                            }
+                        }
+                    ]
+                ],
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 1
+        assert out == 2
+
     def test_no_token_usage(self):
         run = _FakeRun(outputs={})
         inp, out = _extract_token_usage(run)

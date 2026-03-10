@@ -325,24 +325,74 @@ def _extract_llm_output_messages(run: Any) -> list[OutputMessage]:
     return result
 
 
+def _parse_token_usage_dict(token_usage: Any) -> tuple[int | None, int | None]:
+    """Parse a token_usage/usage dict into (input_tokens, output_tokens)."""
+    if not isinstance(token_usage, dict):
+        return None, None
+    inp = token_usage.get("prompt_tokens") or token_usage.get("input_tokens")
+    out = token_usage.get("completion_tokens") or token_usage.get(
+        "output_tokens"
+    )
+    return (
+        int(inp) if inp is not None else None,
+        int(out) if out is not None else None,
+    )
+
+
 def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
-    """Return (input_tokens, output_tokens) from a completed LLM Run."""
+    """Return (input_tokens, output_tokens) from a completed LLM Run.
+
+    Tries multiple LangChain formats in order:
+    1. outputs["llm_output"]["token_usage"] or ["usage"]
+    2. generations[i][j]["generation_info"]["token_usage"] or ["usage"]
+    3. generations[i][j]["message"].response_metadata or ["kwargs"]["response_metadata"]
+    """
     outputs = getattr(run, "outputs", None) or {}
+
+    # 1. Primary: llm_output.token_usage / llm_output.usage
     llm_output = outputs.get("llm_output") or {}
     token_usage = (
         llm_output.get("token_usage") or llm_output.get("usage") or {}
     )
+    inp, out = _parse_token_usage_dict(token_usage)
+    if inp is not None or out is not None:
+        return inp, out
 
-    input_tokens = token_usage.get("prompt_tokens") or token_usage.get(
-        "input_tokens"
-    )
-    output_tokens = token_usage.get("completion_tokens") or token_usage.get(
-        "output_tokens"
-    )
-    return (
-        int(input_tokens) if input_tokens is not None else None,
-        int(output_tokens) if output_tokens is not None else None,
-    )
+    # 2. Fallback: generations[][].generation_info["token_usage"] or ["usage"]
+    # 3. Fallback: generations[][].message.response_metadata["token_usage"]
+    for gen_list in outputs.get("generations") or []:
+        if not isinstance(gen_list, list):
+            continue
+        for gen in gen_list:
+            if not isinstance(gen, dict):
+                continue
+            # Try generation_info
+            gen_info = gen.get("generation_info") or {}
+            token_usage = gen_info.get("token_usage") or gen_info.get(
+                "usage"
+            ) or {}
+            inp, out = _parse_token_usage_dict(token_usage)
+            if inp is not None or out is not None:
+                return inp, out
+            # Try message.response_metadata (serialized: kwargs.response_metadata)
+            msg = gen.get("message")
+            if msg is None:
+                continue
+            if isinstance(msg, dict):
+                metadata = (msg.get("kwargs") or {}).get(
+                    "response_metadata"
+                ) or {}
+            else:
+                metadata = getattr(msg, "response_metadata", None) or {}
+            if isinstance(metadata, dict):
+                token_usage = metadata.get("token_usage") or metadata.get(
+                    "usage"
+                ) or {}
+                inp, out = _parse_token_usage_dict(token_usage)
+                if inp is not None or out is not None:
+                    return inp, out
+
+    return None, None
 
 
 def _extract_finish_reasons(run: Any) -> list[str] | None:

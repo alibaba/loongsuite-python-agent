@@ -141,7 +141,7 @@ ReAct Step spans are created for each Reasoning-Acting iteration, with the hiera
 
 ## Requirements
 
-- Python >= 3.8
+- Python >= 3.9
 - LangChain >= 0.1.0
 - OpenTelemetry >= 1.20.0
 
