@@ -90,6 +90,11 @@ def _make_iter_next_step_wrapper(original_fn: Any) -> Any:
         except Exception as exc:
             if tracer is not None and agent_run_id is not None:
                 tracer._fail_react_step(agent_run_id, str(exc))
+            logger.debug(
+                "ReAct step failed in _iter_next_step: %s",
+                exc,
+                exc_info=True,
+            )
             raise
         else:
             if tracer is not None and agent_run_id is not None:
@@ -132,6 +137,11 @@ def _make_aiter_next_step_wrapper(original_fn: Any) -> Any:
         except Exception as exc:
             if tracer is not None and agent_run_id is not None:
                 tracer._fail_react_step(agent_run_id, str(exc))
+            logger.debug(
+                "ReAct step failed in _aiter_next_step: %s",
+                exc,
+                exc_info=True,
+            )
             raise
         else:
             if tracer is not None and agent_run_id is not None:

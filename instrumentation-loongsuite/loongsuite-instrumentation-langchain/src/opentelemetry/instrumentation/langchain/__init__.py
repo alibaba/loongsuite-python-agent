@@ -126,7 +126,11 @@ def _uninstrument_agent_executor() -> None:
             cls._iter_next_step = orig_iter
             cls._aiter_next_step = orig_aiter
         except Exception:  # noqa: S110
-            pass
+            logger.debug(
+                "Failed to restore AgentExecutor methods for %s",
+                cls,
+                exc_info=True,
+            )
     logger.debug(
         "Restored AgentExecutor._iter_next_step and _aiter_next_step (%d class(es))",
         len(_patched_agent_executors),
@@ -152,13 +156,6 @@ def _create_agent_wrapper(
     """
     graph = wrapped(*args, **kwargs)
     setattr(graph, _REACT_AGENT_GRAPH_ATTR, True)
-    logger.debug(
-        "[INSTRUMENTATION] create_agent patched graph: "
-        "name=%r, %s=%r",
-        getattr(graph, "name", None),
-        _REACT_AGENT_GRAPH_ATTR,
-        True,
-    )
     return graph
 
 
@@ -193,9 +190,7 @@ def _instrument_create_agent() -> None:
         return
 
     for module_path, attr_name in locations:
-        wrap_function_wrapper(
-            module_path, attr_name, _create_agent_wrapper
-        )
+        wrap_function_wrapper(module_path, attr_name, _create_agent_wrapper)
         logger.debug("Patched %s.%s", module_path, attr_name)
 
     _patched_create_agent_locations = locations

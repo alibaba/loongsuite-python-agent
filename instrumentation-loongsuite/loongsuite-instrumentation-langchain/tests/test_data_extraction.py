@@ -268,6 +268,7 @@ class TestExtractTokenUsage:
 
     def test_from_message_response_metadata_object(self):
         """Token usage may be in message.response_metadata (object format, not serialized)."""
+
         class _FakeMessage:
             response_metadata = {
                 "token_usage": {

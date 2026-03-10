@@ -124,6 +124,10 @@ def _should_capture_chain_content() -> bool:
             ContentCapturingMode.SPAN_AND_EVENT,
         )
     except ValueError:
+        logger.debug(
+            "Content capturing mode check failed (experimental mode or mode value)",
+            exc_info=True,
+        )
         return False
 
 

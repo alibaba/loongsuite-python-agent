@@ -103,6 +103,10 @@ def _filter_base64_images(obj: Any) -> Any:
                     else:
                         filtered_list.append(item)
                 except Exception:
+                    logger.debug(
+                        "Failed to parse/filter base64 in list item",
+                        exc_info=True,
+                    )
                     filtered_list.append(item)
             elif _is_base64_image(item):
                 filtered_item = {
@@ -368,9 +372,9 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
                 continue
             # Try generation_info
             gen_info = gen.get("generation_info") or {}
-            token_usage = gen_info.get("token_usage") or gen_info.get(
-                "usage"
-            ) or {}
+            token_usage = (
+                gen_info.get("token_usage") or gen_info.get("usage") or {}
+            )
             inp, out = _parse_token_usage_dict(token_usage)
             if inp is not None or out is not None:
                 return inp, out
@@ -385,9 +389,9 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
             else:
                 metadata = getattr(msg, "response_metadata", None) or {}
             if isinstance(metadata, dict):
-                token_usage = metadata.get("token_usage") or metadata.get(
-                    "usage"
-                ) or {}
+                token_usage = (
+                    metadata.get("token_usage") or metadata.get("usage") or {}
+                )
                 inp, out = _parse_token_usage_dict(token_usage)
                 if inp is not None or out is not None:
                     return inp, out
@@ -426,6 +430,9 @@ def _safe_json(obj: Any, max_len: int = 4096) -> str:
     try:
         s = json.dumps(obj, ensure_ascii=False, default=str)
     except Exception:
+        logger.debug(
+            "Failed to JSON serialize object, using str()", exc_info=True
+        )
         s = str(obj)
     if len(s) > max_len:
         s = s[:max_len] + "..."
