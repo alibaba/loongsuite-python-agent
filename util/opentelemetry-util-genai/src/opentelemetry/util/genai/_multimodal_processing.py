@@ -51,7 +51,6 @@ from typing import (
     cast,
 )
 
-from opentelemetry import context as otel_context
 from opentelemetry._logs import Logger as OtelLogger
 from opentelemetry.trace import Span
 from opentelemetry.util.genai._extended_semconv import (
@@ -62,6 +61,7 @@ from opentelemetry.util.genai.extended_span_utils import (
     _maybe_emit_invoke_agent_event,
 )
 from opentelemetry.util.genai.extended_types import InvokeAgentInvocation
+from opentelemetry.util.genai.handler import _safe_detach
 from opentelemetry.util.genai.span_utils import (
     _apply_error_attributes,
     _apply_llm_finish_attributes,
@@ -188,7 +188,7 @@ class MultimodalProcessingMixin:
             return False
 
         # 1. Detach context immediately (let user code continue)
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
 
         # 2. Ensure worker is started
         self._ensure_async_worker()
@@ -236,7 +236,7 @@ class MultimodalProcessingMixin:
         if not self._should_async_process(invocation):
             return False
 
-        otel_context.detach(invocation.context_token)
+        _safe_detach(invocation.context_token)
         self._ensure_async_worker()
 
         async_queue = self.__class__._async_queue

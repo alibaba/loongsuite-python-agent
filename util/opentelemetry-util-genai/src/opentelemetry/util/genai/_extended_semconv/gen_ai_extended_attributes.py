@@ -138,6 +138,28 @@ The time in nanoseconds from the request start to when the first token was recei
 This metric is important for measuring the latency perceived by users in streaming scenarios.
 """
 
+# Entry attributes (LoongSuite semantic conventions)
+GEN_AI_SESSION_ID: Final = "gen_ai.session.id"
+"""
+The session ID for the AI application.
+"""
+
+GEN_AI_USER_ID: Final = "gen_ai.user.id"
+"""
+The C-end user identifier of the application.
+"""
+
+# ReAct Step attributes (LoongSuite semantic conventions)
+GEN_AI_REACT_FINISH_REASON: Final = "gen_ai.react.finish_reason"
+"""
+The reason why this ReAct iteration ended.
+"""
+
+GEN_AI_REACT_ROUND: Final = "gen_ai.react.round"
+"""
+The round number of this ReAct iteration (1-based).
+"""
+
 
 class GenAiSpanKindValues(Enum):
     AGENT = "AGENT"
@@ -161,6 +183,12 @@ class GenAiSpanKindValues(Enum):
     MEMORY = "MEMORY"
     """Memory operation."""
 
+    ENTRY = "ENTRY"
+    """Entry point for AI application system calls."""
+
+    STEP = "STEP"
+    """ReAct step (Reasoning-Acting iteration)."""
+
 
 class GenAiExtendedOperationNameValues(Enum):
     RETRIEVE_DOCUMENTS = "retrieve_documents"
@@ -168,6 +196,12 @@ class GenAiExtendedOperationNameValues(Enum):
 
     RERANK_DOCUMENTS = "rerank_documents"
     """Rerank documents operation."""
+
+    ENTER = "enter"
+    """Entry operation for AI application system."""
+
+    REACT = "react"
+    """ReAct step operation (Reasoning-Acting iteration)."""
 
 
 class GenAiExtendedProviderNameValues(Enum):
