@@ -2,8 +2,12 @@
 langchain_core<1.0.0
 langchain<1.0.0
 langchain-community<1.0.0
+langchain-openai>=0.2.0
 pytest
 wrapt
+respx>=0.20.0
+httpx>=0.24.0
+numpy>=1.20.0
 opentelemetry-api==1.37
 opentelemetry-sdk==1.37
 opentelemetry-instrumentation==0.58b0
