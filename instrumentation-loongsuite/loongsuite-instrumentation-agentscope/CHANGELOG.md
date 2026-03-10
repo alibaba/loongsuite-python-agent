@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add ReAct step span instrumentation for ReAct agents
+  ([#140](https://github.com/alibaba/loongsuite-python-agent/pull/140))
+  - Each ReAct iteration is wrapped in a `react step` span with `gen_ai.react.round` and `gen_ai.react.finish_reason` attributes
+  - Uses AgentScope's instance-level hook system for robust, non-invasive instrumentation
+
 ## Version 0.1.0 (2026-02-28)
 
 ### Fixed
