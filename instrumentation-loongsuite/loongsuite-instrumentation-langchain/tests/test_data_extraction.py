@@ -25,7 +25,7 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _extract_token_usage,
     _safe_json,
 )
-from opentelemetry.util.genai.types import Text, ToolCall
+from opentelemetry.util.genai.types import Text, ToolCall, ToolCallResponse
 
 
 class _FakeRun:
@@ -102,6 +102,40 @@ class TestConvertMessage:
         assert result is not None
         assert any(isinstance(p, ToolCall) for p in result.parts)
 
+    def test_tool_message(self):
+        """ToolMessage (role=tool) should be converted to ToolCallResponse, not Text."""
+        msg = {
+            "id": ["langchain", "schema", "ToolMessage"],
+            "kwargs": {
+                "content": "search result: 42",
+                "tool_call_id": "call_abc123",
+            },
+        }
+        result = _convert_lc_message_to_input(msg)
+        assert result is not None
+        assert result.role == "tool"
+        assert len(result.parts) == 1
+        assert isinstance(result.parts[0], ToolCallResponse)
+        assert result.parts[0].response == "search result: 42"
+        assert result.parts[0].id == "call_abc123"
+
+    def test_tool_message_empty_content(self):
+        """ToolMessage with empty content should still produce ToolCallResponse."""
+        msg = {
+            "id": ["langchain", "schema", "ToolMessage"],
+            "kwargs": {
+                "content": "",
+                "tool_call_id": "call_xyz",
+            },
+        }
+        result = _convert_lc_message_to_input(msg)
+        assert result is not None
+        assert result.role == "tool"
+        assert len(result.parts) == 1
+        assert isinstance(result.parts[0], ToolCallResponse)
+        assert result.parts[0].response == ""
+        assert result.parts[0].id == "call_xyz"
+
     def test_none_for_non_dict(self):
         assert _convert_lc_message_to_input("not a dict") is None
 
@@ -134,6 +168,35 @@ class TestExtractLLMInputMessages:
         run = _FakeRun(inputs={})
         messages = _extract_llm_input_messages(run)
         assert messages == []
+
+    def test_messages_with_tool_message(self):
+        """Messages containing ToolMessage should convert to ToolCallResponse."""
+        run = _FakeRun(
+            inputs={
+                "messages": [
+                    [
+                        {
+                            "id": ["langchain", "schema", "HumanMessage"],
+                            "kwargs": {"content": "search for x"},
+                        },
+                        {
+                            "id": ["langchain", "schema", "ToolMessage"],
+                            "kwargs": {
+                                "content": "found: 42",
+                                "tool_call_id": "call_123",
+                            },
+                        },
+                    ]
+                ]
+            }
+        )
+        messages = _extract_llm_input_messages(run)
+        assert len(messages) == 2
+        assert messages[0].role == "user"
+        assert messages[1].role == "tool"
+        assert isinstance(messages[1].parts[0], ToolCallResponse)
+        assert messages[1].parts[0].response == "found: 42"
+        assert messages[1].parts[0].id == "call_123"
 
 
 class TestExtractLLMOutputMessages:

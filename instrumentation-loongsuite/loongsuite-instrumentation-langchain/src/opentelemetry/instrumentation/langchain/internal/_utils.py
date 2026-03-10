@@ -25,6 +25,7 @@ from opentelemetry.util.genai.types import (
     OutputMessage,
     Text,
     ToolCall,
+    ToolCallResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -230,25 +231,45 @@ def _convert_lc_message_to_input(msg: Any) -> InputMessage | None:
 
         content = kwargs.get("content", "")
         parts = []
-        if isinstance(content, str) and content:
-            parts.append(Text(content=content))
-        elif isinstance(content, list):
-            for part in content:
-                if isinstance(part, dict) and part.get("type") == "text":
-                    parts.append(Text(content=part.get("text", "")))
-                elif isinstance(part, str):
-                    parts.append(Text(content=part))
 
-        tool_calls = kwargs.get("tool_calls") or []
-        for tc in tool_calls:
-            if isinstance(tc, dict):
-                parts.append(
-                    ToolCall(
-                        name=tc.get("name", ""),
-                        arguments=tc.get("args", {}),
-                        id=tc.get("id"),
+        if role_str == "tool":
+            # ToolMessage: use ToolCallResponse with tool_call_id
+            tool_call_id = kwargs.get("tool_call_id")
+            if isinstance(content, str):
+                response_content = content
+            elif isinstance(content, list):
+                text_parts = []
+                for part in content:
+                    if isinstance(part, dict) and part.get("type") == "text":
+                        text_parts.append(part.get("text", ""))
+                    elif isinstance(part, str):
+                        text_parts.append(part)
+                response_content = "\n".join(text_parts) if text_parts else ""
+            else:
+                response_content = str(content) if content else ""
+            parts.append(
+                ToolCallResponse(response=response_content, id=tool_call_id)
+            )
+        else:
+            if isinstance(content, str) and content:
+                parts.append(Text(content=content))
+            elif isinstance(content, list):
+                for part in content:
+                    if isinstance(part, dict) and part.get("type") == "text":
+                        parts.append(Text(content=part.get("text", "")))
+                    elif isinstance(part, str):
+                        parts.append(Text(content=part))
+
+            tool_calls = kwargs.get("tool_calls") or []
+            for tc in tool_calls:
+                if isinstance(tc, dict):
+                    parts.append(
+                        ToolCall(
+                            name=tc.get("name", ""),
+                            arguments=tc.get("args", {}),
+                            id=tc.get("id"),
+                        )
                     )
-                )
         if parts:
             return InputMessage(role=role_str, parts=parts)
     return None
