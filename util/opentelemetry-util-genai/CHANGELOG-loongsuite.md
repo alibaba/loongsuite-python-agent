@@ -10,23 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Entry span (`gen_ai.span.kind=ENTRY`) and ReAct Step span (`gen_ai.span.kind=STEP`) support in `ExtendedTelemetryHandler` with types, utilities, and context-manager APIs
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Propagate `gen_ai.session.id` and `gen_ai.user.id` into Baggage during `start_entry`, enabling traffic coloring via `BaggageSpanProcessor` for all child spans within the entry block
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 
 ### Changed
 
 - Add optional `context` parameter to all `start_*` methods in `TelemetryHandler` and `ExtendedTelemetryHandler` for explicit parent-child span linking
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Unify `attach`/`detach` strategy in `ExtendedTelemetryHandler`: always `attach` regardless of whether `context` is provided; `stop_*`/`fail_*` guards restored to `context_token is None or span is None`
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 
 ### Fixed
 
 - Fix `_safe_detach` to use `_RUNTIME_CONTEXT.detach` directly, avoiding noisy `ERROR` log from OTel SDK's `context_api.detach` wrapper
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Fix undefined `otel_context` reference in `_multimodal_processing.py` `process_multimodal_fail`, replaced with `_safe_detach`
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 
 ## Version 0.1.0 (2026-02-28)
 
