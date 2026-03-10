@@ -205,20 +205,26 @@ def test_retrieval_qa_chain_spans(
 
     # Chain spans use "chain {run.name}" format
     rqa_span = spans_by_name.get("chain RetrievalQA")
-    assert rqa_span is not None, f"Expected chain RetrievalQA span, got: {list(spans_by_name.keys())}"
+    assert rqa_span is not None, (
+        f"Expected chain RetrievalQA span, got: {list(spans_by_name.keys())}"
+    )
     assert rqa_span.parent is None
     rqa_attrs = dict(rqa_span.attributes or {})
     assert rqa_attrs.pop(GEN_AI_SPAN_KIND, None) == "CHAIN"
     # INPUT_VALUE is JSON; RetrievalQA input is {"query": question}
     input_val = rqa_attrs.pop(INPUT_VALUE, None)
     assert input_val is not None
-    input_parsed = json.loads(input_val) if isinstance(input_val, str) else input_val
+    input_parsed = (
+        json.loads(input_val) if isinstance(input_val, str) else input_val
+    )
     assert input_parsed.get("query") == question
     if status_code == 200:
         assert rqa_span.status.status_code == StatusCode.OK
         out_val = rqa_attrs.pop(OUTPUT_VALUE, None)
         assert out_val is not None
-        out_parsed = json.loads(out_val) if isinstance(out_val, str) else out_val
+        out_parsed = (
+            json.loads(out_val) if isinstance(out_val, str) else out_val
+        )
         assert out_parsed.get("result") == output_messages[0]["content"]
     elif status_code == 400:
         assert rqa_span.status.status_code == StatusCode.ERROR
@@ -280,21 +286,27 @@ def test_retrieval_qa_chain_spans(
     assert oai_span.parent.span_id == llm_chain_span.context.span_id
     oai_attrs = dict(oai_span.attributes or {})
     assert oai_attrs.pop(GEN_AI_SPAN_KIND, None) == "LLM"
-    assert oai_attrs.pop(GenAIAttributes.GEN_AI_REQUEST_MODEL, None) is not None
-    assert GenAIAttributes.GEN_AI_INPUT_MESSAGES in oai_attrs or "input" in str(
-        oai_attrs
-    ).lower()
+    assert (
+        oai_attrs.pop(GenAIAttributes.GEN_AI_REQUEST_MODEL, None) is not None
+    )
+    assert (
+        GenAIAttributes.GEN_AI_INPUT_MESSAGES in oai_attrs
+        or "input" in str(oai_attrs).lower()
+    )
     if status_code == 200:
         assert oai_span.status.status_code in (
             StatusCode.OK,
             StatusCode.UNSET,
         ), f"Expected OK or UNSET, got {oai_span.status.status_code}"
-        assert GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in oai_attrs or "output" in str(
-            oai_attrs
-        ).lower()
+        assert (
+            GenAIAttributes.GEN_AI_OUTPUT_MESSAGES in oai_attrs
+            or "output" in str(oai_attrs).lower()
+        )
         if not is_stream:
             assert (
-                oai_attrs.pop(GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS, None)
+                oai_attrs.pop(
+                    GenAIAttributes.GEN_AI_RESPONSE_FINISH_REASONS, None
+                )
                 is not None
             )
             assert (
@@ -400,7 +412,10 @@ def test_chain_metadata(
                 "choices": [
                     {
                         "index": 0,
-                        "message": {"role": "assistant", "content": "nock nock"},
+                        "message": {
+                            "role": "assistant",
+                            "content": "nock nock",
+                        },
                         "finish_reason": "stop",
                     }
                 ],
@@ -463,6 +478,8 @@ def test_chain_exception_event(
             exc_type = span.events[0].attributes.get("exception.type", "")
             exc_msg = span.events[0].attributes.get("exception.message", "")
             # Exception type may be "Exception" or "MyCustomError" depending on handler
-            assert "mock error" in str(exc_msg) or "MyCustomError" in str(exc_type)
+            assert "mock error" in str(exc_msg) or "MyCustomError" in str(
+                exc_type
+            )
             return
     pytest.fail("No span with exception event found")
