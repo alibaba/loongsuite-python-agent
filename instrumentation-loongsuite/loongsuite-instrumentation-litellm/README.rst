@@ -1,4 +1,4 @@
-OpenTelemetry LiteLLM Instrumentation
+LoongSuite LiteLLM Instrumentation
 ======================================
 
 |pypi|
@@ -15,7 +15,9 @@ Installation
 
 ::
 
-     pip install opentelemetry-instrumentation-litellm
+     git clone https://github.com/alibaba/loongsuite-python-agent.git
+     cd loongsuite-python-agent
+     pip install ./instrumentation-loongsuite/loongsuite-instrumentation-litellm
 
 Configuration
 -------------
