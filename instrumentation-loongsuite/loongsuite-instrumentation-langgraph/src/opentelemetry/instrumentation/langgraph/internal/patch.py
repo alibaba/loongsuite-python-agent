@@ -55,11 +55,12 @@ def _create_react_agent_wrapper(
     ``_loongsuite_react_agent = True``.
     """
     graph = wrapped(*args, **kwargs)
-    graph._loongsuite_react_agent = True
+    setattr(graph, REACT_AGENT_METADATA_KEY, True)
     logger.debug(
         "[INSTRUMENTATION] create_react_agent patched graph: "
-        "name=%r, _loongsuite_react_agent=%r",
+        "name=%r, %s=%r",
         getattr(graph, "name", None),
+        REACT_AGENT_METADATA_KEY,
         True,
     )
     return graph
@@ -90,7 +91,7 @@ def _inject_react_metadata(config: Any) -> Any:
 
 def _stream_wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any):  # type: ignore[return]
     """``wrapt`` wrapper for ``Pregel.stream``."""
-    if getattr(instance, "_loongsuite_react_agent", False):
+    if getattr(instance, REACT_AGENT_METADATA_KEY, False):
         args, kwargs = _rewrite_config(args, kwargs)
     yield from wrapped(*args, **kwargs)
 
@@ -99,7 +100,7 @@ async def _astream_wrapper(
     wrapped: Any, instance: Any, args: Any, kwargs: Any
 ):  # type: ignore[return]
     """``wrapt`` wrapper for ``Pregel.astream``."""
-    if getattr(instance, "_loongsuite_react_agent", False):
+    if getattr(instance, REACT_AGENT_METADATA_KEY, False):
         args, kwargs = _rewrite_config(args, kwargs)
     async for chunk in wrapped(*args, **kwargs):
         yield chunk
