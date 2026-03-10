@@ -1,0 +1,11 @@
+# Test requirements for latest versions
+langgraph
+langgraph-prebuilt
+langchain_core<1.0.0
+pytest
+wrapt
+
+-e opentelemetry-instrumentation
+-e util/opentelemetry-util-genai
+-e instrumentation-loongsuite/loongsuite-instrumentation-langchain
+-e instrumentation-loongsuite/loongsuite-instrumentation-langgraph
