@@ -1,0 +1,239 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are an assistant. Always use your tools to execute commands.
+          role: system
+        - content: 'Run the command: echo hello_world'
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: false
+        result_format: message
+        stream: false
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "tool_calls",
+                "index": 0,
+                "message": {
+                  "content": "",
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"command\": \"echo hello_world\", \"timeout\": 300}",
+                        "name": "execute_shell_command"
+                      },
+                      "id": "call_06895d205ffa4a988a65bc",
+                      "index": 0,
+                      "type": "function"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 325,
+            "output_tokens": 28,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "total_tokens": 353
+          },
+          "request_id": "55d6013a-eb58-4034-9519-00d604be4260"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:39:32 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '466'
+      req-arrive-time:
+      - '1773128371433'
+      req-cost-time:
+      - '1183'
+      resp-start-time:
+      - '1773128372616'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '1180'
+      x-request-id:
+      - 55d6013a-eb58-4034-9519-00d604be4260
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are an assistant. Always use your tools to execute commands.
+          role: system
+        - content: 'Run the command: echo hello_world'
+          role: user
+        - content: []
+          role: assistant
+          tool_calls:
+          - function:
+              arguments: '{"command": "echo hello_world", "timeout": 300}'
+              name: execute_shell_command
+            id: call_06895d205ffa4a988a65bc
+            type: function
+        - content: '<returncode>0</returncode><stdout>hello_world
+
+            </stdout><stderr></stderr>'
+          name: execute_shell_command
+          role: tool
+          tool_call_id: call_06895d205ffa4a988a65bc
+      model: qwen-max
+      parameters:
+        incremental_output: false
+        result_format: message
+        stream: false
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "content": "The command `echo hello_world` was executed successfully and the output is:\n\n```\nhello_world\n```",
+                  "role": "assistant"
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 381,
+            "output_tokens": 22,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "total_tokens": 403
+          },
+          "request_id": "e082a959-61ff-4882-8437-c498fe79356e"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:39:33 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '368'
+      req-arrive-time:
+      - '1773128372849'
+      req-cost-time:
+      - '1345'
+      resp-start-time:
+      - '1773128374194'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '1339'
+      x-request-id:
+      - e082a959-61ff-4882-8437-c498fe79356e
+    status:
+      code: 200
+      message: OK
+version: 1

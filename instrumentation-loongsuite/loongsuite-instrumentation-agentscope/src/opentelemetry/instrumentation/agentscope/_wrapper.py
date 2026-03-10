@@ -18,9 +18,14 @@ from __future__ import annotations
 
 import logging
 import timeit
+from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, AsyncGenerator
 
+from opentelemetry.context import get_current as _get_current_context
+from opentelemetry.util.genai._extended_common.common_types import (
+    ReactStepInvocation,
+)
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.types import Error, LLMInvocation
 
@@ -33,6 +38,131 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+_REACT_STEP_HOOK_NAME = "otel_react_step"
+
+
+def _is_react_agent(agent_instance: Any) -> bool:
+    """Check if an agent instance is a ReAct agent by duck-typing."""
+    return hasattr(agent_instance, "_instance_pre_reasoning_hooks")
+
+
+@dataclass
+class _ReactStepState:
+    """Per-agent-call state for React step span lifecycle."""
+
+    react_round: int = 0
+    active_step: ReactStepInvocation | None = None
+    original_context: Any = field(default=None)
+    pending_acting_count: int = 0
+
+
+def _make_pre_reasoning_hook(
+    handler: ExtendedTelemetryHandler,
+) -> Any:
+    """Create a pre_reasoning hook that opens a new React step span.
+
+    Also closes any leftover step from a previous iteration as a fallback
+    (normal path closes via post_acting).
+    """
+
+    def hook(agent_self: Any, kwargs: dict) -> None:
+        state: _ReactStepState | None = getattr(
+            agent_self, "_react_step_state", None
+        )
+        if state is None:
+            return None
+
+        if state.active_step:
+            state.active_step.finish_reason = "tool_calls"
+            handler.stop_react_step(state.active_step)
+            state.active_step = None
+
+        state.react_round += 1
+        inv = ReactStepInvocation(round=state.react_round)
+        handler.start_react_step(inv, context=state.original_context)
+        state.active_step = inv
+        state.pending_acting_count = 0
+        return None
+
+    return hook
+
+
+def _make_post_reasoning_hook(
+    handler: ExtendedTelemetryHandler,
+) -> Any:
+    """Create a post_reasoning hook that counts tool_use blocks
+    to initialize the pending_acting_count for the current step."""
+
+    def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
+        state: _ReactStepState | None = getattr(
+            agent_self, "_react_step_state", None
+        )
+        if state is None or output is None:
+            return None
+
+        tool_blocks = (
+            output.get_content_blocks("tool_use")
+            if hasattr(output, "get_content_blocks")
+            else []
+        )
+        state.pending_acting_count = len(tool_blocks)
+        return None
+
+    return hook
+
+
+def _make_post_acting_hook(
+    handler: ExtendedTelemetryHandler,
+) -> Any:
+    """Create a post_acting hook that decrements pending_acting_count
+    and closes the step span when all acting calls are done."""
+
+    def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
+        state: _ReactStepState | None = getattr(
+            agent_self, "_react_step_state", None
+        )
+        if state is None or state.active_step is None:
+            return None
+
+        state.pending_acting_count -= 1
+        if state.pending_acting_count <= 0:
+            state.active_step.finish_reason = "tool_calls"
+            handler.stop_react_step(state.active_step)
+            state.active_step = None
+        return None
+
+    return hook
+
+
+def _register_react_hooks(
+    agent: Any, handler: ExtendedTelemetryHandler
+) -> None:
+    """Register React step tracking hooks on an agent instance."""
+    agent.register_instance_hook(
+        "pre_reasoning",
+        _REACT_STEP_HOOK_NAME,
+        _make_pre_reasoning_hook(handler),
+    )
+    agent.register_instance_hook(
+        "post_reasoning",
+        _REACT_STEP_HOOK_NAME,
+        _make_post_reasoning_hook(handler),
+    )
+    agent.register_instance_hook(
+        "post_acting",
+        _REACT_STEP_HOOK_NAME,
+        _make_post_acting_hook(handler),
+    )
+
+
+def _remove_react_hooks(agent: Any) -> None:
+    """Remove React step tracking hooks from an agent instance."""
+    for hook_type in ("pre_reasoning", "post_reasoning", "post_acting"):
+        try:
+            agent.remove_instance_hook(hook_type, _REACT_STEP_HOOK_NAME)
+        except (ValueError, KeyError):
+            pass
 
 
 class AgentScopeChatModelWrapper:
@@ -228,10 +358,24 @@ class AgentScopeAgentWrapper:
                 function_name = f"{call_self.__class__.__name__}.__call__"
                 invocation.attributes["rpc"] = function_name
 
+                is_react = _is_react_agent(call_self)
+                state: _ReactStepState | None = None
+                if is_react:
+                    state = _ReactStepState(
+                        original_context=_get_current_context(),
+                    )
+                    call_self._react_step_state = state
+                    _register_react_hooks(call_self, self._handler)
+
                 try:
                     result = await original_call(
                         call_self, *call_args, **call_kwargs
                     )
+
+                    if is_react and state and state.active_step:
+                        state.active_step.finish_reason = "stop"
+                        self._handler.stop_react_step(state.active_step)
+                        state.active_step = None
 
                     invocation.output_messages = (
                         convert_agent_response_to_output_messages(result)
@@ -244,10 +388,23 @@ class AgentScopeAgentWrapper:
                     return result
 
                 except Exception as e:
+                    if is_react and state and state.active_step:
+                        self._handler.fail_react_step(
+                            state.active_step,
+                            Error(message=str(e), type=type(e)),
+                        )
+                        state.active_step = None
+
                     self._handler.fail_invoke_agent(
                         invocation, Error(message=str(e), type=type(e))
                     )
                     raise
+
+                finally:
+                    if is_react:
+                        _remove_react_hooks(call_self)
+                        if hasattr(call_self, "_react_step_state"):
+                            del call_self._react_step_state
 
             except Exception as e:
                 logger.exception("Error in agent instrumentation: %s", e)

@@ -1,0 +1,265 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant. When asked to run multiple commands,
+            you MUST call execute_shell_command for EACH command in a SINGLE response
+            with parallel tool calls.
+          role: system
+        - content: 'Run these two shell commands in parallel: echo hello and echo
+            world'
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: false
+        result_format: message
+        stream: false
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "tool_calls",
+                "index": 0,
+                "message": {
+                  "content": "",
+                  "role": "assistant",
+                  "tool_calls": [
+                    {
+                      "function": {
+                        "arguments": "{\"command\": \"echo hello\", \"timeout\": 300}",
+                        "name": "execute_shell_command"
+                      },
+                      "id": "call_d90542ed39194792b1a7bc",
+                      "index": 0,
+                      "type": "function"
+                    },
+                    {
+                      "function": {
+                        "arguments": "{\"command\": \"echo world\", \"timeout\": 300}",
+                        "name": "execute_shell_command"
+                      },
+                      "id": "call_397c574d91844bc78baf40",
+                      "index": 1,
+                      "type": "function"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 349,
+            "output_tokens": 54,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 403
+          },
+          "request_id": "f71e4feb-75bb-476b-99bd-692d1185a1b3"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:39:47 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '629'
+      req-arrive-time:
+      - '1773128386045'
+      req-cost-time:
+      - '2185'
+      resp-start-time:
+      - '1773128388230'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '2181'
+      x-request-id:
+      - f71e4feb-75bb-476b-99bd-692d1185a1b3
+    status:
+      code: 200
+      message: OK
+- request:
+    body:
+      input:
+        messages:
+        - content: You are a helpful assistant. When asked to run multiple commands,
+            you MUST call execute_shell_command for EACH command in a SINGLE response
+            with parallel tool calls.
+          role: system
+        - content: 'Run these two shell commands in parallel: echo hello and echo
+            world'
+          role: user
+        - content: []
+          role: assistant
+          tool_calls:
+          - function:
+              arguments: '{"command": "echo hello", "timeout": 300}'
+              name: execute_shell_command
+            id: call_d90542ed39194792b1a7bc
+            type: function
+          - function:
+              arguments: '{"command": "echo world", "timeout": 300}'
+              name: execute_shell_command
+            id: call_397c574d91844bc78baf40
+            type: function
+        - content: '<returncode>0</returncode><stdout>hello
+
+            </stdout><stderr></stderr>'
+          name: execute_shell_command
+          role: tool
+          tool_call_id: call_d90542ed39194792b1a7bc
+        - content: '<returncode>0</returncode><stdout>world
+
+            </stdout><stderr></stderr>'
+          name: execute_shell_command
+          role: tool
+          tool_call_id: call_397c574d91844bc78baf40
+      model: qwen-max
+      parameters:
+        incremental_output: false
+        result_format: message
+        stream: false
+        tools:
+        - function:
+            description: 'Execute given command and return the return code, standard
+              output and
+
+              error within <returncode></returncode>, <stdout></stdout> and
+
+              <stderr></stderr> tags.'
+            name: execute_shell_command
+            parameters:
+              properties:
+                command:
+                  description: The shell command to execute.
+                  type: string
+                timeout:
+                  default: 300
+                  description: The maximum time (in seconds) allowed for the command
+                    to run.
+                  type: integer
+              required:
+              - command
+              type: object
+          type: function
+    headers:
+      Accept:
+      - application/json
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "content": "The two shell commands have been executed in parallel. Here are the results:\n\nThe first command `echo hello` returned:\n```\nhello\n```\n\nThe second command `echo world` returned:\n```\nworld\n```",
+                  "role": "assistant"
+                }
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 454,
+            "output_tokens": 45,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 499
+          },
+          "request_id": "0b54dd4b-2864-454e-87df-0630a3b50112"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:39:52 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '465'
+      req-arrive-time:
+      - '1773128388457'
+      req-cost-time:
+      - '4193'
+      resp-start-time:
+      - '1773128392651'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '4187'
+      x-request-id:
+      - 0b54dd4b-2864-454e-87df-0630a3b50112
+    status:
+      code: 200
+      message: OK
+version: 1

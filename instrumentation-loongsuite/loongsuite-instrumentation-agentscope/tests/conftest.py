@@ -143,6 +143,7 @@ def instrument(tracer_provider, logger_provider, meter_provider):
         tracer_provider=tracer_provider,
         logger_provider=logger_provider,
         meter_provider=meter_provider,
+        skip_dep_check=True,
     )
 
     yield instrumentor
@@ -161,6 +162,7 @@ def instrument_no_content(tracer_provider, logger_provider, meter_provider):
         tracer_provider=tracer_provider,
         logger_provider=logger_provider,
         meter_provider=meter_provider,
+        skip_dep_check=True,
     )
 
     yield instrumentor
@@ -180,6 +182,7 @@ def instrument_with_content(tracer_provider, logger_provider, meter_provider):
         tracer_provider=tracer_provider,
         logger_provider=logger_provider,
         meter_provider=meter_provider,
+        skip_dep_check=True,
     )
 
     yield instrumentor
@@ -201,6 +204,7 @@ def instrument_with_content_and_events(
         tracer_provider=tracer_provider,
         logger_provider=logger_provider,
         meter_provider=meter_provider,
+        skip_dep_check=True,
     )
 
     yield instrumentor
@@ -225,6 +229,7 @@ def instrument_with_content_unsampled(
         tracer_provider=tracer_provider,
         logger_provider=logger_provider,
         meter_provider=meter_provider,
+        skip_dep_check=True,
     )
 
     yield instrumentor
