@@ -65,8 +65,8 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _safe_json,
 )
 from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_SPAN_KIND,
     INPUT_VALUE,
-    LLM_SPAN_KIND,
     OUTPUT_VALUE,
 )
 from opentelemetry.trace import Span, SpanKind, StatusCode, set_span_in_context
@@ -396,7 +396,7 @@ class LoongsuiteTracer(BaseTracer):
             context=parent_ctx,
         )
 
-        span.set_attribute(LLM_SPAN_KIND, "CHAIN")
+        span.set_attribute(GEN_AI_SPAN_KIND, "CHAIN")
         if _should_capture_chain_content():
             inputs = getattr(run, "inputs", None) or {}
             span.set_attribute(INPUT_VALUE, _safe_json(inputs))

@@ -110,8 +110,10 @@ def _safe_detach(token: object) -> None:
         return
     try:
         _RUNTIME_CONTEXT.detach(token)  # type: ignore[arg-type]
-    except Exception:  # noqa: BLE001
-        logger.debug("Context detach failed (cross-thread/async scenario)")
+    except (ValueError, RuntimeError) as e:
+        logger.debug(
+            "Context detach failed (cross-thread/async scenario): %s", e
+        )
 
 
 class TelemetryHandler:

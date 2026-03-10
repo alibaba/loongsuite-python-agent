@@ -20,8 +20,8 @@ import pytest
 from langchain_core.runnables import RunnableLambda
 
 from opentelemetry.instrumentation.langchain.internal.semconv import (
+    GEN_AI_SPAN_KIND,
     INPUT_VALUE,
-    LLM_SPAN_KIND,
     OUTPUT_VALUE,
 )
 from opentelemetry.trace import StatusCode
@@ -59,7 +59,7 @@ class TestChainSpanCreation:
         chain_spans = _find_chain_spans(span_exporter)
         assert len(chain_spans) >= 1
         attrs = dict(chain_spans[0].attributes)
-        assert attrs.get(LLM_SPAN_KIND) == "CHAIN"
+        assert attrs.get(GEN_AI_SPAN_KIND) == "CHAIN"
 
 
 class TestChainInputOutputContent:
