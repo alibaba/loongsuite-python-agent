@@ -132,3 +132,5 @@ class TestToolInputOutputContent:
         assert (
             attrs.get(GenAIAttributes.GEN_AI_OPERATION_NAME) == "execute_tool"
         )
+
+
