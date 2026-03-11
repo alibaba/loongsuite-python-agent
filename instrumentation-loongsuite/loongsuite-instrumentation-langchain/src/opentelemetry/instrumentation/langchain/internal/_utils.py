@@ -419,5 +419,5 @@ def _safe_json(obj: Any, max_len: int = 4096) -> str:
         )
         s = str(obj)
     if len(s) > max_len:
-        s = s[:max_len] + "..."
+        s = s[:max_len] + "...[truncated]"
     return s

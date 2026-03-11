@@ -499,8 +499,8 @@ class TestSafeJson:
 
     def test_truncation(self):
         result = _safe_json({"x": "a" * 10000}, max_len=100)
-        assert result.endswith("...")
-        assert len(result) <= 104
+        assert result.endswith("...[truncated]")
+        assert len(result) <= 114  # max_len(100) + len("...[truncated]")(14)
 
     def test_non_serializable(self):
         result = _safe_json(object())
