@@ -348,6 +348,15 @@ class AgentScopeAgentWrapper:
             **call_kwargs: Any,
         ) -> Any:
             """Async wrapper for AgentBase.__call__."""
+            # Phase 1 – instrumentation setup.
+            # Keep is_react/state/invocation outside the try so that the
+            # execution phase (phase 2) can reference them safely.  The
+            # except block always returns, so the execution phase is only
+            # reached when setup has completed without error, guaranteeing
+            # that `invocation` is fully initialised.
+            invocation = None
+            is_react = False
+            state: _ReactStepState | None = None
             try:
                 invocation = create_agent_invocation(
                     call_self, call_args, call_kwargs
@@ -359,7 +368,6 @@ class AgentScopeAgentWrapper:
                 invocation.attributes["rpc"] = function_name
 
                 is_react = _is_react_agent(call_self)
-                state: _ReactStepState | None = None
                 if is_react:
                     state = _ReactStepState(
                         original_context=_get_current_context(),
@@ -367,50 +375,56 @@ class AgentScopeAgentWrapper:
                     call_self._react_step_state = state
                     _register_react_hooks(call_self, self._handler)
 
-                try:
-                    result = await original_call(
-                        call_self, *call_args, **call_kwargs
-                    )
-
-                    if is_react and state and state.active_step:
-                        state.active_step.finish_reason = "stop"
-                        self._handler.stop_react_step(state.active_step)
-                        state.active_step = None
-
-                    invocation.output_messages = (
-                        convert_agent_response_to_output_messages(result)
-                    )
-
-                    if hasattr(result, "id"):
-                        invocation.response_id = getattr(result, "id", None)
-
-                    self._handler.stop_invoke_agent(invocation)
-                    return result
-
-                except Exception as e:
-                    if is_react and state and state.active_step:
-                        self._handler.fail_react_step(
-                            state.active_step,
-                            Error(message=str(e), type=type(e)),
-                        )
-                        state.active_step = None
-
-                    self._handler.fail_invoke_agent(
-                        invocation, Error(message=str(e), type=type(e))
-                    )
-                    raise
-
-                finally:
-                    if is_react:
-                        _remove_react_hooks(call_self)
-                        if hasattr(call_self, "_react_step_state"):
-                            del call_self._react_step_state
-
             except Exception as e:
-                logger.exception("Error in agent instrumentation: %s", e)
+                logger.exception(
+                    "Error setting up agent instrumentation: %s", e
+                )
                 return await original_call(
                     call_self, *call_args, **call_kwargs
                 )
+
+            # Phase 2 – instrumented agent call.
+            # Setup succeeded: invocation is set; react hooks are registered
+            # when is_react is True.  Errors are recorded and re-raised so
+            # callers see the original exception exactly once.
+            try:
+                result = await original_call(
+                    call_self, *call_args, **call_kwargs
+                )
+
+                if is_react and state and state.active_step:
+                    state.active_step.finish_reason = "stop"
+                    self._handler.stop_react_step(state.active_step)
+                    state.active_step = None
+
+                invocation.output_messages = (
+                    convert_agent_response_to_output_messages(result)
+                )
+
+                if hasattr(result, "id"):
+                    invocation.response_id = getattr(result, "id", None)
+
+                self._handler.stop_invoke_agent(invocation)
+                return result
+
+            except Exception as e:
+                if is_react and state and state.active_step:
+                    self._handler.fail_react_step(
+                        state.active_step,
+                        Error(message=str(e), type=type(e)),
+                    )
+                    state.active_step = None
+
+                self._handler.fail_invoke_agent(
+                    invocation, Error(message=str(e), type=type(e))
+                )
+                raise
+
+            finally:
+                if is_react:
+                    _remove_react_hooks(call_self)
+                    if hasattr(call_self, "_react_step_state"):
+                        del call_self._react_step_state
 
         instance.__class__.__call__ = async_wrapped_call
         self._instrumented_classes.add(agent_class)
