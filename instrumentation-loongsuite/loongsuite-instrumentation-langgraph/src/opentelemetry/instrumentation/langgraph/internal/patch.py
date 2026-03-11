@@ -57,8 +57,7 @@ def _create_react_agent_wrapper(
     graph = wrapped(*args, **kwargs)
     setattr(graph, REACT_AGENT_METADATA_KEY, True)
     logger.debug(
-        "[INSTRUMENTATION] create_react_agent patched graph: "
-        "name=%r, %s=%r",
+        "[INSTRUMENTATION] create_react_agent patched graph: name=%r, %s=%r",
         getattr(graph, "name", None),
         REACT_AGENT_METADATA_KEY,
         True,
