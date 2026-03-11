@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `RetrievalDocument` dataclass for typed retrieval document representation (id, score, content, metadata). 
-  ([#143](https://github.com/alibaba/loongsuite-python-agent/pull/143))
+  ([#145](https://github.com/alibaba/loongsuite-python-agent/pull/145))
 - Control RetrievalDocument serialization: when content capturing is NO_CONTENT, only serialize id and score; when SPAN_ONLY/SPAN_AND_EVENT, serialize full (id, score, content, metadata)
-  ([#143](https://github.com/alibaba/loongsuite-python-agent/pull/143))
+  ([#145](https://github.com/alibaba/loongsuite-python-agent/pull/145))
 - Add Entry span (`gen_ai.span.kind=ENTRY`) and ReAct Step span (`gen_ai.span.kind=STEP`) support in `ExtendedTelemetryHandler` with types, utilities, and context-manager APIs
   ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Propagate `gen_ai.session.id` and `gen_ai.user.id` into Baggage during `start_entry`, enabling traffic coloring via `BaggageSpanProcessor` for all child spans within the entry block
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Retrieval semantic convention**: Align retrieval spans with LoongSuite spec
-  ([#143](https://github.com/alibaba/loongsuite-python-agent/pull/143))
+  ([#145](https://github.com/alibaba/loongsuite-python-agent/pull/145))
   - `gen_ai.operation.name`: `retrieve_documents` → `retrieval`
   - `gen_ai.retrieval.query` → `gen_ai.retrieval.query.text` for query text
   - Span name: `retrieval {gen_ai.data_source.id}` when `data_source_id` is set
