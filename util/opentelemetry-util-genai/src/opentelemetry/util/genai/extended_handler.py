@@ -559,9 +559,9 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         invocation: RetrieveInvocation,
         context: Context | None = None,
     ) -> RetrieveInvocation:
-        """Start a retrieve documents invocation and create a pending span entry."""
+        """Start a retrieval invocation and create a pending span entry."""
         span = self._tracer.start_span(
-            name="retrieve_documents",
+            name="retrieval",
             kind=SpanKind.INTERNAL,
             context=context,
         )

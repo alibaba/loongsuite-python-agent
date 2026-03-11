@@ -23,7 +23,7 @@ from langchain_core.retrievers import BaseRetriever
 
 from opentelemetry.instrumentation.langchain.internal.semconv import (
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_RETRIEVAL_QUERY_TEXT,
 )
 from opentelemetry.trace import StatusCode
 
@@ -61,7 +61,7 @@ class FakeErrorRetriever(BaseRetriever):
 
 def _find_retriever_spans(span_exporter):
     spans = span_exporter.get_finished_spans()
-    return [s for s in spans if "retrieve" in s.name.lower()]
+    return [s for s in spans if "retrieval" in s.name.lower()]
 
 
 class TestRetrieverSpanCreation:
@@ -96,9 +96,9 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
-        query_val = attrs.get(GEN_AI_RETRIEVAL_QUERY, "")
+        query_val = attrs.get(GEN_AI_RETRIEVAL_QUERY_TEXT, "")
         assert "machine learning basics" in query_val, (
-            f"Expected 'machine learning basics' in retrieval.query, got: {query_val}"
+            f"Expected 'machine learning basics' in retrieval.query.text, got: {query_val}"
         )
 
     def test_retrieval_documents_captured(self, instrument, span_exporter):
@@ -117,7 +117,7 @@ class TestRetrieverInputOutputContent:
     def test_no_content_when_disabled(
         self, instrument_no_content, span_exporter
     ):
-        """When content capture is disabled, query and documents should NOT appear."""
+        """When content capture is NO_CONTENT: query omitted; documents record id and score only."""
         retriever = FakeRetriever()
         retriever.invoke("secret query")
 
@@ -125,9 +125,11 @@ class TestRetrieverInputOutputContent:
         assert len(retriever_spans) >= 1
         attrs = dict(retriever_spans[0].attributes)
 
-        assert GEN_AI_RETRIEVAL_QUERY not in attrs, (
-            "Retrieval query should NOT be captured when content capture is disabled"
+        assert GEN_AI_RETRIEVAL_QUERY_TEXT not in attrs, (
+            "Query should NOT be captured when content capture is disabled"
         )
-        assert GEN_AI_RETRIEVAL_DOCUMENTS not in attrs, (
-            "Retrieval documents should NOT be captured when content capture is disabled"
+        # Documents are recorded with id and score only (no content) when NO_CONTENT
+        docs_val = attrs.get(GEN_AI_RETRIEVAL_DOCUMENTS, "")
+        assert "secret query" not in docs_val, (
+            "Document content should NOT be captured when NO_CONTENT"
         )

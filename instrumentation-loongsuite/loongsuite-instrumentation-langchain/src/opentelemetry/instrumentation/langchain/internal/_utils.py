@@ -406,6 +406,50 @@ def _extract_response_model(run: Any) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Retriever document conversion
+# ---------------------------------------------------------------------------
+
+
+def _documents_to_retrieval_documents(documents: Any) -> list:
+    """Convert retriever output documents to List[RetrievalDocument].
+
+    Accepts LangChain Document objects (page_content, metadata) or similar.
+    Extracts id from doc.id, metadata.id, metadata.doc_id, metadata.document_id.
+    Extracts score from metadata.score, metadata.relevance_score, metadata.similarity_score.
+    """
+    from opentelemetry.util.genai.extended_types import RetrievalDocument
+
+    result = []
+    if not documents:
+        return result
+    for doc in documents:
+        meta = getattr(doc, "metadata", None) or {}
+        doc_id = (
+            getattr(doc, "id", None)
+            or meta.get("id")
+            or meta.get("doc_id")
+            or meta.get("document_id")
+        )
+        score = (
+            meta.get("score")
+            or meta.get("relevance_score")
+            or meta.get("similarity_score")
+        )
+        content = getattr(doc, "page_content", None) or getattr(
+            doc, "content", None
+        )
+        result.append(
+            RetrievalDocument(
+                id=doc_id,
+                score=score,
+                content=content,
+                metadata=meta if meta else None,
+            )
+        )
+    return result
+
+
+# ---------------------------------------------------------------------------
 # JSON serialisation helper
 # ---------------------------------------------------------------------------
 
