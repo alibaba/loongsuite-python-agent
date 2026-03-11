@@ -24,7 +24,7 @@ from opentelemetry.semconv._incubating.attributes import (
 )
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # noqa: E501
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_RETRIEVAL_QUERY_TEXT,
     GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
@@ -38,7 +38,7 @@ __all__ = [
     "GEN_AI_OPERATION_NAME",
     "GEN_AI_TOOL_CALL_ID",
     "GEN_AI_RETRIEVAL_DOCUMENTS",
-    "GEN_AI_RETRIEVAL_QUERY",
+    "GEN_AI_RETRIEVAL_QUERY_TEXT",
     "GEN_AI_SPAN_KIND",
     "GEN_AI_TOOL_CALL_ARGUMENTS",
     "GEN_AI_TOOL_CALL_RESULT",

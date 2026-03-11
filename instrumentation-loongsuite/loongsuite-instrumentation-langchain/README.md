@@ -129,7 +129,7 @@ loongsuite-instrument <your_run_command>
 | Agent | `AGENT` | `gen_ai.operation.name=invoke_agent` |
 | ReAct Step | `STEP` | `gen_ai.operation.name=react`, `gen_ai.react.round`, `gen_ai.react.finish_reason` |
 | Tool | `TOOL` | `gen_ai.operation.name=execute_tool` |
-| Retriever | `RETRIEVER` | `gen_ai.operation.name=retrieve_documents` |
+| Retriever | `RETRIEVER` | `gen_ai.operation.name=retrieval` |
 
 ReAct Step spans are created for each Reasoning-Acting iteration, with the hierarchy: Agent > ReAct Step > LLM/Tool. Supported agent types:
 
