@@ -551,16 +551,15 @@ class LoongsuiteTracer(BaseTracer):
         try:
             parent_ctx = self._get_parent_context(run)
             inputs = getattr(run, "inputs", None) or {}
-            tool_input = inputs.get("input")
-            if tool_input is None:
-                tool_input = inputs.get("query")
-            # Pass raw object (dict, str, etc.) for JSON serialization in span_utils
-            if tool_input is None:
-                tool_input = {}
-
+            input_str = inputs.get("input") or inputs.get("query") or ""
+            if not isinstance(input_str, str):
+                input_str = _safe_json(input_str)
+            extra = getattr(run, "extra", None) or {}
+            tool_call_id = extra.get("tool_call_id")
             invocation = ExecuteToolInvocation(
                 tool_name=run.name or "unknown_tool",
-                tool_call_arguments=tool_input,
+                tool_call_arguments=input_str,
+                tool_call_id=tool_call_id,
             )
             self._handler.start_execute_tool(invocation, context=parent_ctx)
             rd = _RunData(
@@ -584,8 +583,12 @@ class LoongsuiteTracer(BaseTracer):
         try:
             inv: ExecuteToolInvocation = rd.invocation
             outputs = getattr(run, "outputs", None) or {}
-            output = outputs.get("output")
-            # Pass raw object (dict, str, etc.) for JSON serialization in span_utils
+            output = outputs.get("output") or ""
+            if hasattr(output, "content"):
+                # Extract content from ToolMessage instance
+                output = output.content
+            if not isinstance(output, str):
+                output = _safe_json(output)
             inv.tool_call_result = output
             self._handler.stop_execute_tool(inv)
         except Exception:
