@@ -18,11 +18,11 @@ import json
 import logging
 from typing import Any
 
+from opentelemetry.util.genai.extended_types import RetrievalDocument
 from opentelemetry.util.genai.types import (
     FunctionToolDefinition,
     InputMessage,
     OutputMessage,
-    RetrievalDocument,
     Text,
     ToolCall,
     ToolCallResponse,
