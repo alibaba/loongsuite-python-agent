@@ -41,7 +41,7 @@ from langchain_openai import ChatOpenAI
 from opentelemetry.instrumentation.langchain.internal.semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY_TEXT,
+    GEN_AI_RETRIEVAL_QUERY,
     GEN_AI_SPAN_KIND,
     INPUT_VALUE,
     OUTPUT_VALUE,
@@ -250,17 +250,14 @@ def test_retrieval_qa_chain_spans(
         assert sd_span.status.status_code == StatusCode.ERROR
     assert not sd_attrs or set(sd_attrs.keys()) <= {"metadata"}
 
-    # Retriever span: name is "retrieval" (or "retrieval {data_source_id}" when set)
-    retriever_span = spans_by_name.get("retrieval") or next(
-        (s for s in span_exporter.get_finished_spans() if s.name.startswith("retrieval")),
-        None,
-    )
+    # Retriever span: name is "retrieve_documents"
+    retriever_span = spans_by_name.get("retrieve_documents")
     assert retriever_span is not None
     assert retriever_span.parent is not None
     assert retriever_span.parent.span_id == rqa_span.context.span_id
     retriever_attrs = dict(retriever_span.attributes or {})
     assert retriever_attrs.pop(GEN_AI_SPAN_KIND, None) == "RETRIEVER"
-    assert retriever_attrs.pop(GEN_AI_RETRIEVAL_QUERY_TEXT, None) == question
+    assert retriever_attrs.pop(GEN_AI_RETRIEVAL_QUERY, None) == question
     docs_val = retriever_attrs.pop(GEN_AI_RETRIEVAL_DOCUMENTS, None)
     assert docs_val is not None
     for text in documents:

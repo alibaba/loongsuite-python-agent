@@ -52,7 +52,6 @@ from opentelemetry import context as otel_context
 from opentelemetry.context import Context
 from opentelemetry.instrumentation.langchain.internal._utils import (
     LANGGRAPH_REACT_STEP_NODE,
-    _documents_to_retrieval_documents,
     _extract_finish_reasons,
     _extract_invocation_params,
     _extract_llm_input_messages,
@@ -652,7 +651,7 @@ class LoongsuiteTracer(BaseTracer):
             outputs = getattr(run, "outputs", None) or {}
             documents = outputs.get("documents") or []
             if documents:
-                inv.documents = _documents_to_retrieval_documents(documents)
+                inv.documents = _safe_json(documents)
             self._handler.stop_retrieve(inv)
         except Exception:
             logger.debug("Failed to stop Retriever span", exc_info=True)

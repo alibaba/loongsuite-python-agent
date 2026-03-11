@@ -60,7 +60,7 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_REACT_ROUND,
     GEN_AI_RERANK_DOCUMENTS_COUNT,
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY_TEXT,
+    GEN_AI_RETRIEVAL_QUERY,
     GEN_AI_SESSION_ID,
     GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
@@ -88,7 +88,6 @@ from opentelemetry.util.genai.extended_types import (
     InvokeAgentInvocation,
     RerankInvocation,
     RetrieveInvocation,
-    RetrievalDocument,
 )
 from opentelemetry.util.genai.types import (
     Base64Blob,
@@ -857,7 +856,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             invocation.attributes = {"custom": "retrieve_attr"}
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "retrieval")
+        self.assertEqual(span.name, "retrieve_documents")
         self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
         _assert_span_time_order(span)
 
@@ -865,8 +864,8 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         _assert_span_attributes(
             span_attrs,
             {
-                GenAI.GEN_AI_OPERATION_NAME: "retrieval",
-                GEN_AI_RETRIEVAL_QUERY_TEXT: "Who is John's father?",
+                GenAI.GEN_AI_OPERATION_NAME: "retrieve_documents",
+                GEN_AI_RETRIEVAL_QUERY: "Who is John's father?",
                 ServerAttributes.SERVER_ADDRESS: "api.vectordb.com",
                 ServerAttributes.SERVER_PORT: 8080,
                 "custom": "retrieve_attr",
@@ -879,18 +878,8 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
     )
     def test_retrieve_with_documents(self):
         documents = [
-            RetrievalDocument(
-                id="123",
-                score=0.95,
-                content="John's father is Mike",
-                metadata={},
-            ),
-            RetrievalDocument(
-                id="124",
-                score=0.87,
-                content="Mike is 45 years old",
-                metadata={},
-            ),
+            {"id": "123", "content": "John's father is Mike", "metadata": {}},
+            {"id": "124", "content": "Mike is 45 years old", "metadata": {}},
         ]
         with self.telemetry_handler.retrieve() as invocation:
             invocation.query = "Who is John's father?"
@@ -898,69 +887,28 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
 
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
+        # Documents should be present with opt-in
         self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="SPAN_ONLY",
-    )
-    def test_retrieve_with_retrieval_documents(self):
-        """Test retrieval with typed RetrievalDocument list."""
-        documents = [
-            RetrievalDocument(
-                id="doc_123",
-                score=0.95,
-                content="John's father is Mike",
-                metadata={"source": "kb1"},
-            ),
-            RetrievalDocument(
-                id="doc_124",
-                score=0.87,
-                content="Mike is 45 years old",
-                metadata={"source": "kb1"},
-            ),
-        ]
-        with self.telemetry_handler.retrieve() as invocation:
-            invocation.query = "Who is John's father?"
-            invocation.documents = documents
-
-        span = _get_single_span(self.span_exporter)
-        span_attrs = _get_span_attributes(span)
-        self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
-        docs_val = span_attrs[GEN_AI_RETRIEVAL_DOCUMENTS]
-        self.assertIn("doc_123", docs_val)
-        self.assertIn("doc_124", docs_val)
-        self.assertIn("0.95", docs_val)
-        self.assertIn("0.87", docs_val)
-
-    @patch_env_vars(stability_mode="default")
     def test_retrieve_without_sensitive_data(self):
         # Without experimental mode, documents should not be recorded
-        documents = [
-            RetrievalDocument(id="123", score=0.9, content="sensitive data")
-        ]
+        documents = [{"id": "123", "content": "sensitive data"}]
         with self.telemetry_handler.retrieve() as invocation:
             invocation.query = "test query"
             invocation.documents = documents
 
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
+        # Documents should not be present without opt-in
         self.assertNotIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="NO_CONTENT",
     )
-    def test_retrieve_no_content_records_id_score_only(self):
-        """When content capture is NO_CONTENT, query is omitted; documents record id and score only."""
-        documents = [
-            RetrievalDocument(
-                id="doc_123",
-                score=0.95,
-                content="sensitive doc content",
-                metadata={"secret": "data"},
-            ),
-        ]
+    def test_retrieve_no_content_when_disabled(self):
+        """When content capture is NO_CONTENT, query and documents should NOT appear."""
+        documents = [{"id": "123", "content": "sensitive doc"}]
         with self.telemetry_handler.retrieve() as invocation:
             invocation.query = "secret query"
             invocation.documents = documents
@@ -968,24 +916,15 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
         self.assertNotIn(
-            GEN_AI_RETRIEVAL_QUERY_TEXT,
+            GEN_AI_RETRIEVAL_QUERY,
             span_attrs,
-            "Query should NOT be captured when content capture is NO_CONTENT",
+            "Retrieval query should NOT be captured when content capture is disabled",
         )
-        self.assertIn(
+        self.assertNotIn(
             GEN_AI_RETRIEVAL_DOCUMENTS,
             span_attrs,
-            "Documents should be recorded with id and score only",
+            "Retrieval documents should NOT be captured when content capture is disabled",
         )
-        docs_val = span_attrs[GEN_AI_RETRIEVAL_DOCUMENTS]
-        self.assertIn("doc_123", docs_val)
-        self.assertIn("0.95", docs_val)
-        self.assertNotIn(
-            "sensitive doc content",
-            docs_val,
-            "Content should NOT be in documents when NO_CONTENT",
-        )
-        self.assertNotIn("secret", docs_val)
 
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
@@ -1001,41 +940,13 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.telemetry_handler.stop_retrieve(invocation)
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "retrieval")
+        self.assertEqual(span.name, "retrieve_documents")
         span_attrs = _get_span_attributes(span)
         _assert_span_attributes(
             span_attrs,
             {
-                GEN_AI_RETRIEVAL_QUERY_TEXT: "manual query",
+                GEN_AI_RETRIEVAL_QUERY: "manual query",
                 ServerAttributes.SERVER_ADDRESS: "localhost",
-            },
-        )
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="SPAN_ONLY",
-    )
-    def test_retrieve_span_name_with_data_source_id(self):
-        """Span name should be 'retrieval {data_source_id}' per LoongSuite spec."""
-        with self.telemetry_handler.retrieve() as invocation:
-            invocation.data_source_id = "H7STPQYOND"
-            invocation.query = "test query"
-            invocation.provider = "chroma"
-            invocation.request_model = "embedding-model"
-            invocation.top_k = 5.0
-
-        span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "retrieval H7STPQYOND")
-        span_attrs = _get_span_attributes(span)
-        _assert_span_attributes(
-            span_attrs,
-            {
-                GenAI.GEN_AI_OPERATION_NAME: "retrieval",
-                GenAI.GEN_AI_DATA_SOURCE_ID: "H7STPQYOND",
-                GenAI.GEN_AI_PROVIDER_NAME: "chroma",
-                GenAI.GEN_AI_REQUEST_MODEL: "embedding-model",
-                GenAI.GEN_AI_REQUEST_TOP_K: 5.0,
-                GEN_AI_RETRIEVAL_QUERY_TEXT: "test query",
             },
         )
 
