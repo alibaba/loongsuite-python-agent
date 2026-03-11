@@ -60,6 +60,7 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _extract_provider,
     _extract_response_model,
     _extract_token_usage,
+    _extract_tool_definitions,
     _has_langgraph_react_metadata,
     _is_agent_run,
     _safe_json,
@@ -251,6 +252,9 @@ class LoongsuiteTracer(BaseTracer):
                 max_tokens=params.get("max_tokens")
                 or params.get("max_output_tokens"),
             )
+            tool_defs = _extract_tool_definitions(run)
+            if tool_defs:
+                invocation.tool_definitions = tool_defs
             self._handler.start_llm(invocation, context=parent_ctx)
             rd = _RunData(
                 run_kind="llm",
@@ -547,13 +551,16 @@ class LoongsuiteTracer(BaseTracer):
         try:
             parent_ctx = self._get_parent_context(run)
             inputs = getattr(run, "inputs", None) or {}
-            input_str = inputs.get("input") or inputs.get("query") or ""
-            if not isinstance(input_str, str):
-                input_str = _safe_json(input_str)
+            tool_input = inputs.get("input")
+            if tool_input is None:
+                tool_input = inputs.get("query")
+            # Pass raw object (dict, str, etc.) for JSON serialization in span_utils
+            if tool_input is None:
+                tool_input = {}
 
             invocation = ExecuteToolInvocation(
                 tool_name=run.name or "unknown_tool",
-                tool_call_arguments=input_str,
+                tool_call_arguments=tool_input,
             )
             self._handler.start_execute_tool(invocation, context=parent_ctx)
             rd = _RunData(
@@ -577,9 +584,8 @@ class LoongsuiteTracer(BaseTracer):
         try:
             inv: ExecuteToolInvocation = rd.invocation
             outputs = getattr(run, "outputs", None) or {}
-            output = outputs.get("output") or ""
-            if not isinstance(output, str):
-                output = _safe_json(output)
+            output = outputs.get("output")
+            # Pass raw object (dict, str, etc.) for JSON serialization in span_utils
             inv.tool_call_result = output
             self._handler.stop_execute_tool(inv)
         except Exception:

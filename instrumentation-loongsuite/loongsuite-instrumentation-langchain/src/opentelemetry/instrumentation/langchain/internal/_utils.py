@@ -21,6 +21,7 @@ import sys
 from typing import Any
 
 from opentelemetry.util.genai.types import (
+    FunctionToolDefinition,
     InputMessage,
     OutputMessage,
     Text,
@@ -203,6 +204,73 @@ def _extract_provider(run: Any) -> str:
 def _extract_invocation_params(run: Any) -> dict[str, Any]:
     extra = getattr(run, "extra", None) or {}
     return extra.get("invocation_params") or {}
+
+
+def _extract_tool_definitions(run: Any) -> list[FunctionToolDefinition]:
+    """Extract tool definitions from LangChain Run for LLM spans.
+
+    Tools may appear in:
+    - run.extra["invocation_params"]["tools"] (e.g. from bind_tools)
+    - run.inputs["tools"]
+
+    Supports OpenAI-style format: {"type": "function", "function": {...}}
+    and flat format: {"name": ..., "description": ..., "parameters": ...}.
+    """
+    tool_definitions: list[FunctionToolDefinition] = []
+    tools: list[Any] = []
+
+    params = _extract_invocation_params(run)
+    if params and "tools" in params:
+        raw = params["tools"]
+        if isinstance(raw, list):
+            tools = raw
+        elif hasattr(raw, "__iter__") and not isinstance(raw, (str, dict)):
+            tools = list(raw)
+
+    if not tools:
+        inputs = getattr(run, "inputs", None) or {}
+        raw = inputs.get("tools")
+        if isinstance(raw, list):
+            tools = raw
+        elif hasattr(raw, "__iter__") and not isinstance(raw, (str, dict)):
+            tools = list(raw)
+
+    for tool in tools:
+        if isinstance(tool, FunctionToolDefinition):
+            tool_definitions.append(tool)
+            continue
+        if isinstance(tool, dict):
+            func = tool.get("function", {})
+            if isinstance(func, dict) and func.get("name"):
+                tool_definitions.append(
+                    FunctionToolDefinition(
+                        name=func.get("name", ""),
+                        description=func.get("description"),
+                        parameters=func.get("parameters"),
+                        type="function",
+                    )
+                )
+            elif "name" in tool:
+                tool_definitions.append(
+                    FunctionToolDefinition(
+                        name=tool.get("name", ""),
+                        description=tool.get("description"),
+                        parameters=tool.get("parameters"),
+                        type="function",
+                    )
+                )
+        elif hasattr(tool, "name") and hasattr(tool, "description"):
+            tool_definitions.append(
+                FunctionToolDefinition(
+                    name=getattr(tool, "name", ""),
+                    description=getattr(tool, "description"),
+                    parameters=getattr(tool, "args_schema", None)
+                    or getattr(tool, "parameters", None),
+                    type="function",
+                )
+            )
+
+    return tool_definitions
 
 
 # ---------------------------------------------------------------------------

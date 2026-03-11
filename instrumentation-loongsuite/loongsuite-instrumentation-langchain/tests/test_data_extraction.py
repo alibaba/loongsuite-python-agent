@@ -23,9 +23,15 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _extract_provider,
     _extract_response_model,
     _extract_token_usage,
+    _extract_tool_definitions,
     _safe_json,
 )
-from opentelemetry.util.genai.types import Text, ToolCall, ToolCallResponse
+from opentelemetry.util.genai.types import (
+    FunctionToolDefinition,
+    Text,
+    ToolCall,
+    ToolCallResponse,
+)
 
 
 class _FakeRun:
@@ -138,6 +144,75 @@ class TestConvertMessage:
 
     def test_none_for_non_dict(self):
         assert _convert_lc_message_to_input("not a dict") is None
+
+
+class TestExtractToolDefinitions:
+    def test_from_invocation_params_openai_format(self):
+        """Tools in OpenAI format: {type: function, function: {...}}."""
+        run = _FakeRun(
+            extra={
+                "invocation_params": {
+                    "tools": [
+                        {
+                            "type": "function",
+                            "function": {
+                                "name": "get_weather",
+                                "description": "Get weather",
+                                "parameters": {"type": "object"},
+                            },
+                        },
+                    ]
+                }
+            }
+        )
+        result = _extract_tool_definitions(run)
+        assert len(result) == 1
+        assert isinstance(result[0], FunctionToolDefinition)
+        assert result[0].name == "get_weather"
+        assert result[0].description == "Get weather"
+
+    def test_from_invocation_params_flat_format(self):
+        """Tools in flat format: {name, description, parameters}."""
+        run = _FakeRun(
+            extra={
+                "invocation_params": {
+                    "tools": [
+                        {
+                            "name": "search",
+                            "description": "Search tool",
+                            "parameters": {},
+                        },
+                    ]
+                }
+            }
+        )
+        result = _extract_tool_definitions(run)
+        assert len(result) == 1
+        assert result[0].name == "search"
+
+    def test_from_inputs(self):
+        """Tools in run.inputs when not in invocation_params."""
+        run = _FakeRun(
+            inputs={
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "calculator",
+                            "description": "Do math",
+                            "parameters": {},
+                        },
+                    },
+                ]
+            }
+        )
+        result = _extract_tool_definitions(run)
+        assert len(result) == 1
+        assert result[0].name == "calculator"
+
+    def test_empty_when_no_tools(self):
+        run = _FakeRun(extra={}, inputs={})
+        assert _extract_tool_definitions(run) == []
 
 
 class TestExtractLLMInputMessages:

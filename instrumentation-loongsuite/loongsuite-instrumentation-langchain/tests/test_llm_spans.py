@@ -274,6 +274,71 @@ class TestLLMInputOutputContent:
         assert GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS in attrs
 
 
+class TestLLMToolDefinitions:
+    """Verify tool definitions are captured when LLM uses bind_tools."""
+
+    def test_tool_definitions_captured(
+        self, instrument, span_exporter, respx_mock, monkeypatch
+    ):
+        """When LLM uses bind_tools, gen_ai.tool.definitions should appear."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+
+        from langchain_core.tools import tool
+
+        @tool
+        def get_weather(city: str) -> str:
+            """Get weather for a city."""
+            return f"Weather in {city}"
+
+        import httpx
+
+        respx_mock.post("https://api.openai.com/v1/chat/completions").mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json={
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "I'll check the weather.",
+                            },
+                            "finish_reason": "stop",
+                        }
+                    ],
+                    "model": "gpt-3.5-turbo",
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": 5,
+                        "total_tokens": 15,
+                    },
+                },
+            )
+        )
+
+        from langchain_openai import ChatOpenAI
+
+        llm = ChatOpenAI(model="gpt-3.5-turbo")
+        llm_with_tools = llm.bind_tools([get_weather])
+        llm_with_tools.invoke([HumanMessage(content="What's the weather?")])
+
+        chat_spans = _find_chat_spans(span_exporter)
+        assert len(chat_spans) >= 1
+        attrs = dict(chat_spans[0].attributes)
+
+        tool_defs_key = "gen_ai.tool.definitions"
+        assert tool_defs_key in attrs, (
+            f"Expected {tool_defs_key} in span attributes when using bind_tools, "
+            f"got: {list(attrs.keys())}"
+        )
+        tool_defs = json.loads(attrs[tool_defs_key])
+        assert isinstance(tool_defs, list)
+        assert len(tool_defs) >= 1
+        assert any(
+            t.get("name") == "get_weather" for t in tool_defs
+        ), f"Expected get_weather in tool_definitions, got: {tool_defs}"
+
+
 class TestLLMMultipleCalls:
     def test_multiple_calls_create_multiple_spans(
         self, instrument, span_exporter
