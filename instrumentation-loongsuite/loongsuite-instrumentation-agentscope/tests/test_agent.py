@@ -385,7 +385,7 @@ class TestReactStepSpan:
             [s for s in spans if s.name == "react step"],
             key=lambda s: s.start_time,
         )
-        assert len(step_spans) >= 2
+        assert len(step_spans) == 2
 
         assert step_spans[0].attributes.get("gen_ai.react.round") == 1
         assert (
@@ -449,7 +449,7 @@ class TestReactStepSpan:
             [s for s in spans if s.name == "react step"],
             key=lambda s: s.start_time,
         )
-        assert len(step_spans) >= 2
+        assert len(step_spans) == 2
 
         assert step_spans[0].attributes.get("gen_ai.react.round") == 1
         assert (

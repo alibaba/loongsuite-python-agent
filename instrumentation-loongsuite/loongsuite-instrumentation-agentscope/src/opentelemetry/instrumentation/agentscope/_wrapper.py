@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import timeit
+import uuid
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, AsyncGenerator
@@ -39,7 +40,7 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
-_REACT_STEP_HOOK_NAME = "otel_react_step"
+_REACT_STEP_HOOK_PREFIX = "otel_react_step"
 
 
 def _is_react_agent(agent_instance: Any) -> bool:
@@ -51,6 +52,9 @@ def _is_react_agent(agent_instance: Any) -> bool:
 class _ReactStepState:
     """Per-agent-call state for React step span lifecycle."""
 
+    hook_name: str = field(
+        default_factory=lambda: f"{_REACT_STEP_HOOK_PREFIX}_{uuid.uuid4().hex[:8]}"
+    )
     react_round: int = 0
     active_step: ReactStepInvocation | None = None
     original_context: Any = field(default=None)
@@ -136,31 +140,31 @@ def _make_post_acting_hook(
 
 
 def _register_react_hooks(
-    agent: Any, handler: ExtendedTelemetryHandler
+    agent: Any, state: _ReactStepState, handler: ExtendedTelemetryHandler
 ) -> None:
     """Register React step tracking hooks on an agent instance."""
     agent.register_instance_hook(
         "pre_reasoning",
-        _REACT_STEP_HOOK_NAME,
+        state.hook_name,
         _make_pre_reasoning_hook(handler),
     )
     agent.register_instance_hook(
         "post_reasoning",
-        _REACT_STEP_HOOK_NAME,
+        state.hook_name,
         _make_post_reasoning_hook(handler),
     )
     agent.register_instance_hook(
         "post_acting",
-        _REACT_STEP_HOOK_NAME,
+        state.hook_name,
         _make_post_acting_hook(handler),
     )
 
 
-def _remove_react_hooks(agent: Any) -> None:
+def _remove_react_hooks(agent: Any, state: _ReactStepState) -> None:
     """Remove React step tracking hooks from an agent instance."""
     for hook_type in ("pre_reasoning", "post_reasoning", "post_acting"):
         try:
-            agent.remove_instance_hook(hook_type, _REACT_STEP_HOOK_NAME)
+            agent.remove_instance_hook(hook_type, state.hook_name)
         except (ValueError, KeyError):
             pass
 
@@ -365,7 +369,7 @@ class AgentScopeAgentWrapper:
                         original_context=_get_current_context(),
                     )
                     call_self._react_step_state = state
-                    _register_react_hooks(call_self, self._handler)
+                    _register_react_hooks(call_self, state, self._handler)
 
                 try:
                     result = await original_call(
@@ -401,8 +405,8 @@ class AgentScopeAgentWrapper:
                     raise
 
                 finally:
-                    if is_react:
-                        _remove_react_hooks(call_self)
+                    if is_react and state:
+                        _remove_react_hooks(call_self, state)
                         if hasattr(call_self, "_react_step_state"):
                             del call_self._react_step_state
 
