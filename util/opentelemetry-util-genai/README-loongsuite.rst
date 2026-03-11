@@ -13,7 +13,7 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 - **create_agent**: Agent 创建操作
 - **embedding**: 向量嵌入生成操作
 - **execute_tool**: 工具执行操作
-- **retrieve**: 文档检索操作（向量数据库查询）
+- **retrieval**: 文档检索操作（向量数据库查询）
 - **rerank**: 文档重排序操作
 - **memory**: 记忆操作，支持记忆的增删改查等操作
 - **entry**: AI 应用系统入口标识，支持 session_id/user_id 的 Baggage 传播
@@ -352,10 +352,10 @@ Token 使用:
         invocation.tool_call_result = result
 
 
-6. 文档检索 (retrieve)
+6. 文档检索 (retrieval)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-用于跟踪从向量数据库或搜索系统检索文档的操作。遵循 LoongSuite Retriever 语义规范。
+用于跟踪从向量数据库或搜索系统检索文档的操作。
 
 **支持的属性:**
 
@@ -376,9 +376,9 @@ Token 使用:
 
 ::
 
-    from opentelemetry.util.genai.extended_types import RetrieveInvocation, RetrievalDocument
+    from opentelemetry.util.genai.extended_types import RetrievalInvocation, RetrievalDocument
 
-    with handler.retrieve() as invocation:
+    with handler.retrieval() as invocation:
         invocation.provider = "chroma"
         invocation.data_source_id = "H7STPQYOND"
         invocation.query = "什么是 OpenTelemetry?"
@@ -808,14 +808,14 @@ Baggage 中已有同名 key，则会被覆盖。
 
     # 检索相关文档
     from opentelemetry.util.genai.extended_types import RetrievalDocument
-    with handler.retrieve() as retrieve_inv:
-        retrieve_inv.provider = "chroma"
-        retrieve_inv.data_source_id = "my_vector_store"
-        retrieve_inv.query = "笔记本电脑推荐"
+    with handler.retrieval() as retrieval_inv:
+        retrieval_inv.provider = "chroma"
+        retrieval_inv.data_source_id = "my_vector_store"
+        retrieval_inv.query = "笔记本电脑推荐"
         
         # 执行检索...
         
-        retrieve_inv.documents = [
+        retrieval_inv.documents = [
             RetrievalDocument(id="doc1", score=0.95, content="...", metadata={}),
             RetrievalDocument(id="doc2", score=0.88, content="...", metadata={}),
         ]

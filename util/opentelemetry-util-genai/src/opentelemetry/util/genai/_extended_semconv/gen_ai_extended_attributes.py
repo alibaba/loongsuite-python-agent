@@ -43,7 +43,7 @@ GEN_AI_TOOL_CALL_RESULT: Final = "gen_ai.tool.call.result"
 The result returned by the tool after execution.
 """
 
-# Retrieve attributes
+# Retrieval attributes
 GEN_AI_RETRIEVAL_QUERY_TEXT: Final = "gen_ai.retrieval.query.text"
 """
 The retrieval query text (short phrase). Per LoongSuite semantic convention.

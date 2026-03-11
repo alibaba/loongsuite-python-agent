@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `gen_ai.operation.name`: `retrieve_documents` → `retrieval`
   - `gen_ai.retrieval.query` → `gen_ai.retrieval.query.text` for query text
   - Span name: `retrieval {gen_ai.data_source.id}` when `data_source_id` is set
-  - Add `RetrieveInvocation` fields: `data_source_id`, `provider`, `request_model`, `top_k`
+  - Add `RetrievalInvocation` fields: `data_source_id`, `provider`, `request_model`, `top_k`
 - Add optional `context` parameter to all `start_*` methods in `TelemetryHandler` and `ExtendedTelemetryHandler` for explicit parent-child span linking
   ([#135](https://github.com/alibaba/loongsuite-python-agent/pull/135))
 - Unify `attach`/`detach` strategy in `ExtendedTelemetryHandler`: always `attach` regardless of whether `context` is provided; `stop_*`/`fail_*` guards restored to `context_token is None or span is None`

@@ -87,8 +87,8 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
     RetrievalDocument,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.types import (
     Base64Blob,
@@ -843,18 +843,18 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         logs = self.log_exporter.get_finished_logs()
         self.assertEqual(len(logs), 0)
 
-    # ==================== Retrieve Documents Tests ====================
+    # ==================== Retrieval Tests ====================
 
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_start_and_stop_creates_span(self):
-        with self.telemetry_handler.retrieve() as invocation:
+    def test_retrieval_start_and_stop_creates_span(self):
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "Who is John's father?"
             invocation.server_address = "api.vectordb.com"
             invocation.server_port = 8080
-            invocation.attributes = {"custom": "retrieve_attr"}
+            invocation.attributes = {"custom": "retrieval_attr"}
 
         span = _get_single_span(self.span_exporter)
         self.assertEqual(span.name, "retrieval")
@@ -869,7 +869,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GEN_AI_RETRIEVAL_QUERY_TEXT: "Who is John's father?",
                 ServerAttributes.SERVER_ADDRESS: "api.vectordb.com",
                 ServerAttributes.SERVER_PORT: 8080,
-                "custom": "retrieve_attr",
+                "custom": "retrieval_attr",
             },
         )
 
@@ -877,7 +877,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_with_documents(self):
+    def test_retrieval_with_documents(self):
         documents = [
             RetrievalDocument(
                 id="123",
@@ -892,7 +892,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 metadata={},
             ),
         ]
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "Who is John's father?"
             invocation.documents = documents
 
@@ -904,7 +904,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_with_retrieval_documents(self):
+    def test_retrieval_with_retrieval_documents(self):
         """Test retrieval with typed RetrievalDocument list."""
         documents = [
             RetrievalDocument(
@@ -920,7 +920,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 metadata={"source": "kb1"},
             ),
         ]
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "Who is John's father?"
             invocation.documents = documents
 
@@ -934,12 +934,12 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         self.assertIn("0.87", docs_val)
 
     @patch_env_vars(stability_mode="default")
-    def test_retrieve_without_sensitive_data(self):
+    def test_retrieval_without_sensitive_data(self):
         # Without experimental mode, documents should not be recorded
         documents = [
             RetrievalDocument(id="123", score=0.9, content="sensitive data")
         ]
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "test query"
             invocation.documents = documents
 
@@ -951,7 +951,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="NO_CONTENT",
     )
-    def test_retrieve_no_content_records_id_score_only(self):
+    def test_retrieval_no_content_records_id_score_only(self):
         """When content capture is NO_CONTENT, query is omitted; documents record id and score only."""
         documents = [
             RetrievalDocument(
@@ -961,7 +961,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 metadata={"secret": "data"},
             ),
         ]
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "secret query"
             invocation.documents = documents
 
@@ -991,14 +991,14 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_manual_start_and_stop(self):
-        invocation = RetrieveInvocation()
+    def test_retrieval_manual_start_and_stop(self):
+        invocation = RetrievalInvocation()
         invocation.query = "manual query"
 
-        self.telemetry_handler.start_retrieve(invocation)
+        self.telemetry_handler.start_retrieval(invocation)
         assert invocation.span is not None
         invocation.server_address = "localhost"
-        self.telemetry_handler.stop_retrieve(invocation)
+        self.telemetry_handler.stop_retrieval(invocation)
 
         span = _get_single_span(self.span_exporter)
         self.assertEqual(span.name, "retrieval")
@@ -1015,9 +1015,9 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_span_name_with_data_source_id(self):
+    def test_retrieval_span_name_with_data_source_id(self):
         """Span name should be 'retrieval {data_source_id}' per LoongSuite spec."""
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.data_source_id = "H7STPQYOND"
             invocation.query = "test query"
             invocation.provider = "chroma"
@@ -1039,14 +1039,14 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
-    def test_retrieve_error_handling(self):
-        class RetrieveError(RuntimeError):
+    def test_retrieval_error_handling(self):
+        class RetrievalError(RuntimeError):
             pass
 
-        with self.assertRaises(RetrieveError):
-            with self.telemetry_handler.retrieve() as invocation:
+        with self.assertRaises(RetrievalError):
+            with self.telemetry_handler.retrieval() as invocation:
                 invocation.query = "error query"
-                raise RetrieveError("Retrieve failed")
+                raise RetrievalError("Retrieval failed")
 
         span = _get_single_span(self.span_exporter)
         self.assertEqual(span.status.status_code, StatusCode.ERROR)
@@ -1054,7 +1054,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         _assert_span_attributes(
             span_attrs,
             {
-                ErrorAttributes.ERROR_TYPE: RetrieveError.__qualname__,
+                ErrorAttributes.ERROR_TYPE: RetrievalError.__qualname__,
             },
         )
 

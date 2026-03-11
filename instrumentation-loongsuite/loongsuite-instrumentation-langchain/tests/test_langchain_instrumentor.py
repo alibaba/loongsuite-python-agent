@@ -252,7 +252,11 @@ def test_retrieval_qa_chain_spans(
 
     # Retriever span: name is "retrieval" (or "retrieval {data_source_id}" when set)
     retriever_span = spans_by_name.get("retrieval") or next(
-        (s for s in span_exporter.get_finished_spans() if s.name.startswith("retrieval")),
+        (
+            s
+            for s in span_exporter.get_finished_spans()
+            if s.name.startswith("retrieval")
+        ),
         None,
     )
     assert retriever_span is not None

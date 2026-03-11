@@ -40,6 +40,7 @@ class RetrievalDocument:
     """
     Represents a single document retrieved from a vector database or search system.
     """
+
     id: str | None
     score: float | None
     content: str | None = None
@@ -200,10 +201,10 @@ class InvokeAgentInvocation:
 
 
 @dataclass
-class RetrieveInvocation:
+class RetrievalInvocation:
     """
     Represents a single document retrieval invocation.
-    When creating a RetrieveInvocation object, only update the data attributes.
+    When creating a RetrievalInvocation object, only update the data attributes.
     The span and context_token attributes are set by the TelemetryHandler.
 
     Per LoongSuite semantic convention:
@@ -215,7 +216,7 @@ class RetrieveInvocation:
     context_token: ContextToken | None = None
     span: Span | None = None
     attributes: Dict[str, Any] = field(default_factory=_new_str_any_dict)
-    # Retrieve-specific attributes
+    # Retrieval-specific attributes
     query: str | None = None
     documents: List[RetrievalDocument] = field(
         default_factory=_new_retrieval_documents

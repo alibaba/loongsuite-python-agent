@@ -63,8 +63,8 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
     RetrievalDocument,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.span_utils import (
     _get_llm_messages_attributes_for_event,
@@ -263,11 +263,11 @@ def _get_tool_call_data_attributes(
     return attributes
 
 
-def _get_retrieve_documents_attributes(
+def _get_retrieval_documents_attributes(
     documents: list[RetrievalDocument] | None,
 ) -> dict[str, Any]:
     """
-    Get retrieved documents attributes.
+    Get retrieval attributes.
     Records documents only when experimental mode is enabled.
     Serialization follows ToolDefinition pattern:
     - When content capturing is SPAN_ONLY or SPAN_AND_EVENT: full (id, score, content, metadata)
@@ -570,7 +570,7 @@ def _apply_invoke_agent_finish_attributes(
         span.set_attributes(attributes)
 
 
-def _get_retrieve_span_name(invocation: RetrieveInvocation) -> str:
+def _get_retrieval_span_name(invocation: RetrievalInvocation) -> str:
     """Get span name for retrieval per spec: retrieval {gen_ai.data_source.id}."""
     op_name = GenAiExtendedOperationNameValues.RETRIEVAL.value
     if invocation.data_source_id:
@@ -578,11 +578,11 @@ def _get_retrieve_span_name(invocation: RetrieveInvocation) -> str:
     return op_name
 
 
-def _apply_retrieve_finish_attributes(
-    span: Span, invocation: RetrieveInvocation
+def _apply_retrieval_finish_attributes(
+    span: Span, invocation: RetrievalInvocation
 ) -> None:
     """Apply attributes for retrieval operations (per LoongSuite semantic convention)."""
-    span.update_name(_get_retrieve_span_name(invocation))
+    span.update_name(_get_retrieval_span_name(invocation))
 
     # Build all attributes
     attributes: dict[str, Any] = {}
@@ -624,7 +624,9 @@ def _apply_retrieve_finish_attributes(
         attributes[ServerAttributes.SERVER_PORT] = invocation.server_port
 
     # Opt-In attributes (sensitive data - controlled by content capturing mode)
-    attributes.update(_get_retrieve_documents_attributes(invocation.documents))
+    attributes.update(
+        _get_retrieval_documents_attributes(invocation.documents)
+    )
 
     # Custom attributes
     attributes.update(invocation.attributes)
@@ -715,6 +717,6 @@ __all__ = [
     "_apply_execute_tool_finish_attributes",
     "_apply_invoke_agent_finish_attributes",
     "_apply_rerank_finish_attributes",
-    "_apply_retrieve_finish_attributes",
+    "_apply_retrieval_finish_attributes",
     "_maybe_emit_invoke_agent_event",
 ]

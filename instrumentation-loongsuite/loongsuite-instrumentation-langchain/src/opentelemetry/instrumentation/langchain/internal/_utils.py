@@ -22,6 +22,7 @@ from opentelemetry.util.genai.types import (
     FunctionToolDefinition,
     InputMessage,
     OutputMessage,
+    RetrievalDocument,
     Text,
     ToolCall,
     ToolCallResponse,
@@ -417,7 +418,6 @@ def _documents_to_retrieval_documents(documents: Any) -> list:
     Extracts id from doc.id, metadata.id, metadata.doc_id, metadata.document_id.
     Extracts score from metadata.score, metadata.relevance_score, metadata.similarity_score.
     """
-    from opentelemetry.util.genai.extended_types import RetrievalDocument
 
     result = []
     if not documents:

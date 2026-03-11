@@ -33,7 +33,7 @@ Run type → handler mapping
 * **Chain (Agent)**     → ``handler.start_invoke_agent`` / …
 * **Chain (generic)**   → direct span creation (no ``util-genai``)
 * **Tool**              → ``handler.start_execute_tool`` / …
-* **Retriever**         → ``handler.start_retrieve`` / …
+* **Retriever**         → ``handler.start_retrieval`` / …
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
-    RetrieveInvocation,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.handler import _safe_detach
 from opentelemetry.util.genai.types import (
@@ -627,8 +627,8 @@ class LoongsuiteTracer(BaseTracer):
             inputs = getattr(run, "inputs", None) or {}
             query = inputs.get("query") or ""
 
-            invocation = RetrieveInvocation(query=query)
-            self._handler.start_retrieve(invocation, context=parent_ctx)
+            invocation = RetrievalInvocation(query=query)
+            self._handler.start_retrieval(invocation, context=parent_ctx)
             rd = _RunData(
                 run_kind="retriever",
                 span=invocation.span,
@@ -648,12 +648,12 @@ class LoongsuiteTracer(BaseTracer):
         if rd is None or rd.run_kind != "retriever":
             return
         try:
-            inv: RetrieveInvocation = rd.invocation
+            inv: RetrievalInvocation = rd.invocation
             outputs = getattr(run, "outputs", None) or {}
             documents = outputs.get("documents") or []
             if documents:
                 inv.documents = _documents_to_retrieval_documents(documents)
-            self._handler.stop_retrieve(inv)
+            self._handler.stop_retrieval(inv)
         except Exception:
             logger.debug("Failed to stop Retriever span", exc_info=True)
 
@@ -664,7 +664,7 @@ class LoongsuiteTracer(BaseTracer):
             return
         try:
             err_str = getattr(run, "error", None) or "Unknown error"
-            self._handler.fail_retrieve(
+            self._handler.fail_retrieval(
                 rd.invocation,
                 Error(message=str(err_str), type=Exception),
             )
