@@ -118,7 +118,9 @@ class TestCreateReactAgentPatch:
 class TestPregelStreamPatch:
     """Verify that ``Pregel.stream`` injects metadata for ReAct agents."""
 
-    def test_metadata_injected_for_react_agent(self, instrument, span_exporter):
+    def test_metadata_injected_for_react_agent(
+        self, instrument, span_exporter
+    ):
         """Invoking a ReAct agent should inject metadata into the config.
 
         Metadata injection is verified indirectly: when the metadata flag is

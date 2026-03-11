@@ -91,8 +91,7 @@ def _get_create_react_agent_locations() -> list[tuple[str, str]]:
 
 
 class LangGraphInstrumentor(BaseInstrumentor):
-    """An instrumentor for LangGraph.
-    """
+    """An instrumentor for LangGraph."""
 
     def __init__(self) -> None:
         super().__init__()
