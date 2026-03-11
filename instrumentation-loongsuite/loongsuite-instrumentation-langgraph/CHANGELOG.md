@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial instrumentation framework for LangGraph
-  ([#133](https://github.com/alibaba/loongsuite-python-agent/pull/133))
+  ([#143](https://github.com/alibaba/loongsuite-python-agent/pull/143))
   - Patch `create_react_agent` to set `_loongsuite_react_agent = True` flag
     on `CompiledStateGraph`
   - Patch `Pregel.stream` / `Pregel.astream` to inject
