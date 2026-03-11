@@ -175,6 +175,9 @@ class LoongsuiteTracer(BaseTracer):
         )
         self._runs: dict[UUID, _RunData] = {}
         self._lock = RLock()
+        # Don't use super().run_map because it will lead to unexpected behavior when multiple tracers are used.
+        self.run_map = dict(self.run_map)
+        self.run_map_lock = RLock()
 
     def _persist_run(self, run: Run) -> None:
         pass
@@ -196,12 +199,17 @@ class LoongsuiteTracer(BaseTracer):
     # ------------------------------------------------------------------
     # _start_trace / _end_trace
     # ------------------------------------------------------------------
+    # We maintain only run_map (required for _complete_* / _errored_* to find
+    # the run). We do NOT call super() to avoid parent's order_map accumulation
+    # and unexpected behavior when multiple tracers are used.
 
     def _start_trace(self, run: Run) -> None:
-        super()._start_trace(run)
+        with self.run_map_lock:
+            self.run_map[str(run.id)] = run
 
     def _end_trace(self, run: Run) -> None:
-        super()._end_trace(run)
+        with self.run_map_lock:
+            self.run_map.pop(str(run.id), None)
 
     # ------------------------------------------------------------------
     # TTFT (Time To First Token) — streaming support

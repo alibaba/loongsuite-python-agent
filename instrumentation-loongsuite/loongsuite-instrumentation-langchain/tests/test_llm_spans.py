@@ -283,14 +283,14 @@ class TestLLMToolDefinitions:
         """When LLM uses bind_tools, gen_ai.tool.definitions should appear."""
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
 
-        from langchain_core.tools import tool
+        from langchain_core.tools import tool  # noqa: PLC0415
 
         @tool
         def get_weather(city: str) -> str:
             """Get weather for a city."""
             return f"Weather in {city}"
 
-        import httpx
+        import httpx  # noqa: PLC0415
 
         respx_mock.post("https://api.openai.com/v1/chat/completions").mock(
             return_value=httpx.Response(
@@ -316,7 +316,7 @@ class TestLLMToolDefinitions:
             )
         )
 
-        from langchain_openai import ChatOpenAI
+        from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
         llm = ChatOpenAI(model="gpt-3.5-turbo")
         llm_with_tools = llm.bind_tools([get_weather])
@@ -334,9 +334,9 @@ class TestLLMToolDefinitions:
         tool_defs = json.loads(attrs[tool_defs_key])
         assert isinstance(tool_defs, list)
         assert len(tool_defs) >= 1
-        assert any(
-            t.get("name") == "get_weather" for t in tool_defs
-        ), f"Expected get_weather in tool_definitions, got: {tool_defs}"
+        assert any(t.get("name") == "get_weather" for t in tool_defs), (
+            f"Expected get_weather in tool_definitions, got: {tool_defs}"
+        )
 
 
 class TestLLMMultipleCalls:

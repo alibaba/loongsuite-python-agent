@@ -14,10 +14,8 @@
 
 from __future__ import annotations
 
-import ast
 import json
 import logging
-import sys
 from typing import Any
 
 from opentelemetry.util.genai.types import (
@@ -30,109 +28,6 @@ from opentelemetry.util.genai.types import (
 )
 
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Base64 image filtering (used by Chain content processing)
-# ---------------------------------------------------------------------------
-
-
-def recursive_size(obj: Any, max_size: int = 10240) -> int:
-    """递归计算对象大小，超过阈值时快速返回"""
-    total_size = 0
-    if isinstance(obj, dict):
-        total_size += sys.getsizeof(obj)
-        if total_size > max_size:
-            return total_size
-        for key, value in obj.items():
-            total_size += recursive_size(
-                key, max_size - total_size
-            ) + recursive_size(value, max_size - total_size)
-            if total_size > max_size:
-                return total_size
-    elif isinstance(obj, list):
-        total_size += sys.getsizeof(obj)
-        if total_size > max_size:
-            return total_size
-        for item in obj:
-            total_size += recursive_size(item, max_size - total_size)
-            if total_size > max_size:
-                return total_size
-    else:
-        total_size += sys.getsizeof(obj)
-    return total_size
-
-
-def _is_base64_image(item: Any) -> bool:
-    """检查是否为base64编码的图片数据"""
-    if not isinstance(item, dict):
-        return False
-    if not isinstance(item.get("image_url"), dict):
-        return False
-    if "data:image/" not in item.get("image_url", {}).get("url", ""):
-        return False
-    return True
-
-
-def _filter_base64_images(obj: Any) -> Any:
-    """递归过滤掉base64图片数据，保留其他信息"""
-    if recursive_size(obj) < 10240:  # 10KB
-        return obj
-
-    if isinstance(obj, list):
-        filtered_list = []
-        for item in obj:
-            if isinstance(item, str) and "data:image/" in item:
-                start_idx = item.find("[")
-                end_idx = item.rfind("]")
-
-                if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
-                    filtered_list.append(item)
-                    continue
-
-                try:
-                    filtered_obj = item[start_idx : end_idx + 1]
-                    parsed_list = ast.literal_eval(filtered_obj)
-                    if isinstance(parsed_list, list):
-                        filtered_parsed_list = _filter_base64_images(
-                            parsed_list
-                        )
-                        filtered_item = (
-                            item[:start_idx]
-                            + str(filtered_parsed_list)
-                            + item[end_idx + 1 :]
-                        )
-                        filtered_list.append(filtered_item)
-                    else:
-                        filtered_list.append(item)
-                except Exception:
-                    logger.debug(
-                        "Failed to parse/filter base64 in list item",
-                        exc_info=True,
-                    )
-                    filtered_list.append(item)
-            elif _is_base64_image(item):
-                filtered_item = {
-                    "type": item.get("type", "image_url"),
-                    "image_url": {"url": "BASE64_IMAGE_DATA_FILTERED"},
-                }
-                filtered_list.append(filtered_item)
-            else:
-                filtered_list.append(_filter_base64_images(item))
-        return filtered_list
-    elif isinstance(obj, dict):
-        filtered_dict = {}
-        for key, value in obj.items():
-            if _is_base64_image(value):
-                filtered_dict[key] = {
-                    "type": value.get("type", "image_url"),
-                    "image_url": {"url": "BASE64_IMAGE_DATA_FILTERED"},
-                }
-            else:
-                filtered_dict[key] = _filter_base64_images(value)
-        return filtered_dict
-    else:
-        return obj
-
 
 # ---------------------------------------------------------------------------
 # Agent detection
