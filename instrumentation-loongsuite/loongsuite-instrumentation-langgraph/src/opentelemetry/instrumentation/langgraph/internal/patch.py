@@ -83,7 +83,7 @@ def _inject_react_metadata(config: Any) -> Any:
     config = ensure_config(config)
     config = {**config}
     metadata = dict(config.get("metadata") or {})
-    metadata[REACT_AGENT_METADATA_KEY] = True
+    metadata.setdefault(REACT_AGENT_METADATA_KEY, True)
     config["metadata"] = metadata
     return config
 

@@ -37,7 +37,7 @@ import importlib
 import logging
 from typing import Any, Collection
 
-from wrapt import wrap_function_wrapper
+from wrapt import ObjectProxy, wrap_function_wrapper
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.langgraph.internal.patch import (
@@ -51,10 +51,6 @@ from opentelemetry.instrumentation.utils import unwrap
 logger = logging.getLogger(__name__)
 
 __all__ = ["LangGraphInstrumentor"]
-
-# Module paths that were successfully patched (for uninstrument).
-_patched_cra_locations: list[tuple[str, str]] = []
-_pregel_patched: bool = False
 
 _PREGEL_MODULE = "langgraph.pregel"
 
@@ -95,7 +91,17 @@ def _get_create_react_agent_locations() -> list[tuple[str, str]]:
 
 
 class LangGraphInstrumentor(BaseInstrumentor):
-    """An instrumentor for LangGraph."""
+    """An instrumentor for LangGraph.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        # Module paths that were successfully patched by this instance.
+        # Only initialize if not already set (singleton may reuse instance).
+        if not hasattr(self, "_patched_cra_locations"):
+            self._patched_cra_locations = []
+        if not hasattr(self, "_pregel_patched"):
+            self._pregel_patched = False
 
     def instrumentation_dependencies(self) -> Collection[str]:
         return _instruments
@@ -105,8 +111,6 @@ class LangGraphInstrumentor(BaseInstrumentor):
         self._instrument_pregel()
 
     def _instrument_create_react_agent(self) -> None:
-        global _patched_cra_locations
-
         locations = _get_create_react_agent_locations()
         if not locations:
             logger.warning(
@@ -115,20 +119,34 @@ class LangGraphInstrumentor(BaseInstrumentor):
             )
             return
 
+        # Skip targets already wrapped (e.g. wrapt proxy) to avoid nested
+        # wrappers when the same callable is re-exported across modules.
+        patched: list[tuple[str, str]] = []
         for module_path, attr_name in locations:
+            try:
+                mod = importlib.import_module(module_path)
+                target = getattr(mod, attr_name)
+            except (ImportError, AttributeError):
+                continue
+            if isinstance(target, ObjectProxy):
+                logger.debug(
+                    "Skipping %s.%s (already wrapped)",
+                    module_path,
+                    attr_name,
+                )
+                continue
             wrap_function_wrapper(
                 module_path, attr_name, _create_react_agent_wrapper
             )
             logger.debug("Patched %s.%s", module_path, attr_name)
+            patched.append((module_path, attr_name))
 
-        _patched_cra_locations = locations
+        self._patched_cra_locations = patched
 
     def _instrument_pregel(self) -> None:
         """Patch ``Pregel.stream`` and ``Pregel.astream`` to inject
         metadata when the graph is a marked ReAct agent.
         """
-        global _pregel_patched
-
         try:
             wrap_function_wrapper(
                 _PREGEL_MODULE, "Pregel.stream", _stream_wrapper
@@ -136,7 +154,7 @@ class LangGraphInstrumentor(BaseInstrumentor):
             wrap_function_wrapper(
                 _PREGEL_MODULE, "Pregel.astream", _astream_wrapper
             )
-            _pregel_patched = True
+            self._pregel_patched = True
             logger.debug("Patched Pregel.stream and Pregel.astream")
         except (ImportError, AttributeError) as exc:
             logger.debug(
@@ -148,9 +166,7 @@ class LangGraphInstrumentor(BaseInstrumentor):
         self._uninstrument_pregel()
 
     def _uninstrument_create_react_agent(self) -> None:
-        global _patched_cra_locations
-
-        for module_path, attr_name in _patched_cra_locations:
+        for module_path, attr_name in self._patched_cra_locations:
             try:
                 mod = importlib.import_module(module_path)
                 unwrap(mod, attr_name)
@@ -160,12 +176,10 @@ class LangGraphInstrumentor(BaseInstrumentor):
                     "Failed to restore %s.%s: %s", module_path, attr_name, exc
                 )
 
-        _patched_cra_locations = []
+        self._patched_cra_locations = []
 
     def _uninstrument_pregel(self) -> None:
-        global _pregel_patched
-
-        if not _pregel_patched:
+        if not self._pregel_patched:
             return
 
         try:
@@ -177,4 +191,4 @@ class LangGraphInstrumentor(BaseInstrumentor):
         except Exception as exc:  # noqa: BLE001
             logger.debug("Failed to restore Pregel methods: %s", exc)
 
-        _pregel_patched = False
+        self._pregel_patched = False

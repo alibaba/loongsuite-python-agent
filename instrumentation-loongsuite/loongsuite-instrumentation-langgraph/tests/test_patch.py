@@ -118,11 +118,26 @@ class TestCreateReactAgentPatch:
 class TestPregelStreamPatch:
     """Verify that ``Pregel.stream`` injects metadata for ReAct agents."""
 
-    def test_metadata_injected_for_react_agent(self, instrument):
-        """Invoking a ReAct agent should inject metadata into the config."""
+    def test_metadata_injected_for_react_agent(self, instrument, span_exporter):
+        """Invoking a ReAct agent should inject metadata into the config.
+
+        Metadata injection is verified indirectly: when the metadata flag is
+        present, LangChain's LoongsuiteTracer creates Agent/ReAct Step spans
+        instead of generic chain spans. Absence of Agent span would indicate
+        the Pregel wrapper stopped injecting metadata.
+        """
         graph = _build_react_agent()
         result = graph.invoke({"messages": [("user", "hello")]})
         assert result is not None
+
+        spans = span_exporter.get_finished_spans()
+        agent_spans = [
+            s for s in spans if s.attributes.get("gen_ai.span.kind") == "AGENT"
+        ]
+        assert len(agent_spans) == 1, (
+            f"Expected 1 Agent span (metadata injected), got {len(agent_spans)}: "
+            f"{[s.name for s in spans]}"
+        )
 
     def test_no_metadata_for_plain_graph(self, instrument):
         """A plain (non-ReAct) graph should NOT have the metadata flag."""
