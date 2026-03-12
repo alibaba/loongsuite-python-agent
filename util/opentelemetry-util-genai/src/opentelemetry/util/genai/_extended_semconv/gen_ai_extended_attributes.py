@@ -43,10 +43,10 @@ GEN_AI_TOOL_CALL_RESULT: Final = "gen_ai.tool.call.result"
 The result returned by the tool after execution.
 """
 
-# Retrieve attributes
-GEN_AI_RETRIEVAL_QUERY: Final = "gen_ai.retrieval.query"
+# Retrieval attributes
+GEN_AI_RETRIEVAL_QUERY_TEXT: Final = "gen_ai.retrieval.query.text"
 """
-The query string used to retrieve documents from a vector database or search system.
+The retrieval query text (short phrase). Per LoongSuite semantic convention.
 """
 
 GEN_AI_RETRIEVAL_DOCUMENTS: Final = "gen_ai.retrieval.documents"
@@ -191,8 +191,8 @@ class GenAiSpanKindValues(Enum):
 
 
 class GenAiExtendedOperationNameValues(Enum):
-    RETRIEVE_DOCUMENTS = "retrieve_documents"
-    """Retrieve documents operation."""
+    RETRIEVAL = "retrieval"
+    """Retrieval operation (vector store / database lookup). Per LoongSuite semantic convention."""
 
     RERANK_DOCUMENTS = "rerank_documents"
     """Rerank documents operation."""

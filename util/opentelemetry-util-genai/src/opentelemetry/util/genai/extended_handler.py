@@ -110,7 +110,7 @@ from opentelemetry.util.genai.extended_span_utils import (
     _apply_execute_tool_finish_attributes,
     _apply_invoke_agent_finish_attributes,
     _apply_rerank_finish_attributes,
-    _apply_retrieve_finish_attributes,
+    _apply_retrieval_finish_attributes,
     _maybe_emit_invoke_agent_event,
 )
 from opentelemetry.util.genai.extended_types import (
@@ -119,7 +119,7 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.handler import TelemetryHandler, _safe_detach
 from opentelemetry.util.genai.span_utils import _apply_error_attributes
@@ -135,7 +135,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
     - Embedding operations
     - Execute tool operations
     - Invoke agent operations
-    - Retrieve documents operations
+    - Retrieval operations
     - Rerank documents operations
     - Memory operations
     - Entry operations (AI application system entry point)
@@ -172,7 +172,7 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             ExecuteToolInvocation,
             InvokeAgentInvocation,
             CreateAgentInvocation,
-            RetrieveInvocation,
+            RetrievalInvocation,
             RerankInvocation,
             MemoryInvocation,
             EntryInvocation,
@@ -552,16 +552,16 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
             raise
         self.stop_invoke_agent(invocation)
 
-    # ==================== Retrieve Documents Operations ====================
+    # ==================== Retrieval Operations ====================
 
-    def start_retrieve(
+    def start_retrieval(
         self,
-        invocation: RetrieveInvocation,
+        invocation: RetrievalInvocation,
         context: Context | None = None,
-    ) -> RetrieveInvocation:
-        """Start a retrieve documents invocation and create a pending span entry."""
+    ) -> RetrievalInvocation:
+        """Start a retrieval invocation and create a pending span entry."""
         span = self._tracer.start_span(
-            name="retrieve_documents",
+            name="retrieval",
             kind=SpanKind.INTERNAL,
             context=context,
         )
@@ -574,28 +574,28 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         )
         return invocation
 
-    def stop_retrieve(  # pylint: disable=no-self-use
-        self, invocation: RetrieveInvocation
-    ) -> RetrieveInvocation:
-        """Finalize a retrieve documents invocation successfully and end its span."""
+    def stop_retrieval(  # pylint: disable=no-self-use
+        self, invocation: RetrievalInvocation
+    ) -> RetrievalInvocation:
+        """Finalize a retrieval invocation successfully and end its span."""
         if invocation.context_token is None or invocation.span is None:
             return invocation
 
-        _apply_retrieve_finish_attributes(invocation.span, invocation)
+        _apply_retrieval_finish_attributes(invocation.span, invocation)
         self._record_extended_metrics(invocation.span, invocation)
 
         _safe_detach(invocation.context_token)
         invocation.span.end()
         return invocation
 
-    def fail_retrieve(  # pylint: disable=no-self-use
-        self, invocation: RetrieveInvocation, error: Error
-    ) -> RetrieveInvocation:
-        """Fail a retrieve documents invocation and end its span with error status."""
+    def fail_retrieval(  # pylint: disable=no-self-use
+        self, invocation: RetrievalInvocation, error: Error
+    ) -> RetrievalInvocation:
+        """Fail a retrieval invocation and end its span with error status."""
         if invocation.context_token is None or invocation.span is None:
             return invocation
 
-        _apply_retrieve_finish_attributes(invocation.span, invocation)
+        _apply_retrieval_finish_attributes(invocation.span, invocation)
         _apply_error_attributes(invocation.span, error)
         self._record_extended_metrics(
             invocation.span, invocation, error_type=error.type.__qualname__
@@ -606,21 +606,21 @@ class ExtendedTelemetryHandler(MultimodalProcessingMixin, TelemetryHandler):  # 
         return invocation
 
     @contextmanager
-    def retrieve(
-        self, invocation: RetrieveInvocation | None = None
-    ) -> Iterator[RetrieveInvocation]:
-        """Context manager for retrieve documents invocations."""
+    def retrieval(
+        self, invocation: RetrievalInvocation | None = None
+    ) -> Iterator[RetrievalInvocation]:
+        """Context manager for retrieval invocations."""
         if invocation is None:
-            invocation = RetrieveInvocation()
-        self.start_retrieve(invocation)
+            invocation = RetrievalInvocation()
+        self.start_retrieval(invocation)
         try:
             yield invocation
         except Exception as exc:
-            self.fail_retrieve(
+            self.fail_retrieval(
                 invocation, Error(message=str(exc), type=type(exc))
             )
             raise
-        self.stop_retrieve(invocation)
+        self.stop_retrieval(invocation)
 
     # ==================== Rerank Documents Operations ====================
 

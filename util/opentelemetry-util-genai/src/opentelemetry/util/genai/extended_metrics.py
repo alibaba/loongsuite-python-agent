@@ -17,7 +17,7 @@ Extended metrics recorder for GenAI invocations.
 
 This module provides LoongSuite GenAI metrics recording.
 It supports multiple GenAI invocation types: chat, generate_content, embedding, execute_tool, invoke_agent,
-create_agent, retrieve, and rerank.
+create_agent, retrieval, and rerank.
 
 This is just an empty implementation for now, which is a placeholder for enterprise implementation.
 """
@@ -41,7 +41,7 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.metrics import InvocationMetricsRecorder
 from opentelemetry.util.genai.types import LLMInvocation
@@ -60,7 +60,7 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
     - Execute tool operations
     - Invoke agent operations
     - Create agent operations
-    - Retrieve documents operations
+    - Retrieval operations
     - Rerank documents operations
     - Entry operations
     - ReAct Step operations
@@ -75,7 +75,7 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
             ExecuteToolInvocation,
             InvokeAgentInvocation,
             CreateAgentInvocation,
-            RetrieveInvocation,
+            RetrievalInvocation,
             RerankInvocation,
             MemoryInvocation,
             EntryInvocation,

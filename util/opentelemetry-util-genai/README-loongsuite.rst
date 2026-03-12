@@ -13,7 +13,7 @@ LoongSuite 扩展为 OpenTelemetry GenAI Util 包提供了额外的 Generative A
 - **create_agent**: Agent 创建操作
 - **embedding**: 向量嵌入生成操作
 - **execute_tool**: 工具执行操作
-- **retrieve**: 文档检索操作（向量数据库查询）
+- **retrieval**: 文档检索操作（向量数据库查询）
 - **rerank**: 文档重排序操作
 - **memory**: 记忆操作，支持记忆的增删改查等操作
 - **entry**: AI 应用系统入口标识，支持 session_id/user_id 的 Baggage 传播
@@ -352,36 +352,46 @@ Token 使用:
         invocation.tool_call_result = result
 
 
-6. 文档检索 (retrieve)
+6. 文档检索 (retrieval)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪从向量数据库或搜索系统检索文档的操作。
 
 **支持的属性:**
 
-- ``gen_ai.operation.name``: 操作名称，固定为 "retrieve"
-- ``gen_ai.provider.name``: 提供商名称
-- ``gen_ai.retrieval.query``: 检索查询字符串（受内容捕获模式控制）
-- ``gen_ai.retrieval.documents``: 检索到的文档（受内容捕获模式控制）
+- ``gen_ai.operation.name``: 操作名称，固定为 "retrieval"
+- ``gen_ai.span.kind``: 固定为 "RETRIEVER"
+- ``gen_ai.data_source.id``: 数据源唯一标识（有条件时必须）
+- ``gen_ai.provider.name``: 提供商名称（有条件时必须）
+- ``gen_ai.request.model``: 请求模型（有条件时必须）
+- ``gen_ai.request.top_k``: 请求 topK（推荐）
+- ``gen_ai.retrieval.query.text``: 检索内容短句（可选，受内容捕获模式控制）
+- ``gen_ai.retrieval.documents``: 召回的文档列表，格式 [{"id": str, "score": float}, ...]（可选，受内容捕获模式控制）
+
+**Span 命名:** ``retrieval {gen_ai.data_source.id}``，无 data_source_id 时为 ``retrieval``
+
+**文档格式:** 使用 ``List[RetrievalDocument]``，instrumentation 需将框架类型（如 LangChain Document）转换为 ``RetrievalDocument``。当 OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT 为 NO_CONTENT 时仅记录 id 和 score；SPAN_ONLY/SPAN_AND_EVENT 时记录完整。
 
 **使用示例:**
 
 ::
 
-    from opentelemetry.util.genai.extended_types import RetrieveInvocation
+    from opentelemetry.util.genai.extended_types import RetrievalInvocation, RetrievalDocument
 
-    with handler.retrieve() as invocation:
+    with handler.retrieval() as invocation:
         invocation.provider = "chroma"
-        invocation.retrieval_query = "什么是 OpenTelemetry?"
+        invocation.data_source_id = "H7STPQYOND"
+        invocation.query = "什么是 OpenTelemetry?"
+        invocation.top_k = 5.0
         
         # 执行检索...
-        invocation.retrieval_documents = [
-            {"id": "doc1", "content": "OpenTelemetry 是一个观测性框架...", "score": 0.95},
-            {"id": "doc2", "content": "OpenTelemetry 提供统一的 API...", "score": 0.88}
+        invocation.documents = [
+            RetrievalDocument(id="doc1", score=0.95, content="...", metadata={}),
+            RetrievalDocument(id="doc2", score=0.88, content="...", metadata={}),
         ]
 
 
-7. 文档重排序 (rerank)
+1. 文档重排序 (rerank)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 用于跟踪文档重排序操作，支持基于模型和基于 LLM 的重排序器。
@@ -797,13 +807,18 @@ Baggage 中已有同名 key，则会被覆盖。
         tool_inv.tool_call_result = {"products": [...]}
 
     # 检索相关文档
-    with handler.retrieve() as retrieve_inv:
-        retrieve_inv.provider = "chroma"
-        retrieve_inv.retrieval_query = "笔记本电脑推荐"
+    from opentelemetry.util.genai.extended_types import RetrievalDocument
+    with handler.retrieval() as retrieval_inv:
+        retrieval_inv.provider = "chroma"
+        retrieval_inv.data_source_id = "my_vector_store"
+        retrieval_inv.query = "笔记本电脑推荐"
         
         # 执行检索...
         
-        retrieve_inv.retrieval_documents = [...]
+        retrieval_inv.documents = [
+            RetrievalDocument(id="doc1", score=0.95, content="...", metadata={}),
+            RetrievalDocument(id="doc2", score=0.88, content="...", metadata={}),
+        ]
 
     # 重排序结果
     with handler.rerank() as rerank_inv:

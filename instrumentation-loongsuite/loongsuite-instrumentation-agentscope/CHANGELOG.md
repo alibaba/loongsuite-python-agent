@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Each ReAct iteration is wrapped in a `react step` span with `gen_ai.react.round` and `gen_ai.react.finish_reason` attributes
   - Uses AgentScope's instance-level hook system for robust, non-invasive instrumentation
 
+## Version 0.2.0 (2026-03-12)
+
 ## Version 0.1.0 (2026-02-28)
 
 ### Fixed
