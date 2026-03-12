@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Version 0.2.0 (2026-03-12)
+
 ### Added
 
 - Add `RetrievalDocument` dataclass for typed retrieval document representation (id, score, content, metadata). 
