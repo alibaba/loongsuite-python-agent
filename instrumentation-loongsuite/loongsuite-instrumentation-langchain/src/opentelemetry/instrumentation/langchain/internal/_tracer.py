@@ -168,6 +168,8 @@ class LoongsuiteTracer(BaseTracer):
         **kwargs: Any,
     ) -> None:
         super().__init__(_schema_format="original+chat", **kwargs)
+        # We need run callback inline so that propagate the context correctly.
+        self.run_inline = True
         self._handler = handler
         self._tracer = get_tracer(
             __name__,
