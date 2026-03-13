@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Improved token usage extraction to support multiple LangChain/LLM provider formats
+  ([#148](https://github.com/alibaba/loongsuite-python-agent/pull/148))
+
 ## Version 0.2.0 (2026-03-12)
 
 ### Added

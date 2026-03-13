@@ -24,6 +24,7 @@ from opentelemetry.instrumentation.langchain.internal._utils import (
     _extract_response_model,
     _extract_token_usage,
     _extract_tool_definitions,
+    _parse_token_usage_dict,
     _safe_json,
 )
 from opentelemetry.util.genai.types import (
@@ -298,6 +299,56 @@ class TestExtractLLMOutputMessages:
         assert _extract_llm_output_messages(run) == []
 
 
+class TestParseTokenUsageDict:
+    """Unit tests for _parse_token_usage_dict."""
+
+    def test_prompt_completion_tokens(self):
+        """Standard OpenAI format: prompt_tokens, completion_tokens."""
+        inp, out = _parse_token_usage_dict(
+            {"prompt_tokens": 10, "completion_tokens": 20}
+        )
+        assert inp == 10
+        assert out == 20
+
+    def test_input_output_tokens(self):
+        """Anthropic/Claude format: input_tokens, output_tokens."""
+        inp, out = _parse_token_usage_dict(
+            {"input_tokens": 5, "output_tokens": 15}
+        )
+        assert inp == 5
+        assert out == 15
+
+    def test_azure_format_pascal_case(self):
+        """Azure format: PromptTokens, CompletionTokens (PascalCase)."""
+        inp, out = _parse_token_usage_dict(
+            {"PromptTokens": 100, "CompletionTokens": 50}
+        )
+        assert inp == 100
+        assert out == 50
+
+    def test_partial_input_only(self):
+        """Only input tokens present, output is None."""
+        inp, out = _parse_token_usage_dict({"prompt_tokens": 42})
+        assert inp == 42
+        assert out is None
+
+    def test_partial_output_only(self):
+        """Only output tokens present, input is None."""
+        inp, out = _parse_token_usage_dict({"completion_tokens": 8})
+        assert inp is None
+        assert out == 8
+
+    def test_non_dict_returns_none(self):
+        """Non-dict input returns (None, None)."""
+        assert _parse_token_usage_dict(None) == (None, None)
+        assert _parse_token_usage_dict("not a dict") == (None, None)
+        assert _parse_token_usage_dict([]) == (None, None)
+
+    def test_empty_dict(self):
+        """Empty dict returns (None, None)."""
+        assert _parse_token_usage_dict({}) == (None, None)
+
+
 class TestExtractTokenUsage:
     def test_from_llm_output(self):
         run = _FakeRun(
@@ -458,6 +509,100 @@ class TestExtractTokenUsage:
         inp, out = _extract_token_usage(run)
         assert inp == 1
         assert out == 2
+
+    def test_from_message_usage_metadata_dict(self):
+        """Token usage may be in message.kwargs.usage_metadata (serialized format)."""
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Response",
+                            "message": {
+                                "kwargs": {
+                                    "content": "Response",
+                                    "usage_metadata": {
+                                        "input_tokens": 30,
+                                        "output_tokens": 12,
+                                    },
+                                }
+                            },
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 30
+        assert out == 12
+
+    def test_from_message_usage_metadata_object(self):
+        """Token usage may be in message.usage_metadata (object format)."""
+
+        class _FakeMessage:
+            usage_metadata = {
+                "prompt_tokens": 80,
+                "completion_tokens": 20,
+            }
+
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Response",
+                            "message": _FakeMessage(),
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 80
+        assert out == 20
+
+    def test_llm_output_azure_format(self):
+        """llm_output may use Azure-style PromptTokens/CompletionTokens."""
+        run = _FakeRun(
+            outputs={
+                "llm_output": {
+                    "token_usage": {
+                        "PromptTokens": 200,
+                        "CompletionTokens": 75,
+                    }
+                }
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 200
+        assert out == 75
+
+    def test_response_metadata_usage_key(self):
+        """response_metadata may use 'usage' key instead of 'token_usage'."""
+        run = _FakeRun(
+            outputs={
+                "generations": [
+                    [
+                        {
+                            "text": "Hi",
+                            "message": {
+                                "kwargs": {
+                                    "response_metadata": {
+                                        "usage": {
+                                            "prompt_tokens": 15,
+                                            "completion_tokens": 7,
+                                        }
+                                    },
+                                }
+                            },
+                        }
+                    ]
+                ]
+            }
+        )
+        inp, out = _extract_token_usage(run)
+        assert inp == 15
+        assert out == 7
 
     def test_no_token_usage(self):
         run = _FakeRun(outputs={})

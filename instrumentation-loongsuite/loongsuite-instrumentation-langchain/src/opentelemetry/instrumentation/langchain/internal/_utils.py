@@ -318,9 +318,15 @@ def _parse_token_usage_dict(token_usage: Any) -> tuple[int | None, int | None]:
     """Parse a token_usage/usage dict into (input_tokens, output_tokens)."""
     if not isinstance(token_usage, dict):
         return None, None
-    inp = token_usage.get("prompt_tokens") or token_usage.get("input_tokens")
-    out = token_usage.get("completion_tokens") or token_usage.get(
-        "output_tokens"
+    inp = (
+        token_usage.get("prompt_tokens")
+        or token_usage.get("PromptTokens")
+        or token_usage.get("input_tokens")
+    )
+    out = (
+        token_usage.get("completion_tokens")
+        or token_usage.get("CompletionTokens")
+        or token_usage.get("output_tokens")
     )
     return (
         int(inp) if inp is not None else None,
@@ -334,7 +340,8 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
     Tries multiple LangChain formats in order:
     1. outputs["llm_output"]["token_usage"] or ["usage"]
     2. generations[i][j]["generation_info"]["token_usage"] or ["usage"]
-    3. generations[i][j]["message"].response_metadata or ["kwargs"]["response_metadata"]
+    3. generations[i][j]["message"].response_metadata["token_usage"] or generations[i][j]["message"].response_metadata["usage"] or generations[i][j]["message"]["kwargs"]["response_metadata"]["token_usage"] or generations[i][j]["message"]["kwargs"]["response_metadata"]["usage"]
+    4. generations[i][j]["message"].usage_metadata or generations[i][j]["message"]["kwargs"]["usage_metadata"]
     """
     outputs = getattr(run, "outputs", None) or {}
 
@@ -348,7 +355,8 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
         return inp, out
 
     # 2. Fallback: generations[][].generation_info["token_usage"] or ["usage"]
-    # 3. Fallback: generations[][].message.response_metadata["token_usage"]
+    # 3. Fallback: generations[][].message.response_metadata["token_usage"] or generations[][].message.response_metadata["usage"] or generations[][].message["kwargs"]["response_metadata"]["token_usage"] or generations[][].message["kwargs"]["response_metadata"]["usage"]
+    # 4. Fallback: generations[][].message.usage_metadata or generations[][].message["kwargs"]["usage_metadata"]
     for gen_list in outputs.get("generations") or []:
         if not isinstance(gen_list, list):
             continue
@@ -363,10 +371,10 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
             inp, out = _parse_token_usage_dict(token_usage)
             if inp is not None or out is not None:
                 return inp, out
-            # Try message.response_metadata (serialized: kwargs.response_metadata)
             msg = gen.get("message")
             if msg is None:
                 continue
+            # Try message.response_metadata (serialized: kwargs.response_metadata)
             if isinstance(msg, dict):
                 metadata = (msg.get("kwargs") or {}).get(
                     "response_metadata"
@@ -380,6 +388,16 @@ def _extract_token_usage(run: Any) -> tuple[int | None, int | None]:
                 inp, out = _parse_token_usage_dict(token_usage)
                 if inp is not None or out is not None:
                     return inp, out
+            # Try message.usage_metadata (serialized: kwargs.usage_metadata)
+            if isinstance(msg, dict):
+                metadata = (msg.get("kwargs") or {}).get(
+                    "usage_metadata"
+                ) or {}
+            else:
+                metadata = getattr(msg, "usage_metadata", None) or {}
+            inp, out = _parse_token_usage_dict(metadata)
+            if inp is not None or out is not None:
+                return inp, out
 
     return None, None
 
