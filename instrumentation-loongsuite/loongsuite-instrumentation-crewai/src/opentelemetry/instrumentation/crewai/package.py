@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-_instruments = ("crewai >= 0.70.0",)
+_instruments = ("crewai >= 0.80.0",)
 
 _supports_metrics = False

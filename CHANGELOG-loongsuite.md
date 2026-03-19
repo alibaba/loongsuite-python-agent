@@ -24,5 +24,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `loongsuite-distro`: initialize loongsuite python agent distro
   ([#126](https://github.com/alibaba/loongsuite-python-agent/pull/126))
-
-

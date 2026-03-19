@@ -38,8 +38,8 @@ instruments = [
 crewai = "opentelemetry.instrumentation.crewai:CrewAIInstrumentor"
 
 [project.urls]
-Homepage = "https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation/opentelemetry-instrumentation-crewai"
-Repository = "https://github.com/open-telemetry/opentelemetry-python-contrib"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-crewai"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/crewai/version.py"
