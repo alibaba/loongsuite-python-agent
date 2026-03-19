@@ -1,11 +1,13 @@
-# OpenTelemetry CrewAI Instrumentation
+# LoongSuite CrewAI Instrumentation
 
 This library provides automatic instrumentation for [CrewAI](https://www.crewai.com/), a framework for orchestrating role-playing, autonomous AI agents.
 
 ## Installation
 
 ```bash
-pip install opentelemetry-instrumentation-crewai
+git clone https://github.com/alibaba/loongsuite-python-agent.git
+cd loongsuite-python-agent
+pip install ./instrumentation-loongsuite/loongsuite-instrumentation-crewai
 ```
 
 ## Usage
