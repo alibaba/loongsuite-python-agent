@@ -5,7 +5,7 @@
 Loongsuite Python Agent is a key component of LoongSuite, Alibaba's unified observability data collection suite, providing instrumentation for Python applications. 
 
 LoongSuite includes the following key components:
-* [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which prodivdes log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
+* [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which provides log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
 * [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentation for python applications.
 * [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent): a process agent for golang with compile time instrumentation.
 * [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent for Java applications.
@@ -83,7 +83,7 @@ for _ in range(3):
 
 ```
 
-#### Collecte Data
+#### Collect Data
 
 Run the `demo.py` script using OpenTelemetry
 
