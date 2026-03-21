@@ -208,6 +208,29 @@ def _uninstrument_create_agent() -> None:
     _patched_create_agent_locations.clear()
 
 
+# ------------------------------------------------------------------
+# BaseDocumentCompressor patch (rerank / compression)
+# ------------------------------------------------------------------
+
+
+def _instrument_document_compressor(handler: Any) -> None:
+    """Wrap all current and future ``BaseDocumentCompressor`` subclasses."""
+    from opentelemetry.instrumentation.langchain.internal.patch_rerank import (  # noqa: PLC0415
+        instrument_document_compressor,
+    )
+
+    instrument_document_compressor(handler)
+
+
+def _uninstrument_document_compressor() -> None:
+    """Restore original ``BaseDocumentCompressor`` methods."""
+    from opentelemetry.instrumentation.langchain.internal.patch_rerank import (  # noqa: PLC0415
+        uninstrument_document_compressor,
+    )
+
+    uninstrument_document_compressor()
+
+
 class LangChainInstrumentor(BaseInstrumentor):
     """An instrumentor for LangChain."""
 
@@ -244,6 +267,7 @@ class LangChainInstrumentor(BaseInstrumentor):
 
         _instrument_agent_executor()
         _instrument_create_agent()
+        _instrument_document_compressor(handler)
 
     def _uninstrument(self, **kwargs: Any) -> None:
         try:
@@ -256,6 +280,7 @@ class LangChainInstrumentor(BaseInstrumentor):
 
         _uninstrument_agent_executor()
         _uninstrument_create_agent()
+        _uninstrument_document_compressor()
 
 
 class _BaseCallbackManagerInit:
