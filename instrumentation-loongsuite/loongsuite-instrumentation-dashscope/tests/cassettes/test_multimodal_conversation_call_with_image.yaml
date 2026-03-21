@@ -1,0 +1,113 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-vl-plus",
+        "parameters": {},
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "image": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"
+                },
+                {
+                  "text": "What do you see in this image?"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '228'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "message": {
+                  "content": [
+                    {
+                      "text": "This image captures a heartwarming and serene moment between a woman and her dog on a beach during what appears to be either sunrise or sunset. The warm, golden light of the sun casts a soft glow over the scene, creating a peaceful and intimate atmosphere.\n\n### Key Elements in the Image:\n\n1. **The Setting:**\n   - The background features a calm ocean with gentle waves rolling onto the shore. The horizon is visible, blending the sky and sea into a soft, hazy line.\n   - The sand is smooth and undisturbed, except for the footprints and impressions left by the woman and her dog.\n\n2. **The Woman:**\n   - She is sitting cross-legged on the sand, facing the dog. Her posture is relaxed, and she appears to be enjoying the moment.\n   - She is wearing a plaid shirt (blue, white, and black) and dark pants. Her long hair flows freely, and she has a warm, genuine smile on her face.\n   - Her right hand is extended, and the dog's paw is resting on it, suggesting a playful \"high-five\" or handshake.\n\n3. **The Dog:**\n   - The dog is a large, light-colored breed, possibly a Labrador Retriever, sitting upright on the sand. Its body language is attentive and engaged.\n   - The dog is wearing a colorful harness with a pattern that includes red, blue, and green tones. A leash is attached to the harness, lying loosely on the sand.\n   - The dog's front paw is placed on the woman's hand, mirroring the gesture and creating a sense of connection and mutual understanding between them.\n\n4. **Lighting and Mood:**\n   - The lighting is soft and warm, likely from the low angle of the sun, which enhances the golden tones of the sand and the subjects' skin and fur.\n   - The overall mood of the image is one of happiness, companionship, and tranquility. It conveys a sense of harmony between the woman and her pet, as well as a deep appreciation for nature and the simple joys of life.\n\n5. **Composition:**\n   - The composition is balanced, with the woman and dog positioned slightly off-center, drawing the viewer's eye to their interaction.\n   - The vastness of the ocean and sky in the background emphasizes the peacefulness of the setting and highlights the bond between the two main subjects.\n\n### Summary:\nThis image beautifully captures a tender moment of connection between a woman and her dog on a beach. The combination of the natural setting, the warm lighting, and the playful interaction creates a scene that feels both joyful and serene. It evokes feelings of love, companionship, and the simple pleasures of spending time with a beloved pet in a beautiful environment."
+                    }
+                  ],
+                  "reasoning_content": "",
+                  "role": "assistant"
+                },
+                "finish_reason": "stop"
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens_details": {
+              "image_tokens": 1249,
+              "text_tokens": 16
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "total_tokens": 1829,
+            "output_tokens": 564,
+            "input_tokens": 1265,
+            "output_tokens_details": {
+              "text_tokens": 564
+            },
+            "image_tokens": 1249
+          },
+          "request_id": "f7ffa05a-1ed0-402c-ba63-ec6a01e3c172"
+        }
+    headers:
+      content-length:
+      - '3019'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:42:51 GMT
+      req-arrive-time:
+      - '1767789763927'
+      req-cost-time:
+      - '7443'
+      resp-start-time:
+      - '1767789771371'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-inner-csi:
+      - verified
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '7435'
+      x-request-id:
+      - f7ffa05a-1ed0-402c-ba63-ec6a01e3c172
+    status:
+      code: 200
+      message: OK
+version: 1

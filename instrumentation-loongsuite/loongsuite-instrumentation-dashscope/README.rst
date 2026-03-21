@@ -68,6 +68,20 @@ Supported APIs
   * ``ImageSynthesis.async_call`` (async task submission)
   * ``ImageSynthesis.wait`` (async task waiting)
 
+* **Speech Synthesis V1**
+  
+  * ``SpeechSynthesizer.call`` (V1)
+
+* **Speech Synthesis V2**
+  
+  * ``SpeechSynthesizer.call`` (V2)
+
+* **Video Synthesis**
+  
+  * ``VideoSynthesis.call`` (sync)
+  * ``VideoSynthesis.async_call`` (async task submission)
+  * ``VideoSynthesis.wait`` (async task waiting)
+
 
 Captured Attributes
 --------------------

@@ -90,6 +90,7 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 
 - **Models**: ChatModelBase and all subclasses
 - **Agents**: AgentBase and all subclasses
+- **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks)
 - **Tools**: Toolkit.call_tool_function
 - **Formatters**: TruncatedFormatterBase.format
 

@@ -20,6 +20,7 @@ for extended GenAI operations like embedding, execute_tool, invoke_agent, and re
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
 from opentelemetry._logs import Logger, LogRecord
@@ -48,10 +49,11 @@ from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes impor
     GEN_AI_RERANK_RETURN_DOCUMENTS,
     GEN_AI_RERANK_SCORING_PROMPT,
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_RETRIEVAL_QUERY_TEXT,
     GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
+    GEN_AI_USAGE_TOTAL_TOKENS,
     GenAiExtendedOperationNameValues,
     GenAiSpanKindValues,
 )
@@ -61,7 +63,8 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
+    RetrievalDocument,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.span_utils import (
     _get_llm_messages_attributes_for_event,
@@ -179,6 +182,15 @@ def _get_invoke_agent_response_attributes(
     if invocation.output_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_OUTPUT_TOKENS] = invocation.output_tokens
 
+    # Calculate total_tokens as sum of input and output tokens when both are available
+    total_tokens = 0
+    if invocation.input_tokens is not None:
+        total_tokens += invocation.input_tokens
+    if invocation.output_tokens is not None:
+        total_tokens += invocation.output_tokens
+    if total_tokens > 0:
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
+
     return attributes
 
 
@@ -251,32 +263,36 @@ def _get_tool_call_data_attributes(
     return attributes
 
 
-def _get_retrieve_documents_attributes(
-    documents: Any,
+def _get_retrieval_documents_attributes(
+    documents: list[RetrievalDocument] | None,
 ) -> dict[str, Any]:
     """
-    Get retrieved documents attributes.
-    This is a controlled operation that only records documents when:
-    - Experimental mode is enabled
-    - Content capturing mode is SPAN_ONLY or SPAN_AND_EVENT
-
-    Returns empty dict if not in experimental mode or content capturing is disabled.
+    Get retrieval attributes.
+    Records documents only when experimental mode is enabled.
+    Serialization follows ToolDefinition pattern:
+    - When content capturing is SPAN_ONLY or SPAN_AND_EVENT: full (id, score, content, metadata)
+    - Otherwise (NO_CONTENT): only id and score
     """
     attributes: dict[str, Any] = {}
-    if documents is None:
+    if not is_experimental_mode():
+        return attributes
+    if not documents:
         return attributes
 
-    if not is_experimental_mode() or get_content_capturing_mode() not in (
+    should_record_full = get_content_capturing_mode() in (
         ContentCapturingMode.SPAN_ONLY,
         ContentCapturingMode.SPAN_AND_EVENT,
-    ):
-        return attributes
+    )
 
-    if isinstance(documents, str):
-        attributes[GEN_AI_RETRIEVAL_DOCUMENTS] = documents
-    else:
-        attributes[GEN_AI_RETRIEVAL_DOCUMENTS] = gen_ai_json_dumps(documents)
+    doc_dicts: list[dict[str, Any]] = []
+    for doc in documents:
+        if should_record_full:
+            doc_dicts.append(asdict(doc))
+        else:
+            doc_dicts.append({"id": doc.id, "score": doc.score})
 
+    if doc_dicts:
+        attributes[GEN_AI_RETRIEVAL_DOCUMENTS] = gen_ai_json_dumps(doc_dicts)
     return attributes
 
 
@@ -362,6 +378,14 @@ def _apply_embedding_finish_attributes(
         )
     if invocation.input_tokens is not None:
         attributes[GenAI.GEN_AI_USAGE_INPUT_TOKENS] = invocation.input_tokens
+
+    # Calculate total_tokens as sum of input and output tokens when both are available
+    total_tokens = 0
+    if invocation.input_tokens is not None:
+        total_tokens += invocation.input_tokens
+    if total_tokens > 0:
+        attributes[GEN_AI_USAGE_TOTAL_TOKENS] = total_tokens
+
     if invocation.server_address is not None:
         attributes[ServerAttributes.SERVER_ADDRESS] = invocation.server_address
 
@@ -546,35 +570,63 @@ def _apply_invoke_agent_finish_attributes(
         span.set_attributes(attributes)
 
 
-def _apply_retrieve_finish_attributes(
-    span: Span, invocation: RetrieveInvocation
+def _get_retrieval_span_name(invocation: RetrievalInvocation) -> str:
+    """Get span name for retrieval per spec: retrieval {gen_ai.data_source.id}."""
+    op_name = GenAiExtendedOperationNameValues.RETRIEVAL.value
+    if invocation.data_source_id:
+        return f"{op_name} {invocation.data_source_id}".strip()
+    return op_name
+
+
+def _apply_retrieval_finish_attributes(
+    span: Span, invocation: RetrievalInvocation
 ) -> None:
-    """Apply attributes for retrieve_documents operations."""
-    span.update_name(GenAiExtendedOperationNameValues.RETRIEVE_DOCUMENTS.value)
+    """Apply attributes for retrieval operations (per LoongSuite semantic convention)."""
+    span.update_name(_get_retrieval_span_name(invocation))
 
     # Build all attributes
     attributes: dict[str, Any] = {}
 
-    # Operation name
+    # Operation name (must be "retrieval")
     attributes[GenAI.GEN_AI_OPERATION_NAME] = (
-        GenAiExtendedOperationNameValues.RETRIEVE_DOCUMENTS.value
+        GenAiExtendedOperationNameValues.RETRIEVAL.value
     )
 
-    # LoongSuite Extension: span kind
+    # LoongSuite Extension: span kind (must be RETRIEVER when operation is retrieval)
     attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.RETRIEVER.value
 
-    # Recommended attributes
-    if invocation.query is not None:
-        attributes[GEN_AI_RETRIEVAL_QUERY] = invocation.query
+    # Conditionally required
+    if invocation.data_source_id is not None:
+        attributes[GenAI.GEN_AI_DATA_SOURCE_ID] = invocation.data_source_id
+    if invocation.provider is not None:
+        attributes[GenAI.GEN_AI_PROVIDER_NAME] = invocation.provider
+    if invocation.request_model is not None:
+        attributes[GenAI.GEN_AI_REQUEST_MODEL] = invocation.request_model
+
+    # Recommended
+    if invocation.top_k is not None:
+        attributes[GenAI.GEN_AI_REQUEST_TOP_K] = invocation.top_k
+
+    # Optional: retrieval query (sensitive - controlled by content capturing mode)
+    if invocation.query is not None and (
+        is_experimental_mode()
+        and get_content_capturing_mode()
+        in (
+            ContentCapturingMode.SPAN_ONLY,
+            ContentCapturingMode.SPAN_AND_EVENT,
+        )
+    ):
+        attributes[GEN_AI_RETRIEVAL_QUERY_TEXT] = invocation.query
+
     if invocation.server_address is not None:
         attributes[ServerAttributes.SERVER_ADDRESS] = invocation.server_address
-
-    # Conditionally Required
     if invocation.server_port is not None:
         attributes[ServerAttributes.SERVER_PORT] = invocation.server_port
 
     # Opt-In attributes (sensitive data - controlled by content capturing mode)
-    attributes.update(_get_retrieve_documents_attributes(invocation.documents))
+    attributes.update(
+        _get_retrieval_documents_attributes(invocation.documents)
+    )
 
     # Custom attributes
     attributes.update(invocation.attributes)
@@ -665,6 +717,6 @@ __all__ = [
     "_apply_execute_tool_finish_attributes",
     "_apply_invoke_agent_finish_attributes",
     "_apply_rerank_finish_attributes",
-    "_apply_retrieve_finish_attributes",
+    "_apply_retrieval_finish_attributes",
     "_maybe_emit_invoke_agent_event",
 ]

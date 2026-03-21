@@ -17,11 +17,15 @@
 import os
 import queue
 import threading
+import time
 import unittest
 from typing import Any, Mapping
 from unittest.mock import MagicMock, patch
 
+from opentelemetry import baggage as baggage_api
+from opentelemetry import context as context_api
 from opentelemetry import trace
+from opentelemetry.baggage import get_all as get_all_baggage
 from opentelemetry.instrumentation._semconv import (
     OTEL_SEMCONV_STABILITY_OPT_IN,
     _OpenTelemetrySemanticConventionStability,
@@ -46,13 +50,24 @@ from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace.status import StatusCode
+from opentelemetry.util.genai._extended_common import (
+    EntryInvocation,
+    ReactStepInvocation,
+)
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
+    GEN_AI_REACT_FINISH_REASON,
+    GEN_AI_REACT_ROUND,
     GEN_AI_RERANK_DOCUMENTS_COUNT,
     GEN_AI_RETRIEVAL_DOCUMENTS,
-    GEN_AI_RETRIEVAL_QUERY,
+    GEN_AI_RETRIEVAL_QUERY_TEXT,
+    GEN_AI_SESSION_ID,
+    GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
+    GEN_AI_USAGE_TOTAL_TOKENS,
+    GEN_AI_USER_ID,
+    GenAiSpanKindValues,
 )
 from opentelemetry.util.genai._multimodal_processing import (
     MultimodalProcessingMixin,
@@ -63,6 +78,7 @@ from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
 )
 from opentelemetry.util.genai.extended_handler import (
+    ExtendedTelemetryHandler,
     get_extended_telemetry_handler,
 )
 from opentelemetry.util.genai.extended_types import (
@@ -71,7 +87,8 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
+    RetrievalDocument,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.types import (
     Base64Blob,
@@ -86,7 +103,9 @@ from opentelemetry.util.genai.types import (
 )
 
 
-def patch_env_vars(stability_mode, content_capturing=None, emit_event=None):
+def patch_env_vars(
+    stability_mode, content_capturing=None, emit_event=None, **extra_env_vars
+):
     def decorator(test_case):
         env_vars = {
             OTEL_SEMCONV_STABILITY_OPT_IN: stability_mode,
@@ -97,6 +116,8 @@ def patch_env_vars(stability_mode, content_capturing=None, emit_event=None):
             )
         if emit_event is not None:
             env_vars[OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT] = emit_event
+
+        env_vars.update(extra_env_vars)
 
         @patch.dict(os.environ, env_vars)
         def wrapper(*args, **kwargs):
@@ -152,7 +173,6 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         # Clear singleton if exists to avoid test interference
         if hasattr(get_extended_telemetry_handler, "_default_handler"):
             delattr(get_extended_telemetry_handler, "_default_handler")
-
         self.telemetry_handler = get_extended_telemetry_handler(
             tracer_provider=tracer_provider,
             logger_provider=logger_provider,
@@ -318,6 +338,23 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
+    def test_embedding_with_total_tokens(self):
+        """Test that total_tokens is calculated when both input and output tokens are present."""
+        with self.telemetry_handler.embedding() as invocation:
+            invocation.request_model = "text-embedding-ada-002"
+            invocation.provider = "openai"
+            invocation.input_tokens = 15
+
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_USAGE_INPUT_TOKENS: 15,
+                GEN_AI_USAGE_TOTAL_TOKENS: 15,
+            },
+        )
+
     def test_embedding_error_handling(self):
         class EmbeddingError(RuntimeError):
             pass
@@ -470,6 +507,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_REQUEST_MAX_TOKENS: 1000,
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 50,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 200,
+                GEN_AI_USAGE_TOTAL_TOKENS: 250,
                 GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("stop",),
                 GenAI.GEN_AI_RESPONSE_ID: "resp_456",
                 "custom": "agent_attr",
@@ -514,6 +552,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 100,
             },
         )
+        # Note: total_tokens is not set when only input_tokens is available
 
     def test_invoke_agent_error_handling(self):
         class AgentInvocationError(RuntimeError):
@@ -574,6 +613,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
                 GenAI.GEN_AI_AGENT_NAME: "MessageAgent",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 10,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 20,
+                GEN_AI_USAGE_TOTAL_TOKENS: 30,
             },
         )
 
@@ -803,17 +843,21 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         logs = self.log_exporter.get_finished_logs()
         self.assertEqual(len(logs), 0)
 
-    # ==================== Retrieve Documents Tests ====================
+    # ==================== Retrieval Tests ====================
 
-    def test_retrieve_start_and_stop_creates_span(self):
-        with self.telemetry_handler.retrieve() as invocation:
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
+    def test_retrieval_start_and_stop_creates_span(self):
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "Who is John's father?"
             invocation.server_address = "api.vectordb.com"
             invocation.server_port = 8080
-            invocation.attributes = {"custom": "retrieve_attr"}
+            invocation.attributes = {"custom": "retrieval_attr"}
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "retrieve_documents")
+        self.assertEqual(span.name, "retrieval")
         self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
         _assert_span_time_order(span)
 
@@ -821,11 +865,11 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         _assert_span_attributes(
             span_attrs,
             {
-                GenAI.GEN_AI_OPERATION_NAME: "retrieve_documents",
-                GEN_AI_RETRIEVAL_QUERY: "Who is John's father?",
+                GenAI.GEN_AI_OPERATION_NAME: "retrieval",
+                GEN_AI_RETRIEVAL_QUERY_TEXT: "Who is John's father?",
                 ServerAttributes.SERVER_ADDRESS: "api.vectordb.com",
                 ServerAttributes.SERVER_PORT: 8080,
-                "custom": "retrieve_attr",
+                "custom": "retrieval_attr",
             },
         )
 
@@ -833,60 +877,176 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         stability_mode="gen_ai_latest_experimental",
         content_capturing="SPAN_ONLY",
     )
-    def test_retrieve_with_documents(self):
+    def test_retrieval_with_documents(self):
         documents = [
-            {"id": "123", "content": "John's father is Mike", "metadata": {}},
-            {"id": "124", "content": "Mike is 45 years old", "metadata": {}},
+            RetrievalDocument(
+                id="123",
+                score=0.95,
+                content="John's father is Mike",
+                metadata={},
+            ),
+            RetrievalDocument(
+                id="124",
+                score=0.87,
+                content="Mike is 45 years old",
+                metadata={},
+            ),
         ]
-        with self.telemetry_handler.retrieve() as invocation:
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "Who is John's father?"
             invocation.documents = documents
 
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
-        # Documents should be present with opt-in
         self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
-    def test_retrieve_without_sensitive_data(self):
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
+    def test_retrieval_with_retrieval_documents(self):
+        """Test retrieval with typed RetrievalDocument list."""
+        documents = [
+            RetrievalDocument(
+                id="doc_123",
+                score=0.95,
+                content="John's father is Mike",
+                metadata={"source": "kb1"},
+            ),
+            RetrievalDocument(
+                id="doc_124",
+                score=0.87,
+                content="Mike is 45 years old",
+                metadata={"source": "kb1"},
+            ),
+        ]
+        with self.telemetry_handler.retrieval() as invocation:
+            invocation.query = "Who is John's father?"
+            invocation.documents = documents
+
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        self.assertIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
+        docs_val = span_attrs[GEN_AI_RETRIEVAL_DOCUMENTS]
+        self.assertIn("doc_123", docs_val)
+        self.assertIn("doc_124", docs_val)
+        self.assertIn("0.95", docs_val)
+        self.assertIn("0.87", docs_val)
+
+    @patch_env_vars(stability_mode="default")
+    def test_retrieval_without_sensitive_data(self):
         # Without experimental mode, documents should not be recorded
-        documents = [{"id": "123", "content": "sensitive data"}]
-        with self.telemetry_handler.retrieve() as invocation:
+        documents = [
+            RetrievalDocument(id="123", score=0.9, content="sensitive data")
+        ]
+        with self.telemetry_handler.retrieval() as invocation:
             invocation.query = "test query"
             invocation.documents = documents
 
         span = _get_single_span(self.span_exporter)
         span_attrs = _get_span_attributes(span)
-        # Documents should not be present without opt-in
         self.assertNotIn(GEN_AI_RETRIEVAL_DOCUMENTS, span_attrs)
 
-    def test_retrieve_manual_start_and_stop(self):
-        invocation = RetrieveInvocation()
-        invocation.query = "manual query"
-
-        self.telemetry_handler.start_retrieve(invocation)
-        assert invocation.span is not None
-        invocation.server_address = "localhost"
-        self.telemetry_handler.stop_retrieve(invocation)
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="NO_CONTENT",
+    )
+    def test_retrieval_no_content_records_id_score_only(self):
+        """When content capture is NO_CONTENT, query is omitted; documents record id and score only."""
+        documents = [
+            RetrievalDocument(
+                id="doc_123",
+                score=0.95,
+                content="sensitive doc content",
+                metadata={"secret": "data"},
+            ),
+        ]
+        with self.telemetry_handler.retrieval() as invocation:
+            invocation.query = "secret query"
+            invocation.documents = documents
 
         span = _get_single_span(self.span_exporter)
-        self.assertEqual(span.name, "retrieve_documents")
+        span_attrs = _get_span_attributes(span)
+        self.assertNotIn(
+            GEN_AI_RETRIEVAL_QUERY_TEXT,
+            span_attrs,
+            "Query should NOT be captured when content capture is NO_CONTENT",
+        )
+        self.assertIn(
+            GEN_AI_RETRIEVAL_DOCUMENTS,
+            span_attrs,
+            "Documents should be recorded with id and score only",
+        )
+        docs_val = span_attrs[GEN_AI_RETRIEVAL_DOCUMENTS]
+        self.assertIn("doc_123", docs_val)
+        self.assertIn("0.95", docs_val)
+        self.assertNotIn(
+            "sensitive doc content",
+            docs_val,
+            "Content should NOT be in documents when NO_CONTENT",
+        )
+        self.assertNotIn("secret", docs_val)
+
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
+    def test_retrieval_manual_start_and_stop(self):
+        invocation = RetrievalInvocation()
+        invocation.query = "manual query"
+
+        self.telemetry_handler.start_retrieval(invocation)
+        assert invocation.span is not None
+        invocation.server_address = "localhost"
+        self.telemetry_handler.stop_retrieval(invocation)
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "retrieval")
         span_attrs = _get_span_attributes(span)
         _assert_span_attributes(
             span_attrs,
             {
-                GEN_AI_RETRIEVAL_QUERY: "manual query",
+                GEN_AI_RETRIEVAL_QUERY_TEXT: "manual query",
                 ServerAttributes.SERVER_ADDRESS: "localhost",
             },
         )
 
-    def test_retrieve_error_handling(self):
-        class RetrieveError(RuntimeError):
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+    )
+    def test_retrieval_span_name_with_data_source_id(self):
+        """Span name should be 'retrieval {data_source_id}' per LoongSuite spec."""
+        with self.telemetry_handler.retrieval() as invocation:
+            invocation.data_source_id = "H7STPQYOND"
+            invocation.query = "test query"
+            invocation.provider = "chroma"
+            invocation.request_model = "embedding-model"
+            invocation.top_k = 5.0
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "retrieval H7STPQYOND")
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "retrieval",
+                GenAI.GEN_AI_DATA_SOURCE_ID: "H7STPQYOND",
+                GenAI.GEN_AI_PROVIDER_NAME: "chroma",
+                GenAI.GEN_AI_REQUEST_MODEL: "embedding-model",
+                GenAI.GEN_AI_REQUEST_TOP_K: 5.0,
+                GEN_AI_RETRIEVAL_QUERY_TEXT: "test query",
+            },
+        )
+
+    def test_retrieval_error_handling(self):
+        class RetrievalError(RuntimeError):
             pass
 
-        with self.assertRaises(RetrieveError):
-            with self.telemetry_handler.retrieve() as invocation:
+        with self.assertRaises(RetrievalError):
+            with self.telemetry_handler.retrieval() as invocation:
                 invocation.query = "error query"
-                raise RetrieveError("Retrieve failed")
+                raise RetrievalError("Retrieval failed")
 
         span = _get_single_span(self.span_exporter)
         self.assertEqual(span.status.status_code, StatusCode.ERROR)
@@ -894,7 +1054,7 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
         _assert_span_attributes(
             span_attrs,
             {
-                ErrorAttributes.ERROR_TYPE: RetrieveError.__qualname__,
+                ErrorAttributes.ERROR_TYPE: RetrievalError.__qualname__,
             },
         )
 
@@ -1009,8 +1169,211 @@ class TestExtendedTelemetryHandler(unittest.TestCase):  # pylint: disable=too-ma
             },
         )
 
+    # ==================== Entry Tests ====================
 
-class TestMultimodalProcessingMixin(unittest.TestCase):
+    def test_entry_start_and_stop_creates_span(self):
+        with self.telemetry_handler.entry() as invocation:
+            invocation.session_id = "ddde34343-f93a-4477-33333-sdfsdaf"
+            invocation.user_id = "u-lK8JddD"
+            invocation.response_time_to_first_token = 1000000
+            invocation.attributes = {"custom": "entry_attr"}
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "enter_ai_application_system")
+        self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
+        _assert_span_time_order(span)
+
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "enter",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.ENTRY.value,
+                GEN_AI_SESSION_ID: "ddde34343-f93a-4477-33333-sdfsdaf",
+                GEN_AI_USER_ID: "u-lK8JddD",
+                "gen_ai.response.time_to_first_token": 1000000,
+                "custom": "entry_attr",
+            },
+        )
+
+    def test_entry_manual_start_and_stop(self):
+        invocation = EntryInvocation(
+            session_id="session_123",
+            user_id="user_456",
+        )
+
+        self.telemetry_handler.start_entry(invocation)
+        assert invocation.span is not None
+        invocation.response_time_to_first_token = 500000
+        self.telemetry_handler.stop_entry(invocation)
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "enter_ai_application_system")
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "enter",
+                GEN_AI_SESSION_ID: "session_123",
+                GEN_AI_USER_ID: "user_456",
+                "gen_ai.response.time_to_first_token": 500000,
+            },
+        )
+
+    def test_entry_error_handling(self):
+        class EntryError(RuntimeError):
+            pass
+
+        with self.assertRaises(EntryError):
+            with self.telemetry_handler.entry() as invocation:
+                invocation.session_id = "session_err"
+                raise EntryError("Entry failed")
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.status.status_code, StatusCode.ERROR)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                ErrorAttributes.ERROR_TYPE: EntryError.__qualname__,
+            },
+        )
+
+    def test_entry_propagates_baggage_for_child_spans(self):
+        """session_id and user_id set at construction time are propagated
+        to Baggage so that BaggageSpanProcessor copies them to child spans."""
+        entry_inv = EntryInvocation(
+            session_id="sess_bag_123",
+            user_id="user_bag_456",
+        )
+        with self.telemetry_handler.entry(entry_inv):
+            current_baggage = get_all_baggage()
+            self.assertEqual(
+                current_baggage.get("gen_ai.session.id"), "sess_bag_123"
+            )
+            self.assertEqual(
+                current_baggage.get("gen_ai.user.id"), "user_bag_456"
+            )
+
+            with self.telemetry_handler.embedding() as emb_inv:
+                emb_inv.request_model = "text-embedding-3-small"
+                emb_inv.provider = "openai"
+
+        restored_baggage = get_all_baggage()
+        self.assertNotIn("gen_ai.session.id", restored_baggage)
+        self.assertNotIn("gen_ai.user.id", restored_baggage)
+
+    def test_entry_baggage_overwrites_existing(self):
+        """If baggage already contains session_id/user_id, entry overwrites them."""
+        ctx = baggage_api.set_baggage("gen_ai.session.id", "old_session")
+        ctx = baggage_api.set_baggage("gen_ai.user.id", "old_user", ctx)
+        token = context_api.attach(ctx)
+
+        try:
+            entry_inv = EntryInvocation(
+                session_id="new_session",
+                user_id="new_user",
+            )
+            with self.telemetry_handler.entry(entry_inv):
+                current_baggage = baggage_api.get_all()
+                self.assertEqual(
+                    current_baggage.get("gen_ai.session.id"), "new_session"
+                )
+                self.assertEqual(
+                    current_baggage.get("gen_ai.user.id"), "new_user"
+                )
+        finally:
+            context_api.detach(token)
+
+    def test_entry_baggage_only_session_id(self):
+        """Only session_id is set, user_id should not appear in baggage."""
+        entry_inv = EntryInvocation(session_id="sess_only")
+        with self.telemetry_handler.entry(entry_inv):
+            current_baggage = get_all_baggage()
+            self.assertEqual(
+                current_baggage.get("gen_ai.session.id"), "sess_only"
+            )
+            self.assertNotIn("gen_ai.user.id", current_baggage)
+
+    def test_entry_no_baggage_when_values_not_set(self):
+        """When neither session_id nor user_id is set, no baggage is propagated."""
+        with self.telemetry_handler.entry():
+            current_baggage = get_all_baggage()
+            self.assertNotIn("gen_ai.session.id", current_baggage)
+            self.assertNotIn("gen_ai.user.id", current_baggage)
+
+    # ==================== ReAct Step Tests ====================
+
+    def test_react_step_start_and_stop_creates_span(self):
+        with self.telemetry_handler.react_step() as invocation:
+            invocation.finish_reason = "stop"
+            invocation.round = 1
+            invocation.attributes = {"custom": "react_attr"}
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "react step")
+        self.assertEqual(span.kind, trace.SpanKind.INTERNAL)
+        _assert_span_time_order(span)
+
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "react",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.STEP.value,
+                GEN_AI_REACT_FINISH_REASON: "stop",
+                GEN_AI_REACT_ROUND: 1,
+                "custom": "react_attr",
+            },
+        )
+
+    def test_react_step_manual_start_and_stop(self):
+        invocation = ReactStepInvocation(
+            finish_reason="error",
+            round=1,
+        )
+
+        self.telemetry_handler.start_react_step(invocation)
+        assert invocation.span is not None
+        invocation.finish_reason = "stop"
+        invocation.round = 2
+        self.telemetry_handler.stop_react_step(invocation)
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.name, "react step")
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                GenAI.GEN_AI_OPERATION_NAME: "react",
+                GEN_AI_REACT_FINISH_REASON: "stop",
+                GEN_AI_REACT_ROUND: 2,
+            },
+        )
+
+    def test_react_step_error_handling(self):
+        class ReactStepError(RuntimeError):
+            pass
+
+        with self.assertRaises(ReactStepError):
+            with self.telemetry_handler.react_step() as invocation:
+                invocation.round = 1
+                raise ReactStepError("ReAct step failed")
+
+        span = _get_single_span(self.span_exporter)
+        self.assertEqual(span.status.status_code, StatusCode.ERROR)
+        span_attrs = _get_span_attributes(span)
+        _assert_span_attributes(
+            span_attrs,
+            {
+                ErrorAttributes.ERROR_TYPE: ReactStepError.__qualname__,
+            },
+        )
+
+
+class TestMultimodalProcessingMixin(  # pylint: disable=too-many-public-methods
+    unittest.TestCase
+):
     """Tests for MultimodalProcessingMixin.
 
     Uses orthogonal test design to maximize coverage with minimal test cases.
@@ -1058,7 +1421,9 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
             )
         ]
         if with_context:
-            invocation.context_token = MagicMock()
+            invocation.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
             invocation.span = MagicMock()
         return invocation
 
@@ -1229,9 +1594,10 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         handler._init_multimodal()
         self.assertFalse(handler._multimodal_enabled)
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    @patch_env_vars(
+        "gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both",
     )
     def test_init_multimodal_enabled_or_disabled_by_uploader(self):
         """Test _init_multimodal enabled when uploader available, disabled when None."""
@@ -1263,14 +1629,20 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv1 = self._create_invocation_with_multimodal()
         inv1.context_token = None
         inv1.span = MagicMock()
-        self.assertFalse(handler.process_multimodal_stop(inv1))
-        self.assertFalse(handler.process_multimodal_fail(inv1, error))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv1, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+        )
+        self.assertFalse(
+            handler.process_multimodal_fail(inv1, error, method="fail_llm")  # pylint: disable=unexpected-keyword-arg
+        )
 
         # span is None
         inv2 = self._create_invocation_with_multimodal()
         inv2.context_token = MagicMock()
         inv2.span = None
-        self.assertFalse(handler.process_multimodal_stop(inv2))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv2, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+        )
 
         # No multimodal data
         inv3 = LLMInvocation(request_model="gpt-4")
@@ -1279,16 +1651,21 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv3.input_messages = [
             InputMessage(role="user", parts=[Text(content="Hi")])
         ]
-        self.assertFalse(handler.process_multimodal_stop(inv3))
+        self.assertFalse(
+            handler.process_multimodal_stop(inv3, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+        )
 
         # multimodal_enabled=False
         handler_disabled = self._create_mock_handler(enabled=False)
         inv4 = self._create_invocation_with_multimodal(with_context=True)
-        self.assertFalse(handler_disabled.process_multimodal_stop(inv4))
+        self.assertFalse(
+            handler_disabled.process_multimodal_stop(inv4, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+        )
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    @patch_env_vars(
+        "gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both",
     )
     def test_process_multimodal_fallback_on_queue_issues(self):
         """Test process_multimodal_stop/fail uses fallback when queue is None or full."""
@@ -1299,27 +1676,40 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         with patch.object(MultimodalProcessingMixin, "_ensure_async_worker"):
             # Queue is None
             MultimodalProcessingMixin._async_queue = None
-            with patch.object(handler, "_fallback_end_span") as mock_end:
-                self.assertTrue(handler.process_multimodal_stop(inv))
+            with patch.object(handler, "_fallback_stop") as mock_end:
+                self.assertTrue(
+                    handler.process_multimodal_stop(inv, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+                )
                 mock_end.assert_called_once()
 
-            # Reset invocation context token
-            inv.context_token = MagicMock()
-            with patch.object(handler, "_fallback_fail_span") as mock_fail:
-                self.assertTrue(handler.process_multimodal_fail(inv, error))
+            # Reset invocation context token (use real token for _safe_detach)
+            inv.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
+            with patch.object(handler, "_fallback_fail") as mock_fail:
+                self.assertTrue(
+                    handler.process_multimodal_fail(  # pylint: disable=unexpected-keyword-arg
+                        inv, error, method="fail_llm"
+                    )
+                )
                 mock_fail.assert_called_once()
 
             # Queue is full
             MultimodalProcessingMixin._async_queue = queue.Queue(maxsize=1)
             MultimodalProcessingMixin._async_queue.put("dummy")
-            inv.context_token = MagicMock()
-            with patch.object(handler, "_fallback_end_span") as mock_end2:
-                self.assertTrue(handler.process_multimodal_stop(inv))
+            inv.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
+            with patch.object(handler, "_fallback_stop") as mock_end2:
+                self.assertTrue(
+                    handler.process_multimodal_stop(inv, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+                )
                 mock_end2.assert_called_once()
 
-    @patch.dict(
-        os.environ,
-        {"OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both"},
+    @patch_env_vars(
+        "gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+        OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE="both",
     )
     def test_process_multimodal_enqueues_task(self):
         """Test process_multimodal_stop/fail enqueues tasks correctly."""
@@ -1331,15 +1721,19 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
 
             # stop
             inv1 = self._create_invocation_with_multimodal(with_context=True)
-            self.assertTrue(handler.process_multimodal_stop(inv1))
+            self.assertTrue(
+                handler.process_multimodal_stop(inv1, method="stop_llm")  # pylint: disable=unexpected-keyword-arg
+            )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
-            self.assertEqual(task.method, "stop")
+            self.assertEqual(task.method, "stop_llm")
 
             # fail
             inv2 = self._create_invocation_with_multimodal(with_context=True)
-            self.assertTrue(handler.process_multimodal_fail(inv2, error))
+            self.assertTrue(
+                handler.process_multimodal_fail(inv2, error, method="fail_llm")  # pylint: disable=unexpected-keyword-arg
+            )
             task = MultimodalProcessingMixin._async_queue.get_nowait()
-            self.assertEqual(task.method, "fail")
+            self.assertEqual(task.method, "fail_llm")
             self.assertEqual(task.error, error)
 
     # ==================== Fallback / Async Methods Tests ====================
@@ -1351,19 +1745,19 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv.span = None
 
         # Should not raise
-        handler._fallback_end_span(inv)
-        handler._fallback_fail_span(
-            inv, Error(message="err", type=RuntimeError)
+        handler._fallback_stop(inv, "stop_llm")  # pylint: disable=no-member
+        handler._fallback_fail(  # pylint: disable=no-member
+            inv, Error(message="err", type=RuntimeError), "fail_llm"
         )
         handler._async_stop_llm(
             _MultimodalAsyncTask(
-                invocation=inv, method="stop", handler=handler
+                invocation=inv, method="stop_llm", handler=handler
             )
         )
         handler._async_fail_llm(
             _MultimodalAsyncTask(
                 invocation=inv,
-                method="fail",
+                method="fail_llm",
                 error=Error(message="err", type=RuntimeError),
                 handler=handler,
             )
@@ -1374,7 +1768,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv2.span = MagicMock()
         handler._async_fail_llm(
             _MultimodalAsyncTask(
-                invocation=inv2, method="fail", error=None, handler=handler
+                invocation=inv2, method="fail_llm", error=None, handler=handler
             )
         )
 
@@ -1395,12 +1789,12 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         ) as m2, patch(
             "opentelemetry.util.genai._multimodal_processing._maybe_emit_llm_event"
         ):  # fmt: skip
-            handler._fallback_end_span(inv)
+            handler._fallback_stop(inv, "stop_llm")  # pylint: disable=no-member
             m1.assert_called_with(mock_span, inv)
             mock_span.end.assert_called_once()
 
             mock_span.reset_mock()
-            handler._fallback_fail_span(inv, error)
+            handler._fallback_fail(inv, error, "fail_llm")  # pylint: disable=no-member
             m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
 
@@ -1433,7 +1827,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         ):  # fmt: skip
             handler._async_stop_llm(
                 _MultimodalAsyncTask(
-                    invocation=inv, method="stop", handler=handler
+                    invocation=inv, method="stop_llm", handler=handler
                 )
             )
             m1.assert_called_once()
@@ -1444,10 +1838,197 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
             error = Error(message="err", type=ValueError)
             handler._async_fail_llm(
                 _MultimodalAsyncTask(
-                    invocation=inv, method="fail", error=error, handler=handler
+                    invocation=inv,
+                    method="fail_llm",
+                    error=error,
+                    handler=handler,
                 )
             )
             m2.assert_called_once()
+            mock_span.end.assert_called_once()
+
+    # ==================== Agent Async / Fallback / Dispatch Tests ====================
+
+    @staticmethod
+    def _create_agent_invocation_with_multimodal(with_context=False):
+        """Helper to create InvokeAgentInvocation with multimodal data."""
+        invocation = InvokeAgentInvocation(provider="test")
+        invocation.input_messages = [
+            InputMessage(
+                role="user",
+                parts=[
+                    Uri(
+                        mime_type="image/png", modality="image", uri="http://x"
+                    )
+                ],
+            )
+        ]
+        if with_context:
+            invocation.context_token = context_api.attach(
+                context_api.set_value("_test_key", "_test_value")
+            )
+            invocation.span = MagicMock()
+        return invocation
+
+    @staticmethod
+    def _create_mock_handler_with_agent_metrics(enabled=True):
+        """MockHandler that also has _record_extended_metrics."""
+        mixin = MultimodalProcessingMixin
+
+        class MockHandler(mixin):
+            def __init__(self):
+                self._multimodal_enabled = enabled
+                self._logger = MagicMock()
+
+            def _get_uploader_and_pre_uploader(self):
+                return MagicMock(), MagicMock()
+
+            def _record_llm_metrics(self, *args, **kwargs):
+                pass
+
+            def _record_extended_metrics(self, *args, **kwargs):
+                pass
+
+        return MockHandler()
+
+    def test_dispatch_task_routes_agent_methods(self):
+        """Test _dispatch_task dispatches stop_agent/fail_agent correctly."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        inv = self._create_agent_invocation_with_multimodal()
+        inv.span = mock_span
+        error = Error(message="err", type=RuntimeError)
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m_attr, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            # stop_agent
+            handler._dispatch_task(  # pylint: disable=no-member
+                _MultimodalAsyncTask(
+                    invocation=inv, method="stop_agent", handler=handler
+                )
+            )
+            m_attr.assert_called_once()
+            mock_span.end.assert_called_once()
+
+            mock_span.reset_mock()
+            m_attr.reset_mock()
+
+            # fail_agent
+            handler._dispatch_task(  # pylint: disable=no-member
+                _MultimodalAsyncTask(
+                    invocation=inv,
+                    method="fail_agent",
+                    error=error,
+                    handler=handler,
+                )
+            )
+            m_attr.assert_called_once()
+            mock_span.end.assert_called_once()
+
+    def test_async_stop_and_fail_agent_process_correctly(self):
+        """Test _async_stop/fail_invoke_agent processes multimodal and end span."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+        mock_span.get_span_context.return_value = MagicMock()
+
+        inv = self._create_agent_invocation_with_multimodal()
+        inv.span = mock_span
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._async_stop_invoke_agent(  # pylint: disable=no-member
+                _MultimodalAsyncTask(
+                    invocation=inv, method="stop_agent", handler=handler
+                )
+            )
+            m1.assert_called_once()
+            mock_span.end.assert_called_once()
+            mock_span.set_attribute.assert_called()  # multimodal metadata
+
+            mock_span.reset_mock()
+            error = Error(message="err", type=ValueError)
+            handler._async_fail_invoke_agent(  # pylint: disable=no-member
+                _MultimodalAsyncTask(
+                    invocation=inv,
+                    method="fail_agent",
+                    error=error,
+                    handler=handler,
+                )
+            )
+            m2.assert_called_with(mock_span, error)
+            mock_span.end.assert_called_once()
+
+    def test_agent_async_methods_handle_span_none(self):
+        """Test agent async methods return early when span is None."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = None
+
+        # Should not raise
+        handler._async_stop_invoke_agent(  # pylint: disable=no-member
+            _MultimodalAsyncTask(
+                invocation=inv, method="stop_agent", handler=handler
+            )
+        )
+        handler._async_fail_invoke_agent(  # pylint: disable=no-member
+            _MultimodalAsyncTask(
+                invocation=inv,
+                method="fail_agent",
+                error=Error(message="err", type=RuntimeError),
+                handler=handler,
+            )
+        )
+
+    def test_fallback_stop_agent_applies_attributes(self):
+        """Test _fallback_stop with stop_agent method applies agent attributes."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = mock_span
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._fallback_stop(inv, "stop_agent")  # pylint: disable=no-member
+            m1.assert_called_with(mock_span, inv)
+            mock_span.end.assert_called_once()
+
+    def test_fallback_fail_agent_applies_attributes(self):
+        """Test _fallback_fail with fail_agent method applies agent attributes."""
+        handler = self._create_mock_handler_with_agent_metrics()
+        mock_span = MagicMock()
+        mock_span._start_time = 1000000000
+
+        inv = InvokeAgentInvocation(provider="test")
+        inv.span = mock_span
+        error = Error(message="err", type=ValueError)
+
+        with patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_invoke_agent_finish_attributes"
+        ) as m1, patch(
+            "opentelemetry.util.genai._multimodal_processing._apply_error_attributes"
+        ) as m2, patch(
+            "opentelemetry.util.genai._multimodal_processing._maybe_emit_invoke_agent_event"
+        ):  # fmt: skip
+            handler._fallback_fail(inv, error, "fail_agent")  # pylint: disable=no-member
+            m1.assert_called_with(mock_span, inv)
+            m2.assert_called_with(mock_span, error)
             mock_span.end.assert_called_once()
 
     # ==================== Worker & Lifecycle Tests ====================
@@ -1505,7 +2086,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         inv1.span = MagicMock()
         mixin._async_queue.put(
             _MultimodalAsyncTask(
-                invocation=inv1, method="stop", handler=handler1
+                invocation=inv1, method="stop_llm", handler=handler1
             )
         )
         mixin._async_queue.put(None)
@@ -1518,7 +2099,9 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         # Test 2: Skips task with None handler
         mixin._async_queue = queue.Queue()
         mixin._async_queue.put(
-            _MultimodalAsyncTask(invocation=inv1, method="stop", handler=None)
+            _MultimodalAsyncTask(
+                invocation=inv1, method="stop_llm", handler=None
+            )
         )
         mixin._async_queue.put(None)
         worker_thread = threading.Thread(target=mixin._async_worker_loop)
@@ -1539,7 +2122,7 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         mixin._async_queue = queue.Queue()
         mixin._async_queue.put(
             _MultimodalAsyncTask(
-                invocation=inv2, method="stop", handler=Handler2()
+                invocation=inv2, method="stop_llm", handler=Handler2()
             )
         )
         mixin._async_queue.put(None)
@@ -1577,3 +2160,163 @@ class TestMultimodalProcessingMixin(unittest.TestCase):
         handler._separate_and_upload(
             mock_span2, inv, mock_uploader, mock_pre_uploader
         )  # Should not raise
+
+
+class TestExtendedTelemetryHandlerShutdown(unittest.TestCase):
+    """Tests for ExtendedTelemetryHandler shutdown behavior.
+
+    Design: use the real worker loop and control task execution through
+    mock task.handler._async_stop_llm.
+    """
+
+    def test_shutdown_waits_for_slow_task(self):
+        """Test shutdown waits for slow task completion (poison-pill mode)."""
+        # Reset state
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+        # Track task processing
+        task_started = threading.Event()
+        task_completed = threading.Event()
+
+        try:
+            # Ensure worker is started
+            MultimodalProcessingMixin._ensure_async_worker()
+
+            # Create a mock handler with slow processing
+            mock_handler = MagicMock()
+
+            def slow_stop(task):
+                task_started.set()
+                time.sleep(0.15)
+                task_completed.set()
+
+            mock_handler._dispatch_task = slow_stop
+
+            mock_task = _MultimodalAsyncTask(
+                invocation=MagicMock(), method="stop_llm", handler=mock_handler
+            )
+            MultimodalProcessingMixin._async_queue.put(mock_task)
+
+            # Wait for the task to start
+            self.assertTrue(
+                task_started.wait(timeout=1.0), "Task did not start"
+            )
+
+            # Shutdown should wait for task completion
+            # (the poison pill is queued after the task)
+            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=5.0)
+
+            # Verify the task has completed
+            self.assertTrue(
+                task_completed.is_set(), "Task should have completed"
+            )
+            # Idempotency: repeated shutdown should not fail
+            MultimodalProcessingMixin.shutdown_multimodal_worker(timeout=1.0)
+        finally:
+            MultimodalProcessingMixin._async_queue = None
+            MultimodalProcessingMixin._async_worker = None
+
+    def test_shutdown_timeout_exits(self):
+        """Test shutdown exits when timeout is reached."""
+        # Reset state
+        MultimodalProcessingMixin._async_queue = None
+        MultimodalProcessingMixin._async_worker = None
+
+        block_event = threading.Event()
+        task_started = threading.Event()
+
+        try:
+            MultimodalProcessingMixin._ensure_async_worker()
+
+            mock_handler = MagicMock()
+
+            def blocking_stop(task):
+                task_started.set()
+                block_event.wait(timeout=5.0)
+
+            mock_handler._dispatch_task = blocking_stop
+
+            mock_task = _MultimodalAsyncTask(
+                invocation=MagicMock(), method="stop_llm", handler=mock_handler
+            )
+            MultimodalProcessingMixin._async_queue.put(mock_task)
+
+            # Wait for the task to start
+            self.assertTrue(
+                task_started.wait(timeout=1.0), "Task did not start"
+            )
+
+            # Shutdown timeout=0.3s, task blocks for 5s
+            start = time.time()
+            timeout = 0.3
+            MultimodalProcessingMixin.shutdown_multimodal_worker(
+                timeout=timeout
+            )
+            elapsed = time.time() - start
+
+            # Verify it returns after timeout (cannot be shorter than timeout)
+            self.assertLess(
+                elapsed, timeout + 0.2, f"shutdown took {elapsed:.2f}s"
+            )
+            self.assertGreaterEqual(
+                elapsed, timeout, f"shutdown too fast: {elapsed:.2f}s"
+            )
+        finally:
+            block_event.set()
+            time.sleep(0.1)
+            MultimodalProcessingMixin._async_queue = None
+            MultimodalProcessingMixin._async_worker = None
+
+
+class TestExtendedHandlerAtexitShutdown(unittest.TestCase):
+    def setUp(self):
+        ExtendedTelemetryHandler._shutdown_called = False
+
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_uploader")
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_pre_uploader")
+    @patch.object(ExtendedTelemetryHandler, "shutdown_multimodal_worker")
+    def test_shutdown_sequence(
+        self,
+        mock_shutdown_worker: MagicMock,
+        mock_shutdown_pre_uploader: MagicMock,
+        mock_shutdown_uploader: MagicMock,
+    ):
+        calls = []
+
+        mock_shutdown_worker.side_effect = lambda timeout: calls.append(
+            ("handler", timeout)
+        )
+        mock_shutdown_pre_uploader.side_effect = lambda timeout: calls.append(
+            ("pre_uploader", timeout)
+        )
+        mock_shutdown_uploader.side_effect = lambda timeout: calls.append(
+            ("uploader", timeout)
+        )
+
+        ExtendedTelemetryHandler.shutdown(  # pylint: disable=no-member
+            worker_timeout=1.0,
+            pre_uploader_timeout=2.0,
+            uploader_timeout=3.0,
+        )
+
+        self.assertEqual(
+            calls,
+            [("handler", 1.0), ("pre_uploader", 2.0), ("uploader", 3.0)],
+        )
+
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_uploader")
+    @patch.object(ExtendedTelemetryHandler, "_shutdown_pre_uploader")
+    @patch.object(ExtendedTelemetryHandler, "shutdown_multimodal_worker")
+    def test_shutdown_idempotent(  # pylint: disable=no-self-use
+        self,
+        mock_shutdown_worker: MagicMock,
+        mock_shutdown_pre_uploader: MagicMock,
+        mock_shutdown_uploader: MagicMock,
+    ):
+        ExtendedTelemetryHandler.shutdown()  # pylint: disable=no-member
+        ExtendedTelemetryHandler.shutdown()  # pylint: disable=no-member
+
+        mock_shutdown_worker.assert_called_once()
+        mock_shutdown_pre_uploader.assert_called_once()
+        mock_shutdown_uploader.assert_called_once()

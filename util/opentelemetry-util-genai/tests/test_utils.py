@@ -37,10 +37,16 @@ from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
 from opentelemetry.semconv.attributes import (
-    error_attributes as ErrorAttributes,
+    error_attributes,
+    server_attributes,
 )
 from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.trace.status import StatusCode
+from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+    GEN_AI_SPAN_KIND,  # LoongSuite Extension
+    GEN_AI_USAGE_TOTAL_TOKENS,  # LoongSuite Extension
+    GenAiSpanKindValues,  # LoongSuite Extension
+)
 from opentelemetry.util.genai.environment_variables import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
     OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
@@ -57,7 +63,6 @@ from opentelemetry.util.genai.types import (
 )
 from opentelemetry.util.genai.utils import (
     get_content_capturing_mode,
-    should_emit_event,
 )
 
 
@@ -125,6 +130,9 @@ def _assert_span_attributes(
 ) -> None:
     for key, value in expected_values.items():
         assert span_attrs.get(key) == value
+    assert len(span_attrs) == len(expected_values), (
+        f"Actual {span_attrs} are different than expected {expected_values}"
+    )
 
 
 def _get_messages_from_attr(
@@ -212,75 +220,6 @@ class TestVersion(unittest.TestCase):
         self.assertIn("INVALID_VALUE is not a valid option for ", cm.output[0])
 
 
-class TestShouldEmitEvent(unittest.TestCase):
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="true",
-    )
-    def test_should_emit_event_returns_true_when_set_to_true(
-        self,
-    ):  # pylint: disable=no-self-use
-        assert should_emit_event() is True
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="True",
-    )
-    def test_should_emit_event_case_insensitive_true(
-        self,
-    ):  # pylint: disable=no-self-use
-        assert should_emit_event() is True
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="false",
-    )
-    def test_should_emit_event_returns_false_when_set_to_false(
-        self,
-    ):  # pylint: disable=no-self-use
-        assert should_emit_event() is False
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="False",
-    )
-    def test_should_emit_event_case_insensitive_false(
-        self,
-    ):  # pylint: disable=no-self-use
-        assert should_emit_event() is False
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="",
-    )
-    def test_should_emit_event_by_defaults(
-        self,
-    ):  # pylint: disable=no-self-use
-        assert should_emit_event() is False
-
-    @patch_env_vars(
-        stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
-        emit_event="INVALID_VALUE",
-    )
-    def test_should_emit_event_with_invalid_value(
-        self,
-    ):  # pylint: disable=no-self-use
-        with self.assertLogs(level="WARNING") as cm:
-            result = should_emit_event()
-            assert result is False, f"Expected False but got {result}"
-        self.assertEqual(len(cm.output), 1)
-        self.assertIn("INVALID_VALUE is not a valid option for", cm.output[0])
-        self.assertIn(
-            "Must be one of true or false (case-insensitive)", cm.output[0]
-        )
-
-
 class TestTelemetryHandler(unittest.TestCase):
     def setUp(self):
         self.span_exporter = InMemorySpanExporter()
@@ -329,11 +268,14 @@ class TestTelemetryHandler(unittest.TestCase):
                 "response_id": "response-id",
                 "input_tokens": 321,
                 "output_tokens": 654,
+                "server_address": "custom.server.com",
+                "server_port": 42,
             }.items():
                 setattr(invocation, attr, value)
             assert invocation.span is not None
             invocation.output_messages = [chat_generation]
             invocation.attributes.update({"extra": "info"})
+            invocation.metric_attributes = {"should not be on span": "value"}
 
         span = _get_single_span(self.span_exporter)
         self.assertEqual(span.name, "chat test-model")
@@ -345,7 +287,12 @@ class TestTelemetryHandler(unittest.TestCase):
             span_attrs,
             {
                 GenAI.GEN_AI_OPERATION_NAME: "chat",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.LLM.value,  # LoongSuite Extension: Logical span kind
+                GenAI.GEN_AI_REQUEST_MODEL: "test-model",
                 GenAI.GEN_AI_PROVIDER_NAME: "test-provider",
+                GenAI.GEN_AI_INPUT_MESSAGES: AnyNonNone(),
+                GenAI.GEN_AI_OUTPUT_MESSAGES: AnyNonNone(),
+                GenAI.GEN_AI_SYSTEM_INSTRUCTIONS: AnyNonNone(),
                 GenAI.GEN_AI_REQUEST_TEMPERATURE: 0.5,
                 GenAI.GEN_AI_REQUEST_TOP_P: 0.9,
                 GenAI.GEN_AI_REQUEST_STOP_SEQUENCES: ("stop",),
@@ -354,6 +301,9 @@ class TestTelemetryHandler(unittest.TestCase):
                 GenAI.GEN_AI_RESPONSE_ID: "response-id",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 321,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 654,
+                GEN_AI_USAGE_TOTAL_TOKENS: 975,  # LoongSuite Extension: Total tokens used in the operation
+                server_attributes.SERVER_ADDRESS: "custom.server.com",
+                server_attributes.SERVER_PORT: 42,
                 "extra": "info",
                 "custom_attr": "value",
             },
@@ -410,6 +360,13 @@ class TestTelemetryHandler(unittest.TestCase):
         _assert_span_attributes(
             attrs,
             {
+                GenAI.GEN_AI_OPERATION_NAME: "chat",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.LLM.value,  # LoongSuite Extension: Logical span kind
+                GenAI.GEN_AI_REQUEST_MODEL: "manual-model",
+                GenAI.GEN_AI_PROVIDER_NAME: "test-provider",
+                GenAI.GEN_AI_INPUT_MESSAGES: AnyNonNone(),
+                GenAI.GEN_AI_OUTPUT_MESSAGES: AnyNonNone(),
+                GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("stop",),
                 "manual": True,
                 "extra_manual": "yes",
             },
@@ -436,11 +393,16 @@ class TestTelemetryHandler(unittest.TestCase):
         _assert_span_attributes(
             attrs,
             {
+                GenAI.GEN_AI_OPERATION_NAME: "chat",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.LLM.value,  # LoongSuite Extension: Logical span kind
+                GenAI.GEN_AI_REQUEST_MODEL: "model-without-output",
+                GenAI.GEN_AI_PROVIDER_NAME: "test-provider",
                 GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("length",),
                 GenAI.GEN_AI_RESPONSE_MODEL: "alt-model",
                 GenAI.GEN_AI_RESPONSE_ID: "resp-001",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 12,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 34,
+                GEN_AI_USAGE_TOTAL_TOKENS: 46,  # LoongSuite Extension: Total tokens used in the operation
             },
         )
 
@@ -582,7 +544,10 @@ class TestTelemetryHandler(unittest.TestCase):
         _assert_span_attributes(
             span_attrs,
             {
-                ErrorAttributes.ERROR_TYPE: BoomError.__qualname__,
+                GenAI.GEN_AI_OPERATION_NAME: "chat",
+                GEN_AI_SPAN_KIND: GenAiSpanKindValues.LLM.value,  # LoongSuite Extension: Logical span kind
+                GenAI.GEN_AI_REQUEST_MODEL: "test-model",
+                GenAI.GEN_AI_PROVIDER_NAME: "test-provider",
                 GenAI.GEN_AI_REQUEST_MAX_TOKENS: 128,
                 GenAI.GEN_AI_REQUEST_SEED: 123,
                 GenAI.GEN_AI_RESPONSE_FINISH_REASONS: ("error",),
@@ -590,6 +555,8 @@ class TestTelemetryHandler(unittest.TestCase):
                 GenAI.GEN_AI_RESPONSE_ID: "error-response",
                 GenAI.GEN_AI_USAGE_INPUT_TOKENS: 11,
                 GenAI.GEN_AI_USAGE_OUTPUT_TOKENS: 22,
+                GEN_AI_USAGE_TOTAL_TOKENS: 33,  # LoongSuite Extension: Total tokens used in the operation
+                error_attributes.ERROR_TYPE: BoomError.__qualname__,
             },
         )
 
@@ -762,7 +729,7 @@ class TestTelemetryHandler(unittest.TestCase):
 
         # Verify error attribute is present
         self.assertEqual(
-            attrs[ErrorAttributes.ERROR_TYPE], TestError.__qualname__
+            attrs[error_attributes.ERROR_TYPE], TestError.__qualname__
         )
         self.assertEqual(attrs[GenAI.GEN_AI_OPERATION_NAME], "chat")
         self.assertEqual(attrs[GenAI.GEN_AI_REQUEST_MODEL], "error-model")
@@ -799,11 +766,11 @@ class TestTelemetryHandler(unittest.TestCase):
 
     @patch_env_vars(
         stability_mode="gen_ai_latest_experimental",
-        content_capturing="EVENT_ONLY",
+        content_capturing="NO_CONTENT",
         emit_event="",
     )
-    def test_does_not_emit_llm_event_by_default(self):
-        """Test that event is not emitted by default when OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is not set."""
+    def test_does_not_emit_llm_event_by_default_for_no_content(self):
+        """Test that event is not emitted by default when content_capturing is NO_CONTENT and OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is not set."""
         invocation = LLMInvocation(
             request_model="default-model",
             input_messages=[_create_input_message("default test")],
@@ -816,6 +783,97 @@ class TestTelemetryHandler(unittest.TestCase):
         ]
         self.telemetry_handler.stop_llm(invocation)
 
-        # Check that no event was emitted (default behavior is false)
+        # Check that no event was emitted (NO_CONTENT defaults to False)
         logs = self.log_exporter.get_finished_logs()
         self.assertEqual(len(logs), 0)
+
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_ONLY",
+        emit_event="",
+    )
+    def test_does_not_emit_llm_event_by_default_for_span_only(self):
+        """Test that event is not emitted by default when content_capturing is SPAN_ONLY and OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is not set."""
+        invocation = LLMInvocation(
+            request_model="default-model",
+            input_messages=[_create_input_message("default test")],
+            provider="test-provider",
+        )
+
+        self.telemetry_handler.start_llm(invocation)
+        invocation.output_messages = [
+            _create_output_message("default response")
+        ]
+        self.telemetry_handler.stop_llm(invocation)
+
+        # Check that no event was emitted (SPAN_ONLY defaults to False)
+        logs = self.log_exporter.get_finished_logs()
+        self.assertEqual(len(logs), 0)
+
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="EVENT_ONLY",
+        emit_event="",
+    )
+    def test_emits_llm_event_by_default_for_event_only(self):
+        """Test that event is emitted by default when content_capturing is EVENT_ONLY and OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is not set."""
+        invocation = LLMInvocation(
+            request_model="default-model",
+            input_messages=[_create_input_message("default test")],
+            provider="test-provider",
+        )
+
+        self.telemetry_handler.start_llm(invocation)
+        invocation.output_messages = [
+            _create_output_message("default response")
+        ]
+        self.telemetry_handler.stop_llm(invocation)
+
+        # Check that event was emitted (EVENT_ONLY defaults to True)
+        logs = self.log_exporter.get_finished_logs()
+        self.assertEqual(len(logs), 1)
+        log_record = logs[0].log_record
+        self.assertEqual(
+            log_record.event_name, "gen_ai.client.inference.operation.details"
+        )
+
+    @patch_env_vars(
+        stability_mode="gen_ai_latest_experimental",
+        content_capturing="SPAN_AND_EVENT",
+        emit_event="",
+    )
+    def test_emits_llm_event_by_default_for_span_and_event(self):
+        """Test that event is emitted by default when content_capturing is SPAN_AND_EVENT and OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT is not set."""
+        message = _create_input_message("span and event test")
+        chat_generation = _create_output_message("span and event response")
+        system_instruction = _create_system_instruction("System prompt")
+
+        invocation = LLMInvocation(
+            request_model="span-and-event-model",
+            input_messages=[message],
+            system_instruction=system_instruction,
+            provider="test-provider",
+        )
+
+        self.telemetry_handler.start_llm(invocation)
+        invocation.output_messages = [chat_generation]
+        self.telemetry_handler.stop_llm(invocation)
+
+        # Check span was created
+        span = _get_single_span(self.span_exporter)
+        span_attrs = _get_span_attributes(span)
+        self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, span_attrs)
+
+        # Check that event was emitted (SPAN_AND_EVENT defaults to True)
+        logs = self.log_exporter.get_finished_logs()
+        self.assertEqual(len(logs), 1)
+        log_record = logs[0].log_record
+        self.assertEqual(
+            log_record.event_name, "gen_ai.client.inference.operation.details"
+        )
+        self.assertIn(GenAI.GEN_AI_INPUT_MESSAGES, log_record.attributes)
+
+
+class AnyNonNone:
+    def __eq__(self, other):
+        return other is not None

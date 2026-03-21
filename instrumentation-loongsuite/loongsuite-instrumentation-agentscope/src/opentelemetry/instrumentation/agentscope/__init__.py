@@ -96,6 +96,10 @@ class AgentScopeInstrumentor(BaseInstrumentor):
         """Replace setup_tracing with no-op to use OTEL instead."""
         pass
 
+    def _check_tracing_enabled_patch(self, wrapped, instance, args, kwargs):
+        """Return False to disable tracing in native AgentScope library."""
+        return False
+
     def _instrument(self, **kwargs: Any) -> None:
         """Enable AgentScope instrumentation."""
         tracer_provider = kwargs.get("tracer_provider")
@@ -200,6 +204,18 @@ class AgentScopeInstrumentor(BaseInstrumentor):
         except Exception as e:
             logger.warning(f"Failed to patch setup_tracing: {e}")
 
+        # Patch _check_tracing_enabled to return False
+        # We always want to disable tracing in native AgentScope library
+        try:
+            wrap_function_wrapper(
+                module="agentscope.tracing._trace",
+                name="_check_tracing_enabled",
+                wrapper=self._check_tracing_enabled_patch,
+            )
+            logger.debug("Patched _check_tracing_enabled")
+        except Exception as e:
+            logger.warning(f"Failed to patch _check_tracing_enabled: {e}")
+
     def _uninstrument(self, **kwargs: Any) -> None:
         """Disable AgentScope instrumentation."""
         try:
@@ -269,3 +285,13 @@ class AgentScopeInstrumentor(BaseInstrumentor):
             logger.debug("Uninstrumented setup_tracing")
         except Exception as e:
             logger.warning(f"Failed to uninstrument setup_tracing: {e}")
+
+        try:
+            import agentscope.tracing._trace as agentscope_tracing_trace  # noqa: PLC0415
+
+            unwrap(agentscope_tracing_trace, "_check_tracing_enabled")
+            logger.debug("Uninstrumented _check_tracing_enabled")
+        except Exception as e:
+            logger.warning(
+                f"Failed to uninstrument _check_tracing_enabled: {e}"
+            )

@@ -35,6 +35,18 @@ from opentelemetry.util.genai.types import (
 )
 
 
+@dataclass()
+class RetrievalDocument:
+    """
+    Represents a single document retrieved from a vector database or search system.
+    """
+
+    id: str | None
+    score: float | None
+    content: str | None = None
+    metadata: dict[str, Any] | None = None
+
+
 def _new_str_any_dict() -> Dict[str, Any]:
     """Helper function to create a new empty dict for default factory."""
     return {}
@@ -56,6 +68,11 @@ def _new_tool_definitions() -> List[ToolDefinition]:
 
 
 def _new_system_instruction() -> List[MessagePart]:
+    """Helper function to create a new empty list for default factory."""
+    return []
+
+
+def _new_retrieval_documents() -> List[RetrievalDocument]:
     """Helper function to create a new empty list for default factory."""
     return []
 
@@ -180,24 +197,34 @@ class InvokeAgentInvocation:
     server_address: str | None = None
     server_port: int | None = None
     monotonic_start_s: float | None = None
+    monotonic_end_s: float | None = None
 
 
 @dataclass
-class RetrieveInvocation:
+class RetrievalInvocation:
     """
     Represents a single document retrieval invocation.
-    When creating a RetrieveInvocation object, only update the data attributes.
+    When creating a RetrievalInvocation object, only update the data attributes.
     The span and context_token attributes are set by the TelemetryHandler.
+
+    Per LoongSuite semantic convention:
+    - gen_ai.operation.name: retrieval
+    - gen_ai.span.kind: RETRIEVER
+    - Span name: retrieval {data_source_id}
     """
 
     context_token: ContextToken | None = None
     span: Span | None = None
     attributes: Dict[str, Any] = field(default_factory=_new_str_any_dict)
-    # Retrieve-specific attributes
-    query: str | None = None  # gen_ai.retrieval.query
-    documents: Any = (
-        None  # gen_ai.retrieval.documents (Opt-In, JSON string or list)
+    # Retrieval-specific attributes
+    query: str | None = None
+    documents: List[RetrievalDocument] = field(
+        default_factory=_new_retrieval_documents
     )
+    data_source_id: str | None = None
+    provider: str | None = None
+    request_model: str | None = None
+    top_k: float | None = None
     server_address: str | None = None
     server_port: int | None = None
     monotonic_start_s: float | None = None

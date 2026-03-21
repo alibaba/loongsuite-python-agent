@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -*- coding: utf-8 -*-
 """AgentScope Model Tests - Following dashscope test_generation.py structure"""
 
@@ -33,6 +47,7 @@ def _assert_chat_span_attributes(
     temperature: float = None,
     max_tokens: int = None,
     top_p: float = None,
+    expect_time_to_first_token: bool = False,
 ):
     """Assert common chat model span attributes"""
     # Span name format: "chat {model}"
@@ -146,6 +161,24 @@ def _assert_chat_span_attributes(
         )
         assert span.attributes["gen_ai.request.top_p"] == top_p
 
+    # Assert time to first token for streaming responses (in nanoseconds)
+    if expect_time_to_first_token:
+        assert "gen_ai.response.time_to_first_token" in span.attributes, (
+            "Missing gen_ai.response.time_to_first_token"
+        )
+        ttft_ns = span.attributes["gen_ai.response.time_to_first_token"]
+        assert isinstance(ttft_ns, int), (
+            f"time_to_first_token should be an integer (nanoseconds), got {type(ttft_ns)}"
+        )
+        assert ttft_ns > 0, (
+            f"time_to_first_token should be positive, got {ttft_ns}"
+        )
+    else:
+        # For non-streaming responses, TTFT should not be present
+        assert "gen_ai.response.time_to_first_token" not in span.attributes, (
+            "gen_ai.response.time_to_first_token should not be present for non-streaming"
+        )
+
 
 @pytest.mark.vcr()
 def test_model_call_basic(instrument_no_content, span_exporter, request):
@@ -192,6 +225,7 @@ def test_model_call_basic(instrument_no_content, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,  # Do not capture content by default
         expect_output_messages=False,  # Do not capture content by default
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (basic) completed successfully")
@@ -237,6 +271,7 @@ def test_model_call_with_messages(
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (with messages) completed successfully")
@@ -274,6 +309,7 @@ async def test_model_call_async(instrument_no_content, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (async) completed successfully")
@@ -321,6 +357,7 @@ def test_model_call_streaming(instrument, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (streaming) completed successfully")
@@ -369,6 +406,7 @@ def test_model_call_with_parameters(instrument, span_exporter, request):
         request_model="qwen-max",
         expect_input_messages=False,
         expect_output_messages=False,
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (with parameters) completed successfully")
@@ -417,6 +455,7 @@ def test_model_call_with_content_capture(
         request_model="qwen-max",
         expect_input_messages=True,  # Content capture enabled
         expect_output_messages=True,  # Content capture enabled
+        expect_time_to_first_token=False,
     )
 
     print("✓ Model call (with content capture) completed successfully")
@@ -459,6 +498,7 @@ def test_model_call_no_content_capture(
         request_model="qwen-max",
         expect_input_messages=False,  # Content capture disabled
         expect_output_messages=False,  # Content capture disabled
+        expect_time_to_first_token=True,
     )
 
     print("✓ Model call (no content capture) completed successfully")
@@ -505,6 +545,7 @@ def test_model_call_multiple_sequential(instrument, span_exporter, request):
             request_model="qwen-max",
             expect_input_messages=False,
             expect_output_messages=False,
+            expect_time_to_first_token=True,
         )
 
     print("✓ Model call (multiple sequential) completed successfully")

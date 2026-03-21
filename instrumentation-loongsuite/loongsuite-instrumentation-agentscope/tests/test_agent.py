@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -*- coding: utf-8 -*-
 """Agent Tests"""
 
@@ -293,6 +307,216 @@ class TestAgentAttributes:
             )
         ]
         print(f"Found {len(formatter_spans)} formatter spans")
+
+
+class TestReactStepSpan:
+    """React step span instrumentation tests using VCR-recorded API calls."""
+
+    @pytest.mark.vcr()
+    def test_react_step_text_only(
+        self, span_exporter, instrument_with_content, dashscope_model
+    ):
+        """Single iteration with text-only response produces 1 step span."""
+        agentscope.init(project="test_react_step")
+        agent = ReActAgent(
+            name="StepTextAgent",
+            sys_prompt="Reply briefly in one sentence.",
+            model=dashscope_model,
+            formatter=DashScopeChatFormatter(),
+        )
+        msg = Msg("user", "Hello", "user")
+
+        result = asyncio.run(agent(msg))
+        assert result is not None
+
+        spans = span_exporter.get_finished_spans()
+        print_span_tree(spans)
+
+        step_spans = [s for s in spans if s.name == "react step"]
+        assert len(step_spans) == 1
+
+        step = step_spans[0]
+        assert step.attributes.get("gen_ai.operation.name") == "react"
+        assert step.attributes.get("gen_ai.span.kind") == "STEP"
+        assert step.attributes.get("gen_ai.react.round") == 1
+        assert step.attributes.get("gen_ai.react.finish_reason") == "stop"
+
+        agent_spans = find_spans_by_name_prefix(spans, "invoke_agent")
+        assert len(agent_spans) == 1
+        assert step.parent.span_id == agent_spans[0].context.span_id
+
+    @pytest.mark.vcr()
+    def test_react_step_with_tool_call(
+        self, span_exporter, instrument_with_content, request
+    ):
+        """Tool call iteration + text iteration produces 2 step spans."""
+        agentscope.init(project="test_react_step")
+
+        model = DashScopeChatModel(
+            model_name="qwen-max",
+            api_key=request.config.option.api_key,
+            stream=False,
+        )
+
+        toolkit = Toolkit()
+        toolkit.register_tool_function(execute_shell_command)
+
+        agent = ReActAgent(
+            name="StepToolAgent",
+            sys_prompt="You are an assistant. Always use your tools to execute commands.",
+            model=model,
+            formatter=DashScopeChatFormatter(),
+            toolkit=toolkit,
+        )
+        msg = Msg("user", "Run the command: echo hello_world", "user")
+
+        async def run():
+            try:
+                return await agent(msg)
+            except Exception:
+                return None
+
+        asyncio.run(run())
+
+        spans = span_exporter.get_finished_spans()
+        print_span_tree(spans)
+
+        step_spans = sorted(
+            [s for s in spans if s.name == "react step"],
+            key=lambda s: s.start_time,
+        )
+        assert len(step_spans) == 2
+
+        assert step_spans[0].attributes.get("gen_ai.react.round") == 1
+        assert (
+            step_spans[0].attributes.get("gen_ai.react.finish_reason")
+            == "tool_calls"
+        )
+
+        last_step = step_spans[-1]
+        assert last_step.attributes.get("gen_ai.react.finish_reason") == "stop"
+
+        agent_spans = find_spans_by_name_prefix(spans, "invoke_agent")
+        assert len(agent_spans) == 1
+        for step in step_spans:
+            assert step.parent.span_id == agent_spans[0].context.span_id
+
+    @pytest.mark.vcr()
+    def test_react_step_multi_tool_single_iteration(
+        self, span_exporter, instrument_with_content, request
+    ):
+        """Multiple tool calls in one iteration close step only after all acting completes."""
+        agentscope.init(project="test_react_step")
+
+        model = DashScopeChatModel(
+            model_name="qwen-max",
+            api_key=request.config.option.api_key,
+            stream=False,
+        )
+
+        toolkit = Toolkit()
+        toolkit.register_tool_function(execute_shell_command)
+
+        agent = ReActAgent(
+            name="StepMultiToolAgent",
+            sys_prompt=(
+                "You are a helpful assistant. When asked to run multiple "
+                "commands, you MUST call execute_shell_command for EACH "
+                "command in a SINGLE response with parallel tool calls."
+            ),
+            model=model,
+            formatter=DashScopeChatFormatter(),
+            toolkit=toolkit,
+        )
+        msg = Msg(
+            "user",
+            "Run these two shell commands in parallel: echo hello and echo world",
+            "user",
+        )
+
+        async def run():
+            try:
+                return await agent(msg)
+            except Exception:
+                return None
+
+        asyncio.run(run())
+
+        spans = span_exporter.get_finished_spans()
+        print_span_tree(spans)
+
+        step_spans = sorted(
+            [s for s in spans if s.name == "react step"],
+            key=lambda s: s.start_time,
+        )
+        assert len(step_spans) == 2
+
+        assert step_spans[0].attributes.get("gen_ai.react.round") == 1
+        assert (
+            step_spans[0].attributes.get("gen_ai.react.finish_reason")
+            == "tool_calls"
+        )
+        last_step = step_spans[-1]
+        assert last_step.attributes.get("gen_ai.react.finish_reason") == "stop"
+
+    @pytest.mark.vcr()
+    def test_react_step_exception_failover(
+        self, span_exporter, instrument_with_content
+    ):
+        """API error during reasoning fails the open step span."""
+        agentscope.init(project="test_react_step")
+
+        invalid_model = DashScopeChatModel(
+            model_name="qwen-max",
+            api_key="invalid_key_test",
+        )
+
+        agent = ReActAgent(
+            name="StepErrorAgent",
+            sys_prompt="Test agent",
+            model=invalid_model,
+            formatter=DashScopeChatFormatter(),
+        )
+        msg = Msg("user", "Trigger error", "user")
+
+        async def run():
+            try:
+                return await agent(msg)
+            except Exception:
+                return None
+
+        asyncio.run(run())
+
+        spans = span_exporter.get_finished_spans()
+        print_span_tree(spans)
+
+        step_spans = [s for s in spans if s.name == "react step"]
+        assert len(step_spans) == 1
+
+        step = step_spans[0]
+        assert step.attributes.get("gen_ai.react.round") == 1
+        assert step.status.status_code.name == "ERROR"
+
+    @pytest.mark.vcr()
+    def test_react_step_hooks_cleanup(
+        self, span_exporter, instrument_with_content, dashscope_model
+    ):
+        """Hooks are removed from agent after call completes."""
+        agentscope.init(project="test_react_step")
+        agent = ReActAgent(
+            name="StepCleanupAgent",
+            sys_prompt="Reply briefly.",
+            model=dashscope_model,
+            formatter=DashScopeChatFormatter(),
+        )
+        msg = Msg("user", "Hello", "user")
+
+        asyncio.run(agent(msg))
+
+        assert not hasattr(agent, "_react_step_state")
+        assert "otel_react_step" not in agent._instance_pre_reasoning_hooks
+        assert "otel_react_step" not in agent._instance_post_reasoning_hooks
+        assert "otel_react_step" not in agent._instance_post_acting_hooks
 
 
 class TestAgentError:

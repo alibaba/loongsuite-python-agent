@@ -60,6 +60,8 @@ Usage:
 
 from __future__ import annotations
 
+# LoongSuite Extension
+import logging
 import timeit
 from contextlib import contextmanager
 from typing import Iterator
@@ -68,6 +70,10 @@ from opentelemetry import context as otel_context
 from opentelemetry._logs import (
     LoggerProvider,
     get_logger,
+)
+from opentelemetry.context import (  # LoongSuite Extension
+    _RUNTIME_CONTEXT,
+    Context,
 )
 from opentelemetry.metrics import MeterProvider, get_meter
 from opentelemetry.semconv.schemas import Schemas
@@ -86,6 +92,28 @@ from opentelemetry.util.genai.span_utils import (
 )
 from opentelemetry.util.genai.types import Error, LLMInvocation
 from opentelemetry.util.genai.version import __version__
+
+# LoongSuite Extension
+logger = logging.getLogger(__name__)
+
+
+# LoongSuite Extension
+def _safe_detach(token: object) -> None:
+    """Safely detach an OpenTelemetry context token.
+
+    In async or cross-thread scenarios the token may already have been
+    consumed or belong to a different context, causing ``detach`` to raise.
+    This helper uses ``_RUNTIME_CONTEXT.detach`` directly to avoid the
+    noisy ERROR log that ``otel_context.detach`` emits before re-raising.
+    """
+    if token is None:
+        return
+    try:
+        _RUNTIME_CONTEXT.detach(token)  # type: ignore[arg-type]
+    except (ValueError, RuntimeError) as exc:
+        logger.debug(
+            "Context detach failed (cross-thread/async scenario): %s", exc
+        )
 
 
 class TelemetryHandler:
@@ -134,12 +162,14 @@ class TelemetryHandler:
     def start_llm(
         self,
         invocation: LLMInvocation,
+        context: Context | None = None,  # LoongSuite Extension
     ) -> LLMInvocation:
         """Start an LLM invocation and create a pending span entry."""
         # Create a span and attach it as current; keep the token to detach later
         span = self._tracer.start_span(
             name=f"{invocation.operation_name} {invocation.request_model}",
             kind=SpanKind.CLIENT,
+            context=context,  # LoongSuite Extension
         )
         # Record a monotonic start timestamp (seconds) for duration
         # calculation using timeit.default_timer.
@@ -158,11 +188,11 @@ class TelemetryHandler:
 
         span = invocation.span
         _apply_llm_finish_attributes(span, invocation)
-
         self._record_llm_metrics(invocation, span)
         _maybe_emit_llm_event(self._logger, span, invocation)
         # Detach context and end span
-        otel_context.detach(invocation.context_token)
+        # LoongSuite Extension
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 
@@ -181,7 +211,8 @@ class TelemetryHandler:
         self._record_llm_metrics(invocation, span, error_type=error_type)
         _maybe_emit_llm_event(self._logger, span, invocation, error)
         # Detach context and end span
-        otel_context.detach(invocation.context_token)
+        # LoongSuite Extension
+        _safe_detach(invocation.context_token)
         span.end()
         return invocation
 

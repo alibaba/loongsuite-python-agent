@@ -1,0 +1,1286 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001272,"id":"chatcmpl-6162d7ed-107b-959b-a4b7-3a895847bdde","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:32 GMT
+      req-arrive-time:
+      - '1772001272513'
+      req-cost-time:
+      - '213'
+      resp-start-time:
+      - '1772001272726'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '212'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001358,"id":"chatcmpl-260db427-f04f-96a1-a22f-5c0e9fb386f8","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:58 GMT
+      req-arrive-time:
+      - '1772001358057'
+      req-cost-time:
+      - '219'
+      resp-start-time:
+      - '1772001358277'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '219'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001399,"id":"chatcmpl-c65a6f30-9872-9f21-ad03-d0860428c711","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:39 GMT
+      req-arrive-time:
+      - '1772001398969'
+      req-cost-time:
+      - '290'
+      resp-start-time:
+      - '1772001399259'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '290'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001469,"id":"chatcmpl-4f878ee0-516d-9af0-ab54-b796f88069e3","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:49 GMT
+      req-arrive-time:
+      - '1772001469331'
+      req-cost-time:
+      - '287'
+      resp-start-time:
+      - '1772001469619'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '287'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001513,"id":"chatcmpl-41b3ac4e-118c-9c78-a406-d64ae39e2c59","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:33 GMT
+      req-arrive-time:
+      - '1772001513437'
+      req-cost-time:
+      - '190'
+      resp-start-time:
+      - '1772001513628'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '190'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001539,"id":"chatcmpl-e3bb70b9-5214-999f-bb51-b9f4a78361aa","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:59 GMT
+      req-arrive-time:
+      - '1772001539041'
+      req-cost-time:
+      - '265'
+      resp-start-time:
+      - '1772001539307'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '265'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001635,"id":"chatcmpl-6d8021f3-e02e-9ef1-97f4-b1220d43203d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:35 GMT
+      req-arrive-time:
+      - '1772001635283'
+      req-cost-time:
+      - '184'
+      resp-start-time:
+      - '1772001635467'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '183'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772001933,"id":"chatcmpl-6bd0dea8-8774-9599-a114-4649382e611a","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:33 GMT
+      req-arrive-time:
+      - '1772001933430'
+      req-cost-time:
+      - '390'
+      resp-start-time:
+      - '1772001933820'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '390'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772002065,"id":"chatcmpl-102f01fc-9eed-963b-a002-9fbc2725fdc4","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:44 GMT
+      req-arrive-time:
+      - '1772002065020'
+      req-cost-time:
+      - '312'
+      resp-start-time:
+      - '1772002065332'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '312'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772002095,"id":"chatcmpl-2377a410-9a11-9316-839b-27fa310ac62b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:15 GMT
+      req-arrive-time:
+      - '1772002095564'
+      req-cost-time:
+      - '283'
+      resp-start-time:
+      - '1772002095848'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '283'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772002334,"id":"chatcmpl-50e9bfea-2945-9722-8d7b-319e756926b6","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:14 GMT
+      req-arrive-time:
+      - '1772002334270'
+      req-cost-time:
+      - '183'
+      resp-start-time:
+      - '1772002334454'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '183'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "system", "content": "You are a helpful assistant
+      that provides concise answers."}, {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "4"}, {"role": "user", "content": "What is
+      3+3?"}], "model": "qwen-turbo", "temperature": 0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772002369,"id":"chatcmpl-5feeaedc-62e0-92a3-ad2f-10e848fe407a","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:49 GMT
+      req-arrive-time:
+      - '1772002369231'
+      req-cost-time:
+      - '729'
+      resp-start-time:
+      - '1772002369961'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '729'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a helpful assistant that
+      provides concise answers."},{"role":"user","content":"What is 2+2?"},{"role":"assistant","content":"4"},{"role":"user","content":"What
+      is 3+3?"}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772003341,"id":"chatcmpl-fc1128d8-eed4-9a5b-8da4-541e1558e83e","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:01 GMT
+      req-arrive-time:
+      - '1772003340966'
+      req-cost-time:
+      - '602'
+      resp-start-time:
+      - '1772003341569'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '602'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a helpful assistant that
+      provides concise answers."},{"role":"user","content":"What is 2+2?"},{"role":"assistant","content":"4"},{"role":"user","content":"What
+      is 3+3?"}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772003446,"id":"chatcmpl-c4cc4584-fcd8-9fe8-923c-d5ae916812fd","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:46 GMT
+      req-arrive-time:
+      - '1772003446185'
+      req-cost-time:
+      - '196'
+      resp-start-time:
+      - '1772003446381'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '195'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a helpful assistant that
+      provides concise answers."},{"role":"user","content":"What is 2+2?"},{"role":"assistant","content":"4"},{"role":"user","content":"What
+      is 3+3?"}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772003820,"id":"chatcmpl-c6961b8b-a355-945b-9a8a-84d53a7773ea","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:00 GMT
+      req-arrive-time:
+      - '1772003820273'
+      req-cost-time:
+      - '860'
+      resp-start-time:
+      - '1772003821133'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '860'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a helpful assistant that
+      provides concise answers."},{"role":"user","content":"What is 2+2?"},{"role":"assistant","content":"4"},{"role":"user","content":"What
+      is 3+3?"}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772004212,"id":"chatcmpl-b83f3782-3adf-98a2-bf42-0c0c18e4874d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:32 GMT
+      req-arrive-time:
+      - '1772004212621'
+      req-cost-time:
+      - '435'
+      resp-start-time:
+      - '1772004213056'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '434'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a helpful assistant that
+      provides concise answers."},{"role":"user","content":"What is 2+2?"},{"role":"assistant","content":"4"},{"role":"user","content":"What
+      is 3+3?"}],"model":"qwen-turbo","temperature":0.1}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '259'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"6","role":"assistant"}}],"created":1772004246,"id":"chatcmpl-d5d454ef-89ed-9ab4-b53f-1cf110799f5f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":52,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":53}}'
+    headers:
+      content-length:
+      - '328'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:06 GMT
+      req-arrive-time:
+      - '1772004246251'
+      req-cost-time:
+      - '186'
+      resp-start-time:
+      - '1772004246437'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '186'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

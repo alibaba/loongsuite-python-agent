@@ -1,0 +1,183 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "wanx2.1-t2v-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "A bird flying in the sky",
+          "extend_prompt": true,
+          "function": "video-synthesis"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '151'
+      Content-Type:
+      - application/json
+      X-DashScope-Async:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "8a2e3e45-9bbf-4a4b-9418-895057e33e25",
+          "output": {
+            "task_id": "b6834d7a-51ab-4033-a250-eef1dc892a80",
+            "task_status": "PENDING"
+          }
+        }
+    headers:
+      content-length:
+      - '137'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:43:37 GMT
+      req-arrive-time:
+      - '1767789817349'
+      req-cost-time:
+      - '187'
+      resp-start-time:
+      - '1767789817536'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '180'
+      x-request-id:
+      - 8a2e3e45-9bbf-4a4b-9418-895057e33e25
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/b6834d7a-51ab-4033-a250-eef1dc892a80
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "2664a14d-2c3e-4094-ad94-faa86cb35497",
+          "output": {
+            "task_id": "b6834d7a-51ab-4033-a250-eef1dc892a80",
+            "task_status": "RUNNING",
+            "submit_time": "2026-01-07 20:43:37.514",
+            "scheduled_time": "2026-01-07 20:43:37.572"
+          }
+        }
+    headers:
+      content-length:
+      - '220'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:43:37 GMT
+      req-arrive-time:
+      - '1767789817677'
+      req-cost-time:
+      - '44'
+      resp-start-time:
+      - '1767789817721'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '37'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/b6834d7a-51ab-4033-a250-eef1dc892a80
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "f9ed08bb-690b-4930-b072-03145fb4b357",
+          "output": {
+            "task_id": "b6834d7a-51ab-4033-a250-eef1dc892a80",
+            "task_status": "SUCCEEDED",
+            "submit_time": "2026-01-07 20:43:37.514",
+            "scheduled_time": "2026-01-07 20:43:37.572",
+            "end_time": "2026-01-07 20:44:08.924",
+            "orig_prompt": "A bird flying in the sky",
+            "video_url": "https://dashscope-result-wlcb-acdr-1.oss-cn-wulanchabu-acdr-1.aliyuncs.com/1d/38/20260107/ad0627fd/b6834d7a-51ab-4033-a250-eef1dc892a80.mp4?Expires=1767876248&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=LmnT29wZgVlkSa9W6Gx9cSLBRiU%3D",
+            "actual_prompt": "Daylight, wide shot, center composition, soft lighting. A single white bird with outstretched wings glides smoothly through the湛蓝色 sky, leaving faint air trails behind. The sun casts a gentle glow from the upper left, illuminating the bird's feathers with subtle highlights. Below, distant clouds drift slowly across the horizon, while a few wisps of cirrus float above. The bird tilts its wings slightly, adjusting its course as it moves from left to right across the frame."
+          },
+          "usage": {
+            "video_duration": 5,
+            "video_ratio": "1280*720",
+            "video_count": 1
+          }
+        }
+    headers:
+      content-length:
+      - '1126'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:44:09 GMT
+      req-arrive-time:
+      - '1767789849929'
+      req-cost-time:
+      - '45'
+      resp-start-time:
+      - '1767789849975'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '39'
+    status:
+      code: 200
+      message: OK
+version: 1

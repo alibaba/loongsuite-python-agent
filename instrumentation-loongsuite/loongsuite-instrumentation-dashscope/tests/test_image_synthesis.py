@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Tests for ImageSynthesis instrumentation."""
 
 from typing import Optional
@@ -128,7 +142,7 @@ def _assert_image_synthesis_span_attributes(
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_call_basic(instrument, span_exporter):
+def test_image_synthesis_call_basic(instrument_with_content, span_exporter):
     """Test synchronous ImageSynthesis.call can be instrumented."""
     response = ImageSynthesis.call(
         model="wanx-v1",
@@ -164,14 +178,16 @@ def test_image_synthesis_call_basic(instrument, span_exporter):
         if usage
         else None,
         task_id=task_id,  # Used for response_id validation
-        expect_input_messages=False,  # Default: no content capture
+        expect_input_messages=True,  # Content capture enabled
     )
 
     print("✓ ImageSynthesis.call (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_call_with_parameters(instrument, span_exporter):
+def test_image_synthesis_call_with_parameters(
+    instrument_with_content, span_exporter
+):
     """Test ImageSynthesis.call with additional parameters."""
     response = ImageSynthesis.call(
         model="wanx-v1",
@@ -210,14 +226,16 @@ def test_image_synthesis_call_with_parameters(instrument, span_exporter):
         if usage
         else None,
         task_id=task_id,  # Used for response_id validation
-        expect_input_messages=False,  # Default: no content capture
+        expect_input_messages=True,  # Content capture enabled
     )
 
     print("✓ ImageSynthesis.call (with parameters) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_async_call_basic(instrument, span_exporter):
+def test_image_synthesis_async_call_basic(
+    instrument_with_content, span_exporter
+):
     """Test ImageSynthesis.async_call can be instrumented."""
     response = ImageSynthesis.async_call(
         model="wanx-v1",
@@ -242,25 +260,19 @@ def test_image_synthesis_async_call_basic(instrument, span_exporter):
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
 
-    # Check async attribute
-    assert "gen_ai.request.async" in span.attributes, (
-        "Missing gen_ai.request.async"
-    )
-    assert span.attributes["gen_ai.request.async"] is True
-
     _assert_image_synthesis_span_attributes(
         span,
         request_model="wanx-v1",
         response_model=response_model,
         task_id=task_id,  # Used for response_id validation
-        expect_input_messages=False,  # Default: no content capture
+        expect_input_messages=True,  # Content capture enabled
     )
 
     print("✓ ImageSynthesis.async_call (basic) completed successfully")
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_wait_basic(instrument, span_exporter):
+def test_image_synthesis_wait_basic(instrument_with_content, span_exporter):
     """Test ImageSynthesis.wait can be instrumented."""
     # First submit a task
     async_response = ImageSynthesis.async_call(
@@ -298,12 +310,6 @@ def test_image_synthesis_wait_basic(instrument, span_exporter):
         elif hasattr(output, "task_id"):
             task_id = getattr(output, "task_id", None)
 
-    # Check async attribute
-    assert "gen_ai.request.async" in wait_span.attributes, (
-        "Missing gen_ai.request.async"
-    )
-    assert wait_span.attributes["gen_ai.request.async"] is True
-
     _assert_image_synthesis_span_attributes(
         wait_span,
         request_model="unknown",  # Wait phase doesn't know model
@@ -315,7 +321,7 @@ def test_image_synthesis_wait_basic(instrument, span_exporter):
         if usage
         else None,
         task_id=task_id,  # Used for response_id validation
-        expect_input_messages=False,  # Default: no content capture
+        expect_input_messages=False,  # Wait span doesn't have input messages
         is_wait_span=True,  # Mark as wait span for span name validation
     )
 
@@ -323,7 +329,9 @@ def test_image_synthesis_wait_basic(instrument, span_exporter):
 
 
 @pytest.mark.vcr()
-def test_image_synthesis_call_no_duplicate_spans(instrument, span_exporter):
+def test_image_synthesis_call_no_duplicate_spans(
+    instrument_with_content, span_exporter
+):
     """Test that call() does not create duplicate spans."""
     response = ImageSynthesis.call(
         model="wanx-v1",
@@ -348,7 +356,7 @@ def test_image_synthesis_call_no_duplicate_spans(instrument, span_exporter):
 
 @pytest.mark.vcr()
 def test_image_synthesis_async_call_and_wait_separate_spans(
-    instrument, span_exporter
+    instrument_with_content, span_exporter
 ):
     """Test that async_call and wait create separate spans."""
     # Submit task
@@ -365,7 +373,6 @@ def test_image_synthesis_async_call_and_wait_separate_spans(
         for span in spans_after_async
         if span.attributes.get(GenAIAttributes.GEN_AI_OPERATION_NAME)
         == "generate_content"
-        and span.attributes.get("gen_ai.request.async") is True
         and not span.name.startswith("wait generate_content")
     ]
     assert len(async_spans) == 1, (

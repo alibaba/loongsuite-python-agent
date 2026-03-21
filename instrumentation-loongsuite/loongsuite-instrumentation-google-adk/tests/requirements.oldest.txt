@@ -1,0 +1,17 @@
+# Test requirements for oldest supported versions
+google-adk>=0.1.0
+litellm
+pytest
+pytest-asyncio
+pytest-cov
+pytest-vcr>=1.0.2
+vcrpy>=5.1.0
+pyyaml>=6.0
+wrapt
+opentelemetry-api==1.37
+opentelemetry-sdk==1.37
+opentelemetry-instrumentation==0.58b0
+opentelemetry-semantic-conventions==0.58b0
+
+-e instrumentation-loongsuite/loongsuite-instrumentation-google-adk
+-e util/opentelemetry-util-genai

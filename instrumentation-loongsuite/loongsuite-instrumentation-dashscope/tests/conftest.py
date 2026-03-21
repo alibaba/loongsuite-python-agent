@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Unit tests configuration module."""
 
 import json
@@ -9,7 +23,10 @@ import yaml
 # Set up DASHSCOPE_API_KEY environment variable BEFORE any dashscope modules are imported
 # This is critical because dashscope SDK reads environment variables at module import time
 # and caches them in module-level variables
+# Only set default if not already set (allows override from environment)
 if "DASHSCOPE_API_KEY" not in os.environ:
+    # For VCR recording, use a placeholder that will be filtered
+    # The actual API key should be set via environment variable before running tests
     os.environ["DASHSCOPE_API_KEY"] = "test_dashscope_api_key"
 
 from opentelemetry.instrumentation._semconv import (

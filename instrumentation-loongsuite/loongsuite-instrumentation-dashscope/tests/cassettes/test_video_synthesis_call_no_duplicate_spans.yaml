@@ -1,0 +1,183 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "wanx2.1-t2v-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "A test video",
+          "extend_prompt": true,
+          "function": "video-synthesis"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '139'
+      Content-Type:
+      - application/json
+      X-DashScope-Async:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "450d06d6-eb8a-4383-8eaa-5e55e0f5bfa3",
+          "output": {
+            "task_id": "31688cce-fe99-490e-8bad-159f85f5f6bf",
+            "task_status": "PENDING"
+          }
+        }
+    headers:
+      content-length:
+      - '137'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:44:09 GMT
+      req-arrive-time:
+      - '1767789850132'
+      req-cost-time:
+      - '183'
+      resp-start-time:
+      - '1767789850315'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '175'
+      x-request-id:
+      - 450d06d6-eb8a-4383-8eaa-5e55e0f5bfa3
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/31688cce-fe99-490e-8bad-159f85f5f6bf
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "f0c4966a-960f-4df4-add6-bf75f90ac313",
+          "output": {
+            "task_id": "31688cce-fe99-490e-8bad-159f85f5f6bf",
+            "task_status": "RUNNING",
+            "submit_time": "2026-01-07 20:44:10.292",
+            "scheduled_time": "2026-01-07 20:44:10.322"
+          }
+        }
+    headers:
+      content-length:
+      - '220'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:44:10 GMT
+      req-arrive-time:
+      - '1767789850476'
+      req-cost-time:
+      - '56'
+      resp-start-time:
+      - '1767789850532'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '47'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/31688cce-fe99-490e-8bad-159f85f5f6bf
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "44e790f5-fe94-4beb-8bee-a046e52c938b",
+          "output": {
+            "task_id": "31688cce-fe99-490e-8bad-159f85f5f6bf",
+            "task_status": "SUCCEEDED",
+            "submit_time": "2026-01-07 20:44:10.292",
+            "scheduled_time": "2026-01-07 20:44:10.322",
+            "end_time": "2026-01-07 20:44:42.255",
+            "orig_prompt": "A test video",
+            "video_url": "https://dashscope-result-wlcb-acdr-1.oss-cn-wulanchabu-acdr-1.aliyuncs.com/1d/19/20260107/ad0627fd/31688cce-fe99-490e-8bad-159f85f5f6bf.mp4?Expires=1767876281&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=SAC%2BahhPnEXU2CRZTlQUUBX3HsM%3D",
+            "actual_prompt": "Medium shot, daylight, soft lighting, center composition. A person stands in a sunlit park during daytime, surrounded by tall green trees and a clear blue sky. They wear casual clothing and smile slightly while turning their head from left to right, gently waving one hand in a welcoming motion. Leaves sway lightly in the breeze, and scattered dandelions float upward in the air. The camera remains steady at eye level, capturing smooth, natural movements against a softly blurred background of grassy terrain and distant benches."
+          },
+          "usage": {
+            "video_duration": 5,
+            "video_ratio": "1280*720",
+            "video_count": 1
+          }
+        }
+    headers:
+      content-length:
+      - '1164'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:44:42 GMT
+      req-arrive-time:
+      - '1767789882749'
+      req-cost-time:
+      - '49'
+      resp-start-time:
+      - '1767789882799'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '42'
+    status:
+      code: 200
+      message: OK
+version: 1

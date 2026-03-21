@@ -1,0 +1,72 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "wanx2.1-t2v-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "A dog running in the park",
+          "extend_prompt": true,
+          "function": "video-synthesis"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '152'
+      Content-Type:
+      - application/json
+      X-DashScope-Async:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "1fc05b8f-6733-41e4-ada7-d780967b6783",
+          "output": {
+            "task_id": "3b7c8dd3-9db0-4443-ab63-c391f321eb63",
+            "task_status": "PENDING"
+          }
+        }
+    headers:
+      content-length:
+      - '137'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:43:36 GMT
+      req-arrive-time:
+      - '1767789817026'
+      req-cost-time:
+      - '169'
+      resp-start-time:
+      - '1767789817195'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '163'
+      x-request-id:
+      - 1fc05b8f-6733-41e4-ada7-d780967b6783
+    status:
+      code: 200
+      message: OK
+version: 1

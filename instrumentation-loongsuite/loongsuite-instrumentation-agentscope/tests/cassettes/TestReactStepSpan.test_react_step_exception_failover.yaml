@@ -1,0 +1,128 @@
+interactions:
+- request:
+    body:
+      input:
+        messages:
+        - content: Test agent
+          role: system
+        - content: Trigger error
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        stream: true
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "code": "InvalidApiKey",
+          "message": "Invalid API-key provided.",
+          "request_id": "575fd494-d816-48b6-92b3-8859550afb34"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:40:05 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      content-length:
+      - '114'
+      req-arrive-time:
+      - '1773128405828'
+      req-cost-time:
+      - '6'
+      resp-start-time:
+      - '1773128405835'
+      x-envoy-upstream-service-time:
+      - '6'
+      x-request-id:
+      - 575fd494-d816-48b6-92b3-8859550afb34
+    status:
+      code: 401
+      message: Unauthorized
+- request:
+    body:
+      input:
+        messages:
+        - content: Test agent
+          role: system
+        - content: Trigger error
+          role: user
+      model: qwen-max
+      parameters:
+        incremental_output: true
+        result_format: message
+        stream: true
+    headers:
+      Accept:
+      - text/event-stream
+      Content-Type:
+      - application/json
+      X-Accel-Buffering:
+      - 'no'
+      X-DashScope-SSE:
+      - enable
+      authorization:
+      - Bearer test_api_key
+      user-agent:
+      - dashscope/1.25.13; python/3.14.0; platform/macOS-15.1.1-arm64-arm-64bit-Mach-O;
+        processor/arm; incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "code": "InvalidApiKey",
+          "message": "Invalid API-key provided.",
+          "request_id": "c2936256-5f93-4309-b65d-2f94d03673de"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 10 Mar 2026 07:40:05 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      content-length:
+      - '114'
+      req-arrive-time:
+      - '1773128405986'
+      req-cost-time:
+      - '6'
+      resp-start-time:
+      - '1773128405992'
+      x-envoy-upstream-service-time:
+      - '6'
+      x-request-id:
+      - c2936256-5f93-4309-b65d-2f94d03673de
+    status:
+      code: 401
+      message: Unauthorized
+version: 1

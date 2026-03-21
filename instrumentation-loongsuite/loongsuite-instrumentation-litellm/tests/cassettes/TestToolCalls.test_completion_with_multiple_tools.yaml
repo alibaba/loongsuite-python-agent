@@ -1,0 +1,1339 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-2e588b5f-5759-92ee-ac07-d27b44e5c784","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_4e84723c4b0846aba948f7","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001273,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:34 GMT
+      req-arrive-time:
+      - '1772001273555'
+      req-cost-time:
+      - '954'
+      resp-start-time:
+      - '1772001274509'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '953'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-0ebe2c19-467d-95e2-b9a2-2e56cb96f5cb","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_33cccf25b9f9490b964692","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001359,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:59 GMT
+      req-arrive-time:
+      - '1772001359166'
+      req-cost-time:
+      - '777'
+      resp-start-time:
+      - '1772001359944'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '777'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-a457e527-91de-90a4-899a-efde8118ed5d","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_22f6e449e2ec44528c1d40","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001400,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:40 GMT
+      req-arrive-time:
+      - '1772001400195'
+      req-cost-time:
+      - '867'
+      resp-start-time:
+      - '1772001401062'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '867'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-17b19a96-239b-9522-b2de-6f492ab3475c","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_06177572c73a4f45918394","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001470,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:51 GMT
+      req-arrive-time:
+      - '1772001470595'
+      req-cost-time:
+      - '799'
+      resp-start-time:
+      - '1772001471394'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '799'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-838f043f-c7ee-9ec9-9947-afc67e2adf94","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_7056b4ebd7a340d0838d41","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001514,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:35 GMT
+      req-arrive-time:
+      - '1772001514513'
+      req-cost-time:
+      - '792'
+      resp-start-time:
+      - '1772001515306'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '792'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-55a877d4-115e-9fbc-8ca5-99c406d87281","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_b8331f02d49141588669b3","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001540,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:39:00 GMT
+      req-arrive-time:
+      - '1772001540187'
+      req-cost-time:
+      - '731'
+      resp-start-time:
+      - '1772001540919'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '731'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-9b5ca8d5-8fbb-977e-99b1-f6954b7699f2","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d733043d284c42f282c2e0","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001636,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:36 GMT
+      req-arrive-time:
+      - '1772001636437'
+      req-cost-time:
+      - '790'
+      resp-start-time:
+      - '1772001637228'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '790'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-a421cf79-c0c6-9620-8bc8-c7e98a9888ee","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_2f36a4da4dda4931ad0130","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772001934,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:35 GMT
+      req-arrive-time:
+      - '1772001934877'
+      req-cost-time:
+      - '755'
+      resp-start-time:
+      - '1772001935632'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '754'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-537bd645-d976-9ca7-989b-dea094acd965","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_a12368ecb9b14084bea800","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002066,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:46 GMT
+      req-arrive-time:
+      - '1772002066235'
+      req-cost-time:
+      - '815'
+      resp-start-time:
+      - '1772002067051'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '815'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-92f76023-442f-942d-a486-2a588c5be79f","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_ce0fc2aeef364d32b3ca78","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002096,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:17 GMT
+      req-arrive-time:
+      - '1772002096712'
+      req-cost-time:
+      - '805'
+      resp-start-time:
+      - '1772002097518'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '805'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-c0d8bd24-a685-9f88-bba5-6ded56ac1da6","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_a8e0159f99334bf4ad67b1","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002335,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:15 GMT
+      req-arrive-time:
+      - '1772002335331'
+      req-cost-time:
+      - '849'
+      resp-start-time:
+      - '1772002336181'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '849'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What time is it in New York?"}],
+      "model": "qwen-plus", "tools": [{"type": "function", "function": {"name": "get_weather",
+      "description": "Get the current weather", "parameters": {"type": "object", "properties":
+      {"location": {"type": "string"}}, "required": ["location"]}}}, {"type": "function",
+      "function": {"name": "get_time", "description": "Get the current time", "parameters":
+      {"type": "object", "properties": {"timezone": {"type": "string"}}, "required":
+      ["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-5caa7ea5-6092-9cdb-8f83-ab19d7701acd","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d45289c6246b4942aa631e","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772002371,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:51 GMT
+      req-arrive-time:
+      - '1772002371001'
+      req-cost-time:
+      - '802'
+      resp-start-time:
+      - '1772002371804'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '802'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What time is it in New York?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}},{"type":"function","function":{"name":"get_time","description":"Get
+      the current time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-a21b14f6-0718-9028-b56c-78b10239610a","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_2e918fe59c8c4588828afe","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003342,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:03 GMT
+      req-arrive-time:
+      - '1772003342700'
+      req-cost-time:
+      - '983'
+      resp-start-time:
+      - '1772003343684'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '983'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What time is it in New York?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}},{"type":"function","function":{"name":"get_time","description":"Get
+      the current time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-1b89f4b0-3c61-97b1-83a6-45b89e0676b2","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d1b4195b1b764143a453c0","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003447,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:47 GMT
+      req-arrive-time:
+      - '1772003447203'
+      req-cost-time:
+      - '723'
+      resp-start-time:
+      - '1772003447927'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '723'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What time is it in New York?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}},{"type":"function","function":{"name":"get_time","description":"Get
+      the current time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-b5fab1e4-e66e-9d16-81a6-57f09121eb59","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_d24487864e8a4be9bf064d","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772003822,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:17:02 GMT
+      req-arrive-time:
+      - '1772003822132'
+      req-cost-time:
+      - '973'
+      resp-start-time:
+      - '1772003823106'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '972'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What time is it in New York?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}},{"type":"function","function":{"name":"get_time","description":"Get
+      the current time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-72eb4830-10f3-9026-9319-f98779858496","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_63af2d4b74de4606965567","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004214,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:35 GMT
+      req-arrive-time:
+      - '1772004214495'
+      req-cost-time:
+      - '979'
+      resp-start-time:
+      - '1772004215475'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '979'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What time is it in New York?"}],"model":"qwen-plus","tools":[{"type":"function","function":{"name":"get_weather","description":"Get
+      the current weather","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}},{"type":"function","function":{"name":"get_time","description":"Get
+      the current time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}}]}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '481'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"model":"qwen-plus","id":"chatcmpl-f09c2b35-d44c-94de-9282-b71096372c95","choices":[{"message":{"content":"","tool_calls":[{"index":0,"id":"call_ad82ec9c2a304259a4918a","type":"function","function":{"name":"get_time","arguments":"{\"timezone\":
+        \"New York\"}"}}],"role":"assistant"},"index":0,"finish_reason":"tool_calls"}],"created":1772004247,"object":"chat.completion","usage":{"total_tokens":226,"completion_tokens":20,"prompt_tokens":206,"prompt_tokens_details":{"cached_tokens":0}}}'
+    headers:
+      content-length:
+      - '489'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:07 GMT
+      req-arrive-time:
+      - '1772004247316'
+      req-cost-time:
+      - '1094'
+      resp-start-time:
+      - '1772004248410'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '1093'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

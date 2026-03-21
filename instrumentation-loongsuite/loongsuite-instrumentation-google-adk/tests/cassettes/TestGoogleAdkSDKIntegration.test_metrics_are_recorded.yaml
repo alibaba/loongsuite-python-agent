@@ -1,0 +1,256 @@
+interactions:
+- request:
+    body: |-
+      {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant.\n\nYou are an agent. Your internal name is \"test_agent\". The description about you is \"Test agent for instrumentation\"."
+          },
+          {
+            "role": "user",
+            "content": "Hello"
+          }
+        ],
+        "model": "qwen-plus",
+        "max_tokens": 100,
+        "temperature": 0.7,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_current_time",
+              "description": "Get current time as a simple tool.",
+              "parameters": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate_sum",
+              "description": "Calculate sum of two numbers.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "a": {
+                    "type": "integer"
+                  },
+                  "b": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "a",
+                  "b"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    headers:
+      Authorization:
+      - Bearer test_api_key
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '668'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.16.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.16.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: |-
+        {
+          "choices": [
+            {
+              "message": {
+                "content": "Hello! How can I assist you today?",
+                "role": "assistant"
+              },
+              "finish_reason": "stop",
+              "index": 0,
+              "logprobs": null
+            }
+          ],
+          "object": "chat.completion",
+          "usage": {
+            "prompt_tokens": 231,
+            "completion_tokens": 9,
+            "total_tokens": 240,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "created": 1769765238,
+          "system_fingerprint": null,
+          "model": "qwen-plus",
+          "id": "chatcmpl-72fde1ac-a61a-9992-b2fe-6627548cbff2"
+        }
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 30 Jan 2026 09:27:17 GMT
+      Server:
+      - istio-envoy
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      req-arrive-time:
+      - '1769765237649'
+      req-cost-time:
+      - '474'
+      resp-start-time:
+      - '1769765238124'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '474'
+      x-request-id:
+      - 72fde1ac-a61a-9992-b2fe-6627548cbff2
+    status:
+      code: 200
+      message: OK
+- request:
+    body: |-
+      {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful assistant.\n\nYou are an agent. Your internal name is \"test_agent\". The description about you is \"Test agent for instrumentation\"."
+          },
+          {
+            "role": "user",
+            "content": "Hello"
+          }
+        ],
+        "model": "qwen-plus",
+        "max_tokens": 100,
+        "temperature": 0.7,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_current_time",
+              "description": "Get current time as a simple tool.",
+              "parameters": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate_sum",
+              "description": "Calculate sum of two numbers.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "a": {
+                    "type": "integer"
+                  },
+                  "b": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "a",
+                  "b"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    headers:
+      Authorization:
+      - Bearer test_api_key
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '668'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.16.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.16.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.13.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 30 Jan 2026 09:27:17 GMT
+      Server:
+      - istio-envoy
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      req-arrive-time:
+      - '1769765237649'
+      req-cost-time:
+      - '474'
+      resp-start-time:
+      - '1769765238124'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '474'
+      x-request-id:
+      - 72fde1ac-a61a-9992-b2fe-6627548cbff2
+    status:
+      code: 200
+      message: OK
+version: 1

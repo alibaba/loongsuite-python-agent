@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -*- coding: utf-8 -*-
 """Multimodal Content Type Tests
 
@@ -15,6 +29,7 @@ from opentelemetry.instrumentation.agentscope.utils import (
     convert_agent_response_to_output_messages,
     convert_agentscope_messages_to_genai_format,
 )
+from opentelemetry.util.genai.types import Base64Blob, Uri
 
 
 class TestBlockConversion:
@@ -344,10 +359,36 @@ class TestInputMessageConversion:
         assert len(input_messages) == 1
         assert len(input_messages[0].parts) == 2
         # First part is Text object
-        # Second part is dict with uri type
+        # Second part is Uri object
         uri_part = input_messages[0].parts[1]
-        assert isinstance(uri_part, dict)
-        assert uri_part["type"] == "uri"
+        assert isinstance(uri_part, Uri)
+        assert uri_part.type == "uri"
+
+    def test_convert_messages_with_blob_to_base64blob(self):
+        """Test blob part converts to Base64Blob object"""
+        messages = [
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "type": "blob",
+                        "content": "dGVzdA==",
+                        "media_type": "image/png",
+                        "modality": "image",
+                    }
+                ],
+            }
+        ]
+
+        input_messages = convert_agentscope_messages_to_genai_format(messages)
+
+        assert len(input_messages) == 1
+        assert len(input_messages[0].parts) == 1
+        blob_part = input_messages[0].parts[0]
+        assert isinstance(blob_part, Base64Blob)
+        assert blob_part.content == "dGVzdA=="
+        assert blob_part.mime_type == "image/png"
+        assert blob_part.modality == "image"
 
 
 class TestDefaultMediaType:

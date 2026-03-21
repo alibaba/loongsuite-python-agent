@@ -1,0 +1,108 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "qwen-vl-plus",
+        "parameters": {},
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "text": "Hello, how are you?"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '132'
+      Content-Type:
+      - application/json
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm;
+        incremental_to_full/0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation
+  response:
+    body:
+      string: |-
+        {
+          "output": {
+            "choices": [
+              {
+                "message": {
+                  "content": [
+                    {
+                      "text": "Hello! I'm just a program, so I don't have feelings, but I'm here and ready to help you with whatever you need. How can I assist you today? \ud83d\ude0a"
+                    }
+                  ],
+                  "reasoning_content": "",
+                  "role": "assistant"
+                },
+                "finish_reason": "stop"
+              }
+            ]
+          },
+          "usage": {
+            "total_tokens": 53,
+            "input_tokens_details": {
+              "text_tokens": 14
+            },
+            "output_tokens": 39,
+            "input_tokens": 14,
+            "output_tokens_details": {
+              "text_tokens": 39
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "request_id": "20c1dd89-b3cd-447b-b139-3fbecf5ade21"
+        }
+    headers:
+      content-length:
+      - '517'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:42:43 GMT
+      req-arrive-time:
+      - '1767789763045'
+      req-cost-time:
+      - '689'
+      resp-start-time:
+      - '1767789763735'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-finished:
+      - 'true'
+      x-dashscope-inner-csi:
+      - verified
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '682'
+      x-request-id:
+      - 20c1dd89-b3cd-447b-b139-3fbecf5ade21
+    status:
+      code: 200
+      message: OK
+version: 1

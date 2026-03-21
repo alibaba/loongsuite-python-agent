@@ -43,10 +43,10 @@ GEN_AI_TOOL_CALL_RESULT: Final = "gen_ai.tool.call.result"
 The result returned by the tool after execution.
 """
 
-# Retrieve attributes
-GEN_AI_RETRIEVAL_QUERY: Final = "gen_ai.retrieval.query"
+# Retrieval attributes
+GEN_AI_RETRIEVAL_QUERY_TEXT: Final = "gen_ai.retrieval.query.text"
 """
-The query string used to retrieve documents from a vector database or search system.
+The retrieval query text (short phrase). Per LoongSuite semantic convention.
 """
 
 GEN_AI_RETRIEVAL_DOCUMENTS: Final = "gen_ai.retrieval.documents"
@@ -124,6 +124,42 @@ GEN_AI_OUTPUT_MULTIMODAL_METADATA: Final = "gen_ai.output.multimodal_metadata"
 The multimodal metadata of the output messages.
 """
 
+GEN_AI_USAGE_TOTAL_TOKENS: Final = "gen_ai.usage.total_tokens"
+"""
+The total number of tokens used in the operation, calculated as the sum of input and output tokens.
+This is the sum of gen_ai.usage.input_tokens and gen_ai.usage.output_tokens when both are available.
+"""
+
+GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN: Final = (
+    "gen_ai.response.time_to_first_token"
+)
+"""
+The time in nanoseconds from the request start to when the first token was received in a streaming response.
+This metric is important for measuring the latency perceived by users in streaming scenarios.
+"""
+
+# Entry attributes (LoongSuite semantic conventions)
+GEN_AI_SESSION_ID: Final = "gen_ai.session.id"
+"""
+The session ID for the AI application.
+"""
+
+GEN_AI_USER_ID: Final = "gen_ai.user.id"
+"""
+The C-end user identifier of the application.
+"""
+
+# ReAct Step attributes (LoongSuite semantic conventions)
+GEN_AI_REACT_FINISH_REASON: Final = "gen_ai.react.finish_reason"
+"""
+The reason why this ReAct iteration ended.
+"""
+
+GEN_AI_REACT_ROUND: Final = "gen_ai.react.round"
+"""
+The round number of this ReAct iteration (1-based).
+"""
+
 
 class GenAiSpanKindValues(Enum):
     AGENT = "AGENT"
@@ -147,13 +183,25 @@ class GenAiSpanKindValues(Enum):
     MEMORY = "MEMORY"
     """Memory operation."""
 
+    ENTRY = "ENTRY"
+    """Entry point for AI application system calls."""
+
+    STEP = "STEP"
+    """ReAct step (Reasoning-Acting iteration)."""
+
 
 class GenAiExtendedOperationNameValues(Enum):
-    RETRIEVE_DOCUMENTS = "retrieve_documents"
-    """Retrieve documents operation."""
+    RETRIEVAL = "retrieval"
+    """Retrieval operation (vector store / database lookup). Per LoongSuite semantic convention."""
 
     RERANK_DOCUMENTS = "rerank_documents"
     """Rerank documents operation."""
+
+    ENTER = "enter"
+    """Entry operation for AI application system."""
+
+    REACT = "react"
+    """ReAct step operation (Reasoning-Acting iteration)."""
 
 
 class GenAiExtendedProviderNameValues(Enum):

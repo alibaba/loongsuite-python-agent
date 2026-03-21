@@ -2,26 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
+
+## Version 0.2.0 (2026-03-12)
+
+## Version 0.1.0 (2026-02-28)
 
 ### Added
 
+- Add support for multimodal API
+  ([#111](https://github.com/alibaba/loongsuite-python-agent/pull/111))
 - Initial implementation of DashScope instrumentation
-- Support for Generation.call (sync)
-- Support for AioGeneration.call (async)
-- Support for TextEmbedding.call
-- Support for TextReRank.call
-- Support for ImageSynthesis.call (sync)
-- Support for ImageSynthesis.async_call (async task submission)
-- Support for ImageSynthesis.wait (async task waiting)
-- Support for streaming responses (sync and async)
-- Data extraction and telemetry collection using `opentelemetry-util-genai`
-- Span attributes following OpenTelemetry GenAI Semantic Conventions:
-  - Operation name, provider name, model names
-  - Token usage (input/output tokens)
-  - Finish reasons
-  - Request parameters (temperature, top_p, max_tokens)
-  - Response ID
+  ([#66](https://github.com/alibaba/loongsuite-python-agent/pull/66))
 
+### Fixed
+
+- Fix MIME type inference logic for speech synthesis instrumentation
+  ([#115](https://github.com/alibaba/loongsuite-python-agent/pull/115))

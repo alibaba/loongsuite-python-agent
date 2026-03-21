@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Test automatic audio format detection for MultimodalPreUploader
 Focuses on testing the _detect_audio_format method's ability to recognize various audio formats
@@ -5,6 +19,7 @@ and audio format conversion (e.g., PCM16 to WAV)
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -16,6 +31,19 @@ from opentelemetry.util.genai.types import Blob, InputMessage
 
 # Test audio file directory
 TEST_AUDIO_DIR = Path(__file__).parent / "test_audio_samples"
+
+
+@pytest.fixture(autouse=True)
+def _default_upload_mode_enabled_for_tests():
+    with patch.dict(
+        "os.environ",
+        {
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+            "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_AUDIO_CONVERSION_ENABLED": "true",
+        },
+    ):
+        yield
 
 
 class TestAudioFormatDetection:
@@ -145,3 +173,31 @@ class TestAudioFormatDetection:
         else:
             # If library unavailable, should keep original format
             assert uploads[0].content_type == pcm_mime_type
+
+    @staticmethod
+    def test_pcm16_conversion_disabled_by_default():
+        """Test PCM16 conversion stays disabled when env var is unset"""
+        with patch.dict(
+            "os.environ",
+            {
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_UPLOAD_MODE": "both",
+                "OTEL_INSTRUMENTATION_GENAI_MULTIMODAL_DOWNLOAD_ENABLED": "true",
+            },
+            clear=True,
+        ):
+            pre_uploader = MultimodalPreUploader(base_path="/tmp/test_upload")
+            pcm_data = b"\x00\x01" * 1000
+            part = Blob(
+                content=pcm_data, mime_type="audio/pcm16", modality="audio"
+            )
+            input_messages = [InputMessage(role="user", parts=[part])]
+
+            uploads = pre_uploader.pre_upload(
+                span_context=None,
+                start_time_utc_nano=1000000000000000000,
+                input_messages=input_messages,
+                output_messages=None,
+            )
+
+            assert len(uploads) == 1
+            assert uploads[0].content_type == "audio/pcm16"

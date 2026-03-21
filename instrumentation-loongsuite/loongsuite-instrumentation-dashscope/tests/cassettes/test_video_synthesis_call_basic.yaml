@@ -1,0 +1,183 @@
+interactions:
+- request:
+    body: |-
+      {
+        "model": "wanx2.1-t2v-turbo",
+        "parameters": {},
+        "input": {
+          "prompt": "A cat playing with a ball",
+          "extend_prompt": true,
+          "function": "video-synthesis"
+        }
+      }
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '152'
+      Content-Type:
+      - application/json
+      X-DashScope-Async:
+      - enable
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: POST
+    uri: https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "8a5f98d0-b597-4d51-99fc-aef872feaa65",
+          "output": {
+            "task_id": "2629962d-61b8-48da-a9f7-42991179cf1c",
+            "task_status": "PENDING"
+          }
+        }
+    headers:
+      content-length:
+      - '137'
+      content-type:
+      - application/json
+      date:
+      - Wed, 07 Jan 2026 12:42:58 GMT
+      req-arrive-time:
+      - '1767789778986'
+      req-cost-time:
+      - '178'
+      resp-start-time:
+      - '1767789779165'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-dashscope-timeout:
+      - '298'
+      x-envoy-upstream-service-time:
+      - '170'
+      x-request-id:
+      - 8a5f98d0-b597-4d51-99fc-aef872feaa65
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/2629962d-61b8-48da-a9f7-42991179cf1c
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "51adb5ae-34f7-44d1-9f67-d2c1d9dbced0",
+          "output": {
+            "task_id": "2629962d-61b8-48da-a9f7-42991179cf1c",
+            "task_status": "RUNNING",
+            "submit_time": "2026-01-07 20:42:59.146",
+            "scheduled_time": "2026-01-07 20:42:59.178"
+          }
+        }
+    headers:
+      content-length:
+      - '220'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:42:59 GMT
+      req-arrive-time:
+      - '1767789779319'
+      req-cost-time:
+      - '40'
+      resp-start-time:
+      - '1767789779360'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '31'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      authorization:
+      - Bearer test_dashscope_api_key
+      user-agent:
+      - dashscope/1.25.6; python/3.12.8; platform/macOS-15.3.2-arm64-arm-64bit; processor/arm
+    method: GET
+    uri: https://dashscope.aliyuncs.com/api/v1/tasks/2629962d-61b8-48da-a9f7-42991179cf1c
+  response:
+    body:
+      string: |-
+        {
+          "request_id": "70ed0ad1-83ae-4188-ba30-2a527a6c8be4",
+          "output": {
+            "task_id": "2629962d-61b8-48da-a9f7-42991179cf1c",
+            "task_status": "SUCCEEDED",
+            "submit_time": "2026-01-07 20:42:59.146",
+            "scheduled_time": "2026-01-07 20:42:59.178",
+            "end_time": "2026-01-07 20:43:35.166",
+            "orig_prompt": "A cat playing with a ball",
+            "video_url": "https://dashscope-result-wlcb-acdr-1.oss-cn-wulanchabu-acdr-1.aliyuncs.com/1d/a4/20260107/ad0627fd/2629962d-61b8-48da-a9f7-42991179cf1c.mp4?Expires=1767876214&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=86KIFpsv9XYpmI20SlD4YlRmdPA%3D",
+            "actual_prompt": "Daylight, soft lighting, side lighting, medium shot, center composition. A fluffy domestic shorthair cat with white fur and gray patches bats a small red rubber ball across a wooden floor. The cat crouches low, ears forward and tail flicking, then pounces playfully as the ball rolls under a sunlit windowsill. Dust particles float in the air, illuminated by natural light streaming through sheer curtains. A potted spider plant in the corner sways slightly from a breeze, leaves casting soft shadows. The ball bounces off a nearby wall, prompting the cat to chase it in quick, agile movements."
+          },
+          "usage": {
+            "video_duration": 5,
+            "video_ratio": "1280*720",
+            "video_count": 1
+          }
+        }
+    headers:
+      content-length:
+      - '1238'
+      content-type:
+      - application/json;charset=UTF-8
+      date:
+      - Wed, 07 Jan 2026 12:43:36 GMT
+      req-arrive-time:
+      - '1767789816816'
+      req-cost-time:
+      - '42'
+      resp-start-time:
+      - '1767789816858'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Accept-Encoding
+      x-envoy-upstream-service-time:
+      - '36'
+    status:
+      code: 200
+      message: OK
+version: 1

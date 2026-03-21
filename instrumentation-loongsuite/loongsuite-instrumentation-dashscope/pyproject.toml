@@ -10,7 +10,7 @@ readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -26,9 +26,9 @@ classifiers = [
 ]
 dependencies = [
   "opentelemetry-api ~= 1.37",
-  "opentelemetry-instrumentation ~= 0.58b0",
-  "opentelemetry-semantic-conventions ~= 0.58b0",
-  "opentelemetry-util-genai ~= 0.2b0",
+  "opentelemetry-instrumentation >= 0.58b0",
+  "opentelemetry-semantic-conventions >= 0.58b0",
+  "opentelemetry-util-genai > 0.2b0",
 ]
 
 [project.optional-dependencies]

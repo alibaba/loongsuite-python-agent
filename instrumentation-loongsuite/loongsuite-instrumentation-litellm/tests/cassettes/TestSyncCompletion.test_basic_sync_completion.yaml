@@ -1,0 +1,1269 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001272,"id":"chatcmpl-55e870e9-e5b3-9ffb-8a5c-ba3b5bdd3be0","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:34:32 GMT
+      req-arrive-time:
+      - '1772001272115'
+      req-cost-time:
+      - '187'
+      resp-start-time:
+      - '1772001272302'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '186'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001357,"id":"chatcmpl-0537c6ca-5225-99c1-83ab-5474a96b5905","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:35:57 GMT
+      req-arrive-time:
+      - '1772001357650'
+      req-cost-time:
+      - '186'
+      resp-start-time:
+      - '1772001357836'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '186'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001398,"id":"chatcmpl-7c13f3eb-b4bf-9249-9cc7-ca28c8386f8b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:36:38 GMT
+      req-arrive-time:
+      - '1772001398572'
+      req-cost-time:
+      - '202'
+      resp-start-time:
+      - '1772001398774'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '201'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001468,"id":"chatcmpl-1d50439a-8fb7-9a74-b3b7-bfc1ebb750eb","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:37:48 GMT
+      req-arrive-time:
+      - '1772001468805'
+      req-cost-time:
+      - '305'
+      resp-start-time:
+      - '1772001469111'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '304'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001513,"id":"chatcmpl-b1ad02a7-eb89-9a15-9b9c-bb9e565c8a57","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:32 GMT
+      req-arrive-time:
+      - '1772001512965'
+      req-cost-time:
+      - '249'
+      resp-start-time:
+      - '1772001513214'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '249'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.15.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.15.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001538,"id":"chatcmpl-4a72466a-c07b-9753-ab8c-6bf106ca4bb3","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:38:58 GMT
+      req-arrive-time:
+      - '1772001538677'
+      req-cost-time:
+      - '165'
+      resp-start-time:
+      - '1772001538842'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '164'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001634,"id":"chatcmpl-c4a699d5-665b-979b-bdd7-9aefdaf2e28f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      Set-Cookie:
+      - <masked>
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:40:34 GMT
+      req-arrive-time:
+      - '1772001634882'
+      req-cost-time:
+      - '191'
+      resp-start-time:
+      - '1772001635074'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '191'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772001932,"id":"chatcmpl-2ac96ad3-cd06-910c-8cd3-087c970243f0","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:45:32 GMT
+      req-arrive-time:
+      - '1772001932941'
+      req-cost-time:
+      - '208'
+      resp-start-time:
+      - '1772001933150'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '208'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772002064,"id":"chatcmpl-9b4dbe87-dafb-9dce-addd-5b807382545d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:47:44 GMT
+      req-arrive-time:
+      - '1772002064531'
+      req-cost-time:
+      - '218'
+      resp-start-time:
+      - '1772002064749'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '218'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772002095,"id":"chatcmpl-7c1cfe81-9246-9456-9184-7609dffdbd7c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:48:15 GMT
+      req-arrive-time:
+      - '1772002095145'
+      req-cost-time:
+      - '192'
+      resp-start-time:
+      - '1772002095338'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '192'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772002333,"id":"chatcmpl-31be5847-1b92-99e6-88cd-16b46459273c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:13 GMT
+      req-arrive-time:
+      - '1772002333610'
+      req-cost-time:
+      - '456'
+      resp-start-time:
+      - '1772002334067'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '456'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "What is the capital of France?
+      Answer in one word."}], "model": "qwen-turbo", "max_tokens": 50, "temperature":
+      0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      authorization:
+      - Bearer <masked>
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772002368,"id":"chatcmpl-ed25487f-e33c-9f60-8e90-142f5b43ad0d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 06:52:48 GMT
+      req-arrive-time:
+      - '1772002368659'
+      req-cost-time:
+      - '338'
+      resp-start-time:
+      - '1772002368997'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '338'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of France? Answer
+      in one word."}],"model":"qwen-turbo","max_tokens":50,"temperature":0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772003340,"id":"chatcmpl-d16dc46c-192f-9270-844b-c88f21fc0d70","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:09:00 GMT
+      req-arrive-time:
+      - '1772003340547'
+      req-cost-time:
+      - '191'
+      resp-start-time:
+      - '1772003340739'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '191'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of France? Answer
+      in one word."}],"model":"qwen-turbo","max_tokens":50,"temperature":0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772003445,"id":"chatcmpl-29015c36-625c-9872-8c31-2bf292030d0b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:10:45 GMT
+      req-arrive-time:
+      - '1772003445689'
+      req-cost-time:
+      - '253'
+      resp-start-time:
+      - '1772003445942'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '252'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of France? Answer
+      in one word."}],"model":"qwen-turbo","max_tokens":50,"temperature":0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772003819,"id":"chatcmpl-d8d628af-482f-95d9-b5f5-756be6be4c49","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:16:59 GMT
+      req-arrive-time:
+      - '1772003819802'
+      req-cost-time:
+      - '264'
+      resp-start-time:
+      - '1772003820066'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '263'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of France? Answer
+      in one word."}],"model":"qwen-turbo","max_tokens":50,"temperature":0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772004212,"id":"chatcmpl-383a1032-1e71-913b-a545-c17d532f07b6","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:23:31 GMT
+      req-arrive-time:
+      - '1772004212208'
+      req-cost-time:
+      - '193'
+      resp-start-time:
+      - '1772004212401'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '193'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"What is the capital of France? Answer
+      in one word."}],"model":"qwen-turbo","max_tokens":50,"temperature":0.7}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate, zstd
+      Authorization:
+      - Bearer <masked>
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Host:
+      - dashscope.aliyuncs.com
+      User-Agent:
+      - OpenAI/Python 2.0.0
+      X-Stainless-Arch:
+      - arm64
+      X-Stainless-Async:
+      - 'false'
+      X-Stainless-Lang:
+      - python
+      X-Stainless-OS:
+      - MacOS
+      X-Stainless-Package-Version:
+      - 2.0.0
+      X-Stainless-Raw-Response:
+      - 'true'
+      X-Stainless-Runtime:
+      - CPython
+      X-Stainless-Runtime-Version:
+      - 3.11.0
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Paris","role":"assistant"}}],"created":1772004245,"id":"chatcmpl-7143f5ec-d200-935c-a968-cea236f8ffce","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":1,"prompt_tokens":24,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":25}}'
+    headers:
+      content-length:
+      - '332'
+      content-type:
+      - application/json
+      date:
+      - Wed, 25 Feb 2026 07:24:05 GMT
+      req-arrive-time:
+      - '1772004245814'
+      req-cost-time:
+      - '231'
+      resp-start-time:
+      - '1772004246046'
+      server:
+      - istio-envoy
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '231'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import importlib.metadata
 import json
 import logging
@@ -18,9 +32,16 @@ except ImportError:
     _has_mcp_types = False
 
 MIN_SUPPORTED_VERSION = (1, 3, 0)
-MAX_SUPPORTED_VERSION = (1, 13, 1)
+MAX_SUPPORTED_VERSION = (1, 25, 0)
 MCP_PACKAGE_NAME = "mcp"
 DEFAULT_MAX_ATTRIBUTE_LENGTH = 1024 * 1024
+
+# Version thresholds for API changes
+# v1.24.0: streamable_http_client was added (streamablehttp_client deprecated)
+STREAMABLE_HTTP_CLIENT_NEW_NAME_VERSION = (1, 24, 0)
+# Streamable HTTP client function names
+STREAMABLE_HTTP_CLIENT_NEW_NAME = "streamable_http_client"
+STREAMABLE_HTTP_CLIENT_OLD_NAME = "streamablehttp_client"
 
 _max_attributes_length = None
 
@@ -75,6 +96,18 @@ def _is_version_supported() -> bool:
         MIN_SUPPORTED_VERSION <= current_version
         and current_version <= MAX_SUPPORTED_VERSION
     )
+
+
+def _get_streamable_http_client_name() -> str:
+    """
+    Get the correct streamable HTTP client function name based on MCP version.
+    - v1.24.0+: uses `streamable_http_client` (new name)
+    - v1.3.0 - v1.23.x: uses `streamablehttp_client` (old name)
+    """
+    current_version = _get_mcp_version()
+    if current_version >= STREAMABLE_HTTP_CLIENT_NEW_NAME_VERSION:
+        return STREAMABLE_HTTP_CLIENT_NEW_NAME
+    return STREAMABLE_HTTP_CLIENT_OLD_NAME
 
 
 def _is_capture_content_enabled() -> bool:

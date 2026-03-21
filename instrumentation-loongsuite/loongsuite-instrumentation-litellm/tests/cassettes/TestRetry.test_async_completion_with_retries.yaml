@@ -1,0 +1,1180 @@
+interactions:
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001264,"id":"chatcmpl-8e2a8935-2182-9169-8e27-3a699495443d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:34:24 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001264388'
+      req-cost-time:
+      - '198'
+      resp-start-time:
+      - '1772001264586'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '197'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001349,"id":"chatcmpl-fb16239e-d6fa-9513-94ae-d06f6dfac76b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:35:49 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001349097'
+      req-cost-time:
+      - '325'
+      resp-start-time:
+      - '1772001349422'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '325'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001390,"id":"chatcmpl-73974b17-6207-9953-8526-980de8b22080","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:36:30 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001390738'
+      req-cost-time:
+      - '586'
+      resp-start-time:
+      - '1772001391325'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '586'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.15.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.15.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001458,"id":"chatcmpl-bfb0ac16-10bd-97c9-bfb0-d454b6540c3d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:37:38 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001458862'
+      req-cost-time:
+      - '210'
+      resp-start-time:
+      - '1772001459072'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '209'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.15.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.15.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001504,"id":"chatcmpl-83f77c9d-69e7-9b03-a04d-9320b0bdc08c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:38:24 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001504904'
+      req-cost-time:
+      - '254'
+      resp-start-time:
+      - '1772001505158'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '253'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.15.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.15.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001530,"id":"chatcmpl-30ea5c57-ee9e-98e7-a74c-21aa374299e6","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:38:50 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001530840'
+      req-cost-time:
+      - '333'
+      resp-start-time:
+      - '1772001531174'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '333'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001627,"id":"chatcmpl-df17461a-4451-9ac0-bf63-5e1bda006009","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:40:27 GMT
+      Server:
+      - istio-envoy
+      Set-Cookie:
+      - <masked>
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001627264'
+      req-cost-time:
+      - '320'
+      resp-start-time:
+      - '1772001627585'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '320'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772001924,"id":"chatcmpl-5a3e3b6a-f70d-986a-8ec6-60b59895ee0f","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:45:25 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772001924760'
+      req-cost-time:
+      - '302'
+      resp-start-time:
+      - '1772001925063'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '302'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772002056,"id":"chatcmpl-b5a04241-9fb9-942e-8cec-6cb86b31ee2d","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:47:37 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772002056801'
+      req-cost-time:
+      - '292'
+      resp-start-time:
+      - '1772002057094'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '292'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772002086,"id":"chatcmpl-e2c2d04f-4760-98fa-8f81-f05a8ee5ceee","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:48:06 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772002086163'
+      req-cost-time:
+      - '379'
+      resp-start-time:
+      - '1772002086543'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '379'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772002324,"id":"chatcmpl-ecca95de-0c18-9522-8acd-b370e9a3c013","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:52:04 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772002324608'
+      req-cost-time:
+      - '246'
+      resp-start-time:
+      - '1772002324855'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '246'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages": [{"role": "user", "content": "Name a color."}], "model": "qwen-turbo",
+      "temperature": 0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772002361,"id":"chatcmpl-f02556b2-9536-98c4-ba2d-180962837b42","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 06:52:40 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772002361232'
+      req-cost-time:
+      - '234'
+      resp-start-time:
+      - '1772002361467'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '234'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Name a color."}],"model":"qwen-turbo","temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772003331,"id":"chatcmpl-db3c43f5-bb5f-9f21-9993-bae48144224c","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 07:08:51 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772003331901'
+      req-cost-time:
+      - '189'
+      resp-start-time:
+      - '1772003332090'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '189'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Name a color."}],"model":"qwen-turbo","temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772003437,"id":"chatcmpl-d7a449a5-1bc4-9f29-84e4-b9fd0997cea7","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 07:10:37 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772003437407'
+      req-cost-time:
+      - '538'
+      resp-start-time:
+      - '1772003437946'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '538'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Name a color."}],"model":"qwen-turbo","temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772003811,"id":"chatcmpl-25008f3d-1e1c-9ce0-be23-29962a00ab49","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 07:16:50 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772003810963'
+      req-cost-time:
+      - '212'
+      resp-start-time:
+      - '1772003811176'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '212'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"messages":[{"role":"user","content":"Name a color."}],"model":"qwen-turbo","temperature":0.0}'
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate, zstd
+      authorization:
+      - Bearer <masked>
+      connection:
+      - keep-alive
+      content-length:
+      - '95'
+      content-type:
+      - application/json
+      host:
+      - dashscope.aliyuncs.com
+      user-agent:
+      - AsyncOpenAI/Python 2.0.0
+      x-stainless-arch:
+      - arm64
+      x-stainless-async:
+      - async:asyncio
+      x-stainless-lang:
+      - python
+      x-stainless-os:
+      - MacOS
+      x-stainless-package-version:
+      - 2.0.0
+      x-stainless-raw-response:
+      - 'true'
+      x-stainless-read-timeout:
+      - '600.0'
+      x-stainless-retry-count:
+      - '0'
+      x-stainless-runtime:
+      - CPython
+      x-stainless-runtime-version:
+      - 3.11.0
+    method: POST
+    uri: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  response:
+    body:
+      string: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Blue.","role":"assistant"}}],"created":1772004237,"id":"chatcmpl-65970d67-bcf0-937e-9250-3f6c835a9b0b","model":"qwen-turbo","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":18}}'
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 25 Feb 2026 07:23:56 GMT
+      Server:
+      - istio-envoy
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Accept-Encoding
+      content-length:
+      - '332'
+      req-arrive-time:
+      - '1772004237138'
+      req-cost-time:
+      - '268'
+      resp-start-time:
+      - '1772004237407'
+      x-dashscope-call-gateway:
+      - 'true'
+      x-envoy-upstream-service-time:
+      - '268'
+      x-request-id:
+      - <masked>
+    status:
+      code: 200
+      message: OK
+version: 1

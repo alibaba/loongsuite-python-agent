@@ -15,9 +15,9 @@
 """
 Extended metrics recorder for GenAI invocations.
 
-This module provides LoongSuite GenAI metrics recording following ARMS semantic conventions.
+This module provides LoongSuite GenAI metrics recording.
 It supports multiple GenAI invocation types: chat, generate_content, embedding, execute_tool, invoke_agent,
-create_agent, retrieve, and rerank.
+create_agent, retrieval, and rerank.
 
 This is just an empty implementation for now, which is a placeholder for enterprise implementation.
 """
@@ -28,6 +28,10 @@ import logging
 from typing import Optional, Union
 
 from opentelemetry.trace import Span
+from opentelemetry.util.genai._extended_common import (
+    EntryInvocation,
+    ReactStepInvocation,
+)
 from opentelemetry.util.genai._extended_memory.memory_types import (
     MemoryInvocation,
 )
@@ -37,7 +41,7 @@ from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
     RerankInvocation,
-    RetrieveInvocation,
+    RetrievalInvocation,
 )
 from opentelemetry.util.genai.metrics import InvocationMetricsRecorder
 from opentelemetry.util.genai.types import LLMInvocation
@@ -49,15 +53,17 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
     """
     Extended metrics recorder that supports multiple GenAI invocation types.
 
-    This class provides LoongSuite GenAI metrics recording following ARMS semantic conventions.
+    This class provides LoongSuite GenAI metrics recording.
     It supports:
     - Chat/Generate content operations
     - Embedding operations
     - Execute tool operations
     - Invoke agent operations
     - Create agent operations
-    - Retrieve documents operations
+    - Retrieval operations
     - Rerank documents operations
+    - Entry operations
+    - ReAct Step operations
     """
 
     def record_extended(
@@ -69,9 +75,11 @@ class ExtendedInvocationMetricsRecorder(InvocationMetricsRecorder):
             ExecuteToolInvocation,
             InvokeAgentInvocation,
             CreateAgentInvocation,
-            RetrieveInvocation,
+            RetrievalInvocation,
             RerankInvocation,
             MemoryInvocation,
+            EntryInvocation,
+            ReactStepInvocation,
         ],
         *,
         error_type: Optional[str] = None,

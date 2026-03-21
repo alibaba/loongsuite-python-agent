@@ -1,3 +1,17 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -*- coding: utf-8 -*-
 """Attributes processor for span attributes."""
 
@@ -29,6 +43,7 @@ from opentelemetry.util.genai.extended_types import (
     InvokeAgentInvocation,
 )
 from opentelemetry.util.genai.types import (
+    Base64Blob,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -36,6 +51,7 @@ from opentelemetry.util.genai.types import (
     Text,
     ToolCall,
     ToolCallResponse,
+    Uri,
 )
 
 from .message_converter import get_message_converter
@@ -441,6 +457,7 @@ def convert_agentscope_messages_to_genai_format(
     provider_name: Optional[str] = None,
 ) -> List[InputMessage]:
     """Convert AgentScope messages to opentelemetry-util-genai InputMessage format.
+       parse _convert_block_to_part result from agentscope/tracing/_converter.py
 
     This function is used by ExtendedTelemetryHandler which requires InputMessage objects.
     """
@@ -479,15 +496,33 @@ def convert_agentscope_messages_to_genai_format(
                 converted_parts.append(
                     ToolCallResponse(
                         id=part.get("id"),
-                        response=part.get("result", ""),
+                        response=part["response"]
+                        if "response" in part
+                        else part.get("result", ""),
                     )
                 )
             elif part_type == "reasoning":
                 converted_parts.append(
                     Reasoning(content=part.get("content", ""))
                 )
-            elif part_type in ("uri", "blob"):
-                converted_parts.append(part)
+            elif part_type == "uri":
+                converted_parts.append(
+                    Uri(
+                        uri=part.get("uri"),
+                        modality=part.get("modality"),
+                        mime_type=part.get("mime_type"),
+                    )
+                )
+            elif part_type == "blob":
+                converted_parts.append(
+                    Base64Blob(
+                        content=part.get("content", ""),
+                        modality=part.get("modality"),
+                        mime_type=part.get("media_type")
+                        if "media_type" in part
+                        else part.get("mime_type"),
+                    )
+                )
             else:
                 # Keep other types as-is
                 converted_parts.append(part)
