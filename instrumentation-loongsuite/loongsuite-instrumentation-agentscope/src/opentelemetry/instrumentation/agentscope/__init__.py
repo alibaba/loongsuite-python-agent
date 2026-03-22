@@ -80,7 +80,13 @@ __all__ = ["AgentScopeInstrumentor"]
 
 
 class AgentScopeInstrumentor(BaseInstrumentor):
-    """OpenTelemetry instrumentor for AgentScope framework."""
+    """OpenTelemetry instrumentor for AgentScope framework.
+
+    Agent ``__call__`` instrumentation keeps per-call state on the instance;
+    do not run overlapping ``await agent(...)`` on the same agent without
+    external synchronization (aligned with AgentScope's single in-flight
+    ``_reply_task`` design).
+    """
 
     def __init__(self):
         super().__init__()
