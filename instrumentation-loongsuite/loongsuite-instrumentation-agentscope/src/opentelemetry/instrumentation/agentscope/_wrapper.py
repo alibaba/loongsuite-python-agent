@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrapper classes for AgentScope instrumentation."""
+"""Wrapper classes for AgentScope instrumentation.
+
+Concurrency
+-----------
+ReAct step state is attached to each agent instance for one ``__call__``
+lifecycle (see ``_react_step_state``). This matches AgentScope's own
+``AgentBase`` design: a single ``_reply_task`` / ``_reply_id`` slot per
+instance with no locking. Callers must not overlap ``await agent(...)`` on
+the same instance across coroutines or threads without external
+serialization, or telemetry and AgentScope's ``interrupt()`` semantics can
+both be wrong.
+"""
 
 from __future__ import annotations
 
@@ -50,7 +61,13 @@ def _is_react_agent(agent_instance: Any) -> bool:
 
 @dataclass
 class _ReactStepState:
-    """Per-agent-call state for React step span lifecycle."""
+    """Per-agent-call state for React step span lifecycle.
+
+    This object is stored on the agent instance only while a single
+    ``AgentBase.__call__`` is in progress. It is not safe for concurrent
+    overlapping ``__call__`` on the same instance (same assumption as
+    AgentScope's single ``_reply_task`` field).
+    """
 
     hook_name: str = field(
         default_factory=lambda: f"{_REACT_STEP_HOOK_PREFIX}_{uuid.uuid4().hex[:8]}"
@@ -357,7 +374,11 @@ class AgentScopeChatModelWrapper:
 
 
 class AgentScopeAgentWrapper:
-    """Wrapper for AgentBase that hijacks __init__ to replace __call__."""
+    """Wrapper for AgentBase that hijacks __init__ to replace __call__.
+
+    Instrumentation assumes at most one in-flight ``__call__`` per agent
+    instance, consistent with AgentScope's ``AgentBase`` implementation.
+    """
 
     _original_methods = {}
 
@@ -418,6 +439,9 @@ class AgentScopeAgentWrapper:
                 is_react = _is_react_agent(call_self)
                 state: _ReactStepState | None = None
                 if is_react:
+                    # Single slot on the instance: safe only when this __call__
+                    # does not overlap another on the same agent (AgentScope
+                    # uses the same pattern for _reply_task).
                     state = _ReactStepState(
                         original_context=_get_current_context(),
                     )
