@@ -13,12 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `AgentBase` subclasses stack (e.g. proxy layers that each implement `__call__`
   and forward inward), by tracking per-task `__call__` depth with
   `contextvars` and only instrumenting the outermost frame
-  ([#152](https://github.com/alibaba/loongsuite-python-agent/pull/152))
+  ([#153](https://github.com/alibaba/loongsuite-python-agent/pull/153))
 - Avoid duplicate `react step` spans when ReAct hook wrappers nest (e.g.
   subclasses or mixins that override `_reasoning` / `_acting` and call
   `super()`), by only opening steps and updating tool-act counts on the
   outermost wrapper
-  ([#152](https://github.com/alibaba/loongsuite-python-agent/pull/152))
+  ([#153](https://github.com/alibaba/loongsuite-python-agent/pull/153))
 
 ### Added
 
