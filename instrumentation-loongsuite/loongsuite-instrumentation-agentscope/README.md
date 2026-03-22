@@ -88,8 +88,8 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 
 ## Supported Components
 
-- **Models**: ChatModelBase and all subclasses
-- **Agents**: AgentBase and all subclasses
+- **Models**: ChatModelBase and all subclasses (nested `__call__` / proxy chains emit a single LLM span per logical invocation)
+- **Agents**: AgentBase and all subclasses (same for stacked `AgentBase.__call__`)
 - **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks); nested overrides that call `super()._reasoning` / `super()._acting` still produce one step per logical iteration
 - **Tools**: Toolkit.call_tool_function
 - **Formatters**: TruncatedFormatterBase.format
