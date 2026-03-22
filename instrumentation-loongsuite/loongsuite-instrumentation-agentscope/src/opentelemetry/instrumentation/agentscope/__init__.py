@@ -102,6 +102,7 @@ class AgentScopeInstrumentor(BaseInstrumentor):
 
     def _instrument(self, **kwargs: Any) -> None:
         """Enable AgentScope instrumentation."""
+        print("-----> Instrumenting AgentScope...")
         tracer_provider = kwargs.get("tracer_provider")
         meter_provider = kwargs.get("meter_provider")
         logger_provider = kwargs.get("logger_provider")
