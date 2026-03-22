@@ -90,7 +90,7 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 
 - **Models**: ChatModelBase and all subclasses
 - **Agents**: AgentBase and all subclasses
-- **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks)
+- **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks); nested overrides that call `super()._reasoning` / `super()._acting` still produce one step per logical iteration
 - **Tools**: Toolkit.call_tool_function
 - **Formatters**: TruncatedFormatterBase.format
 

@@ -59,6 +59,10 @@ class _ReactStepState:
     active_step: ReactStepInvocation | None = None
     original_context: Any = field(default=None)
     pending_acting_count: int = 0
+    # Subclasses that override _reasoning / _acting and call super() stack multiple
+    # AgentScope hook wrappers; only the outermost wrapper should drive spans.
+    reasoning_nesting: int = 0
+    acting_nesting: int = 0
 
 
 def _make_pre_reasoning_hook(
@@ -68,6 +72,9 @@ def _make_pre_reasoning_hook(
 
     Also closes any leftover step from a previous iteration as a fallback
     (normal path closes via post_acting).
+
+    When multiple ReAct hook wrappers run (subclass ``_reasoning`` calling
+    ``super()._reasoning``), only the outermost pre_reasoning opens a step.
     """
 
     def hook(agent_self: Any, kwargs: dict) -> None:
@@ -75,6 +82,10 @@ def _make_pre_reasoning_hook(
             agent_self, "_react_step_state", None
         )
         if state is None:
+            return None
+
+        state.reasoning_nesting += 1
+        if state.reasoning_nesting != 1:
             return None
 
         if state.active_step:
@@ -96,21 +107,46 @@ def _make_post_reasoning_hook(
     handler: ExtendedTelemetryHandler,
 ) -> Any:
     """Create a post_reasoning hook that counts tool_use blocks
-    to initialize the pending_acting_count for the current step."""
+    to initialize the pending_acting_count for the current step.
+
+    Inner wrappers' post_reasoning run first on unwind; tool_use counting
+    must run on the outermost post_reasoning (last to execute).
+    """
 
     def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
         state: _ReactStepState | None = getattr(
             agent_self, "_react_step_state", None
         )
-        if state is None or output is None:
+        if state is None:
             return None
+        try:
+            if (
+                state.reasoning_nesting == 1
+                and output is not None
+                and hasattr(output, "get_content_blocks")
+            ):
+                tool_blocks = output.get_content_blocks("tool_use")
+                state.pending_acting_count = len(tool_blocks)
+            elif state.reasoning_nesting == 1 and output is not None:
+                state.pending_acting_count = 0
+        finally:
+            if state.reasoning_nesting > 0:
+                state.reasoning_nesting -= 1
+        return None
 
-        tool_blocks = (
-            output.get_content_blocks("tool_use")
-            if hasattr(output, "get_content_blocks")
-            else []
+    return hook
+
+
+def _make_pre_acting_hook() -> Any:
+    """Track nested _acting wrappers (subclass calls ``super()._acting``)."""
+
+    def hook(agent_self: Any, kwargs: dict) -> None:
+        state: _ReactStepState | None = getattr(
+            agent_self, "_react_step_state", None
         )
-        state.pending_acting_count = len(tool_blocks)
+        if state is None:
+            return None
+        state.acting_nesting += 1
         return None
 
     return hook
@@ -120,20 +156,27 @@ def _make_post_acting_hook(
     handler: ExtendedTelemetryHandler,
 ) -> Any:
     """Create a post_acting hook that decrements pending_acting_count
-    and closes the step span when all acting calls are done."""
+    and closes the step span when all acting calls are done.
+
+    Only the outermost post_acting (last on unwind) updates pending counts.
+    """
 
     def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
         state: _ReactStepState | None = getattr(
             agent_self, "_react_step_state", None
         )
-        if state is None or state.active_step is None:
+        if state is None:
             return None
-
-        state.pending_acting_count -= 1
-        if state.pending_acting_count <= 0:
-            state.active_step.finish_reason = "tool_calls"
-            handler.stop_react_step(state.active_step)
-            state.active_step = None
+        try:
+            if state.acting_nesting == 1 and state.active_step is not None:
+                state.pending_acting_count -= 1
+                if state.pending_acting_count <= 0:
+                    state.active_step.finish_reason = "tool_calls"
+                    handler.stop_react_step(state.active_step)
+                    state.active_step = None
+        finally:
+            if state.acting_nesting > 0:
+                state.acting_nesting -= 1
         return None
 
     return hook
@@ -154,6 +197,11 @@ def _register_react_hooks(
         _make_post_reasoning_hook(handler),
     )
     agent.register_instance_hook(
+        "pre_acting",
+        state.hook_name,
+        _make_pre_acting_hook(),
+    )
+    agent.register_instance_hook(
         "post_acting",
         state.hook_name,
         _make_post_acting_hook(handler),
@@ -162,7 +210,12 @@ def _register_react_hooks(
 
 def _remove_react_hooks(agent: Any, state: _ReactStepState) -> None:
     """Remove React step tracking hooks from an agent instance."""
-    for hook_type in ("pre_reasoning", "post_reasoning", "post_acting"):
+    for hook_type in (
+        "pre_reasoning",
+        "post_reasoning",
+        "pre_acting",
+        "post_acting",
+    ):
         try:
             agent.remove_instance_hook(hook_type, state.hook_name)
         except (ValueError, KeyError):
