@@ -35,6 +35,19 @@ from typing import TYPE_CHECKING, Any
 
 import wrapt
 
+from opentelemetry.instrumentation.langchain.internal._tracer import (
+    LoongsuiteTracer,
+)
+from opentelemetry.util.genai.extended_types import RerankInvocation
+from opentelemetry.util.genai.types import Error
+
+if TYPE_CHECKING:
+    from opentelemetry.util.genai.extended_handler import (
+        ExtendedTelemetryHandler,
+    )
+
+logger = logging.getLogger(__name__)
+
 # Depth counter to avoid duplicate spans when a proxy/wrapper compressor
 # delegates to an inner compressor (both subclasses are patched).
 # Only the outermost call (depth == 0) creates a telemetry span.
@@ -42,19 +55,6 @@ _COMPRESSOR_CALL_DEPTH: contextvars.ContextVar[int] = contextvars.ContextVar(
     "opentelemetry_langchain_compressor_call_depth",
     default=0,
 )
-
-if TYPE_CHECKING:
-    from opentelemetry.util.genai.extended_handler import (
-        ExtendedTelemetryHandler,
-    )
-
-from opentelemetry.instrumentation.langchain.internal._tracer import (
-    LoongsuiteTracer,
-)
-from opentelemetry.util.genai.extended_types import RerankInvocation
-from opentelemetry.util.genai.types import Error
-
-logger = logging.getLogger(__name__)
 
 # Module-level state for uninstrumentation.
 _original_init_subclass: Any = None
@@ -276,9 +276,7 @@ def _make_acompress_documents_wrapper(
                 try:
                     handler.start_rerank(invocation, context=parent_ctx)
                 except Exception:
-                    logger.debug(
-                        "Failed to start rerank span", exc_info=True
-                    )
+                    logger.debug("Failed to start rerank span", exc_info=True)
                     return await wrapped(*args, **kwargs)
 
                 try:
