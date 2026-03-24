@@ -57,7 +57,9 @@ NEXT_SECTION_RE = re.compile(r"^##\s+")
 NO_CHANGELOG_ENTRIES_LINE = "There are no changelog entries for this release."
 
 
-def _unreleased_block_is_empty(lines: List[str], unreleased_line_index: int) -> bool:
+def _unreleased_block_is_empty(
+    lines: List[str], unreleased_line_index: int
+) -> bool:
     """True if the Unreleased section has no non-whitespace body (same bounds as _extract_unreleased)."""
     start = unreleased_line_index + 1
     end = len(lines)

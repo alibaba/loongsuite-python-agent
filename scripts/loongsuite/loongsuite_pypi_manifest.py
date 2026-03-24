@@ -37,7 +37,9 @@ PYPI_SKIP_INSTRUMENTATION_LOONGSUITE: frozenset[str] = frozenset(
     )
 )
 
-_DEFAULT_SKIP_CONFIG = Path(__file__).resolve().parent / "loongsuite-build-config.json"
+_DEFAULT_SKIP_CONFIG = (
+    Path(__file__).resolve().parent / "loongsuite-build-config.json"
+)
 
 
 def load_skip_config(config_path: Path) -> Set[str]:
@@ -80,7 +82,10 @@ def list_pypi_distribution_names(
     names: List[str] = []
 
     util_genai_dir = base_dir / "util" / "opentelemetry-util-genai"
-    if util_genai_dir.is_dir() and (util_genai_dir / "pyproject.toml").is_file():
+    if (
+        util_genai_dir.is_dir()
+        and (util_genai_dir / "pyproject.toml").is_file()
+    ):
         names.append("loongsuite-util-genai")
 
     distro_dir = base_dir / "loongsuite-distro"
