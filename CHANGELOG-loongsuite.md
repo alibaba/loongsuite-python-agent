@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Release tooling: build and publish **`instrumentation-loongsuite/*`** as separate PyPI wheels (with **`loongsuite_pypi_manifest.py`** defining which distributions are uploaded; some remain tar-only until ready), and add a **PyPI packages** section to aggregated release notes
+  ([#155](https://github.com/alibaba/loongsuite-python-agent/pull/155))
+
+### Changed
+
+- **`instrumentation-loongsuite/*`**, **`loongsuite-distro`**, and **`util/opentelemetry-util-genai`**: `pyproject.toml` metadata and dependencies for standalone PyPI installs
+  ([#155](https://github.com/alibaba/loongsuite-python-agent/pull/155))
+
 ## Version 0.2.0 (2026-03-12)
 
 There are no changelog entries for this release.
