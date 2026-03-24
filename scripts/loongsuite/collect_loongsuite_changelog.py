@@ -19,7 +19,8 @@ Collect, archive, and bump LoongSuite changelogs / versions.
 
 Modes:
   --collect          Gather all Unreleased sections and emit a release-notes markdown file.
-  --archive          Replace Unreleased headers with a versioned header in-place.
+  --archive          Replace Unreleased headers with a versioned header in-place
+                     (empty Unreleased bodies get a one-line English placeholder).
   --bump-dev         Bump instrumentation-loongsuite and loongsuite-distro versions to the next dev version.
   --rename-packages  Rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
 
@@ -50,6 +51,20 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 UNRELEASED_RE = re.compile(r"^##\s+\[?Unreleased\]?\s*$", re.IGNORECASE)
 NEXT_SECTION_RE = re.compile(r"^##\s+")
+
+# Inserted under a new version heading when --archive finds an empty Unreleased body.
+NO_CHANGELOG_ENTRIES_LINE = "There are no changelog entries for this release."
+
+
+def _unreleased_block_is_empty(lines: List[str], unreleased_line_index: int) -> bool:
+    """True if the Unreleased section has no non-whitespace body (same bounds as _extract_unreleased)."""
+    start = unreleased_line_index + 1
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if NEXT_SECTION_RE.match(lines[j]):
+            end = j
+            break
+    return "\n".join(lines[start:end]).strip() == ""
 
 
 def _changelog_sources(repo: Path) -> List[Tuple[str, Path]]:
@@ -150,7 +165,12 @@ def collect(
 
 
 def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
-    """Archive Unreleased sections in-place: insert a versioned header below Unreleased."""
+    """Archive Unreleased sections in-place: insert a versioned header below Unreleased.
+
+    When the Unreleased body is empty (same criterion as _extract_unreleased), inserts
+    NO_CHANGELOG_ENTRIES_LINE under the new version heading, with blank lines separating
+    it from the version title and the following section.
+    """
     if date_str is None:
         date_str = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
@@ -171,6 +191,10 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
                 new_lines.append("")
                 new_lines.append(version_header)
                 new_lines.append("")
+
+                if _unreleased_block_is_empty(lines, i):
+                    new_lines.append(NO_CHANGELOG_ENTRIES_LINE)
+                    new_lines.append("")
 
                 # Skip blank lines immediately after the old Unreleased header
                 i += 1

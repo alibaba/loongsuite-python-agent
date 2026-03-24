@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version 0.2.0 (2026-03-12)
 
+There are no changelog entries for this release.
+
 ## Version 0.1.0 (2026-02-28)
 
 ### Fixed
