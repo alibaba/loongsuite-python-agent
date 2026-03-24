@@ -10,7 +10,8 @@ readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "caishipeng.csp@alibaba-inc.com" },
+  { name = "Shipeng Cai", email = "caishipeng.csp@alibaba-inc.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -41,7 +42,8 @@ instruments = [
 claude_agent_sdk = "opentelemetry.instrumentation.claude_agent_sdk:ClaudeAgentSDKInstrumentor"
 
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-claude-agent-sdk"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/claude_agent_sdk/version.py"

@@ -5,52 +5,54 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-agentscope"
 dynamic = ["version"]
-description = "OpenTelemetry AgentScope Instrumentation"
+description = "LoongSuite AgentScope Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-    { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "Shipeng Cai", email = "caishipeng.csp@alibaba-inc.com" },
+  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "opentelemetry-api ~= 1.37",
-    "opentelemetry-instrumentation >= 0.58b0",
-    "opentelemetry-semantic-conventions >= 0.58b0",
-    "opentelemetry-util-genai",
-    "wrapt",
+  "opentelemetry-api ~= 1.37",
+  "opentelemetry-instrumentation >= 0.58b0",
+  "opentelemetry-semantic-conventions >= 0.58b0",
+  "opentelemetry-util-genai",
+  "wrapt",
 ]
 
 [project.optional-dependencies]
 instruments = [
-    "agentscope >= 1.0.0",
+  "agentscope >= 1.0.0",
 ]
 
 test = [
-    "pytest ~= 8.0",
-    "pytest-asyncio ~= 0.23.0",
-    "pytest-cov ~= 4.1.0",
-    "pytest-vcr ~= 1.0.2",
-    "vcrpy ~= 5.1.0",
-    "pyyaml ~= 6.0",
-    "agentscope >= 1.0.0",
+  "pytest ~= 8.0",
+  "pytest-asyncio ~= 0.23.0",
+  "pytest-cov ~= 4.1.0",
+  "pytest-vcr ~= 1.0.2",
+  "vcrpy ~= 5.1.0",
+  "pyyaml ~= 6.0",
+  "agentscope >= 1.0.0",
 ]
 
 [project.entry-points.opentelemetry_instrumentor]
 agentscope = "opentelemetry.instrumentation.agentscope:AgentScopeInstrumentor"
 
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-agentscope"
 Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
@@ -58,8 +60,8 @@ path = "src/opentelemetry/instrumentation/agentscope/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
-    "/tests",
+  "/src",
+  "/tests",
 ]
 
 [tool.hatch.build.targets.wheel]
