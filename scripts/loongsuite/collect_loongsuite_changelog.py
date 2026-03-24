@@ -20,7 +20,7 @@ Collect, archive, and bump LoongSuite changelogs / versions.
 Modes:
   --collect          Gather all Unreleased sections and emit a release-notes markdown file.
   --archive          Replace Unreleased headers with a versioned header in-place.
-  --bump-dev         Bump instrumentation-loongsuite module versions to the next dev version.
+  --bump-dev         Bump instrumentation-loongsuite and loongsuite-distro versions to the next dev version.
   --rename-packages  Rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
 
 Changelog sources (in order):
@@ -213,19 +213,38 @@ def _next_dev_version(released_version: str) -> str:
 def bump_dev(
     released_version: str, repo: Path, next_version: Optional[str] = None
 ) -> None:
-    """Bump all instrumentation-loongsuite module versions to the next dev version."""
+    """Bump instrumentation-loongsuite and loongsuite-distro to the next dev version."""
     next_ver = next_version or _next_dev_version(released_version)
+    version_files: List[Path] = []
+
     inst_dir = repo / "instrumentation-loongsuite"
-    if not inst_dir.is_dir():
-        print(f"WARNING: {inst_dir} not found, skipping version bump")
-        return
+    if inst_dir.is_dir():
+        version_files.extend(sorted(inst_dir.rglob("version.py")))
+    else:
+        print(
+            f"WARNING: {inst_dir} not found, skipping instrumentation-loongsuite version bump"
+        )
 
-    version_files = sorted(inst_dir.rglob("version.py"))
+    distro_version_py = (
+        repo
+        / "loongsuite-distro"
+        / "src"
+        / "loongsuite"
+        / "distro"
+        / "version.py"
+    )
+    if distro_version_py.is_file():
+        version_files.append(distro_version_py)
+    else:
+        print(
+            f"WARNING: {distro_version_py} not found, skipping loongsuite-distro version bump"
+        )
+
     if not version_files:
-        print(f"WARNING: no version.py files found in {inst_dir}")
+        print("WARNING: no version.py files to bump")
         return
 
-    for vf in version_files:
+    for vf in sorted(version_files):
         text = vf.read_text(encoding="utf-8")
         m = VERSION_RE.search(text)
         if m:
@@ -311,7 +330,7 @@ def main() -> None:
     group.add_argument(
         "--bump-dev",
         action="store_true",
-        help="Bump module versions to next dev",
+        help="Bump instrumentation-loongsuite + loongsuite-distro to next dev",
     )
     parser.add_argument(
         "--rename-packages",

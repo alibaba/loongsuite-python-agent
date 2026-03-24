@@ -502,13 +502,14 @@ git push origin v0.1.0
 发布完成后，脚本会自动创建一个 PR 到 `main` 分支，完成两件事：
 
 1. **归档 Changelog**：将各 changelog 文件中的 `Unreleased` 部分标记为已发布的版本号和日期
-2. **升级模块版本**：将 `instrumentation-loongsuite/` 下所有模块的 `version.py` 升级为下一个开发版本
+2. **升级模块版本**：将 `instrumentation-loongsuite/` 下所有模块的 `version.py` 以及 `loongsuite-distro/src/loongsuite/distro/version.py` 升级为下一个开发版本
 
 **版本升级规则：** 发布 `0.1.0` → 模块版本改为 `0.2.0.dev`（minor 版本 +1，后缀 `.dev`）
 
 **受影响的文件：**
 - `CHANGELOG-loongsuite.md`、`util/opentelemetry-util-genai/CHANGELOG-loongsuite.md`、`instrumentation-loongsuite/*/CHANGELOG.md`
 - `instrumentation-loongsuite/*/src/**/version.py`
+- `loongsuite-distro/src/loongsuite/distro/version.py`
 
 **本地执行时**，脚本通过 `gh pr create` 自动创建 PR（需要 `gh` CLI）。  
 **CI 执行时**，`post-release-pr` job 独立完成 PR 创建。
