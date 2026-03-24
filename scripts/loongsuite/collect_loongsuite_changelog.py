@@ -18,7 +18,8 @@
 Collect, archive, and bump LoongSuite changelogs / versions.
 
 Modes:
-  --collect          Gather all Unreleased sections and emit a release-notes markdown file.
+  --collect          Gather all Unreleased sections and emit a release-notes markdown file
+                     (includes a PyPI distribution list from loongsuite_pypi_manifest).
   --archive          Replace Unreleased headers with a versioned header in-place
                      (empty Unreleased bodies get a one-line English placeholder).
   --bump-dev         Bump instrumentation-loongsuite and loongsuite-distro versions to the next dev version.
@@ -126,6 +127,18 @@ def _collapse_link_linebreaks(text: str) -> str:
     return re.sub(r"\n[ \t]+(\(\[#)", r" \1", text)
 
 
+def _list_pypi_distribution_names(repo: Path) -> List[str]:
+    """Same inclusion rules as ``build_pypi_packages`` (see ``loongsuite_pypi_manifest``)."""
+    script_dir = repo / "scripts" / "loongsuite"
+    if not (script_dir / "loongsuite_pypi_manifest.py").is_file():
+        return []
+    if str(script_dir) not in sys.path:
+        sys.path.insert(0, str(script_dir))
+    import loongsuite_pypi_manifest as lpm  # noqa: PLC0415
+
+    return lpm.list_pypi_distribution_names(repo)
+
+
 def collect(
     version: str, upstream_version: str, output: Path, repo: Path
 ) -> None:
@@ -140,6 +153,20 @@ def collect(
     parts.append("## Package Versions\n")
     parts.append(f"- loongsuite-* packages: {version}")
     parts.append(f"- opentelemetry-* packages: {upstream_version}\n")
+    parts.append("## PyPI packages\n")
+    parts.append(
+        "The following distributions are built and uploaded to PyPI for this release:\n"
+    )
+    pypi_dists = _list_pypi_distribution_names(repo)
+    if pypi_dists:
+        for dist_name in pypi_dists:
+            parts.append(f"- `{dist_name}`")
+    else:
+        parts.append(
+            "- _(Could not resolve the list; ensure "
+            "`scripts/loongsuite/build_loongsuite_package.py` is present.)_"
+        )
+    parts.append("")
     parts.append("---\n")
 
     found_any = False

@@ -41,7 +41,6 @@ Package name replacement (for instrumentation-genai/):
 """
 
 import argparse
-import json
 import logging
 import re
 import subprocess
@@ -53,19 +52,13 @@ from typing import Any, Dict, List, Optional, Set
 
 import tomlkit
 
+from loongsuite_pypi_manifest import (
+    PYPI_SKIP_INSTRUMENTATION_LOONGSUITE,
+    load_skip_config,
+)
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
-
-
-def load_skip_config(config_path: Path) -> Set[str]:
-    """Load package names to skip from config file"""
-    if not config_path.exists():
-        return set()
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
-
-    return set(config.get("skip_packages", []))
 
 
 def depends_on_util_genai(pyproject_path: Path) -> bool:
@@ -346,6 +339,11 @@ def build_pypi_packages(
             pkg_name = package_dir.name
             if pkg_name in skip_packages:
                 logger.info(f"Skipping {pkg_name} (in skip list)")
+                continue
+            if pkg_name in PYPI_SKIP_INSTRUMENTATION_LOONGSUITE:
+                logger.info(
+                    f"Skipping {pkg_name} for PyPI (FIXME: enable after sufficient testing)"
+                )
                 continue
 
             modifications = package_release_modifications(

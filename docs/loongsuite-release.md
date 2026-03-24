@@ -63,7 +63,7 @@ LoongSuite 采用**双轨发布策略**：
 |-----------|----------|------|------|
 | `loongsuite-util-genai` | **PyPI** | `util/opentelemetry-util-genai` | 重命名后发布 |
 | `loongsuite-distro` | **PyPI** | `loongsuite-distro` | 引导器 |
-| `loongsuite-instrumentation-*`（`instrumentation-loongsuite/*`） | **PyPI** | 各插件目录 | 与 release 版本对齐的独立 wheel |
+| `loongsuite-instrumentation-*`（`instrumentation-loongsuite/*`） | **PyPI** | 各插件目录 | 与 release 版本对齐的独立 wheel（`agno` / `mcp` / `dify` 暂不上 PyPI，见构建脚本 FIXME） |
 | `loongsuite-instrumentation-*` | **GitHub Release** | `instrumentation-genai/*` + `instrumentation-loongsuite/*` | 仍打入 tar.gz，供 bootstrap 离线安装 |
 | `opentelemetry-instrumentation-*` | **PyPI (上游)** | `instrumentation/*` | 由上游 OpenTelemetry 发布 |
 
@@ -76,7 +76,7 @@ LoongSuite 采用**双轨发布策略**：
 │   └── depends: opentelemetry-api, opentelemetry-sdk
 ├── loongsuite-util-genai (PyPI)
 │   └── GenAI 通用工具库
-├── loongsuite-instrumentation-*（PyPI：`instrumentation-loongsuite/*`；tar 内仍含全部 loongsuite 插桩）
+├── loongsuite-instrumentation-*（PyPI：除 agno/mcp/dify 外其余 `instrumentation-loongsuite/*`；tar 内仍含全部 loongsuite 插桩）
 │   ├── loongsuite-instrumentation-dashscope
 │   ├── loongsuite-instrumentation-vertexai (renamed from opentelemetry-*)
 │   └── ... (依赖 loongsuite-util-genai)
@@ -157,7 +157,7 @@ python scripts/loongsuite/build_loongsuite_package.py --build-pypi \
 - 构建 `util/opentelemetry-util-genai` → 输出 `loongsuite_util_genai-*.whl`
   - 使用 TOML 解析修改 `pyproject.toml` 中的 `name` 字段
 - 构建 `loongsuite-distro` → 输出 `loongsuite_distro-*.whl`
-- 遍历 `instrumentation-loongsuite/*` → 各输出 `loongsuite_instrumentation_*-*.whl`（依赖中的 `opentelemetry-util-genai` 临时替换为 `loongsuite-util-genai`，与 GitHub Release 构建一致；受 `loongsuite-build-config.json` 的 `skip_packages` 约束）
+- 遍历 `instrumentation-loongsuite/*` → 输出 `loongsuite_instrumentation_*-*.whl`（`agno` / `mcp` / `dify` 在 `loongsuite_pypi_manifest.py` 中硬编码跳过 PyPI，FIXME 待测全后放开；依赖中的 `opentelemetry-util-genai` 临时替换为 `loongsuite-util-genai`；另受 `loongsuite-build-config.json` 的 `skip_packages` 约束）；`--collect` 生成的 release notes 含本次上传 PyPI 的发行版名列表（与 manifest 一致）
 
 #### Step 3: 构建 GitHub Release 包
 
@@ -411,7 +411,7 @@ Dry Run 模式**不会**创建分支、归档 changelog、提交代码或创建 
 
 **验证要点：**
 
-- `loongsuite-util-genai`、`loongsuite-distro` 以及 `instrumentation-loongsuite` 各 `loongsuite-instrumentation-*` 的 wheel 在 `dist-pypi/` 中（发布到 PyPI）
+- `loongsuite-util-genai`、`loongsuite-distro` 以及 `instrumentation-loongsuite` 中参与 PyPI 构建的 `loongsuite-instrumentation-*` wheel 在 `dist-pypi/` 中（`agno` / `mcp` / `dify` 当前不产出 PyPI wheel）
 - `loongsuite-util-genai` 不在 `tar.gz` 中
 - `loongsuite-instrumentation-*`（含 genai 重命名包与 loongsuite 插件）在 `tar.gz` 中
 - `opentelemetry-util-genai` 不在任何产物中（避免冲突）
@@ -496,7 +496,7 @@ git push origin v0.1.0
 
 **重要说明：**
 
-- `dist-pypi/` 中的 `loongsuite_util_genai-*.whl`、`loongsuite_distro-*.whl` 以及 `loongsuite_instrumentation_*.whl`（`instrumentation-loongsuite` 各插件）会上传到 PyPI；每个新插件首次发布前需在 PyPI 上完成项目/Trusted Publisher 配置
+- `dist-pypi/` 中的 `loongsuite_util_genai-*.whl`、`loongsuite_distro-*.whl` 以及 `loongsuite_instrumentation_*.whl`（`instrumentation-loongsuite` 中当前参与 PyPI 构建的插件；`agno` / `mcp` / `dify` 暂排除）会上传到 PyPI；每个新插件首次发布前需在 PyPI 上完成项目/Trusted Publisher 配置
 - `loongsuite-python-agent-*.tar.gz` 仅用于 GitHub Release，**禁止**上传到 PyPI
 
 ### 5.4 Post-Release PR
