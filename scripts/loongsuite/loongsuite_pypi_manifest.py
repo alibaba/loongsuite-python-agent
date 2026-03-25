@@ -92,6 +92,12 @@ def list_pypi_distribution_names(
     if distro_dir.is_dir() and (distro_dir / "pyproject.toml").is_file():
         names.append("loongsuite-distro")
 
+    site_bootstrap_dir = base_dir / "loongsuite-site-bootstrap"
+    if site_bootstrap_dir.is_dir() and (
+        site_bootstrap_dir / "pyproject.toml"
+    ).is_file():
+        names.append("loongsuite-site-bootstrap")
+
     inst_dir = base_dir / "instrumentation-loongsuite"
     if inst_dir.is_dir():
         for package_dir in sorted(inst_dir.iterdir()):

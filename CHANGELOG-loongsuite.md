@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Release tooling: build and publish **`instrumentation-loongsuite/*`** as separate PyPI wheels (with **`loongsuite_pypi_manifest.py`** defining which distributions are uploaded; some remain tar-only until ready), and add a **PyPI packages** section to aggregated release notes
   ([#155](https://github.com/alibaba/loongsuite-python-agent/pull/155))
+- **`loongsuite-site-bootstrap`**: initialize .pth-based OTel auto-instrumentation package
+  ([#156](https://github.com/alibaba/loongsuite-python-agent/pull/156))
 
 ### Changed
 

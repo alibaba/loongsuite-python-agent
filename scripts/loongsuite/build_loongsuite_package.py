@@ -22,6 +22,7 @@ This script supports the following release modes:
 1. --build-pypi: Build packages for PyPI publishing
    - loongsuite-util-genai (renamed from opentelemetry-util-genai)
    - loongsuite-distro
+   - loongsuite-site-bootstrap
    - loongsuite-instrumentation-* (each package under instrumentation-loongsuite/)
 
 2. --build-github-release: Build packages for GitHub Release (tar.gz)
@@ -273,6 +274,7 @@ def build_pypi_packages(
     Build packages for PyPI:
     - loongsuite-util-genai (renamed from opentelemetry-util-genai)
     - loongsuite-distro
+    - loongsuite-site-bootstrap
     - each loongsuite-instrumentation-* under instrumentation-loongsuite/
     """
     all_whl_files = []
@@ -324,7 +326,32 @@ def build_pypi_packages(
             all_whl_files.extend(whl_files)
             existing_whl_files.update(whl_files)
 
-    # 3. Build instrumentation-loongsuite/* (loongsuite-instrumentation-* on PyPI)
+    # 3. Build loongsuite-site-bootstrap
+    site_bootstrap_dir = base_dir / "loongsuite-site-bootstrap"
+    if site_bootstrap_dir.exists() and (
+        site_bootstrap_dir / "pyproject.toml"
+    ).exists():
+        logger.info(f"Building loongsuite-site-bootstrap (version {version})...")
+        version_py = find_version_py(site_bootstrap_dir)
+        modifications = {
+            "replace_dependency": {
+                "old_pattern": "loongsuite-distro",
+                "new_value": f"loongsuite-distro ~= {version}",
+            },
+        }
+        with _patch_pyproject(site_bootstrap_dir / "pyproject.toml", modifications):
+            with (
+                _patch_version_py(version_py, version)
+                if version_py
+                else nullcontext()
+            ):
+                whl_files = build_package(
+                    site_bootstrap_dir, dist_dir, existing_whl_files
+                )
+                all_whl_files.extend(whl_files)
+                existing_whl_files.update(whl_files)
+
+    # 4. Build instrumentation-loongsuite/* (loongsuite-instrumentation-* on PyPI)
     instrumentation_loongsuite_dir = base_dir / "instrumentation-loongsuite"
     if instrumentation_loongsuite_dir.exists():
         logger.info("Building instrumentation-loongsuite packages for PyPI...")
@@ -573,7 +600,7 @@ Examples:
         action="store_true",
         help=(
             "Build packages for PyPI (loongsuite-util-genai, loongsuite-distro, "
-            "instrumentation-loongsuite/*)"
+            "loongsuite-site-bootstrap, instrumentation-loongsuite/*)"
         ),
     )
     parser.add_argument(
