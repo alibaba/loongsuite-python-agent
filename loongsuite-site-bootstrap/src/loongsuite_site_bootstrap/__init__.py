@@ -16,13 +16,16 @@
 LoongSuite site-packages bootstrap: imported from a .pth line during site
 initialization when this distribution is installed.
 
-Before other bootstrap logic, values from ``~/.loongsuite/bootstrap-config.json``
-are merged with the process environment (env > file), then **written back** into
-``os.environ`` for every key declared in that file so OTLP / OTel settings are
-materialized for downstream code and child processes.
+Gate order for ``LOONGSUITE_PYTHON_SITE_BOOTSTRAP``:
 
-Auto-instrumentation runs only when LOONGSUITE_PYTHON_SITE_BOOTSTRAP is truthy;
-otherwise this module is a no-op and avoids importing OpenTelemetry.
+1. If the variable **is set** in ``os.environ`` and is not truthy, skip the rest
+   (do not read ``bootstrap-config.json``, do not run OpenTelemetry).
+2. If it is **unset** in ``os.environ``, read ``~/.loongsuite/bootstrap-config.json``;
+   enable only when that file maps the key to a truthy value. Otherwise skip.
+
+When enabled, keys from ``bootstrap-config.json`` are applied only for names
+**missing** from ``os.environ`` (``setdefault``-like semantics), then optional
+OpenTelemetry auto-instrumentation runs.
 """
 
 from __future__ import annotations
@@ -66,10 +69,14 @@ def _coerce_env_value(value: object) -> str | None:
     return json.dumps(value, separators=(",", ":"))
 
 
-def _load_bootstrap_config_json() -> None:
+def _is_truthy_string(val: str) -> bool:
+    return val.strip().lower() in _TRUTHY
+
+
+def _read_bootstrap_config_file() -> dict[str, str] | None:
     path = Path.home() / ".loongsuite" / "bootstrap-config.json"
     if not path.is_file():
-        return
+        return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (
@@ -81,13 +88,13 @@ def _load_bootstrap_config_json() -> None:
         _LOGGER.warning(
             "Ignoring invalid LoongSuite bootstrap config %s: %s", path, exc
         )
-        return
+        return None
     if not isinstance(data, dict):
         _LOGGER.warning(
             "Ignoring LoongSuite bootstrap config %s: root must be a JSON object",
             path,
         )
-        return
+        return None
     file_defaults: dict[str, str] = {}
     for key, value in data.items():
         if not isinstance(key, str):
@@ -96,22 +103,58 @@ def _load_bootstrap_config_json() -> None:
         if coerced is None:
             continue
         file_defaults[key] = coerced
+    return file_defaults if file_defaults else None
+
+
+def _apply_bootstrap_config_defaults(file_defaults: dict[str, str] | None) -> None:
     if not file_defaults:
+        _LOGGER.debug(
+            "loongsuite-site-bootstrap: no bootstrap-config.json keys to consider "
+            "(file missing, invalid, or empty)",
+        )
         return
-    # Snapshot process env for these keys so real env always wins over JSON.
-    env_winners = {k: os.environ[k] for k in file_defaults if k in os.environ}
-    for key, from_file in file_defaults.items():
-        os.environ[key] = env_winners.get(key, from_file)
+    applied: list[str] = []
+    skipped: list[str] = []
+    for key, value in file_defaults.items():
+        if key in os.environ:
+            skipped.append(key)
+            continue
+        os.environ[key] = value
+        applied.append(key)
+    _LOGGER.debug(
+        "loongsuite-site-bootstrap: from bootstrap-config.json, "
+        "set %d unset key(s): %s; skipped %d already set: %s",
+        len(applied),
+        ", ".join(applied) if applied else "(none)",
+        len(skipped),
+        ", ".join(skipped) if skipped else "(none)",
+    )
 
 
-_load_bootstrap_config_json()
-
-
-def _is_enabled() -> bool:
-    val = os.environ.get(LOONGSUITE_PYTHON_SITE_BOOTSTRAP)
-    if val is None:
+def _bootstrap_switch_enabled(file_defaults: dict[str, str] | None) -> bool:
+    """Return whether the bootstrap feature is enabled (without reading JSON twice)."""
+    env_val = os.environ.get(LOONGSUITE_PYTHON_SITE_BOOTSTRAP)
+    if env_val is not None:
+        return _is_truthy_string(env_val)
+    if not file_defaults:
         return False
-    return val.strip().lower() in _TRUTHY
+    cfg_val = file_defaults.get(LOONGSUITE_PYTHON_SITE_BOOTSTRAP)
+    if cfg_val is None:
+        return False
+    return _is_truthy_string(cfg_val)
+
+
+def _run_bootstrap_if_enabled() -> None:
+    env_val = os.environ.get(LOONGSUITE_PYTHON_SITE_BOOTSTRAP)
+    if env_val is not None and not _is_truthy_string(env_val):
+        return
+
+    file_defaults = _read_bootstrap_config_file()
+    if not _bootstrap_switch_enabled(file_defaults):
+        return
+
+    _apply_bootstrap_config_defaults(file_defaults)
+    _run_auto_instrumentation()
 
 
 def _run_auto_instrumentation() -> None:
@@ -130,7 +173,6 @@ def _run_auto_instrumentation() -> None:
     )
 
 
-if _is_enabled():
-    _run_auto_instrumentation()
+_run_bootstrap_if_enabled()
 
 __all__ = ["LOONGSUITE_PYTHON_SITE_BOOTSTRAP", "__version__"]
