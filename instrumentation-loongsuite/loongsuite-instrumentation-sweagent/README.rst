@@ -20,7 +20,7 @@ Spans
      - ``enter`` / ``ENTRY``
 
    * - ``CombinedAgentHook.on_run_start`` → ``on_run_done``
-     - ``invoke_agent``
+     - ``invoke_agent swe-agent`` (``gen_ai.agent.name``); ``input_messages`` / ``output_messages`` match the entry span (same problem-statement user text via thread-local from ``on_instance_start``, same run summary as ``AgentRunResult`` via ``info`` + ``trajectory``); ``gen_ai.conversation.id`` = problem id when set; token usage from ``info.model_stats`` when present
      - ``invoke_agent`` / ``AGENT``
 
    * - ``CombinedAgentHook.on_step_start`` → ``on_step_done``

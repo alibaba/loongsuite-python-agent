@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock
 
 from sweagent.agent.hooks.abstract import CombinedAgentHook
@@ -21,6 +22,7 @@ from sweagent.run.hooks.abstract import CombinedRunHooks
 from sweagent.types import AgentInfo, AgentRunResult, StepOutput
 
 from opentelemetry.instrumentation.sweagent.patch import (
+    SWEAGENT_AGENT_NAME,
     SWEAGENT_BASH_TOOL_NAME,
     tool_call_arguments_from_sweagent_step,
     tool_name_from_sweagent_step,
@@ -39,6 +41,9 @@ from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 ENTRY_SPAN_NAME = "enter_ai_application_system"
 REACT_SPAN_NAME = "react step"
 TOOL_SPAN_PREFIX = "execute_tool "
+INVOKE_AGENT_SPAN_NAME = (
+    f"{GenAI.GenAiOperationNameValues.INVOKE_AGENT.value} {SWEAGENT_AGENT_NAME}"
+)
 
 
 def test_tool_name_from_step_llm_tool_calls():
@@ -160,10 +165,18 @@ def test_invoke_agent_span(instrumented_sweagent, span_exporter):
     spans = span_exporter.get_finished_spans()
     assert len(spans) == 1
     span = spans[0]
-    assert span.name == GenAI.GenAiOperationNameValues.INVOKE_AGENT.value
+    assert span.name == INVOKE_AGENT_SPAN_NAME
     attrs = _get_attrs(span)
     assert attrs.get(GenAI.GEN_AI_OPERATION_NAME) == "invoke_agent"
+    assert attrs.get(GenAI.GEN_AI_AGENT_NAME) == SWEAGENT_AGENT_NAME
     assert attrs.get(GEN_AI_SPAN_KIND) == GenAiSpanKindValues.AGENT.value
+    in_raw = attrs.get(GenAI.GEN_AI_INPUT_MESSAGES)
+    out_raw = attrs.get(GenAI.GEN_AI_OUTPUT_MESSAGES)
+    assert in_raw is not None and out_raw is not None
+    in_msgs = json.loads(in_raw)
+    assert in_msgs[0]["parts"][0]["content"] == "(empty)"
+    out_msgs = json.loads(out_raw)
+    assert out_msgs[0]["role"] == "assistant"
 
 
 def test_handle_action_execute_tool_span(tracer_provider, span_exporter):
@@ -233,18 +246,20 @@ def test_nested_hook_hierarchy(instrumented_sweagent, span_exporter):
         by_name.setdefault(s.name, []).append(s)
 
     assert ENTRY_SPAN_NAME in by_name
-    assert (
-        GenAI.GenAiOperationNameValues.INVOKE_AGENT.value in by_name
-    )
+    assert INVOKE_AGENT_SPAN_NAME in by_name
     assert REACT_SPAN_NAME in by_name
     tool_name = f"execute_tool {SWEAGENT_BASH_TOOL_NAME}"
     assert tool_name in by_name
 
     entry_span = by_name[ENTRY_SPAN_NAME][0]
-    invoke_span = by_name[GenAI.GenAiOperationNameValues.INVOKE_AGENT.value][0]
+    invoke_span = by_name[INVOKE_AGENT_SPAN_NAME][0]
     react_span = by_name[REACT_SPAN_NAME][0]
     tool_span = by_name[tool_name][0]
 
     assert invoke_span.parent.span_id == entry_span.context.span_id
     assert react_span.parent.span_id == invoke_span.context.span_id
     assert tool_span.parent.span_id == react_span.context.span_id
+
+    assert invoke_span.attributes.get(GenAI.GEN_AI_CONVERSATION_ID) == "nested-1"
+    in_msgs = json.loads(invoke_span.attributes[GenAI.GEN_AI_INPUT_MESSAGES])
+    assert in_msgs[0]["parts"][0]["content"] == "task"

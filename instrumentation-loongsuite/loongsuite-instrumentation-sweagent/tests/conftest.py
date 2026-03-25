@@ -49,6 +49,9 @@ def pytest_configure(config):
     os.environ.setdefault(
         "OTEL_SEMCONV_STABILITY_OPT_IN", "gen_ai_latest_experimental"
     )
+    os.environ.setdefault(
+        "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "SPAN_ONLY"
+    )
 
 
 @pytest.fixture(name="span_exporter")

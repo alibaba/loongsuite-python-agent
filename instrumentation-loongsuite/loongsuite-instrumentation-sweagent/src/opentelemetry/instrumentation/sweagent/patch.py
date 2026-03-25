@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+from types import SimpleNamespace
 from typing import Any
 
 from opentelemetry.util.genai._extended_common import (
@@ -39,8 +41,16 @@ from opentelemetry.util.genai.types import (
 logger = logging.getLogger(__name__)
 
 SWEAGENT_PROVIDER = "sweagent"
+SWEAGENT_AGENT_NAME = "swe-agent"
+SWEAGENT_AGENT_DESCRIPTION = (
+    "SWE-agent autonomous software engineering agent (bash/tools loop)"
+)
 SWEAGENT_BASH_TOOL_NAME = "sweagent_bash"
 _PROBLEM_TEXT_MAX_LEN = 4096
+
+# Links CombinedRunHooks.on_instance_start(problem_statement=...) to
+# CombinedAgentHook.on_run_start() on the same thread (no PS in hook kwargs).
+_instance_tls = threading.local()
 
 
 def _tool_name_from_tool_call_item(call: Any) -> str | None:
@@ -176,22 +186,54 @@ def _problem_statement_id_and_text(problem_statement: Any) -> tuple[str | None, 
     return instance_id, _truncate(text or "")
 
 
-def _build_entry_output_summary(result: Any) -> str:
-    """Build a text summary for Entry output_messages from AgentRunResult-like object."""
-    info = getattr(result, "info", None) or {}
-    traj = getattr(result, "trajectory", None) or []
+def _build_agent_run_summary(info: Any, trajectory: Any) -> str:
+    """Human-readable summary from SWE-agent ``info`` + ``trajectory`` (entry / invoke_agent output)."""
+    if not isinstance(info, dict):
+        info = {}
+    traj = trajectory or []
     parts: list[str] = []
-    exit_status = info.get("exit_status") if isinstance(info, dict) else None
+    exit_status = info.get("exit_status")
     if exit_status is not None:
         parts.append(f"exit_status={exit_status!r}")
     parts.append(f"trajectory_len={len(traj)}")
-    sub = info.get("submission") if isinstance(info, dict) else None
+    sub = info.get("submission")
     if sub:
         parts.append(f"submission_preview={_truncate(str(sub), 512)!r}")
-    ms = info.get("model_stats") if isinstance(info, dict) else None
+    ms = info.get("model_stats")
     if ms:
         parts.append(f"model_stats={ms!r}")
     return "\n".join(parts)
+
+
+def _build_entry_output_summary(result: Any) -> str:
+    """Build a text summary for Entry output_messages from AgentRunResult-like object."""
+    info = getattr(result, "info", None)
+    traj = getattr(result, "trajectory", None)
+    return _build_agent_run_summary(info, traj)
+
+
+def _apply_agent_info_to_invocation(inv: InvokeAgentInvocation, info: Any) -> None:
+    """Map SWE-agent ``AgentInfo`` to semconv-oriented invoke_agent fields when present."""
+    if not isinstance(info, dict):
+        return
+    exit_status = info.get("exit_status")
+    if exit_status is not None:
+        inv.finish_reasons = [str(exit_status)]
+    ms = info.get("model_stats")
+    if not isinstance(ms, dict):
+        return
+    ts = ms.get("tokens_sent")
+    tr = ms.get("tokens_received")
+    if ts is not None:
+        try:
+            inv.input_tokens = int(ts)
+        except (TypeError, ValueError):
+            pass
+    if tr is not None:
+        try:
+            inv.output_tokens = int(tr)
+        except (TypeError, ValueError):
+            pass
 
 
 def wrap_combined_run_hooks_on_instance_start(
@@ -208,11 +250,13 @@ def wrap_combined_run_hooks_on_instance_start(
     )
     handler.start_entry(inv)
     setattr(instance, "_loongsuite_entry_invocation", inv)
+    _instance_tls.problem_statement = kwargs.get("problem_statement")
     try:
         return wrapped(*args, **kwargs)
     except Exception as exc:
         handler.fail_entry(inv, Error(message=str(exc), type=type(exc)))
         delattr(instance, "_loongsuite_entry_invocation")
+        _instance_tls.problem_statement = None
         raise
 
 
@@ -242,12 +286,24 @@ def wrap_combined_run_hooks_on_instance_completed(
             handler.stop_entry(inv)
         finally:
             delattr(instance, "_loongsuite_entry_invocation")
+            _instance_tls.problem_statement = None
 
 
 def wrap_combined_agent_hook_on_run_start(
     handler: ExtendedTelemetryHandler, wrapped, instance, args, kwargs
 ):
-    inv = InvokeAgentInvocation(provider=SWEAGENT_PROVIDER)
+    # Same user message shape as ``EntryInvocation`` (``on_instance_start``).
+    ps = getattr(_instance_tls, "problem_statement", None)
+    instance_id, body = _problem_statement_id_and_text(ps)
+    inv = InvokeAgentInvocation(
+        provider=SWEAGENT_PROVIDER,
+        agent_name=SWEAGENT_AGENT_NAME,
+        agent_description=SWEAGENT_AGENT_DESCRIPTION,
+        conversation_id=str(instance_id) if instance_id is not None else None,
+        input_messages=[
+            InputMessage(role="user", parts=[Text(content=body or "(empty)")])
+        ],
+    )
     handler.start_invoke_agent(inv)
     setattr(instance, "_loongsuite_invoke_invocation", inv)
     try:
@@ -269,6 +325,20 @@ def wrap_combined_agent_hook_on_run_done(
         inv = getattr(instance, "_loongsuite_invoke_invocation", None)
         if inv is None:
             return
+        # Same summary text as entry ``on_instance_completed`` (``AgentRunResult``-like).
+        result_like = SimpleNamespace(
+            info=kwargs.get("info"),
+            trajectory=kwargs.get("trajectory"),
+        )
+        summary = _build_entry_output_summary(result_like)
+        inv.output_messages = [
+            OutputMessage(
+                role="assistant",
+                parts=[Text(content=summary)],
+                finish_reason="stop",
+            )
+        ]
+        _apply_agent_info_to_invocation(inv, result_like.info)
         try:
             handler.stop_invoke_agent(inv)
         finally:
