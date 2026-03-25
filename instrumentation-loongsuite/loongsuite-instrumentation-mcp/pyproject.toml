@@ -5,12 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-mcp"
 dynamic = ["version"]
-description = "OpenTelemetry MCP (Model Context Protocol) instrumentation"
+description = "LoongSuite Model Context Protocol (MCP) instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-  { name = "LoongSuite Python Agent Authors"},
+  { name = "Hui Gao", email = "shuizhao.gh@alibaba-inc.com" },
+  { name = "Xingyuan Cheng", email = "windwheel555@outlook.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -33,6 +35,7 @@ dependencies = [
 instruments = [
   "mcp >= 1.3.0, <= 1.25.0",
 ]
+
 test = [
   "opentelemetry-sdk",
   "fastmcp>=2.10.1",
@@ -45,7 +48,6 @@ test = [
   "starlette",
   "pydantic",
 ]
-type-check = []
 
 [project.entry-points.opentelemetry_instrumentor]
 mcp = "opentelemetry.instrumentation.mcp:MCPInstrumentor"
@@ -59,7 +61,8 @@ path = "src/opentelemetry/instrumentation/mcp/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "src",
+  "/src",
+  "/tests",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -77,10 +80,13 @@ addopts = """
 filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:UserWarning::"
 ]
+
 [tool.basedpyright]
 reportPossiblyUnboundVariable = "none"
+
 [tool.cursorpyright]
 reportPossiblyUnboundVariable = "none"
+
 [tool.pyright]
 reportPossiblyUnboundVariable = "none"
 typeCheckingMode = "off"

@@ -5,55 +5,60 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-agno"
 dynamic = ["version"]
-description = "OpenTelemetry Agno Instrumentation"
+description = "LoongSuite Agno Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-    { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "Peng Qi", email = "qp467389@alibaba-inc.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "opentelemetry-api ~= 1.37",
-    "opentelemetry-instrumentation >= 0.58b0",
-    "opentelemetry-semantic-conventions >= 0.58b0",
+  "opentelemetry-api ~= 1.37",
+  "opentelemetry-instrumentation >= 0.58b0",
+  "opentelemetry-semantic-conventions >= 0.58b0",
 ]
 
 [project.optional-dependencies]
 instruments = [
-    "agno",
+  "agno",
 ]
-test = [
-    "agno",
-    "openai",
-    "pytest",
-    "opentelemetry-sdk",
-    "yfinance",
-]
-type-check = []
 
+test = [
+  "agno",
+  "openai",
+  "pytest",
+  "opentelemetry-sdk",
+  "yfinance",
+]
+
+[project.entry-points.opentelemetry_instrumentor]
+agno = "opentelemetry.instrumentation.agno:AgnoInstrumentor"
+
+[project.urls]
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-agno"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/agno/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src",
+  "src",
+  "/tests",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opentelemetry"]
-
-[project.entry-points.opentelemetry_instrumentor]
-agno = "opentelemetry.instrumentation.agno:AgnoInstrumentor"

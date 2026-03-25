@@ -88,11 +88,21 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
 
 ## Supported Components
 
-- **Models**: ChatModelBase and all subclasses
-- **Agents**: AgentBase and all subclasses
-- **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks)
+- **Models**: ChatModelBase and all subclasses (nested `__call__` / proxy chains emit a single LLM span per logical invocation)
+- **Agents**: AgentBase and all subclasses (same for stacked `AgentBase.__call__`)
+- **ReAct Steps**: Per-iteration `react step` spans for ReActAgent (via instance hooks); nested overrides that call `super()._reasoning` / `super()._acting` still produce one step per logical iteration
 - **Tools**: Toolkit.call_tool_function
 - **Formatters**: TruncatedFormatterBase.format
+
+## Concurrency (agents)
+
+ReAct step tracing stores temporary state on the agent instance for the
+duration of each `AgentBase.__call__`. **AgentScope itself models a single
+in-flight reply per instance** (see `AgentBase._reply_task` / `_reply_id` in
+agentscope): concurrent overlapping `await agent(...)` on the **same**
+instance is unsupported and can corrupt traces, hook state, and interrupt
+behavior. Use one instance per concurrent conversation, or serialize calls
+with a lock or queue.
 
 ## Visualization
 

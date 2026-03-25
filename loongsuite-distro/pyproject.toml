@@ -10,7 +10,8 @@ readme = "README.rst"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "qp467389@alibaba-inc.com" },
+  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -62,5 +63,3 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/loongsuite"]
-
-

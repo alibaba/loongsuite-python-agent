@@ -5,15 +5,16 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-dify"
 dynamic = ["version"]
-description = "OpenTelemetry Dify Instrumentation"
+description = "LoongSuite Dify Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-    { name = "LoongSuite Python Agent Authors", email = "" },
+    { name = "Ziteng Shi", email = "shiziteng.szt@alibaba-inc.com" },
+    { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
@@ -33,23 +34,27 @@ dependencies = [
 [project.optional-dependencies]
 instruments = [
 ]
+
 test = [
     "pytest",
     "opentelemetry-sdk",
 ]
-type-check = []
 
+[project.entry-points.opentelemetry_instrumentor]
+dify = "opentelemetry.instrumentation.dify:DifyInstrumentor"
+
+[project.urls]
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-agentscope"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/dify/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src",
+    "/src",
+    "/tests",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opentelemetry"]
-
-[project.entry-points.opentelemetry_instrumentor]
-dify = "opentelemetry.instrumentation.dify:DifyInstrumentor"

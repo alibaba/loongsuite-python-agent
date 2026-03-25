@@ -11,6 +11,7 @@ license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
   { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,7 +41,8 @@ instruments = [
 dashscope = "opentelemetry.instrumentation.dashscope:DashScopeInstrumentor"
 
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-dashscope"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/dashscope/version.py"

@@ -5,11 +5,15 @@ build-backend = "hatchling.build"
 [project]
 name = "opentelemetry-util-genai"
 dynamic = ["version"]
-description = "OpenTelemetry GenAI Utils"
-readme = "README.rst"
+# LoongSuite Extension
+description = "LoongSuite GenAI Utils"
+readme = "README-loongsuite.rst"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
+  # LoongSuite Extension
+  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "Tao Yu", email = "yt348264@alibaba-inc.com" },
   { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
@@ -47,8 +51,9 @@ multimodal_upload = ["httpx", "fsspec>=2025.9.0"]
 audio_conversion = ["numpy", "soundfile"]
 
 [project.urls]
-Homepage = "https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/util/opentelemetry-util-genai"
-Repository = "https://github.com/open-telemetry/opentelemetry-python-contrib"
+# LoongSuite Extension
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/util/opentelemetry-util-genai"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/util/genai/version.py"

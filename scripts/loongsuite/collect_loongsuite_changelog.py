@@ -18,9 +18,11 @@
 Collect, archive, and bump LoongSuite changelogs / versions.
 
 Modes:
-  --collect          Gather all Unreleased sections and emit a release-notes markdown file.
-  --archive          Replace Unreleased headers with a versioned header in-place.
-  --bump-dev         Bump instrumentation-loongsuite module versions to the next dev version.
+  --collect          Gather all Unreleased sections and emit a release-notes markdown file
+                     (includes a PyPI distribution list from loongsuite_pypi_manifest).
+  --archive          Replace Unreleased headers with a versioned header in-place
+                     (empty Unreleased bodies get a one-line English placeholder).
+  --bump-dev         Bump instrumentation-loongsuite and loongsuite-distro versions to the next dev version.
   --rename-packages  Rename opentelemetry-util-genai to loongsuite-util-genai in pyproject.toml files.
 
 Changelog sources (in order):
@@ -50,6 +52,22 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 UNRELEASED_RE = re.compile(r"^##\s+\[?Unreleased\]?\s*$", re.IGNORECASE)
 NEXT_SECTION_RE = re.compile(r"^##\s+")
+
+# Inserted under a new version heading when --archive finds an empty Unreleased body.
+NO_CHANGELOG_ENTRIES_LINE = "There are no changelog entries for this release."
+
+
+def _unreleased_block_is_empty(
+    lines: List[str], unreleased_line_index: int
+) -> bool:
+    """True if the Unreleased section has no non-whitespace body (same bounds as _extract_unreleased)."""
+    start = unreleased_line_index + 1
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if NEXT_SECTION_RE.match(lines[j]):
+            end = j
+            break
+    return "\n".join(lines[start:end]).strip() == ""
 
 
 def _changelog_sources(repo: Path) -> List[Tuple[str, Path]]:
@@ -111,6 +129,18 @@ def _collapse_link_linebreaks(text: str) -> str:
     return re.sub(r"\n[ \t]+(\(\[#)", r" \1", text)
 
 
+def _list_pypi_distribution_names(repo: Path) -> List[str]:
+    """Same inclusion rules as ``build_pypi_packages`` (see ``loongsuite_pypi_manifest``)."""
+    script_dir = repo / "scripts" / "loongsuite"
+    if not (script_dir / "loongsuite_pypi_manifest.py").is_file():
+        return []
+    if str(script_dir) not in sys.path:
+        sys.path.insert(0, str(script_dir))
+    import loongsuite_pypi_manifest as lpm  # noqa: PLC0415
+
+    return lpm.list_pypi_distribution_names(repo)
+
+
 def collect(
     version: str, upstream_version: str, output: Path, repo: Path
 ) -> None:
@@ -125,6 +155,20 @@ def collect(
     parts.append("## Package Versions\n")
     parts.append(f"- loongsuite-* packages: {version}")
     parts.append(f"- opentelemetry-* packages: {upstream_version}\n")
+    parts.append("## PyPI packages\n")
+    parts.append(
+        "The following distributions are built and uploaded to PyPI for this release:\n"
+    )
+    pypi_dists = _list_pypi_distribution_names(repo)
+    if pypi_dists:
+        for dist_name in pypi_dists:
+            parts.append(f"- `{dist_name}`")
+    else:
+        parts.append(
+            "- _(Could not resolve the list; ensure "
+            "`scripts/loongsuite/build_loongsuite_package.py` is present.)_"
+        )
+    parts.append("")
     parts.append("---\n")
 
     found_any = False
@@ -150,7 +194,12 @@ def collect(
 
 
 def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
-    """Archive Unreleased sections in-place: insert a versioned header below Unreleased."""
+    """Archive Unreleased sections in-place: insert a versioned header below Unreleased.
+
+    When the Unreleased body is empty (same criterion as _extract_unreleased), inserts
+    NO_CHANGELOG_ENTRIES_LINE under the new version heading, with blank lines separating
+    it from the version title and the following section.
+    """
     if date_str is None:
         date_str = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
@@ -171,6 +220,10 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
                 new_lines.append("")
                 new_lines.append(version_header)
                 new_lines.append("")
+
+                if _unreleased_block_is_empty(lines, i):
+                    new_lines.append(NO_CHANGELOG_ENTRIES_LINE)
+                    new_lines.append("")
 
                 # Skip blank lines immediately after the old Unreleased header
                 i += 1
@@ -213,19 +266,38 @@ def _next_dev_version(released_version: str) -> str:
 def bump_dev(
     released_version: str, repo: Path, next_version: Optional[str] = None
 ) -> None:
-    """Bump all instrumentation-loongsuite module versions to the next dev version."""
+    """Bump instrumentation-loongsuite and loongsuite-distro to the next dev version."""
     next_ver = next_version or _next_dev_version(released_version)
+    version_files: List[Path] = []
+
     inst_dir = repo / "instrumentation-loongsuite"
-    if not inst_dir.is_dir():
-        print(f"WARNING: {inst_dir} not found, skipping version bump")
-        return
+    if inst_dir.is_dir():
+        version_files.extend(sorted(inst_dir.rglob("version.py")))
+    else:
+        print(
+            f"WARNING: {inst_dir} not found, skipping instrumentation-loongsuite version bump"
+        )
 
-    version_files = sorted(inst_dir.rglob("version.py"))
+    distro_version_py = (
+        repo
+        / "loongsuite-distro"
+        / "src"
+        / "loongsuite"
+        / "distro"
+        / "version.py"
+    )
+    if distro_version_py.is_file():
+        version_files.append(distro_version_py)
+    else:
+        print(
+            f"WARNING: {distro_version_py} not found, skipping loongsuite-distro version bump"
+        )
+
     if not version_files:
-        print(f"WARNING: no version.py files found in {inst_dir}")
+        print("WARNING: no version.py files to bump")
         return
 
-    for vf in version_files:
+    for vf in sorted(version_files):
         text = vf.read_text(encoding="utf-8")
         m = VERSION_RE.search(text)
         if m:
@@ -311,7 +383,7 @@ def main() -> None:
     group.add_argument(
         "--bump-dev",
         action="store_true",
-        help="Bump module versions to next dev",
+        help="Bump instrumentation-loongsuite + loongsuite-distro to next dev",
     )
     parser.add_argument(
         "--rename-packages",

@@ -12,10 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrapper classes for AgentScope instrumentation."""
+"""Wrapper classes for AgentScope instrumentation.
+
+Concurrency
+-----------
+ReAct step state is attached to each agent instance for one ``__call__``
+lifecycle (see ``_react_step_state``). This matches AgentScope's own
+``AgentBase`` design: a single ``_reply_task`` / ``_reply_id`` slot per
+instance with no locking. Callers must not overlap ``await agent(...)`` on
+the same instance across coroutines or threads without external
+serialization, or telemetry and AgentScope's ``interrupt()`` semantics can
+both be wrong.
+
+Stacked ``ChatModelBase`` / ``AgentBase`` implementations (e.g. proxies where
+each layer subclasses the base and ``__call__`` forwards to an inner model or
+agent) share one logical invocation. A ``contextvars`` depth counter ensures
+only the outermost ``__call__`` emits LLM / ``invoke_agent`` spans; inner
+layers call through without duplicating telemetry.
+"""
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import timeit
 import uuid
@@ -42,6 +60,16 @@ logger = logging.getLogger(__name__)
 
 _REACT_STEP_HOOK_PREFIX = "otel_react_step"
 
+# Per-async-task nesting for stacked __call__ (proxy / decorator chains).
+_CHAT_MODEL_CALL_DEPTH = contextvars.ContextVar(
+    "opentelemetry_agentscope_chat_model_call_depth",
+    default=0,
+)
+_AGENT_CALL_DEPTH = contextvars.ContextVar(
+    "opentelemetry_agentscope_agent_call_depth",
+    default=0,
+)
+
 
 def _is_react_agent(agent_instance: Any) -> bool:
     """Check if an agent instance is a ReAct agent by duck-typing."""
@@ -50,7 +78,13 @@ def _is_react_agent(agent_instance: Any) -> bool:
 
 @dataclass
 class _ReactStepState:
-    """Per-agent-call state for React step span lifecycle."""
+    """Per-agent-call state for React step span lifecycle.
+
+    This object is stored on the agent instance only while a single
+    ``AgentBase.__call__`` is in progress. It is not safe for concurrent
+    overlapping ``__call__`` on the same instance (same assumption as
+    AgentScope's single ``_reply_task`` field).
+    """
 
     hook_name: str = field(
         default_factory=lambda: f"{_REACT_STEP_HOOK_PREFIX}_{uuid.uuid4().hex[:8]}"
@@ -59,6 +93,10 @@ class _ReactStepState:
     active_step: ReactStepInvocation | None = None
     original_context: Any = field(default=None)
     pending_acting_count: int = 0
+    # Subclasses that override _reasoning / _acting and call super() stack multiple
+    # AgentScope hook wrappers; only the outermost wrapper should drive spans.
+    reasoning_nesting: int = 0
+    acting_nesting: int = 0
 
 
 def _make_pre_reasoning_hook(
@@ -68,6 +106,9 @@ def _make_pre_reasoning_hook(
 
     Also closes any leftover step from a previous iteration as a fallback
     (normal path closes via post_acting).
+
+    When multiple ReAct hook wrappers run (subclass ``_reasoning`` calling
+    ``super()._reasoning``), only the outermost pre_reasoning opens a step.
     """
 
     def hook(agent_self: Any, kwargs: dict) -> None:
@@ -75,6 +116,10 @@ def _make_pre_reasoning_hook(
             agent_self, "_react_step_state", None
         )
         if state is None:
+            return None
+
+        state.reasoning_nesting += 1
+        if state.reasoning_nesting != 1:
             return None
 
         if state.active_step:
@@ -96,21 +141,46 @@ def _make_post_reasoning_hook(
     handler: ExtendedTelemetryHandler,
 ) -> Any:
     """Create a post_reasoning hook that counts tool_use blocks
-    to initialize the pending_acting_count for the current step."""
+    to initialize the pending_acting_count for the current step.
+
+    Inner wrappers' post_reasoning run first on unwind; tool_use counting
+    must run on the outermost post_reasoning (last to execute).
+    """
 
     def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
         state: _ReactStepState | None = getattr(
             agent_self, "_react_step_state", None
         )
-        if state is None or output is None:
+        if state is None:
             return None
+        try:
+            if (
+                state.reasoning_nesting == 1
+                and output is not None
+                and hasattr(output, "get_content_blocks")
+            ):
+                tool_blocks = output.get_content_blocks("tool_use")
+                state.pending_acting_count = len(tool_blocks)
+            elif state.reasoning_nesting == 1 and output is not None:
+                state.pending_acting_count = 0
+        finally:
+            if state.reasoning_nesting > 0:
+                state.reasoning_nesting -= 1
+        return None
 
-        tool_blocks = (
-            output.get_content_blocks("tool_use")
-            if hasattr(output, "get_content_blocks")
-            else []
+    return hook
+
+
+def _make_pre_acting_hook() -> Any:
+    """Track nested _acting wrappers (subclass calls ``super()._acting``)."""
+
+    def hook(agent_self: Any, kwargs: dict) -> None:
+        state: _ReactStepState | None = getattr(
+            agent_self, "_react_step_state", None
         )
-        state.pending_acting_count = len(tool_blocks)
+        if state is None:
+            return None
+        state.acting_nesting += 1
         return None
 
     return hook
@@ -120,20 +190,27 @@ def _make_post_acting_hook(
     handler: ExtendedTelemetryHandler,
 ) -> Any:
     """Create a post_acting hook that decrements pending_acting_count
-    and closes the step span when all acting calls are done."""
+    and closes the step span when all acting calls are done.
+
+    Only the outermost post_acting (last on unwind) updates pending counts.
+    """
 
     def hook(agent_self: Any, kwargs: dict, output: Any) -> None:
         state: _ReactStepState | None = getattr(
             agent_self, "_react_step_state", None
         )
-        if state is None or state.active_step is None:
+        if state is None:
             return None
-
-        state.pending_acting_count -= 1
-        if state.pending_acting_count <= 0:
-            state.active_step.finish_reason = "tool_calls"
-            handler.stop_react_step(state.active_step)
-            state.active_step = None
+        try:
+            if state.acting_nesting == 1 and state.active_step is not None:
+                state.pending_acting_count -= 1
+                if state.pending_acting_count <= 0:
+                    state.active_step.finish_reason = "tool_calls"
+                    handler.stop_react_step(state.active_step)
+                    state.active_step = None
+        finally:
+            if state.acting_nesting > 0:
+                state.acting_nesting -= 1
         return None
 
     return hook
@@ -154,6 +231,11 @@ def _register_react_hooks(
         _make_post_reasoning_hook(handler),
     )
     agent.register_instance_hook(
+        "pre_acting",
+        state.hook_name,
+        _make_pre_acting_hook(),
+    )
+    agent.register_instance_hook(
         "post_acting",
         state.hook_name,
         _make_post_acting_hook(handler),
@@ -162,7 +244,12 @@ def _register_react_hooks(
 
 def _remove_react_hooks(agent: Any, state: _ReactStepState) -> None:
     """Remove React step tracking hooks from an agent instance."""
-    for hook_type in ("pre_reasoning", "post_reasoning", "post_acting"):
+    for hook_type in (
+        "pre_reasoning",
+        "post_reasoning",
+        "pre_acting",
+        "post_acting",
+    ):
         try:
             agent.remove_instance_hook(hook_type, state.hook_name)
         except (ValueError, KeyError):
@@ -255,56 +342,72 @@ class AgentScopeChatModelWrapper:
             call_self: Any, *call_args: Any, **call_kwargs: Any
         ) -> Any:
             """Async wrapper for ChatModelBase.__call__."""
-            invocation = create_llm_invocation(
-                call_self, call_args, call_kwargs
-            )
-
-            self._handler.start_llm(invocation)
-
-            function_name = f"{call_self.__class__.__name__}.__call__"
-            invocation.attributes["rpc"] = function_name
-
+            parent_depth = _CHAT_MODEL_CALL_DEPTH.get()
+            depth_token = _CHAT_MODEL_CALL_DEPTH.set(parent_depth + 1)
             try:
-                result = await original_call(
-                    call_self, *call_args, **call_kwargs
-                )
-
-                if isinstance(result, AsyncGenerator):
-                    return self._wrap_streaming_response(result, invocation)
-
-                invocation.output_messages = (
-                    convert_chatresponse_to_output_messages(result)
-                )
-
-                if hasattr(result, "usage") and result.usage:
-                    invocation.input_tokens = getattr(
-                        result.usage, "input_tokens", None
-                    )
-                    invocation.output_tokens = getattr(
-                        result.usage, "output_tokens", None
+                if parent_depth > 0:
+                    return await original_call(
+                        call_self, *call_args, **call_kwargs
                     )
 
-                invocation.response_model = invocation.request_model
-                invocation.response_finish_reasons = ["stop"]
-
-                if hasattr(result, "id"):
-                    invocation.response_id = getattr(result, "id", None)
-
-                self._handler.stop_llm(invocation)
-                return result
-
-            except Exception as e:
-                self._handler.fail_llm(
-                    invocation, Error(message=str(e), type=type(e))
+                invocation = create_llm_invocation(
+                    call_self, call_args, call_kwargs
                 )
-                raise
+
+                self._handler.start_llm(invocation)
+
+                function_name = f"{call_self.__class__.__name__}.__call__"
+                invocation.attributes["rpc"] = function_name
+
+                try:
+                    result = await original_call(
+                        call_self, *call_args, **call_kwargs
+                    )
+
+                    if isinstance(result, AsyncGenerator):
+                        return self._wrap_streaming_response(
+                            result, invocation
+                        )
+
+                    invocation.output_messages = (
+                        convert_chatresponse_to_output_messages(result)
+                    )
+
+                    if hasattr(result, "usage") and result.usage:
+                        invocation.input_tokens = getattr(
+                            result.usage, "input_tokens", None
+                        )
+                        invocation.output_tokens = getattr(
+                            result.usage, "output_tokens", None
+                        )
+
+                    invocation.response_model = invocation.request_model
+                    invocation.response_finish_reasons = ["stop"]
+
+                    if hasattr(result, "id"):
+                        invocation.response_id = getattr(result, "id", None)
+
+                    self._handler.stop_llm(invocation)
+                    return result
+
+                except Exception as e:
+                    self._handler.fail_llm(
+                        invocation, Error(message=str(e), type=type(e))
+                    )
+                    raise
+            finally:
+                _CHAT_MODEL_CALL_DEPTH.reset(depth_token)
 
         instance.__class__.__call__ = async_wrapped_call
         self._instrumented_classes.add(model_class)
 
 
 class AgentScopeAgentWrapper:
-    """Wrapper for AgentBase that hijacks __init__ to replace __call__."""
+    """Wrapper for AgentBase that hijacks __init__ to replace __call__.
+
+    Instrumentation assumes at most one in-flight ``__call__`` per agent
+    instance, consistent with AgentScope's ``AgentBase`` implementation.
+    """
 
     _original_methods = {}
 
@@ -352,69 +455,84 @@ class AgentScopeAgentWrapper:
             **call_kwargs: Any,
         ) -> Any:
             """Async wrapper for AgentBase.__call__."""
+            parent_depth = _AGENT_CALL_DEPTH.get()
+            depth_token = _AGENT_CALL_DEPTH.set(parent_depth + 1)
             try:
-                invocation = create_agent_invocation(
-                    call_self, call_args, call_kwargs
-                )
-
-                self._handler.start_invoke_agent(invocation)
-
-                function_name = f"{call_self.__class__.__name__}.__call__"
-                invocation.attributes["rpc"] = function_name
-
-                is_react = _is_react_agent(call_self)
-                state: _ReactStepState | None = None
-                if is_react:
-                    state = _ReactStepState(
-                        original_context=_get_current_context(),
-                    )
-                    call_self._react_step_state = state
-                    _register_react_hooks(call_self, state, self._handler)
-
-                try:
-                    result = await original_call(
+                if parent_depth > 0:
+                    return await original_call(
                         call_self, *call_args, **call_kwargs
                     )
 
-                    if is_react and state and state.active_step:
-                        state.active_step.finish_reason = "stop"
-                        self._handler.stop_react_step(state.active_step)
-                        state.active_step = None
-
-                    invocation.output_messages = (
-                        convert_agent_response_to_output_messages(result)
+                try:
+                    invocation = create_agent_invocation(
+                        call_self, call_args, call_kwargs
                     )
 
-                    if hasattr(result, "id"):
-                        invocation.response_id = getattr(result, "id", None)
+                    self._handler.start_invoke_agent(invocation)
 
-                    self._handler.stop_invoke_agent(invocation)
-                    return result
+                    function_name = f"{call_self.__class__.__name__}.__call__"
+                    invocation.attributes["rpc"] = function_name
+
+                    is_react = _is_react_agent(call_self)
+                    state: _ReactStepState | None = None
+                    if is_react:
+                        # Single slot on the instance: safe only when this __call__
+                        # does not overlap another on the same agent (AgentScope
+                        # uses the same pattern for _reply_task).
+                        state = _ReactStepState(
+                            original_context=_get_current_context(),
+                        )
+                        call_self._react_step_state = state
+                        _register_react_hooks(call_self, state, self._handler)
+
+                    try:
+                        result = await original_call(
+                            call_self, *call_args, **call_kwargs
+                        )
+
+                        if is_react and state and state.active_step:
+                            state.active_step.finish_reason = "stop"
+                            self._handler.stop_react_step(state.active_step)
+                            state.active_step = None
+
+                        invocation.output_messages = (
+                            convert_agent_response_to_output_messages(result)
+                        )
+
+                        if hasattr(result, "id"):
+                            invocation.response_id = getattr(
+                                result, "id", None
+                            )
+
+                        self._handler.stop_invoke_agent(invocation)
+                        return result
+
+                    except Exception as e:
+                        if is_react and state and state.active_step:
+                            self._handler.fail_react_step(
+                                state.active_step,
+                                Error(message=str(e), type=type(e)),
+                            )
+                            state.active_step = None
+
+                        self._handler.fail_invoke_agent(
+                            invocation, Error(message=str(e), type=type(e))
+                        )
+                        raise
+
+                    finally:
+                        if is_react and state:
+                            _remove_react_hooks(call_self, state)
+                            if hasattr(call_self, "_react_step_state"):
+                                del call_self._react_step_state
 
                 except Exception as e:
-                    if is_react and state and state.active_step:
-                        self._handler.fail_react_step(
-                            state.active_step,
-                            Error(message=str(e), type=type(e)),
-                        )
-                        state.active_step = None
-
-                    self._handler.fail_invoke_agent(
-                        invocation, Error(message=str(e), type=type(e))
+                    logger.exception("Error in agent instrumentation: %s", e)
+                    return await original_call(
+                        call_self, *call_args, **call_kwargs
                     )
-                    raise
-
-                finally:
-                    if is_react and state:
-                        _remove_react_hooks(call_self, state)
-                        if hasattr(call_self, "_react_step_state"):
-                            del call_self._react_step_state
-
-            except Exception as e:
-                logger.exception("Error in agent instrumentation: %s", e)
-                return await original_call(
-                    call_self, *call_args, **call_kwargs
-                )
+            finally:
+                _AGENT_CALL_DEPTH.reset(depth_token)
 
         instance.__class__.__call__ = async_wrapped_call
         self._instrumented_classes.add(agent_class)

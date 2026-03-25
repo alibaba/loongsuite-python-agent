@@ -22,6 +22,7 @@ This script supports the following release modes:
 1. --build-pypi: Build packages for PyPI publishing
    - loongsuite-util-genai (renamed from opentelemetry-util-genai)
    - loongsuite-distro
+   - loongsuite-instrumentation-* (each package under instrumentation-loongsuite/)
 
 2. --build-github-release: Build packages for GitHub Release (tar.gz)
    - instrumentation-genai/ packages (renamed to loongsuite-*, depends on loongsuite-util-genai)
@@ -40,7 +41,6 @@ Package name replacement (for instrumentation-genai/):
 """
 
 import argparse
-import json
 import logging
 import re
 import subprocess
@@ -51,20 +51,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import tomlkit
+from loongsuite_pypi_manifest import (
+    PYPI_SKIP_INSTRUMENTATION_LOONGSUITE,
+    load_skip_config,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
-
-
-def load_skip_config(config_path: Path) -> Set[str]:
-    """Load package names to skip from config file"""
-    if not config_path.exists():
-        return set()
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
-
-    return set(config.get("skip_packages", []))
 
 
 def depends_on_util_genai(pyproject_path: Path) -> bool:
@@ -74,6 +67,27 @@ def depends_on_util_genai(pyproject_path: Path) -> bool:
 
     content = pyproject_path.read_text(encoding="utf-8")
     return "opentelemetry-util-genai" in content
+
+
+def package_release_modifications(
+    package_dir: Path, util_dep_spec: str
+) -> Dict[str, Any]:
+    """Pyproject patches for release builds: util-genai dep + optional genai package rename."""
+    modifications: Dict[str, Any] = {}
+    pyproject_path = package_dir / "pyproject.toml"
+
+    if depends_on_util_genai(pyproject_path):
+        modifications["replace_dependency"] = {
+            "old_pattern": "opentelemetry-util-genai",
+            "new_value": util_dep_spec,
+        }
+
+    if should_rename_package(package_dir):
+        pkg_name = package_dir.name
+        new_name = pkg_name.replace("opentelemetry-", "loongsuite-")
+        modifications["name"] = new_name
+
+    return modifications
 
 
 def should_rename_package(package_dir: Path) -> bool:
@@ -253,16 +267,20 @@ def build_pypi_packages(
     dist_dir: Path,
     version: str,
     util_genai_version: Optional[str] = None,
+    skip_packages: Optional[Set[str]] = None,
 ) -> List[Path]:
     """
     Build packages for PyPI:
     - loongsuite-util-genai (renamed from opentelemetry-util-genai)
     - loongsuite-distro
+    - each loongsuite-instrumentation-* under instrumentation-loongsuite/
     """
     all_whl_files = []
     existing_whl_files = set(dist_dir.glob("*.whl"))
+    skip_packages = skip_packages or set()
 
     util_ver = util_genai_version or version
+    util_dep_spec = f"loongsuite-util-genai ~= {util_ver}"
 
     # 1. Build util/opentelemetry-util-genai as loongsuite-util-genai
     util_genai_dir = base_dir / "util" / "opentelemetry-util-genai"
@@ -306,6 +324,49 @@ def build_pypi_packages(
             all_whl_files.extend(whl_files)
             existing_whl_files.update(whl_files)
 
+    # 3. Build instrumentation-loongsuite/* (loongsuite-instrumentation-* on PyPI)
+    instrumentation_loongsuite_dir = base_dir / "instrumentation-loongsuite"
+    if instrumentation_loongsuite_dir.exists():
+        logger.info("Building instrumentation-loongsuite packages for PyPI...")
+        for package_dir in sorted(instrumentation_loongsuite_dir.iterdir()):
+            if (
+                not package_dir.is_dir()
+                or not (package_dir / "pyproject.toml").exists()
+            ):
+                continue
+
+            pkg_name = package_dir.name
+            if pkg_name in skip_packages:
+                logger.info(f"Skipping {pkg_name} (in skip list)")
+                continue
+            if pkg_name in PYPI_SKIP_INSTRUMENTATION_LOONGSUITE:
+                logger.info(
+                    f"Skipping {pkg_name} for PyPI (FIXME: enable after sufficient testing)"
+                )
+                continue
+
+            modifications = package_release_modifications(
+                package_dir, util_dep_spec
+            )
+            version_py = find_version_py(package_dir)
+
+            logger.info(f"Building {pkg_name} for PyPI (version {version})...")
+            with (
+                _patch_pyproject(package_dir / "pyproject.toml", modifications)
+                if modifications
+                else nullcontext()
+            ):
+                with (
+                    _patch_version_py(version_py, version)
+                    if version_py
+                    else nullcontext()
+                ):
+                    whl_files = build_package(
+                        package_dir, dist_dir, existing_whl_files
+                    )
+                    all_whl_files.extend(whl_files)
+                    existing_whl_files.update(whl_files)
+
     return all_whl_files
 
 
@@ -328,45 +389,6 @@ def build_github_release_packages(
     util_ver = util_genai_version or version
     util_dep_spec = f"loongsuite-util-genai ~= {util_ver}"
 
-    def _get_modifications(package_dir: Path) -> Dict[str, Any]:
-        """
-        Get pyproject.toml modifications for a package based on rules:
-
-        Rules:
-        1. Dependency replacement: If package depends on opentelemetry-util-genai,
-           replace it with loongsuite-util-genai (detected by reading pyproject.toml)
-        2. Name replacement: If package is under instrumentation-genai/ and has
-           opentelemetry-* prefix, rename to loongsuite-* prefix
-
-        Returns:
-            Dict with modifications to apply, e.g.:
-            {
-                "name": "loongsuite-instrumentation-foo",
-                "replace_dependency": {
-                    "old_pattern": "opentelemetry-util-genai",
-                    "new_value": "loongsuite-util-genai ~= 0.1.0"
-                }
-            }
-        """
-        modifications: Dict[str, Any] = {}
-        pyproject_path = package_dir / "pyproject.toml"
-
-        # Rule 1: Dependency replacement (dynamic detection)
-        # Replace any version of opentelemetry-util-genai with loongsuite-util-genai
-        if depends_on_util_genai(pyproject_path):
-            modifications["replace_dependency"] = {
-                "old_pattern": "opentelemetry-util-genai",
-                "new_value": util_dep_spec,
-            }
-
-        # Rule 2: Name replacement (instrumentation-genai/ packages with opentelemetry-* prefix)
-        if should_rename_package(package_dir):
-            pkg_name = package_dir.name
-            new_name = pkg_name.replace("opentelemetry-", "loongsuite-")
-            modifications["name"] = new_name
-
-        return modifications
-
     # 1. Build instrumentation-genai/ packages
     instrumentation_genai_dir = base_dir / "instrumentation-genai"
     if instrumentation_genai_dir.exists():
@@ -383,7 +405,9 @@ def build_github_release_packages(
                 logger.info(f"Skipping {pkg_name} (in skip list)")
                 continue
 
-            modifications = _get_modifications(package_dir)
+            modifications = package_release_modifications(
+                package_dir, util_dep_spec
+            )
             version_py = find_version_py(package_dir)
 
             logger.info(f"Building {pkg_name} (version {version})...")
@@ -419,7 +443,9 @@ def build_github_release_packages(
                 logger.info(f"Skipping {pkg_name} (in skip list)")
                 continue
 
-            modifications = _get_modifications(package_dir)
+            modifications = package_release_modifications(
+                package_dir, util_dep_spec
+            )
             version_py = find_version_py(package_dir)
 
             logger.info(f"Building {pkg_name} (version {version})...")
@@ -511,7 +537,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Build for PyPI (loongsuite-util-genai + loongsuite-distro)
+  # Build for PyPI (util-genai, distro, instrumentation-loongsuite wheels)
   python build_loongsuite_package.py --build-pypi --version 0.1.0
 
   # Build for GitHub Release (instrumentation packages)
@@ -545,7 +571,10 @@ Examples:
     parser.add_argument(
         "--build-pypi",
         action="store_true",
-        help="Build packages for PyPI (loongsuite-util-genai, loongsuite-distro)",
+        help=(
+            "Build packages for PyPI (loongsuite-util-genai, loongsuite-distro, "
+            "instrumentation-loongsuite/*)"
+        ),
     )
     parser.add_argument(
         "--build-github-release",
@@ -617,6 +646,7 @@ Examples:
             dist_dir,
             args.version,
             args.util_genai_version,
+            skip_packages,
         )
         logger.info(f"PyPI packages built: {len(pypi_whl_files)}")
         for whl in pypi_whl_files:

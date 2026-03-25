@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "loongsuite-instrumentation-langgraph"
 dynamic = ["version"]
-description = "LongSuite LangGraph Instrumentation"
+description = "LoongSuite LangGraph Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
-  { name = "LoongSuite Python Agent Authors", email = "" },
+  { name = "Minghui Zhang", email = "zmh1625lumian@gmail.com" },
+  { name = "OpenTelemetry Authors", email = "cncf-opentelemetry-contributors@lists.cncf.io" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -36,8 +37,12 @@ instruments = [
   "langgraph >= 0.2",
 ]
 
+[project.entry-points.opentelemetry_instrumentor]
+langgraph = "opentelemetry.instrumentation.langgraph:LangGraphInstrumentor"
+
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-langgraph"
+Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
 path = "src/opentelemetry/instrumentation/langgraph/version.py"
@@ -50,6 +55,3 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opentelemetry"]
-
-[project.entry-points.opentelemetry_instrumentor]
-langgraph = "opentelemetry.instrumentation.langgraph:LangGraphInstrumentor"
