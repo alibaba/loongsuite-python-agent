@@ -28,7 +28,7 @@ Spans
      - ``react`` / ``STEP``
 
    * - ``DefaultAgent.handle_action`` (bash / ``communicate``)
-     - ``execute_tool sweagent_bash``
+     - ``execute_tool <name>`` where ``name`` is the first LLM ``tool_calls[*].function.name`` when ``StepOutput.tool_calls`` is set (function-calling mode); otherwise ``execute_tool sweagent_bash`` (thought/action parsing). Tool arguments recorded as ``function.arguments`` (JSON decoded when possible), else ``step.action``.
      - ``execute_tool`` / ``TOOL``
 
 Remote LLM calls (LiteLLM) are **not** duplicated here; enable

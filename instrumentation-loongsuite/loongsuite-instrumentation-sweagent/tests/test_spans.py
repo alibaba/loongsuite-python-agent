@@ -22,6 +22,8 @@ from sweagent.types import AgentInfo, AgentRunResult, StepOutput
 
 from opentelemetry.instrumentation.sweagent.patch import (
     SWEAGENT_BASH_TOOL_NAME,
+    tool_call_arguments_from_sweagent_step,
+    tool_name_from_sweagent_step,
     wrap_default_agent_handle_action,
 )
 from opentelemetry.semconv._incubating.attributes import (
@@ -37,6 +39,75 @@ from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 ENTRY_SPAN_NAME = "enter_ai_application_system"
 REACT_SPAN_NAME = "react step"
 TOOL_SPAN_PREFIX = "execute_tool "
+
+
+def test_tool_name_from_step_llm_tool_calls():
+    openai_style = {
+        "type": "function",
+        "id": "call_1",
+        "function": {"name": "bash", "arguments": '{"command": "ls"}'},
+    }
+    step = StepOutput(
+        action="ls",
+        tool_calls=[openai_style],
+    )
+    assert tool_name_from_sweagent_step(step) == "bash"
+
+    step2 = StepOutput(
+        action="submit",
+        tool_calls=[
+            {
+                "type": "function",
+                "id": "call_s",
+                "function": {"name": "submit", "arguments": "{}"},
+            }
+        ],
+    )
+    assert tool_name_from_sweagent_step(step2) == "submit"
+
+
+def test_tool_name_from_step_fallback_without_tool_calls():
+    assert tool_name_from_sweagent_step(None) == SWEAGENT_BASH_TOOL_NAME
+    assert (
+        tool_name_from_sweagent_step(StepOutput(action="ls -la"))
+        == SWEAGENT_BASH_TOOL_NAME
+    )
+
+
+def test_tool_call_arguments_from_step_llm_json():
+    step = StepOutput(
+        action="ls  # rendered for bash",
+        tool_calls=[
+            {
+                "function": {
+                    "name": "bash",
+                    "arguments": '{"command": "ls -la"}',
+                }
+            }
+        ],
+    )
+    assert tool_call_arguments_from_sweagent_step(step) == {"command": "ls -la"}
+
+    empty_args = StepOutput(
+        action="touch x",
+        tool_calls=[{"function": {"name": "bash", "arguments": "{}"}}],
+    )
+    assert tool_call_arguments_from_sweagent_step(empty_args) == {}
+
+
+def test_tool_call_arguments_from_step_non_json_string_kept():
+    step = StepOutput(
+        action="fallback_action",
+        tool_calls=[
+            {"function": {"name": "bash", "arguments": "not valid json {"}}
+        ],
+    )
+    assert tool_call_arguments_from_sweagent_step(step) == "not valid json {"
+
+
+def test_tool_call_arguments_fallback_without_tool_calls():
+    assert tool_call_arguments_from_sweagent_step(None) is None
+    assert tool_call_arguments_from_sweagent_step(StepOutput(action="ls -la")) == "ls -la"
 
 
 def _get_attrs(span):
@@ -97,7 +168,17 @@ def test_invoke_agent_span(instrumented_sweagent, span_exporter):
 
 def test_handle_action_execute_tool_span(tracer_provider, span_exporter):
     handler = ExtendedTelemetryHandler(tracer_provider=tracer_provider)
-    step = StepOutput(action="ls -la", observation="")
+    step = StepOutput(
+        action="ls -la",
+        observation="",
+        tool_calls=[
+            {
+                "type": "function",
+                "id": "call_abc",
+                "function": {"name": "bash", "arguments": "{}"},
+            }
+        ],
+    )
 
     def fake_handle_action(*args, **kwargs):
         step.observation = "file.txt"
@@ -110,10 +191,10 @@ def test_handle_action_execute_tool_span(tracer_provider, span_exporter):
     spans = span_exporter.get_finished_spans()
     assert len(spans) == 1
     span = spans[0]
-    assert span.name == f"{TOOL_SPAN_PREFIX}{SWEAGENT_BASH_TOOL_NAME}"
+    assert span.name == f"{TOOL_SPAN_PREFIX}bash"
     attrs = _get_attrs(span)
     assert attrs.get(GenAI.GEN_AI_OPERATION_NAME) == "execute_tool"
-    assert attrs.get(GenAI.GEN_AI_TOOL_NAME) == SWEAGENT_BASH_TOOL_NAME
+    assert attrs.get(GenAI.GEN_AI_TOOL_NAME) == "bash"
     assert attrs.get(GEN_AI_SPAN_KIND) == GenAiSpanKindValues.TOOL.value
 
 

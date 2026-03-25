@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -40,6 +41,119 @@ logger = logging.getLogger(__name__)
 SWEAGENT_PROVIDER = "sweagent"
 SWEAGENT_BASH_TOOL_NAME = "sweagent_bash"
 _PROBLEM_TEXT_MAX_LEN = 4096
+
+
+def _tool_name_from_tool_call_item(call: Any) -> str | None:
+    """Extract function/tool name from one OpenAI-style tool_calls entry (dict or object)."""
+    if call is None:
+        return None
+    if isinstance(call, dict):
+        fn = call.get("function")
+        if isinstance(fn, dict):
+            name = fn.get("name")
+            if isinstance(name, str) and name.strip():
+                return name.strip()
+        name = call.get("name")
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+        return None
+    fn = getattr(call, "function", None)
+    if fn is not None:
+        name = getattr(fn, "name", None)
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+    name = getattr(call, "name", None)
+    if isinstance(name, str) and name.strip():
+        return name.strip()
+    return None
+
+
+def tool_name_from_sweagent_step(step: Any) -> str:
+    """Tool name for telemetry from the model-issued tool call list.
+
+    In ``DefaultAgent.forward``, the dict from ``model.query()`` has separate
+    fields: ``message`` (assistant text / ``content``) and, when the API uses
+    function calling, ``tool_calls``. SWE-agent assigns
+    ``step.tool_calls = output["tool_calls"]`` — that **is** the LLM response's
+    tool call payload, not a recomputation. The registered tool name lives in
+    ``tool_calls[*].function.name``, not in the free-text ``message`` string.
+
+    With ``FunctionCallingParser``, SWE-agent allows **exactly one** tool call per
+    model response; ``len(tool_calls) != 1`` raises before ``handle_action``.
+    A successful ``handle_action`` therefore normally sees a single entry; the
+    loop below only picks the first resolvable name for robustness.
+
+    Without native ``tool_calls`` (e.g. thought/action parsing only), fall back
+    to ``sweagent_bash`` because execution still uses bash ``communicate``.
+    """
+    tool_calls = getattr(step, "tool_calls", None) if step is not None else None
+    if not tool_calls:
+        return SWEAGENT_BASH_TOOL_NAME
+    for call in tool_calls:
+        name = _tool_name_from_tool_call_item(call)
+        if name:
+            return name
+    return SWEAGENT_BASH_TOOL_NAME
+
+
+def _select_tool_call_for_step(step: Any) -> Any | None:
+    """Same entry as :func:`tool_name_from_sweagent_step` when possible, else first call."""
+    tool_calls = getattr(step, "tool_calls", None) if step is not None else None
+    if not tool_calls:
+        return None
+    for call in tool_calls:
+        if _tool_name_from_tool_call_item(call):
+            return call
+    return tool_calls[0]
+
+
+def _normalize_function_arguments_from_tool_call(call: Any) -> Any | None:
+    """Return ``function.arguments`` parsed as JSON when a string; dict passthrough; else raw."""
+    if call is None:
+        return None
+    if isinstance(call, dict):
+        fn = call.get("function")
+    else:
+        fn = getattr(call, "function", None)
+    if fn is None:
+        return None
+    if isinstance(fn, dict):
+        raw = fn.get("arguments")
+    else:
+        raw = getattr(fn, "arguments", None)
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        stripped = raw.strip()
+        if not stripped:
+            return {}
+        try:
+            return json.loads(stripped)
+        except json.JSONDecodeError:
+            return raw
+    return raw
+
+
+def tool_call_arguments_from_sweagent_step(step: Any) -> Any:
+    """Tool call arguments for telemetry: LLM ``function.arguments`` when native ``tool_calls`` exist.
+
+    Otherwise the parsed shell line(s) in ``step.action`` (thought/action and similar paths).
+    Structured arguments are preferred when the model used function calling, since ``action`` is
+    the command line already expanded by SWE-agent's parser.
+    """
+    if step is None:
+        return None
+    fallback = getattr(step, "action", None)
+    selected = _select_tool_call_for_step(step)
+    if selected is None:
+        return fallback
+    normalized = _normalize_function_arguments_from_tool_call(selected)
+    if normalized is not None:
+        return normalized
+    return fallback
+
 
 _RUN_HOOKS_MODULE = "sweagent.run.hooks.abstract"
 _AGENT_HOOKS_MODULE = "sweagent.agent.hooks.abstract"
@@ -203,13 +317,14 @@ def wrap_default_agent_handle_action(
 ):
     """Wrap ``handle_action`` so tool spans end on error paths (not always paired hooks)."""
     step = args[0] if args else kwargs.get("step")
+    resolved_tool = tool_name_from_sweagent_step(step)
     inv = ExecuteToolInvocation(
-        tool_name=SWEAGENT_BASH_TOOL_NAME,
+        tool_name=resolved_tool,
         provider=SWEAGENT_PROVIDER,
         tool_type="function",
     )
     if step is not None:
-        inv.tool_call_arguments = getattr(step, "action", None)
+        inv.tool_call_arguments = tool_call_arguments_from_sweagent_step(step)
     handler.start_execute_tool(inv)
     try:
         result = wrapped(*args, **kwargs)
