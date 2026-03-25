@@ -27,7 +27,7 @@ JSON 根节点须为对象；键必须为字符串。值的类型会转成字符
 
 ```json
 {
-  "LOONGSUITE_PYTHON_SITE_BOOTSTRAP": "1",
+  "LOONGSUITE_PYTHON_SITE_BOOTSTRAP": "True",
   "OTEL_SERVICE_NAME": "my-app",
   "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317"
 }
@@ -40,10 +40,10 @@ JSON 根节点须为对象；键必须为字符串。值的类型会转成字符
 默认**不执行**任何 OTel 逻辑（避免拖慢本机所有 Python 进程）。可在 **`bootstrap-config.json` 或环境变量** 中开启后，本包在进程启动早期执行自动注入：
 
 ```bash
-export LOONGSUITE_PYTHON_SITE_BOOTSTRAP=1
+export LOONGSUITE_PYTHON_SITE_BOOTSTRAP=True
 ```
 
-视为“开启”的值（不区分大小写）：`1`、`true`、`yes`、`on`。
+ **`True`** 字符串视为开启（不区分大小写，如 `true` / `TRUE`）；**其它任何取值**（含空字符串等）均视为关闭。
 
 启用时会（若尚未设置）默认：
 

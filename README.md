@@ -46,7 +46,7 @@ pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
 
 #### Optional: site-packages bootstrap (no code or launcher changes)
 
-Install [`loongsuite-site-bootstrap`](loongsuite-site-bootstrap/README.md) and set `LOONGSUITE_PYTHON_SITE_BOOTSTRAP=1` to run the same auto-instrumentation path as `loongsuite-instrument` / `sitecustomize` without changing how you invoke Python. Instrumentation packages are still chosen and installed by you.
+Install [`loongsuite-site-bootstrap`](loongsuite-site-bootstrap/README.md) and set `LOONGSUITE_PYTHON_SITE_BOOTSTRAP=True` (case-insensitive `true`) to run the same auto-instrumentation path as `loongsuite-instrument` / `sitecustomize` without changing how you invoke Python. Instrumentation packages are still chosen and installed by you.
 
 ### RUN
 

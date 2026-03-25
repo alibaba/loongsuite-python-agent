@@ -18,10 +18,11 @@ initialization when this distribution is installed.
 
 Gate order for ``LOONGSUITE_PYTHON_SITE_BOOTSTRAP``:
 
-1. If the variable **is set** in ``os.environ`` and is not truthy, skip the rest
+1. If the variable **is set** in ``os.environ`` and is not the string ``true``
+   (ASCII, case-insensitive after stripping whitespace), skip the rest
    (do not read ``bootstrap-config.json``, do not run OpenTelemetry).
 2. If it is **unset** in ``os.environ``, read ``~/.loongsuite/bootstrap-config.json``;
-   enable only when that file maps the key to a truthy value. Otherwise skip.
+   enable only when that file maps the key to the same ``true`` rule. Otherwise skip.
 
 When enabled, keys from ``bootstrap-config.json`` are applied only for names
 **missing** from ``os.environ`` (``setdefault``-like semantics), then optional
@@ -40,7 +41,6 @@ from loongsuite_site_bootstrap.version import __version__
 
 LOONGSUITE_PYTHON_SITE_BOOTSTRAP = "LOONGSUITE_PYTHON_SITE_BOOTSTRAP"
 _LOGGER: logging.Logger = logging.getLogger(__name__)
-_TRUTHY = frozenset({"1", "true", "yes", "on"})
 
 
 def _configure_bootstrap_logging() -> None:
@@ -70,7 +70,8 @@ def _coerce_env_value(value: object) -> str | None:
 
 
 def _is_truthy_string(val: str) -> bool:
-    return val.strip().lower() in _TRUTHY
+    """True only for case-insensitive ``true``; any other string is off."""
+    return val.strip().lower() == "true"
 
 
 def _read_bootstrap_config_file() -> dict[str, str] | None:
