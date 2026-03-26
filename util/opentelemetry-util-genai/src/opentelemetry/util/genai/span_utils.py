@@ -35,10 +35,19 @@ from opentelemetry.util.genai._extended_semconv import (
     gen_ai_extended_attributes as GenAIExtended,  # LoongSuite Extension
 )
 from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
-    GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN,  # LoongSuite Extension
-    GEN_AI_SPAN_KIND,  # LoongSuite Extension
-    GEN_AI_USAGE_TOTAL_TOKENS,  # LoongSuite Extension
-    GenAiSpanKindValues,  # LoongSuite Extension
+    GEN_AI_REACT_FINISH_REASON,
+    GEN_AI_REACT_ROUND,
+    GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN,
+    GEN_AI_SESSION_ID,
+    GEN_AI_SPAN_KIND,
+    GEN_AI_USAGE_TOTAL_TOKENS,
+    GEN_AI_USER_ID,
+    GenAiExtendedOperationNameValues,
+    GenAiSpanKindValues,
+)
+from opentelemetry.util.genai.extended_types import (
+    EntryInvocation,
+    ReactStepInvocation,
 )
 from opentelemetry.util.genai.types import (
     Error,
@@ -389,9 +398,74 @@ def _get_llm_response_attributes(
     return result
 
 
+def _apply_entry_finish_attributes(
+    span: Span, invocation: EntryInvocation
+) -> None:
+    """Apply attributes for Entry operations (LoongSuite ENTRY span kind)."""
+
+    span.update_name("enter_ai_application_system")
+
+    attributes: dict[str, Any] = {}
+
+    attributes[GenAI.GEN_AI_OPERATION_NAME] = (
+        GenAiExtendedOperationNameValues.ENTER.value
+    )
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.ENTRY.value
+
+    if invocation.session_id is not None:
+        attributes[GEN_AI_SESSION_ID] = invocation.session_id
+    if invocation.user_id is not None:
+        attributes[GEN_AI_USER_ID] = invocation.user_id
+
+    if invocation.response_time_to_first_token is not None:
+        attributes[GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN] = (
+            invocation.response_time_to_first_token
+        )
+
+    attributes.update(
+        _get_llm_messages_attributes_for_span(
+            invocation.input_messages,
+            invocation.output_messages,
+            system_instruction=None,
+        )
+    )
+
+    attributes.update(invocation.attributes)
+
+    if attributes:
+        span.set_attributes(attributes)
+
+
+def _apply_react_step_finish_attributes(
+    span: Span, invocation: ReactStepInvocation
+) -> None:
+    """Apply attributes for ReAct Step operations (LoongSuite STEP span kind)."""
+
+    span.update_name("react step")
+
+    attributes: dict[str, Any] = {}
+
+    attributes[GenAI.GEN_AI_OPERATION_NAME] = (
+        GenAiExtendedOperationNameValues.REACT.value
+    )
+    attributes[GEN_AI_SPAN_KIND] = GenAiSpanKindValues.STEP.value
+
+    if invocation.finish_reason is not None:
+        attributes[GEN_AI_REACT_FINISH_REASON] = invocation.finish_reason
+    if invocation.round is not None:
+        attributes[GEN_AI_REACT_ROUND] = invocation.round
+
+    attributes.update(invocation.attributes)
+
+    if attributes:
+        span.set_attributes(attributes)
+
+
 __all__ = [
+    "_apply_entry_finish_attributes",
     "_apply_llm_finish_attributes",
     "_apply_error_attributes",
+    "_apply_react_step_finish_attributes",
     "_get_llm_common_attributes",
     "_get_llm_request_attributes",
     "_get_llm_response_attributes",

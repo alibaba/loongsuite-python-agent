@@ -262,3 +262,52 @@ class RerankInvocation:
         None  # gen_ai.rerank.output_documents (optional, sensitive)
     )
     monotonic_start_s: float | None = None
+
+
+@dataclass
+class EntryInvocation:
+    """
+    Represents a single AI application system entry invocation.
+
+    Entry identifies the call entry point to an AI application system.
+    Follows LoongSuite semantic conventions: gen_ai.span.kind=ENTRY,
+    gen_ai.operation.name=enter.
+
+    When creating an EntryInvocation object, only update the data attributes.
+    The span and context_token attributes are set by the TelemetryHandler.
+    """
+
+    context_token: ContextToken | None = None
+    span: Span | None = None
+    attributes: Dict[str, Any] = field(default_factory=_new_str_any_dict)
+    session_id: str | None = None  # gen_ai.session.id
+    user_id: str | None = None  # gen_ai.user.id
+    input_messages: List[InputMessage] = field(
+        default_factory=_new_input_messages
+    )
+    output_messages: List[OutputMessage] = field(
+        default_factory=_new_output_messages
+    )
+    response_time_to_first_token: int | None = None  # nanoseconds
+    monotonic_start_s: float | None = None
+
+
+@dataclass
+class ReactStepInvocation:
+    """
+    Represents a single ReAct step invocation.
+
+    ReAct Step identifies one Reasoning-Acting iteration in an Agent.
+    Follows LoongSuite semantic conventions: gen_ai.span.kind=STEP,
+    gen_ai.operation.name=react.
+
+    When creating a ReactStepInvocation object, only update the data attributes.
+    The span and context_token attributes are set by the TelemetryHandler.
+    """
+
+    context_token: ContextToken | None = None
+    span: Span | None = None
+    attributes: Dict[str, Any] = field(default_factory=_new_str_any_dict)
+    finish_reason: str | None = None  # gen_ai.react.finish_reason
+    round: int | None = None  # gen_ai.react.round, 1-based
+    monotonic_start_s: float | None = None

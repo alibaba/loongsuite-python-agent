@@ -50,7 +50,7 @@ from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace.status import StatusCode
-from opentelemetry.util.genai._extended_common import (
+from opentelemetry.util.genai.extended_types import (
     EntryInvocation,
     ReactStepInvocation,
 )

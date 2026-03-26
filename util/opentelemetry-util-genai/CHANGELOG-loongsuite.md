@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Breaking Change
+
+- Remove package ``opentelemetry.util.genai._extended_common``. ``EntryInvocation`` and ``ReactStepInvocation`` now live in ``extended_types``; ``_apply_entry_finish_attributes`` and ``_apply_react_step_finish_attributes`` now live in ``span_utils``.
+  ([#157](https://github.com/alibaba/loongsuite-python-agent/pull/157))
+
 ## Version 0.2.0 (2026-03-12)
 
 ### Added

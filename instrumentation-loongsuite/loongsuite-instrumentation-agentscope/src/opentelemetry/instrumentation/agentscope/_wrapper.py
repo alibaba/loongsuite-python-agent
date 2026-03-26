@@ -42,9 +42,7 @@ from functools import wraps
 from typing import Any, AsyncGenerator
 
 from opentelemetry.context import get_current as _get_current_context
-from opentelemetry.util.genai._extended_common.common_types import (
-    ReactStepInvocation,
-)
+from opentelemetry.util.genai.extended_types import ReactStepInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.types import Error, LLMInvocation
 
