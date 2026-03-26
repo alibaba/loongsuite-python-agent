@@ -31,10 +31,10 @@ from opentelemetry.trace import (
 )
 from opentelemetry.trace.propagation import set_span_in_context
 from opentelemetry.trace.status import Status, StatusCode
-from opentelemetry.util.genai._extended_semconv import (
+from opentelemetry.util.genai.extended_semconv import (
     gen_ai_extended_attributes as GenAIExtended,  # LoongSuite Extension
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_REACT_FINISH_REASON,
     GEN_AI_REACT_ROUND,
     GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN,

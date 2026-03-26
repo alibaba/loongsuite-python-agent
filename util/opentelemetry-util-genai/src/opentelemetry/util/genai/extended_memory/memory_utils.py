@@ -34,14 +34,14 @@ from opentelemetry.semconv.attributes import (
 )
 from opentelemetry.trace import Span
 from opentelemetry.trace.propagation import set_span_in_context
-from opentelemetry.util.genai._extended_memory.memory_types import (
+from opentelemetry.util.genai.extended_memory.memory_types import (
     MemoryInvocation,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_SPAN_KIND,
     GenAiSpanKindValues,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_memory_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_memory_attributes import (
     GEN_AI_MEMORY_AGENT_ID,
     GEN_AI_MEMORY_APP_ID,
     GEN_AI_MEMORY_ID,

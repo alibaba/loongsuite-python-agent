@@ -54,7 +54,7 @@ from opentelemetry.util.genai.extended_types import (
     EntryInvocation,
     ReactStepInvocation,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
     GEN_AI_REACT_FINISH_REASON,
     GEN_AI_REACT_ROUND,

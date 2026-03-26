@@ -53,7 +53,7 @@ from typing import (
 
 from opentelemetry._logs import Logger as OtelLogger
 from opentelemetry.trace import Span
-from opentelemetry.util.genai._extended_semconv import (
+from opentelemetry.util.genai.extended_semconv import (
     gen_ai_extended_attributes as GenAIEx,
 )
 from opentelemetry.util.genai.extended_span_utils import (

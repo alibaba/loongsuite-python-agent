@@ -19,7 +19,7 @@ This package provides types and utility functions for memory operations.
 
 from __future__ import annotations
 
-from opentelemetry.util.genai._extended_memory.memory_utils import (
+from opentelemetry.util.genai.extended_memory.memory_utils import (
     MemoryInvocation,
     _apply_memory_finish_attributes,
     _maybe_emit_memory_event,

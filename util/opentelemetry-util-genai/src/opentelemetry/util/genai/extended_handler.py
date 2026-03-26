@@ -81,15 +81,15 @@ from opentelemetry.trace import (
     TracerProvider,
     set_span_in_context,
 )
-from opentelemetry.util.genai._extended_memory import (
+from opentelemetry.util.genai.extended_memory import (
     MemoryInvocation,
     _apply_memory_finish_attributes,
     _maybe_emit_memory_event,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_SESSION_ID as _GEN_AI_SESSION_ID,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_USER_ID as _GEN_AI_USER_ID,
 )
 from opentelemetry.util.genai._multimodal_processing import (

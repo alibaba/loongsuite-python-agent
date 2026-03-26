@@ -55,8 +55,8 @@ from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace.status import StatusCode
-from opentelemetry.util.genai._extended_memory import MemoryInvocation
-from opentelemetry.util.genai._extended_semconv.gen_ai_memory_attributes import (
+from opentelemetry.util.genai.extended_memory import MemoryInvocation
+from opentelemetry.util.genai.extended_semconv.gen_ai_memory_attributes import (
     GEN_AI_MEMORY_AGENT_ID,
     GEN_AI_MEMORY_APP_ID,
     GEN_AI_MEMORY_ID,

@@ -36,7 +36,7 @@ from opentelemetry.semconv.attributes import (
 )
 from opentelemetry.trace import Span
 from opentelemetry.trace.propagation import set_span_in_context
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
     GEN_AI_RERANK_BATCH_SIZE,
     GEN_AI_RERANK_DEVICE,

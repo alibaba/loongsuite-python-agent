@@ -42,7 +42,7 @@ from opentelemetry.semconv.attributes import (
 )
 from opentelemetry.semconv.schemas import Schemas
 from opentelemetry.trace.status import StatusCode
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_SPAN_KIND,  # LoongSuite Extension
     GEN_AI_USAGE_TOTAL_TOKENS,  # LoongSuite Extension
     GenAiSpanKindValues,  # LoongSuite Extension

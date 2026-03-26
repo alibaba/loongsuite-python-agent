@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Adapt imports to `opentelemetry-util-genai` module layout change
+  ([#157](https://github.com/alibaba/loongsuite-python-agent/pull/157))
+
 ## Version 0.2.0 (2026-03-12)
 
 There are no changelog entries for this release.

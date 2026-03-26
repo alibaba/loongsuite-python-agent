@@ -41,7 +41,7 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes
 from opentelemetry.trace import SpanKind, Status, StatusCode
-from opentelemetry.util.genai._extended_semconv import (
+from opentelemetry.util.genai.extended_semconv import (
     gen_ai_extended_attributes,
 )
 
