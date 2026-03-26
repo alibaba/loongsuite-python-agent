@@ -18,14 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`loongsuite-site-bootstrap`**: initialize .pth-based OTel auto-instrumentation package
   ([#156](https://github.com/alibaba/loongsuite-python-agent/pull/156))
 - **Top-level docs**: add Chinese README (**`README-zh.md`**) translated from **`README.md`**.
-  ([#158](https://github.com/alibaba/loongsuite-python-agent/pull/158))
+  ([#159](https://github.com/alibaba/loongsuite-python-agent/pull/158))
 
 ### Changed
 
 - **`instrumentation-loongsuite/*`**, **`loongsuite-distro`**, and **`util/opentelemetry-util-genai`**: `pyproject.toml` metadata and dependencies for standalone PyPI installs
   ([#155](https://github.com/alibaba/loongsuite-python-agent/pull/155))
 - **`loongsuite-site-bootstrap`**, **`loongsuite-distro`** docs: update **`README.md`**.
-  ([#158](https://github.com/alibaba/loongsuite-python-agent/pull/158))
+  ([#159](https://github.com/alibaba/loongsuite-python-agent/pull/158))
 
 ## Version 0.2.0 (2026-03-12)
 
