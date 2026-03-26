@@ -38,6 +38,8 @@ from opentelemetry.trace import Span
 from opentelemetry.trace.propagation import set_span_in_context
 from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (  # pylint: disable=no-name-in-module
     GEN_AI_EMBEDDINGS_DIMENSION_COUNT,
+    GEN_AI_REACT_FINISH_REASON,
+    GEN_AI_REACT_ROUND,
     GEN_AI_RERANK_BATCH_SIZE,
     GEN_AI_RERANK_DEVICE,
     GEN_AI_RERANK_DOCUMENTS_COUNT,
@@ -48,8 +50,6 @@ from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import
     GEN_AI_RERANK_OUTPUT_DOCUMENTS,
     GEN_AI_RERANK_RETURN_DOCUMENTS,
     GEN_AI_RERANK_SCORING_PROMPT,
-    GEN_AI_REACT_FINISH_REASON,
-    GEN_AI_REACT_ROUND,
     GEN_AI_RESPONSE_TIME_TO_FIRST_TOKEN,
     GEN_AI_RETRIEVAL_DOCUMENTS,
     GEN_AI_RETRIEVAL_QUERY_TEXT,
@@ -57,10 +57,10 @@ from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import
     GEN_AI_SPAN_KIND,
     GEN_AI_TOOL_CALL_ARGUMENTS,
     GEN_AI_TOOL_CALL_RESULT,
-    GEN_AI_USER_ID,
     GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS,
     GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS,
     GEN_AI_USAGE_TOTAL_TOKENS,
+    GEN_AI_USER_ID,
     GenAiExtendedOperationNameValues,
     GenAiSpanKindValues,
 )

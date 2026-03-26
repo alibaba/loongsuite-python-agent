@@ -104,8 +104,8 @@ from opentelemetry.util.genai.extended_span_utils import (
     _apply_entry_finish_attributes,
     _apply_execute_tool_finish_attributes,
     _apply_invoke_agent_finish_attributes,
-    _apply_rerank_finish_attributes,
     _apply_react_step_finish_attributes,
+    _apply_rerank_finish_attributes,
     _apply_retrieval_finish_attributes,
     _maybe_emit_invoke_agent_event,
 )
