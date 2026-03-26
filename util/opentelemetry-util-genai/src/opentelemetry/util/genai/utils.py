@@ -52,7 +52,9 @@ def is_experimental_mode() -> bool:
         if not _OpenTelemetrySemanticConventionStability._initialized:
             _OpenTelemetrySemanticConventionStability._initialize()
     except (ImportError, AttributeError):
-        logger.debug("Failed to initialize _OpenTelemetrySemanticConventionStability, using default value.")
+        logger.debug(
+            "Failed to initialize _OpenTelemetrySemanticConventionStability, using default value."
+        )
         return False
 
     return (
