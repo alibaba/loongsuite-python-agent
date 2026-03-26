@@ -249,7 +249,11 @@ def archive(version: str, repo: Path, date_str: Optional[str] = None) -> None:
             print(f"No Unreleased section in {label}: {path} (skipped)")
 
 
-VERSION_RE = re.compile(r'^(__version__\s*=\s*["\']).*(["\'])', re.MULTILINE)
+# Opening/closing quote must match (\2); optional trailing comment after the string literal.
+VERSION_RE = re.compile(
+    r'^(__version__\s*=\s*(["\']))([^\n]*?)\2(\s*(?:#.*)?)$',
+    re.MULTILINE,
+)
 
 
 def _managed_loongsuite_version_files(
@@ -328,17 +332,13 @@ def pin_release_versions(released_version: str, repo: Path) -> None:
         text = vf.read_text(encoding="utf-8")
         m = VERSION_RE.search(text)
         if m:
-            new_text = VERSION_RE.sub(
-                rf"\g<1>{released_version}\2", text
-            )
+            new_text = VERSION_RE.sub(rf"\g<1>{released_version}\2\4", text)
             vf.write_text(new_text, encoding="utf-8")
             print(
                 f'Pinned {vf.relative_to(repo)} -> __version__ = "{released_version}"'
             )
         else:
-            print(
-                f"WARNING: no __version__ found in {vf.relative_to(repo)}"
-            )
+            print(f"WARNING: no __version__ found in {vf.relative_to(repo)}")
 
 
 def bump_dev(
@@ -358,7 +358,7 @@ def bump_dev(
         text = vf.read_text(encoding="utf-8")
         m = VERSION_RE.search(text)
         if m:
-            new_text = VERSION_RE.sub(rf"\g<1>{next_ver}\2", text)
+            new_text = VERSION_RE.sub(rf"\g<1>{next_ver}\2\4", text)
             vf.write_text(new_text, encoding="utf-8")
             print(
                 f'Bumped {vf.relative_to(repo)}: {m.group(0).strip()} -> __version__ = "{next_ver}"'

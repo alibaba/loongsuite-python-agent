@@ -16,13 +16,16 @@
 LoongSuite site-packages bootstrap: imported from a .pth line during site
 initialization when this distribution is installed.
 
-Gate order for ``LOONGSUITE_PYTHON_SITE_BOOTSTRAP``:
+Gate for ``LOONGSUITE_PYTHON_SITE_BOOTSTRAP`` (string ``true``, case-insensitive
+after stripping whitespace; anything else is off):
 
-1. If the variable **is set** in ``os.environ`` and is not the string ``true``
-   (ASCII, case-insensitive after stripping whitespace), skip the rest
-   (do not read ``bootstrap-config.json``, do not run OpenTelemetry).
-2. If it is **unset** in ``os.environ``, read ``~/.loongsuite/bootstrap-config.json``;
-   enable only when that file maps the key to the same ``true`` rule. Otherwise skip.
+1. **Set and not ``true``** — exit immediately: do **not** read
+   ``bootstrap-config.json``, do not run OpenTelemetry.
+2. **Unset** — read ``~/.loongsuite/bootstrap-config.json`` (if present); enable
+   only when that file maps the key to ``true``. Otherwise skip.
+3. **Set and ``true``** — still read ``bootstrap-config.json`` when the file
+   exists, so JSON can **fill in** other keys that are missing from
+   ``os.environ``; OpenTelemetry runs because the env switch is on.
 
 When enabled, keys from ``bootstrap-config.json`` are applied only for names
 **missing** from ``os.environ`` (``setdefault``-like semantics), then optional
@@ -107,7 +110,9 @@ def _read_bootstrap_config_file() -> dict[str, str] | None:
     return file_defaults if file_defaults else None
 
 
-def _apply_bootstrap_config_defaults(file_defaults: dict[str, str] | None) -> None:
+def _apply_bootstrap_config_defaults(
+    file_defaults: dict[str, str] | None,
+) -> None:
     if not file_defaults:
         _LOGGER.debug(
             "loongsuite-site-bootstrap: no bootstrap-config.json keys to consider "
@@ -163,11 +168,20 @@ def _run_auto_instrumentation() -> None:
     os.environ.setdefault("OTEL_PYTHON_DISTRO", "loongsuite")
     os.environ.setdefault("OTEL_PYTHON_CONFIGURATOR", "loongsuite")
 
-    from opentelemetry.instrumentation.auto_instrumentation import (  # noqa: PLC0415
-        initialize,
-    )
+    try:
+        from opentelemetry.instrumentation.auto_instrumentation import (  # noqa: PLC0415
+            initialize,
+        )
 
-    initialize()
+        initialize()
+    except Exception:
+        _LOGGER.exception(
+            "loongsuite-site-bootstrap: OpenTelemetry auto-instrumentation failed "
+            "(import or initialize); continuing without instrumentation. "
+            "Fix deps or unset LOONGSUITE_PYTHON_SITE_BOOTSTRAP if unintended."
+        )
+        return
+
     _LOGGER.info(
         "loongsuite-site-bootstrap: started successfully "
         "(OpenTelemetry auto-instrumentation initialized)."

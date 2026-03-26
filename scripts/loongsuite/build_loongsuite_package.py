@@ -328,10 +328,13 @@ def build_pypi_packages(
 
     # 3. Build loongsuite-site-bootstrap
     site_bootstrap_dir = base_dir / "loongsuite-site-bootstrap"
-    if site_bootstrap_dir.exists() and (
-        site_bootstrap_dir / "pyproject.toml"
-    ).exists():
-        logger.info(f"Building loongsuite-site-bootstrap (version {version})...")
+    if (
+        site_bootstrap_dir.exists()
+        and (site_bootstrap_dir / "pyproject.toml").exists()
+    ):
+        logger.info(
+            f"Building loongsuite-site-bootstrap (version {version})..."
+        )
         version_py = find_version_py(site_bootstrap_dir)
         modifications = {
             "replace_dependency": {
@@ -339,7 +342,9 @@ def build_pypi_packages(
                 "new_value": f"loongsuite-distro ~= {version}",
             },
         }
-        with _patch_pyproject(site_bootstrap_dir / "pyproject.toml", modifications):
+        with _patch_pyproject(
+            site_bootstrap_dir / "pyproject.toml", modifications
+        ):
             with (
                 _patch_version_py(version_py, version)
                 if version_py
