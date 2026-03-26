@@ -5,9 +5,11 @@ This library provides automatic instrumentation for [CrewAI](https://www.crewai.
 ## Installation
 
 ```bash
-git clone https://github.com/alibaba/loongsuite-python-agent.git
-cd loongsuite-python-agent
-pip install ./instrumentation-loongsuite/loongsuite-instrumentation-crewai
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
+
+# Step 2 (Option C): install this instrumentation from PyPI
+pip install loongsuite-instrumentation-crewai
 ```
 
 ## Usage

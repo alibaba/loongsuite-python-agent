@@ -1,6 +1,6 @@
-# OpenTelemetry AgentScope Instrumentation
+# LoongSuite AgentScope Instrumentation
 
-OpenTelemetry instrumentation for [AgentScope](https://github.com/agentscope-ai/agentscope) framework.
+LoongSuite instrumentation for [AgentScope](https://github.com/agentscope-ai/agentscope) framework.
 
 ## Features
 
@@ -13,16 +13,14 @@ OpenTelemetry instrumentation for [AgentScope](https://github.com/agentscope-ai/
 ## Installation
 
 ```bash
-pip install opentelemetry-distro opentelemetry-exporter-otlp
-opentelemetry-bootstrap -a install
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
 
+# Step 2 (Option C): install this instrumentation from PyPI
+pip install loongsuite-instrumentation-agentscope
+
+# Optional app dependency
 pip install agentscope
-
-# Install this instrumentation
-pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
-
-# Note: This instrumentation uses ExtendedTelemetryHandler from opentelemetry-util-genai
-pip install ./util/opentelemetry-util-genai
 ```
 
 ## Usage
@@ -30,7 +28,7 @@ pip install ./util/opentelemetry-util-genai
 ### Auto-instrumentation
 
 ```bash
-opentelemetry-instrument \
+loongsuite-instrument \
     --traces_exporter console \
     --metrics_exporter console \
     python your_agentscope_app.py
@@ -62,7 +60,7 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=<trace_endpoint>
 export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=<metrics_endpoint>
 
-opentelemetry-instrument python your_app.py
+loongsuite-instrument python your_app.py
 ```
 
 ### Content Capture

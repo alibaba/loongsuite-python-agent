@@ -10,15 +10,14 @@ For details on usage and installation of LoongSuite and Jaeger, please refer to
 ## Installing Mem0 Instrumentation
 
 ```bash
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
+
+# Step 2 (Option C): install this instrumentation from PyPI
 pip install loongsuite-instrumentation-mem0
+
+# Optional dependency for threading context propagation
 pip install opentelemetry-instrumentation-threading
-```
-
-If you have not installed OpenTelemetry yet, you can install a minimal setup with:
-
-```bash
-pip install opentelemetry-distro opentelemetry-exporter-otlp
-opentelemetry-bootstrap -a install
 ```
 
 ## Collect Data
@@ -56,24 +55,9 @@ export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=SPAN_ONLY
 export OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT=true
 ```
 
-### Option 1: Using opentelemetry-instrument
+### Recommended: Using loongsuite-instrument
 
-Mem0 instrumentation is automatically enabled via the standard OpenTelemetry auto‑instrumentation entry point:
-
-```bash
-opentelemetry-instrument \
-    --traces_exporter console \
-    python demo.py
-```
-
-If everything is working, you should see spans for:
-
-- Top‑level Mem0 operations (such as `add`, `search`, `update`, `delete`)
-- Optional internal phases (Vector Store, Graph Store, Reranker) when enabled
-
-### Option 2: Using loongsuite-instrument
-
-You can also start your application with `loongsuite-instrument` to forward data to LoongSuite/Jaeger:
+Start your application with `loongsuite-instrument` (recommended in root README):
 
 ```bash
 export OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental

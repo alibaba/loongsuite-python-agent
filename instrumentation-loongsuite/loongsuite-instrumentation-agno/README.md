@@ -1,12 +1,16 @@
-# OpenTelemerty Agno Instrumentation
+# LoongSuite Agno Instrumentation
 
 Agno Python Agent provides observability for Agno applications. This document provides examples of usage and results in the Agno instrumentation. For details on usage and installation of LoongSuite and Jaeger, please refer to [LoongSuite Documentation](https://github.com/alibaba/loongsuite-python-agent/blob/main/README.md).
 
 ## Installation
   
 ```shell
-git clone https://github.com/alibaba/loongsuite-python-agent.git
-pip install ./instrumentation-loongsuite/loongsuite-instrumentation-agno
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
+
+# Step 2 (Option A): install instrumentations from LoongSuite release
+loongsuite-bootstrap -a install --latest
+# for specific version: loongsuite-bootstrap -a install --version X.Y.Z
 ```
 
 ## RUN
@@ -40,23 +44,7 @@ agent.print_response(
 
 ### Collect Data
 
-There are two ways to run the `demo.py` script with instrumentation:
-
-### Option 1: Using OpenTelemetry
-
-```shell 
-export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
-
-opentelemetry-instrument \
---exporter_otlp_protocol grpc \
---traces_exporter otlp \
---exporter_otlp_insecure true \
---exporter_otlp_endpoint YOUR-END-POINT \
---service_name demo \
-python demo.py
-```
-
-### Option 2: Using Loongsuite
+Use LoongSuite recommended runtime:
 
 ```shell 
 export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Update README integration flow to align with the root recommended LoongSuite pattern using Option A (`loongsuite-bootstrap -a install --latest`) for this package not yet on PyPI.
+  ([#159](https://github.com/alibaba/loongsuite-python-agent/pull/159))
+
 ## Version 0.2.0 (2026-03-12)
 
 There are no changelog entries for this release.

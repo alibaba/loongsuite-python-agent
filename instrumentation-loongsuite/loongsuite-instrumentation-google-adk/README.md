@@ -1,12 +1,10 @@
-# OpenTelemetry Google ADK Instrumentation
-
-[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-GenAI_Semantic_Conventions-blue)](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/gen-ai/)
+# LoongSuite Google ADK Instrumentation
 
 Google ADK (Agent Development Kit) Python Agent provides comprehensive observability for Google ADK applications using OpenTelemetry.
 
 ## Features
 
-- ✅ **Automatic Instrumentation**: Zero-code integration via `opentelemetry-instrument`
+- ✅ **Automatic Instrumentation**: Zero-code integration via `loongsuite-instrument`
 - ✅ **Manual Instrumentation**: Programmatic control via `GoogleAdkInstrumentor`
 - ✅ **GenAI Semantic Conventions**: Full compliance with OpenTelemetry GenAI standards
 - ✅ **Comprehensive Spans**: `invoke_agent`, `chat`, `execute_tool`
@@ -17,15 +15,20 @@ Google ADK (Agent Development Kit) Python Agent provides comprehensive observabi
 ## Quick Start
 
 ```bash
-# Install
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
+
+# Step 2 (Option C): install instrumentation from PyPI
+pip install loongsuite-instrumentation-google-adk
+
+# App dependencies
 pip install google-adk litellm
-pip install ./instrumentation-loongsuite/loongsuite-instrumentation-google-adk
 
 # Configure
 export DASHSCOPE_API_KEY=your-api-key
 
 # Run with auto instrumentation
-opentelemetry-instrument \
+loongsuite-instrument \
   --traces_exporter console \
   --service_name my-adk-app \
   python your_app.py
@@ -36,9 +39,11 @@ For details on LoongSuite and Jaeger setup, refer to [LoongSuite Documentation](
 ## Installing Google ADK Instrumentation
 
 ```shell
-# OpenTelemetry Core
-pip install opentelemetry-distro opentelemetry-exporter-otlp
-opentelemetry-bootstrap -a install
+# Step 1: install LoongSuite distro
+pip install loongsuite-distro
+
+# Step 2 (Option C): install this instrumentation from PyPI
+pip install loongsuite-instrumentation-google-adk
 
 # Google ADK and LLM Dependencies
 pip install google-adk>=0.1.0
@@ -47,10 +52,6 @@ pip install litellm
 # Demo Application Dependencies (optional, only if running examples)
 pip install fastapi uvicorn pydantic
 
-# GoogleAdkInstrumentor
-git clone https://github.com/alibaba/loongsuite-python-agent.git
-cd loongsuite-python-agent
-pip install ./instrumentation-loongsuite/loongsuite-instrumentation-google-adk
 ```
 
 ## Collect Data
@@ -63,23 +64,7 @@ Here's a simple demonstration of Google ADK instrumentation. The demo uses:
 
 > **Note**: The demo uses DashScope (Alibaba Cloud LLM service) by default. You need to set the `DASHSCOPE_API_KEY` environment variable.
 
-#### Option 1: Using OpenTelemetry Auto Instrumentation
-
-```bash
-# Set your DashScope API key
-export DASHSCOPE_API_KEY=your-dashscope-api-key
-
-# Enable content capture (optional, for debugging)
-export OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
-
-# Run with auto instrumentation
-opentelemetry-instrument \
-  --traces_exporter console \
-  --service_name demo-google-adk \
-  python examples/main.py
-```
-
-#### Option 2: Using Loongsuite
+#### Option 1: Using LoongSuite auto instrumentation
 
 ```bash
 # Set your DashScope API key
@@ -95,7 +80,7 @@ loongsuite-instrument \
   python examples/main.py
 ```
 
-#### Option 3: Export to Jaeger
+#### Option 2: Export to Jaeger
 
 ```bash
 # Set your DashScope API key
@@ -108,7 +93,7 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 
 # Run the application
-opentelemetry-instrument \
+loongsuite-instrument \
   --service_name demo-google-adk \
   python examples/main.py
 ```

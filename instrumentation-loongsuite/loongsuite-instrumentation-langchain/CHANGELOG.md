@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#148](https://github.com/alibaba/loongsuite-python-agent/pull/148))
 - Improved token usage extraction to support multiple LangChain/LLM provider formats
   ([#148](https://github.com/alibaba/loongsuite-python-agent/pull/148))
+- Update README integration flow to align with the root recommended LoongSuite pattern using Option C (`pip install loongsuite-instrumentation-langchain`) and `loongsuite-instrument`.
+  ([#159](https://github.com/alibaba/loongsuite-python-agent/pull/159))
 
 ## Version 0.2.0 (2026-03-12)
 
