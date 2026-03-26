@@ -380,11 +380,11 @@ def _get_llm_response_attributes(
         (GenAI.GEN_AI_USAGE_INPUT_TOKENS, invocation.input_tokens),
         (GenAI.GEN_AI_USAGE_OUTPUT_TOKENS, invocation.output_tokens),
         (
-            GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS,
+            GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS, # LoongSuite Extension
             invocation.usage_cache_creation_input_tokens,
         ),
         (
-            GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS,
+            GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS, # LoongSuite Extension
             invocation.usage_cache_read_input_tokens,
         ),
     )
