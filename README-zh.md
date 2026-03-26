@@ -32,16 +32,16 @@ LoongSuite Python Agent 同时也是上游 [OTel Python Agent](https://github.co
 |--------|------|---------|
 | [AgentScope](https://github.com/agentscope-ai/agentscope) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agentscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-agentscope/) |
 | [Agno](https://github.com/agno-agi/agno) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agno/README.md) | in dev |
-| Claude Agent SDK | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-claude-agent-sdk/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-claude-agent-sdk/) |
-| CrewAI | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-crewai/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-crewai/) |
-| DashScope | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-dashscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-dashscope/) |
+| [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk-python) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-claude-agent-sdk/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-claude-agent-sdk/) |
+| [CrewAI](https://github.com/crewAIInc/crewAI) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-crewai/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-crewai/) |
+| [DashScope](https://github.com/dashscope/dashscope-sdk-python) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-dashscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-dashscope/) |
 | [Dify](https://github.com/langgenius/dify) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-dify/README.md) | in dev |
-| Google ADK | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-google-adk/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-google-adk/) |
-| LangChain | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-langchain/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-langchain/) |
-| LangGraph | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-langgraph/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-langgraph/) |
-| LiteLLM | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-litellm/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-litellm/) |
+| [Google ADK](https://github.com/google/adk-python) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-google-adk/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-google-adk/) |
+| [LangChain](https://github.com/langchain-ai/langchain) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-langchain/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-langchain/) |
+| [LangGraph](https://github.com/langchain-ai/langgraph) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-langgraph/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-langgraph/) |
+| [LiteLLM](https://github.com/BerriAI/litellm) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-litellm/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-litellm/) |
 | [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-mcp/README.md) | in dev |
-| Mem0 | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-mem0/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-mem0/) |
+| [Mem0](https://github.com/mem0ai/mem0) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-mem0/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-mem0/) |
 
 **发行版与辅助组件：**
 
@@ -55,14 +55,14 @@ LoongSuite Python Agent 同时也是上游 [OTel Python Agent](https://github.co
 
 | 框架/组件 | 文档 | 发布 |
 |--------|------|---------|
-| Anthropic | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-anthropic/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-anthropic/) |
-| Claude Agent SDK | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-claude-agent-sdk/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-claude-agent-sdk/) |
-| Google GenAI | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-google-genai/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-google-genai/) |
-| LangChain | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-langchain/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-langchain/) |
-| OpenAI Agents | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-openai-agents-v2/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-openai-agents-v2/) |
-| OpenAI | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-openai-v2/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-openai-v2/) |
-| Vertex AI | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-vertexai/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-vertexai/) |
-| Weaviate | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-weaviate/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-weaviate/) |
+| [Anthropic](https://github.com/anthropics/anthropic-sdk-python) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-anthropic/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-anthropic/) |
+| [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk-python) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-claude-agent-sdk/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-claude-agent-sdk/) |
+| [Google GenAI](https://github.com/googleapis/python-genai) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-google-genai/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-google-genai/) |
+| [LangChain](https://github.com/langchain-ai/langchain) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-langchain/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-langchain/) |
+| [OpenAI Agents](https://github.com/openai/openai-agents-python) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-openai-agents-v2/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-openai-agents-v2/) |
+| [OpenAI](https://github.com/openai/openai-python) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-openai-v2/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-openai-v2/) |
+| [Vertex AI](https://github.com/googleapis/python-aiplatform) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-vertexai/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-vertexai/) |
+| [Weaviate](https://github.com/weaviate/weaviate) | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-weaviate/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-weaviate/) |
 
 > **说明：**在 LoongSuite 的发行方式下，请将这些包与 [**loongsuite-distro**](https://pypi.org/project/loongsuite-distro/) 以及 **`loongsuite-bootstrap`** / [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 一起使用。避免将 [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 与社区版 **opentelemetry-util-genai** 混装（见[手动 `pip` 安装](#install-step-2-options)）。
 
@@ -281,6 +281,12 @@ loongsuite-instrument \
 
 **远端 / 生产 — OTLP**
 
+在应用启动前，需要安装 `opentelemetry-exporter-otlp`。
+
+```bash
+pip install opentelemetry-exporter-otlp
+```
+
 将 OpenTelemetry 指向支持 **OTLP**（gRPC 或 HTTP/protobuf）的后端，使用 **`OtlpSpanExporter`**、**`OtlpMetricExporter`**、**`OtlpLogExporter`**（或等价环境变量 / `loongsuite-instrument` 参数），例如：
 
 ```bash
@@ -356,29 +362,25 @@ loongsuite-instrument \
   git clone https://github.com/alibaba/loongsuite-python-agent.git
   ```
 
-**步骤 2 — 先安装上游 OpenTelemetry Python core**
+**步骤 2 — 安装上游 OpenTelemetry Python core 与本地 LoongSuite 组件**
 
-从 [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) 的 Git checkout 安装 **`opentelemetry-api`**、**`opentelemetry-semantic-conventions`** 和 **`opentelemetry-sdk`**，例如：
-
-  ```bash
-  GIT_ROOT="git+https://github.com/open-telemetry/opentelemetry-python.git"
-  pip install "${GIT_ROOT}#subdirectory=opentelemetry-api"
-  pip install "${GIT_ROOT}#subdirectory=opentelemetry-semantic-conventions"
-  pip install "${GIT_ROOT}#subdirectory=opentelemetry-sdk"
-  ```
-
-**步骤 3 — 按顺序安装 LoongSuite 组件**
-
-（这样 `loongsuite-util-genai` 会解析到本地构建，而不是上游 util）
+从 [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) 的 Git checkout 安装 core，并与本地可编辑包一次性安装，例如：
 
   ```bash
   cd loongsuite-python-agent
-  pip install -e ./util/opentelemetry-util-genai
-  pip install -e ./opentelemetry-instrumentation
-  pip install -e ./loongsuite-distro
+  GIT_ROOT="git+https://github.com/open-telemetry/opentelemetry-python.git"
+  # 必须用一条 pip install：让 resolver 同时看到全部约束；
+  # 分步安装时，后续安装本地 editable 包可能触发 api/semconv 被降级或替换。
+  pip install \
+    "${GIT_ROOT}#subdirectory=opentelemetry-api" \
+    "${GIT_ROOT}#subdirectory=opentelemetry-semantic-conventions" \
+    "${GIT_ROOT}#subdirectory=opentelemetry-sdk" \
+    -e ./util/opentelemetry-util-genai \
+    -e ./opentelemetry-instrumentation \
+    -e ./loongsuite-distro
   ```
 
-**步骤 4 — 安装所需 instrumentation**
+**步骤 3 — 安装所需 instrumentation**
 
 例如：
 
@@ -386,7 +388,7 @@ loongsuite-instrument \
   pip install -e ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
   ```
 
-**步骤 5 — 在 `loongsuite-instrument` 下运行**
+**步骤 4 — 在 `loongsuite-instrument` 下运行**
 
   先通过环境变量和/或 `loongsuite-instrument` 参数配置**遥测导出目标**（见下文[配置遥测导出](#configure-telemetry-export)），然后启动应用：
 
