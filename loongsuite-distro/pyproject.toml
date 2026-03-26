@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "loongsuite-distro"
 dynamic = ["version"]
 description = "LoongSuite Python Agent Distro"
-readme = "README.rst"
+readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [

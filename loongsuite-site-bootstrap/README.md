@@ -2,7 +2,7 @@
 
 在**不修改业务代码、不改用 `loongsuite-instrument` 启动命令**的前提下，通过 **`site-packages` 中的 `.pth` 行**在解释器早期触发一次 `import`，从而在进程内执行与 [`opentelemetry-instrument`](https://github.com/open-telemetry/opentelemetry-python-contrib)（`sitecustomize` → `initialize()`）等价的 OpenTelemetry 自动注入逻辑。
 
-与 `loongsuite-bootstrap`（按 tar 批量安装组件）**无关**：本包**不会**安装任何 Instrumentation 包；客户按需自行 `pip install` 所需的 `opentelemetry-instrumentation-*` / `loongsuite-instrumentation-*`。
+与 `loongsuite-bootstrap` 的职责**不同**：本包只负责启动早期注入，**不会**安装任何 Instrumentation 包。可与 `loongsuite-bootstrap` 配合使用（推荐），也可按需自行 `pip install` 所需的 `opentelemetry-instrumentation-*` / `loongsuite-instrumentation-*`。
 
 ## 安装
 
@@ -10,7 +10,15 @@
 pip install loongsuite-site-bootstrap
 ```
 
-同时请按需安装具体 Instrumenter 与 Exporter，例如：
+随后请安装 Instrumentation 与 Exporter。推荐用 [loongsuite-bootstrap](../loongsuite-distro/README.rst) 安装：
+
+```bash
+loongsuite-bootstrap -a install --latest
+# 或仅安装当前环境已存在依赖对应的埋点
+loongsuite-bootstrap -a install --latest --auto-detect
+```
+
+也可以手动安装，例如：
 
 ```bash
 pip install opentelemetry-exporter-otlp loongsuite-instrumentation-langchain
@@ -37,7 +45,7 @@ JSON 根节点须为对象；键必须为字符串。值的类型会转成字符
 
 ## 启用方式
 
-默认**不执行**任何 OTel 逻辑（避免拖慢本机所有 Python 进程）。可在 **`bootstrap-config.json` 或环境变量** 中开启后，本包在进程启动早期执行自动注入：
+默认**不执行**任何 OTel 逻辑（避免影响环境中所有 Python 进程）。可在 **`bootstrap-config.json` 或环境变量** 中开启后，本包在进程启动早期执行自动注入：
 
 ```bash
 export LOONGSUITE_PYTHON_SITE_BOOTSTRAP=True

@@ -352,7 +352,7 @@ For applications where you can edit code and want explicit control over OpenTele
   git clone https://github.com/alibaba/loongsuite-python-agent.git
   ```
 
-**Step 2 — Install OpenTelemetry Python “core” from the upstream repo**: install **`opentelemetry-api`**, **`opentelemetry-semantic-conventions`**, **`opentelemetry-sdk`**, and optionally **`opentelemetry-test-utils`** from a Git checkout of [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python), for example:
+**Step 2 — Install OpenTelemetry Python “core” from the upstream repo**: install **`opentelemetry-api`**, **`opentelemetry-semantic-conventions`**, and **`opentelemetry-sdk`** from a Git checkout of [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python), for example:
 
   ```bash
   GIT_ROOT="git+https://github.com/open-telemetry/opentelemetry-python.git"

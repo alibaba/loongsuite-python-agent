@@ -358,14 +358,13 @@ loongsuite-instrument \
 
 **步骤 2 — 先安装上游 OpenTelemetry Python core**
 
-从 [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) 的 Git checkout 安装 **`opentelemetry-api`**、**`opentelemetry-semantic-conventions`**、**`opentelemetry-sdk`**，可选安装 **`opentelemetry-test-utils`**，例如：
+从 [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) 的 Git checkout 安装 **`opentelemetry-api`**、**`opentelemetry-semantic-conventions`** 和 **`opentelemetry-sdk`**，例如：
 
   ```bash
   GIT_ROOT="git+https://github.com/open-telemetry/opentelemetry-python.git"
   pip install "${GIT_ROOT}#subdirectory=opentelemetry-api"
   pip install "${GIT_ROOT}#subdirectory=opentelemetry-semantic-conventions"
   pip install "${GIT_ROOT}#subdirectory=opentelemetry-sdk"
-  pip install "${GIT_ROOT}#subdirectory=tests/opentelemetry-test-utils"
   ```
 
 **步骤 3 — 按顺序安装 LoongSuite 组件**
@@ -373,6 +372,7 @@ loongsuite-instrument \
 （这样 `loongsuite-util-genai` 会解析到本地构建，而不是上游 util）
 
   ```bash
+  cd loongsuite-python-agent
   pip install -e ./util/opentelemetry-util-genai
   pip install -e ./opentelemetry-instrumentation
   pip install -e ./loongsuite-distro
