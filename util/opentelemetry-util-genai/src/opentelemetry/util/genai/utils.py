@@ -46,6 +46,15 @@ logger = logging.getLogger(__name__)
 
 
 def is_experimental_mode() -> bool:
+    # LoongSuite Extension (FIXME): genai-util should not depend on initialization flows in instrumentation packages; otherwise it cannot be delivered as a standalone SDK.
+    # Bypass the initialization logic of instrumentation package by directly accessing the internal state.
+    try:
+        if not _OpenTelemetrySemanticConventionStability._initialized:
+            _OpenTelemetrySemanticConventionStability._initialize()
+    except (ImportError, AttributeError):
+        logger.debug("Failed to initialize _OpenTelemetrySemanticConventionStability, using default value.")
+        return False
+
     return (
         _OpenTelemetrySemanticConventionStability._get_opentelemetry_stability_opt_in_mode(
             _OpenTelemetryStabilitySignalType.GEN_AI,
