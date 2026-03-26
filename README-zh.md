@@ -3,32 +3,32 @@
 
 <div align="center">
 
-**English** | [简体中文](README-zh.md)
+[English](README.md) | **简体中文**
 
 </div>
 
-## Introduction
-Loongsuite Python Agent is a key component of LoongSuite, Alibaba's unified observability data collection suite, providing instrumentation for Python applications. 
+## 介绍
+LoongSuite Python Agent 是 LoongSuite（阿里巴巴统一可观测数据采集套件）的关键组件，为 Python 应用提供自动埋点（instrumentation）能力。
 
-LoongSuite includes the following key components:
-* [LoongCollector](https://github.com/alibaba/loongcollector): universal node agent, which prodivdes log collection, prometheus metric collection, and network and security collection capabilities based on eBPF.
-* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent): a process agent providing instrumentation for python applications.
-* [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent): a process agent for golang with compile time instrumentation.
-* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent): a process agent for Java applications.
-* Other upcoming language agent.
+LoongSuite 包含以下核心组件：
+* [LoongCollector](https://github.com/alibaba/loongcollector)：通用节点 Agent，基于 eBPF 提供日志采集、Prometheus 指标采集以及网络与安全采集能力。
+* [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent)：为 Python 应用提供埋点能力的进程 Agent。
+* [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent)：支持编译期埋点的 Golang 进程 Agent。
+* [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent)：面向 Java 应用的进程 Agent。
+* 其他语言 Agent 正在建设中。
 
-Loongsuite Python Agent is also a customized distribution of upstream [OTel Python Agent](https://github.com/open-telemetry/opentelemetry-python-contrib), with enhanced support for popular AI agent framework. 
-The implementation follows the latest GenAI [semantic conventions](https://github.com/open-telemetry/semantic-conventions).
+LoongSuite Python Agent 同时也是上游 [OTel Python Agent](https://github.com/open-telemetry/opentelemetry-python-contrib) 的定制化发行版，增强了对主流 AI Agent 框架的支持。
+实现遵循最新的 GenAI [语义约定](https://github.com/open-telemetry/semantic-conventions)。
 
-## Supported frameworks and components
+## 支持的框架与组件
 
 <a id="supported-frameworks-and-components"></a>
 
 ### LoongSuite instrumentation
 
-Source tree: [`instrumentation-loongsuite/`](instrumentation-loongsuite).
+源码目录：[`instrumentation-loongsuite/`](instrumentation-loongsuite)。
 
-| Framework/Components | Docs | Release |
+| 框架/组件 | 文档 | 发布 |
 |--------|------|---------|
 | [AgentScope](https://github.com/agentscope-ai/agentscope) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agentscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-agentscope/) |
 | [Agno](https://github.com/agno-agi/agno) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agno/README.md) | in dev |
@@ -43,17 +43,17 @@ Source tree: [`instrumentation-loongsuite/`](instrumentation-loongsuite).
 | [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-mcp/README.md) | in dev |
 | Mem0 | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-mem0/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-mem0/) |
 
-**Distro and helpers:**
+**发行版与辅助组件：**
 
-- **loongsuite-distro** — [https://pypi.org/project/loongsuite-distro/](https://pypi.org/project/loongsuite-distro/) (`loongsuite-instrument`, `loongsuite-bootstrap`)
+- **loongsuite-distro** — [https://pypi.org/project/loongsuite-distro/](https://pypi.org/project/loongsuite-distro/)（包含 `loongsuite-instrument`、`loongsuite-bootstrap`）
 - **loongsuite-util-genai** — [https://pypi.org/project/loongsuite-util-genai/](https://pypi.org/project/loongsuite-util-genai/)
-- **loongsuite-site-bootstrap** — [https://pypi.org/project/loongsuite-site-bootstrap/](https://pypi.org/project/loongsuite-site-bootstrap/).
+- **loongsuite-site-bootstrap**— [https://pypi.org/project/loongsuite-site-bootstrap/](https://pypi.org/project/loongsuite-site-bootstrap/)。
 
-### OpenTelemetry instrumentation — generative workloads
+### OpenTelemetry instrumentation — 生成式工作负载
 
-Source tree: [`instrumentation-genai/`](instrumentation-genai). These distributions follow OpenTelemetry **generative** semantic conventions (`opentelemetry-instrumentation-*` on PyPI).
+源码目录：[`instrumentation-genai/`](instrumentation-genai)。这些发行包遵循 OpenTelemetry 的**生成式 AI**语义约定（PyPI 包名为 `opentelemetry-instrumentation-*`）。
 
-| Framework/Components | Docs | Release |
+| 框架/组件 | 文档 | 发布 |
 |--------|------|---------|
 | Anthropic | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-anthropic/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-anthropic/) |
 | Claude Agent SDK | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-claude-agent-sdk/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-claude-agent-sdk/) |
@@ -64,14 +64,14 @@ Source tree: [`instrumentation-genai/`](instrumentation-genai). These distributi
 | Vertex AI | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-vertexai/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-vertexai/) |
 | Weaviate | [GUIDE](instrumentation-genai/opentelemetry-instrumentation-weaviate/README.rst) | [PyPI](https://pypi.org/project/opentelemetry-instrumentation-weaviate/) |
 
-> **Note:** With LoongSuite’s distro, install these together with [**loongsuite-distro**](https://pypi.org/project/loongsuite-distro/) and **`loongsuite-bootstrap`** / [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/). Avoid mixing [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) with the community **opentelemetry-util-genai** (see [manual `pip` installs](#install-step-2-options)).
+> **说明：**在 LoongSuite 的发行方式下，请将这些包与 [**loongsuite-distro**](https://pypi.org/project/loongsuite-distro/) 以及 **`loongsuite-bootstrap`** / [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 一起使用。避免将 [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 与社区版 **opentelemetry-util-genai** 混装（见[手动 `pip` 安装](#install-step-2-options)）。
 
 ### OpenTelemetry instrumentation
 
-Source tree: [`instrumentation/`](instrumentation). General application and library instrumentations; PyPI project is always `https://pypi.org/project/opentelemetry-instrumentation-<name>/`. Each line below links to that URL and the package README in this repo.
+源码目录：[`instrumentation/`](instrumentation)。这是通用应用与库的埋点集合；PyPI 项目名恒为 `https://pypi.org/project/opentelemetry-instrumentation-<name>/`。下表每一行都包含该 PyPI 链接及本仓库对应 README。
 
 <details>
-<summary><b>All <code>instrumentation/</code> packages (click to expand)</b></summary>
+<summary><b>所有 <code>instrumentation/</code> 包（点击展开）</b></summary>
 
 - **opentelemetry-instrumentation-aio-pika** — [PyPI](https://pypi.org/project/opentelemetry-instrumentation-aio-pika/), [readme](instrumentation/opentelemetry-instrumentation-aio-pika/README.rst)
 - **opentelemetry-instrumentation-aiohttp-client** — [PyPI](https://pypi.org/project/opentelemetry-instrumentation-aiohttp-client/), [readme](instrumentation/opentelemetry-instrumentation-aiohttp-client/README.rst)
@@ -127,31 +127,31 @@ Source tree: [`instrumentation/`](instrumentation). General application and libr
 
 </details>
 
-## Quick start
+## 快速开始
 
-This walkthrough uses **[AgentScope](https://github.com/agentscope-ai/agentscope)**. The same exporter and `loongsuite-instrument` patterns apply to other stacks once their instrumentations are installed.
+本示例使用 **[AgentScope](https://github.com/agentscope-ai/agentscope)**。安装对应埋点后，其他技术栈也适用同样的 exporter 与 `loongsuite-instrument` 使用方式。
 
-### Prepare a demo (AgentScope ReAct example)
+### 准备一个 Demo（AgentScope ReAct 示例）
 
-Use the upstream **[ReAct agent example](https://github.com/agentscope-ai/agentscope/tree/main/examples/agent/react_agent)** as reference: you can clone AgentScope or align with that folder’s `main.py`.
+可参考上游 **[ReAct agent 示例](https://github.com/agentscope-ai/agentscope/tree/main/examples/agent/react_agent)**：你可以克隆 AgentScope，或按该目录中的 `main.py` 对齐。
 
-**Step 1 — Install AgentScope**
+**步骤 1 — 安装 AgentScope**
 
   ```bash
   pip install agentscope
   ```
 
-**Step 2 - Configure DashScope**
+**步骤 2 - 配置 DashScope**
 
   ```bash
   export DASHSCOPE_API_KEY={your_api_key}
   ```
 
-  Replace `{your_api_key}` with a valid key from the [DashScope console](https://bailian.console.aliyun.com/#/api-key).
+  将 `{your_api_key}` 替换为在 [DashScope 控制台](https://bailian.console.aliyun.com/#/api-key) 获取的有效密钥。
 
-  To connect to a different model API instead of DashScope, see the AgentScope documentation: [Model tutorial](https://doc.agentscope.io/tutorial/task_model.html).
+  若需接入非 DashScope 的模型 API，请参考 AgentScope 文档：[Model tutorial](https://doc.agentscope.io/tutorial/task_model.html)。
 
-**Step 3 - Create ReAct Agent**
+**步骤 3 - 创建 ReAct Agent**
 
   ```python
   # -*- coding: utf-8 -*-
@@ -206,52 +206,52 @@ Use the upstream **[ReAct agent example](https://github.com/agentscope-ai/agents
   asyncio.run(main())
   ```
 
-### Install and run loongsuite
+### 安装并运行 loongsuite
 
 <a id="install-and-run-loongsuite"></a>
 
-Recommended integration approach: **automatic instrumentation** with **`loongsuite-instrument`** after installing **`loongsuite-distro`** and your instrumentations (via **`loongsuite-bootstrap`** or manual `pip`).
+推荐集成方式：先安装 **`loongsuite-distro`** 及所需埋点（通过 **`loongsuite-bootstrap`** 或手动 `pip`），再使用 **`loongsuite-instrument`** 进行**自动埋点**。
 
-**Step 1 — Install the distro**
+**步骤 1 — 安装 distro**
 
   ```bash
   pip install loongsuite-distro
   ```
 
-  Optional: `pip install loongsuite-distro[otlp]` for OTLP extras ([loongsuite-distro README](loongsuite-distro/README.rst)).
+  可选：`pip install loongsuite-distro[otlp]` 以安装 OTLP 扩展（见 [loongsuite-distro README](loongsuite-distro/README.rst)）。
 
-**Step 2 — Install instrumentations**
+**步骤 2 — 安装 instrumentations**
 
-  Use **`loongsuite-bootstrap`** (shipped with `loongsuite-distro`) to install LoongSuite wheels from a [GitHub Release](https://github.com/alibaba/loongsuite-python-agent/releases) tarball and compatible `opentelemetry-instrumentation-*` versions from PyPI. Bootstrap performs a **two-phase** install: LoongSuite artifacts from the release, then pinned OpenTelemetry instrumentation packages (see [docs/loongsuite-release.md](docs/loongsuite-release.md)).
+  使用 **`loongsuite-bootstrap`**（随 `loongsuite-distro` 提供）可从 [GitHub Release](https://github.com/alibaba/loongsuite-python-agent/releases) tarball 安装 LoongSuite wheel，并从 PyPI 安装兼容版本的 `opentelemetry-instrumentation-*`。Bootstrap 采用**两阶段**安装：先安装 Release 中的 LoongSuite 制品，再安装固定版本 OpenTelemetry instrumentation（见 [docs/loongsuite-release.md](docs/loongsuite-release.md)）。
 
-  Pick **one** of the following:
+  以下方式三选一：
 
   <a id="install-step-2-options"></a>
 
-- **Option A — Install everything** from a release:
+- **选项 A — 安装全部**（来自某个 release）：
 
   ```bash
   loongsuite-bootstrap -a install --latest
-  # for specific version: loongsuite-bootstrap -a install --version X.Y.Z
+  # 指定版本：loongsuite-bootstrap -a install --version X.Y.Z
   ```
 
-- **Option B — Auto-detect** (lean environments): install only instrumentations for libraries already present:
+- **选项 B — 自动探测**（精简环境）：仅安装当前环境已有依赖对应的埋点：
 
   ```bash
   loongsuite-bootstrap -a install --latest --auto-detect
   ```
 
-- **Option C — Manual `pip`**: install packages yourself from PyPI using the names in [Supported frameworks and components](#supported-frameworks-and-components).
+- **选项 C — 手动 `pip`**：按 [支持的框架与组件](#supported-frameworks-and-components) 中的包名从 PyPI 自行安装。
 
   ```bash
   pip install loongsuite-instrumentation-agentscope
   ```
 
-  > **Note:** If you need packages under [`instrumentation-genai/`](instrumentation-genai), use **Option A or B** together with **`loongsuite-distro`** / **`loongsuite-bootstrap`**. Relying only on manual `pip` can cause **dependency resolution conflicts** when [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) and the community **opentelemetry-util-genai** are both pulled in or pinned differently.
+  > **说明：**若你需要 [`instrumentation-genai/`](instrumentation-genai) 下的包，请优先采用 **选项 A 或 B**，并搭配 **`loongsuite-distro`** / **`loongsuite-bootstrap`**。仅手动 `pip` 安装时，若同时引入或以不同版本固定 [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 与社区版 **opentelemetry-util-genai**，可能触发**依赖解析冲突**。
 
-**Step 3 — Run under `loongsuite-instrument`**
+**步骤 3 — 在 `loongsuite-instrument` 下运行**
 
-  Configure **where telemetry is exported** (see [Configure telemetry export](#configure-telemetry-export) below) using environment variables and/or `loongsuite-instrument` flags, then start your app:
+  先通过环境变量和/或 `loongsuite-instrument` 参数配置**遥测导出目标**（见下文[配置遥测导出](#configure-telemetry-export)），然后启动应用：
 
   ```bash
   loongsuite-instrument \
@@ -261,13 +261,13 @@ Recommended integration approach: **automatic instrumentation** with **`loongsui
     python demo.py
   ```
 
-  For **programmatic** instrumentation, **install from source**, or **site-bootstrap** (`loongsuite-site-bootstrap`), see [Alternative installation methods](#alternative-installation-methods).
+  若需**代码方式**埋点、**源码安装**或 **site-bootstrap**（`loongsuite-site-bootstrap`），请见[其他安装方式](#alternative-installation-methods)。
 
-### Configure telemetry export
+### 配置遥测导出
 
-**Local debugging — console**
+**本地调试 — console**
 
-Use the SDK’s console exporters so traces/metrics/logs print to the terminal, for example via `loongsuite-instrument`:
+使用 SDK 的 console exporter，让 traces/metrics/logs 直接打印到终端，例如通过 `loongsuite-instrument`：
 
 ```bash
 loongsuite-instrument \
@@ -277,11 +277,11 @@ loongsuite-instrument \
   python demo.py
 ```
 
-Under the hood this aligns with **`ConsoleSpanExporter`**, **`ConsoleMetricExporter`**, and **`ConsoleLogRecordExporter`**.
+底层对应 **`ConsoleSpanExporter`**、**`ConsoleMetricExporter`**、**`ConsoleLogRecordExporter`**。
 
-**Remote / production — OTLP**
+**远端 / 生产 — OTLP**
 
-Point OpenTelemetry at a backend that accepts **OTLP** (gRPC or HTTP/protobuf), using **`OtlpSpanExporter`**, **`OtlpMetricExporter`**, **`OtlpLogExporter`** (or the equivalent env vars / `loongsuite-instrument` flags), for example:
+将 OpenTelemetry 指向支持 **OTLP**（gRPC 或 HTTP/protobuf）的后端，使用 **`OtlpSpanExporter`**、**`OtlpMetricExporter`**、**`OtlpLogExporter`**（或等价环境变量 / `loongsuite-instrument` 参数），例如：
 
 ```bash
 export OTEL_SERVICE_NAME=demo
@@ -294,27 +294,31 @@ loongsuite-instrument \
   python demo.py
 ```
 
-See also [OpenTelemetry environment variables](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) for `OTEL_EXPORTER_OTLP_*`.
+另请参考 [OpenTelemetry 环境变量说明](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/)（`OTEL_EXPORTER_OTLP_*`）。
 
-## Alternative installation methods
+## 其他安装方式
 
 <a id="alternative-installation-methods"></a>
 
-If you are not using the [recommended `loongsuite-instrument` integration approach](#install-and-run-loongsuite), use **one** of the options below.
+如果你不使用[推荐的 `loongsuite-instrument` 集成方式](#install-and-run-loongsuite)，可选择下列一种方式。
 
-### Programmatic instrumentation
+### 代码方式埋点（Programmatic instrumentation）
 
-For applications where you can edit code and want explicit control over OpenTelemetry initialization.
+适用于可修改应用代码、并希望显式控制 OpenTelemetry 初始化的场景。
 
-**Step 1 — Install instrumentations** yourself from PyPI using the names in [Supported frameworks and components](#supported-frameworks-and-components).
+**步骤 1 — 自行安装 instrumentations**
+
+按 [支持的框架与组件](#supported-frameworks-and-components) 中的名称从 PyPI 安装。
 
   ```bash
   pip install loongsuite-instrumentation-agentscope
   ```
-  
-  > **Note:** If you need packages under [`instrumentation-genai/`](instrumentation-genai), use **Option A or B** together with **`loongsuite-distro`** / **`loongsuite-bootstrap`**. Relying only on manual `pip` can cause **dependency resolution conflicts** when [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) and the community **opentelemetry-util-genai** are both pulled in or pinned differently.
 
-**Step 2 — Initialize the OpenTelemetry SDK** before anything emits telemetry. You are wiring the same exporters as in [Configure telemetry export](#configure-telemetry-export).
+  > **说明：**若你需要 [`instrumentation-genai/`](instrumentation-genai) 下的包，请优先采用 **选项 A 或 B**，并搭配 **`loongsuite-distro`** / **`loongsuite-bootstrap`**。仅手动 `pip` 安装时，若同时引入或以不同版本固定 [**loongsuite-util-genai**](https://pypi.org/project/loongsuite-util-genai/) 与社区版 **opentelemetry-util-genai**，可能触发**依赖解析冲突**。
+
+**步骤 2 — 在任何遥测产生前初始化 OpenTelemetry SDK**
+
+你需要接入与[配置遥测导出](#configure-telemetry-export)一致的 exporter。
 
   ```python
   from opentelemetry import metrics, trace
@@ -335,24 +339,26 @@ For applications where you can edit code and want explicit control over OpenTele
   )
   ```
 
-**Step 3 — Call the framework instrumentor**, then start your app without `loongsuite-instrument`.
+**步骤 3 — 调用框架 Instrumentor**，然后直接启动应用。
 
   ```python
   from opentelemetry.instrumentation.agentscope import AgentScopeInstrumentor
 
   AgentScopeInstrumentor().instrument()
-  # then import / start your agents (e.g. asyncio.run(main()))
+  # 然后再 import / 启动你的 agent（例如 asyncio.run(main())）
   ```
 
-### Install from source (for development)
+### 从源码安装（开发场景）
 
-**Step 1 — Clone this repository** and checkout your branch.
+**步骤 1 — 克隆仓库并切换分支**
 
   ```bash
   git clone https://github.com/alibaba/loongsuite-python-agent.git
   ```
 
-**Step 2 — Install OpenTelemetry Python “core” from the upstream repo**: install **`opentelemetry-api`**, **`opentelemetry-semantic-conventions`**, **`opentelemetry-sdk`**, and optionally **`opentelemetry-test-utils`** from a Git checkout of [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python), for example:
+**步骤 2 — 先安装上游 OpenTelemetry Python core**
+
+从 [opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) 的 Git checkout 安装 **`opentelemetry-api`**、**`opentelemetry-semantic-conventions`**、**`opentelemetry-sdk`**，可选安装 **`opentelemetry-test-utils`**，例如：
 
   ```bash
   GIT_ROOT="git+https://github.com/open-telemetry/opentelemetry-python.git"
@@ -362,7 +368,9 @@ For applications where you can edit code and want explicit control over OpenTele
   pip install "${GIT_ROOT}#subdirectory=tests/opentelemetry-test-utils"
   ```
 
-**Step 3 — Install LoongSuite components in this order** (so `loongsuite-util-genai` resolves to the local build, not the upstream util):
+**步骤 3 — 按顺序安装 LoongSuite 组件**
+
+（这样 `loongsuite-util-genai` 会解析到本地构建，而不是上游 util）
 
   ```bash
   pip install -e ./util/opentelemetry-util-genai
@@ -370,15 +378,17 @@ For applications where you can edit code and want explicit control over OpenTele
   pip install -e ./loongsuite-distro
   ```
 
-**Step 4 — Install the instrumentations you need**, for example:
+**步骤 4 — 安装所需 instrumentation**
+
+例如：
 
   ```bash
   pip install -e ./instrumentation-loongsuite/loongsuite-instrumentation-agentscope
   ```
 
-**Step 5 — Run under `loongsuite-instrument`**
+**步骤 5 — 在 `loongsuite-instrument` 下运行**
 
-  Configure **where telemetry is exported** (see [Configure telemetry export](#configure-telemetry-export) below) using environment variables and/or `loongsuite-instrument` flags, then start your app:
+  先通过环境变量和/或 `loongsuite-instrument` 参数配置**遥测导出目标**（见下文[配置遥测导出](#configure-telemetry-export)），然后启动应用：
 
   ```bash
   loongsuite-instrument \
@@ -388,32 +398,34 @@ For applications where you can edit code and want explicit control over OpenTele
     python demo.py
   ```
 
-### Site-bootstrap (Beta)
+### Site-bootstrap（Beta）
 
-Run **without** changing codes or bootstrap commands: a **`.pth` hook** loads LoongSuite’s distro early (see [loongsuite-site-bootstrap/README.md](loongsuite-site-bootstrap/README.md)).
+无需修改业务代码，也无需额外 bootstrap 命令：通过 **`.pth` hook** 提前加载 LoongSuite distro（见 [loongsuite-site-bootstrap/README.md](loongsuite-site-bootstrap/README.md)）。
 
-**Step 1 - Install LoongSuite Site Bootstrap** 
+**步骤 1 - 安装 LoongSuite Site Bootstrap**
 
   ```bash
   pip install loongsuite-site-bootstrap
   ```
 
-**Step 2 — Install instrumentations**
+**步骤 2 — 安装 instrumentations**
 
   ```bash
   loongsuite-bootstrap -a install --latest
-  # for specific version: loongsuite-bootstrap -a install --version X.Y.Z
+  # 指定版本：loongsuite-bootstrap -a install --version X.Y.Z
   ```
 
-  If you want a different installation approach, see [Step 2 — Install instrumentations](#install-step-2-options) in [Install and run loongsuite](#install-and-run-loongsuite).
+  若你希望使用其他安装方式，请参考[安装并运行 loongsuite](#install-and-run-loongsuite)中的[步骤 2 — 安装 instrumentations](#install-step-2-options)。
 
-**Step 3 — Enable the hook**:
+**步骤 3 — 开启 hook**
 
   ```bash
   export LOONGSUITE_PYTHON_SITE_BOOTSTRAP=True
   ```
 
-**Step 4 — Create `~/.loongsuite/bootstrap-config.json`** with the OpenTelemetry environments keys you need.
+**步骤 4 — 创建 `~/.loongsuite/bootstrap-config.json`**
+
+写入你所需的 OpenTelemetry 环境变量键：
 
   ```json
   {
@@ -425,24 +437,24 @@ Run **without** changing codes or bootstrap commands: a **`.pth` hook** loads Lo
   }
   ```
 
-  Then run `python demo.py`. For **console** exporters, other backends, using **`loongsuite-instrument`** instead of plain `python`, or full precedence / edge cases, see [loongsuite-site-bootstrap/README.md](loongsuite-site-bootstrap/README.md).
+  然后执行 `python demo.py`。如需使用 **console** exporter、其他后端、改用 **`loongsuite-instrument`**（而非直接 `python`），或查看完整优先级/边界场景，请阅读 [loongsuite-site-bootstrap/README.md](loongsuite-site-bootstrap/README.md)。
 
-> **Beta:** Site-bootstrap affects every Python process in the environment where it is enabled; read the package README before using it in production.
+> **Beta：**Site-bootstrap 会影响其启用环境中的所有 Python 进程，生产环境使用前请先阅读包 README。
 
 ---
 
-## Optional: OTLP examples
+## 可选：OTLP 示例
 
 ### AgentScope Studio
 
-[AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio) provides a web UI for traces and metrics.
+[AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio) 提供 traces 与 metrics 的 Web UI。
 
 ```shell
 pip install agentscope-studio
 as_studio
 ```
 
-Use the OTLP endpoint Studio prints (often `http://127.0.0.1:31415`), for example:
+使用 Studio 输出的 OTLP endpoint（通常是 `http://127.0.0.1:31415`），例如：
 
 ```shell
 loongsuite-instrument \
@@ -454,11 +466,11 @@ loongsuite-instrument \
     python demo.py
 ```
 
-Or set `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` / `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` accordingly. Details: [AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio).
+或者设置 `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` / `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`。详情见 [AgentScope Studio](https://github.com/agentscope-ai/agentscope-studio)。
 
-### Forward OTLP to Jaeger via LoongCollector
+### 通过 LoongCollector 转发 OTLP 到 Jaeger
 
-#### Launch Jaeger
+#### 启动 Jaeger
 
 ```plaintext
 docker run --rm --name jaeger \
@@ -476,10 +488,10 @@ docker run --rm --name jaeger \
   jaegertracing/all-in-one:1.53.0
 ```
 
-#### Launch LoongCollector
+#### 启动 LoongCollector
 
-1. Install LoongCollector per its [documentation](https://observability.cn/project/loongcollector/quick-start/).
-2. Add configuration under `conf/continuous_pipeline_config/local/oltp.yaml`:
+1. 按照其[官方文档](https://observability.cn/project/loongcollector/quick-start/)安装 LoongCollector。
+2. 在 `conf/continuous_pipeline_config/local/oltp.yaml` 中增加配置：
 
 ```plaintext
 enable: true
@@ -496,13 +508,13 @@ flushers:
       Endpoint: http://127.0.0.1:4317
 ```
 
-3. Start LoongCollector, for example:
+3. 启动 LoongCollector，例如：
 
 ```plaintext
 nohup ./loongcollector > stdout.log 2> stderr.log &
 ```
 
-#### Run the demo against LoongCollector → Jaeger
+#### 让 Demo 通过 LoongCollector → Jaeger 输出
 
 ```plaintext
 loongsuite-instrument \
@@ -514,14 +526,13 @@ loongsuite-instrument \
   python demo.py
 ```
 
-Open the Jaeger UI and confirm traces arrive.
+打开 Jaeger UI，确认能看到 traces。
 
 ![Trace view in Jaeger](docs/_assets/img/quickstart-results.png)
 
-## Community
+## 社区
 
-We are looking forward to your feedback and suggestions. You can join
-our [DingTalk group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI88tZ1uiuLYkKhdaETUx/K59ncyFFFG5Voe9s=&_dt_no_comment=1&origin=11?) or scan the QR code below to engage with us.
+欢迎你的反馈与建议。你可以加入我们的[钉钉群](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI88tZ1uiuLYkKhdaETUx/K59ncyFFFG5Voe9s=&_dt_no_comment=1&origin=11?)，或扫描下方二维码与我们交流。
 
 | LoongCollector SIG | LoongSuite Python SIG |
 |----|----|
@@ -531,6 +542,6 @@ our [DingTalk group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI
 |----|----|
 | <img src="docs/_assets/img/loongsuite-go-sig-dingtalk.png" height="150"> | <img src="docs/_assets/img/loongsuite-java-sig-dingtalk.jpg" height="150"> |
 
-## Resources
+## 资源
 * AgentScope: https://github.com/modelscope/agentscope
 * Observability Community: https://observability.cn
