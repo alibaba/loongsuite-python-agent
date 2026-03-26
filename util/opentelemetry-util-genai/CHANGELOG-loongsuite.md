@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Change
 
-- Remove package ``opentelemetry.util.genai._extended_common``. ``EntryInvocation`` and ``ReactStepInvocation`` now live in ``extended_types``; ``_apply_entry_finish_attributes`` and ``_apply_react_step_finish_attributes`` now live in ``span_utils``.
-  ([#157](https://github.com/alibaba/loongsuite-python-agent/pull/157))
+- Remove package ``opentelemetry.util.genai._extended_common``. ``EntryInvocation`` and ``ReactStepInvocation`` now live in ``extended_types``; ``_apply_entry_finish_attributes`` and ``_apply_react_step_finish_attributes`` live in ``extended_span_utils``.
+  ([#158](https://github.com/alibaba/loongsuite-python-agent/pull/158))
 - Rename packages ``opentelemetry.util.genai._extended_memory`` → ``extended_memory`` and ``opentelemetry.util.genai._extended_semconv`` → ``extended_semconv`` (public module paths).
-  ([#157](https://github.com/alibaba/loongsuite-python-agent/pull/157))
+  ([#158](https://github.com/alibaba/loongsuite-python-agent/pull/158))
 
 ## Version 0.2.0 (2026-03-12)
 

@@ -55,6 +55,13 @@ from opentelemetry.semconv.attributes import (
     server_attributes as ServerAttributes,
 )
 from opentelemetry.trace.status import StatusCode
+from opentelemetry.util.genai.environment_variables import (
+    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
+    OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
+)
+from opentelemetry.util.genai.extended_handler import (
+    get_extended_telemetry_handler,
+)
 from opentelemetry.util.genai.extended_memory import MemoryInvocation
 from opentelemetry.util.genai.extended_semconv.gen_ai_memory_attributes import (
     GEN_AI_MEMORY_AGENT_ID,
@@ -72,13 +79,6 @@ from opentelemetry.util.genai.extended_semconv.gen_ai_memory_attributes import (
     GEN_AI_MEMORY_THRESHOLD,
     GEN_AI_MEMORY_TOP_K,
     GEN_AI_MEMORY_USER_ID,
-)
-from opentelemetry.util.genai.environment_variables import (
-    OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
-    OTEL_INSTRUMENTATION_GENAI_EMIT_EVENT,
-)
-from opentelemetry.util.genai.extended_handler import (
-    get_extended_telemetry_handler,
 )
 
 

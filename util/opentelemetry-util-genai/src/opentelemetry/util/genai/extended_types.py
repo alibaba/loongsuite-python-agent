@@ -183,6 +183,8 @@ class InvokeAgentInvocation:
     finish_reasons: List[str] | None = None
     input_tokens: int | None = None
     output_tokens: int | None = None
+    usage_cache_creation_input_tokens: int | None = None
+    usage_cache_read_input_tokens: int | None = None
     # Request parameters
     output_type: str | None = None
     choice_count: int | None = None
@@ -198,6 +200,8 @@ class InvokeAgentInvocation:
     server_port: int | None = None
     monotonic_start_s: float | None = None
     monotonic_end_s: float | None = None
+    monotonic_first_token_s: float | None = None
+    """Streaming: first-token time; TTFT attribute derived like ``LLMInvocation``."""
 
 
 @dataclass

@@ -80,11 +80,11 @@ from opentelemetry.trace import (
     get_tracer,
     set_span_in_context,
 )
-from opentelemetry.util.genai.extended_types import ReactStepInvocation
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
     ExecuteToolInvocation,
     InvokeAgentInvocation,
+    ReactStepInvocation,
     RetrievalInvocation,
 )
 from opentelemetry.util.genai.handler import _safe_detach

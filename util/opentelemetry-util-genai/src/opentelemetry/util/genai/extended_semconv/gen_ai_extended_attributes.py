@@ -160,6 +160,20 @@ GEN_AI_REACT_ROUND: Final = "gen_ai.react.round"
 The round number of this ReAct iteration (1-based).
 """
 
+GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS: Final = (
+    "gen_ai.usage.cache_creation.input_tokens"
+)
+"""
+Tokens written to the model provider cache (subset of input usage).
+"""
+
+GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS: Final = (
+    "gen_ai.usage.cache_read.input_tokens"
+)
+"""
+Tokens read from the model provider cache (subset of input usage).
+"""
+
 
 class GenAiSpanKindValues(Enum):
     AGENT = "AGENT"
