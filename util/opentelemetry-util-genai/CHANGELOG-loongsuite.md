@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename packages ``opentelemetry.util.genai._extended_memory`` → ``extended_memory`` and ``opentelemetry.util.genai._extended_semconv`` → ``extended_semconv`` (public module paths).
   ([#158](https://github.com/alibaba/loongsuite-python-agent/pull/158))
 
+### Fixed
+
+- Add bypass logic around instrumentation-specific initialization so `opentelemetry-util-genai` can work correctly as a standalone SDK without depending on instrumentation package bootstrap flow.
+  ([#159](https://github.com/alibaba/loongsuite-python-agent/pull/159))
+
 ## Version 0.2.0 (2026-03-12)
 
 ### Added
