@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Version 0.3.0 (2026-03-27)
+
 ### Breaking Change
 
 - Remove package ``opentelemetry.util.genai._extended_common``. ``EntryInvocation`` and ``ReactStepInvocation`` now live in ``extended_types``; ``_apply_entry_finish_attributes`` and ``_apply_react_step_finish_attributes`` live in ``extended_span_utils``.
