@@ -30,7 +30,7 @@ dependencies = [
   "opentelemetry-semantic-conventions ~= 0.58b0",
   # Note: opentelemetry-util-genai should be installed from local source
   # for extended features (ExtendedTelemetryHandler)
-  "opentelemetry-util-genai",
+  "loongsuite-util-genai ~= 0.3.0",
 ]
 
 [project.optional-dependencies]

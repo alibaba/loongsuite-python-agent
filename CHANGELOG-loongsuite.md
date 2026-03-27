@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Version 0.3.0 (2026-03-27)
+
 ### Added
 
 - Release tooling: build and publish **`instrumentation-loongsuite/*`** as separate PyPI wheels (with **`loongsuite_pypi_manifest.py`** defining which distributions are uploaded; some remain tar-only until ready), and add a **PyPI packages** section to aggregated release notes
