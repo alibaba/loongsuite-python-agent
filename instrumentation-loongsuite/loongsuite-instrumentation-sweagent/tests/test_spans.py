@@ -31,7 +31,7 @@ from opentelemetry.instrumentation.sweagent.patch import (
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
-from opentelemetry.util.genai._extended_semconv.gen_ai_extended_attributes import (
+from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_SESSION_ID,
     GEN_AI_SPAN_KIND,
     GenAiSpanKindValues,

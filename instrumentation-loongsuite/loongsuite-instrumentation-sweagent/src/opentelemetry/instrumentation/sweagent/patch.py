@@ -22,14 +22,12 @@ import threading
 from types import SimpleNamespace
 from typing import Any
 
-from opentelemetry.util.genai._extended_common import (
-    EntryInvocation,
-    ReactStepInvocation,
-)
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_types import (
+    EntryInvocation,
     ExecuteToolInvocation,
     InvokeAgentInvocation,
+    ReactStepInvocation,
 )
 from opentelemetry.util.genai.types import (
     Error,
