@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-import logging
 from types import SimpleNamespace
 
 import pytest
@@ -30,13 +29,12 @@ from agentscope.message import Msg, TextBlock  # noqa: E402
 
 
 @pytest.mark.asyncio
-async def test_instrumented_query_handler_logs(
+async def test_instrumented_query_handler_emits_entry_span(
     instrument,
     span_exporter,
     monkeypatch,
-    caplog,
 ):
-    """Short-circuit ``query_handler``; logs + exactly one Entry span."""
+    """Short-circuit ``query_handler``; expect exactly one finished Entry span."""
 
     from copaw.app.runner.runner import AgentRunner  # noqa: PLC0415
 
@@ -55,17 +53,11 @@ async def test_instrumented_query_handler_logs(
     runner = AgentRunner(agent_id="smoke-test")
     req = SimpleNamespace(session_id="s1", user_id="u1", channel="console")
 
-    with caplog.at_level(
-        logging.INFO, logger="opentelemetry.instrumentation.copaw.patch"
-    ):
-        chunks = []
-        async for item in runner.query_handler([], req):
-            chunks.append(item)
+    chunks = []
+    async for item in runner.query_handler([], req):
+        chunks.append(item)
 
     assert len(chunks) == 1
-    texts = " ".join(r.message for r in caplog.records)
-    assert "[INSTRUMENTATION] Entering" in texts
-    assert "[INSTRUMENTATION] Exiting" in texts
     assert len(span_exporter.get_finished_spans()) == 1
 
 

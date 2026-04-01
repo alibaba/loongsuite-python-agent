@@ -35,12 +35,6 @@ _MODULE_RUNNER = "copaw.app.runner.runner"
 _PATCH_TARGET = "AgentRunner.query_handler"
 
 
-def _arg_summary(value: Any) -> str | int:
-    if isinstance(value, (list, tuple, str, bytes, dict)):
-        return len(value)
-    return type(value).__name__
-
-
 def make_query_handler_wrapper(
     handler: ExtendedTelemetryHandler,
 ) -> Callable[..., Any]:
@@ -53,14 +47,6 @@ def make_query_handler_wrapper(
         kwargs: Any,
     ) -> Any:
         async def _aiter():
-            logger.info(
-                "[INSTRUMENTATION] Entering %s.%s agent_id=%r arg_summary=%s kwargs_keys=%s",
-                _MODULE_RUNNER,
-                _PATCH_TARGET,
-                getattr(instance, "agent_id", None),
-                [_arg_summary(a) for a in args],
-                sorted(kwargs.keys()),
-            )
             msgs, request = parse_query_handler_call(args, kwargs)
             invocation = build_entry_invocation(instance, msgs, request)
             handler.start_entry(invocation)
@@ -79,12 +65,6 @@ def make_query_handler_wrapper(
                     out = output_message_from_yield_item(item)
                     if out is not None:
                         last_assistant = out
-                    logger.info(
-                        "[INSTRUMENTATION] query_handler yield tuple_types=%s",
-                        tuple(type(x).__name__ for x in item)
-                        if isinstance(item, tuple)
-                        else type(item).__name__,
-                    )
                     yield item
             except BaseException as exc:
                 if isinstance(exc, GeneratorExit):
@@ -92,6 +72,13 @@ def make_query_handler_wrapper(
                         invocation.output_messages = [last_assistant]
                     handler.stop_entry(invocation)
                     raise
+                logger.debug(
+                    "%s.%s raised %s",
+                    _MODULE_RUNNER,
+                    _PATCH_TARGET,
+                    type(exc).__name__,
+                    exc_info=True,
+                )
                 handler.fail_entry(
                     invocation,
                     Error(
@@ -104,12 +91,6 @@ def make_query_handler_wrapper(
                 if last_assistant is not None:
                     invocation.output_messages = [last_assistant]
                 handler.stop_entry(invocation)
-            finally:
-                logger.info(
-                    "[INSTRUMENTATION] Exiting %s.%s",
-                    _MODULE_RUNNER,
-                    _PATCH_TARGET,
-                )
 
         return _aiter()
 

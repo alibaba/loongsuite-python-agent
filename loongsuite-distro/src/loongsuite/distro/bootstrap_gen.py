@@ -229,8 +229,8 @@ libraries = [
         "instrumentation": "loongsuite-instrumentation-claude-agent-sdk==0.4.0.dev",
     },
     {
-        "library": "copaw >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-copaw==0.1.0.dev",
+        "library": "copaw >= 0.1.0",
+        "instrumentation": "loongsuite-instrumentation-copaw==0.4.0.dev",
     },
     {
         "library": "crewai >= 0.80.0",
