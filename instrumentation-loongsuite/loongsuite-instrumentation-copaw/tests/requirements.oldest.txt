@@ -1,0 +1,7 @@
+copaw==1.0.0
+pytest
+pytest-asyncio
+wrapt
+
+-e instrumentation-loongsuite/loongsuite-instrumentation-copaw
+-e util/opentelemetry-util-genai
