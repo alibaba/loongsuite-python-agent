@@ -9,15 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Entry telemetry for ``AgentRunner.query_handler`` using
-  ``opentelemetry-util-genai`` ``ExtendedTelemetryHandler``: span name
-  ``enter_ai_application_system``, session/user and streaming TTFT where
-  applicable, plus ``copaw.agent_id`` and ``copaw.channel``.
-- Helpers in ``_entry_utils`` to build ``EntryInvocation`` from handler args and
-  stream items.
+- **CoPaw instrumentation initialization**: ``CoPawInstrumentor`` registers
+  automatic instrumentation for CoPaw when ``instrument()`` is called (included
+  in LoongSuite distro automatic injection).
 
 ### Changed
 
-- Instrumentor now requires ``opentelemetry-util-genai`` and forwards
-  ``tracer_provider`` / ``meter_provider`` / ``logger_provider`` to the extended
-  handler.
+- Instrumentor depends on ``opentelemetry-util-genai`` and passes
+  ``tracer_provider``, ``meter_provider``, and ``logger_provider`` from
+  ``instrument()`` into the shared GenAI telemetry handler.
