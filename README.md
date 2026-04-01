@@ -33,6 +33,7 @@ Source tree: [`instrumentation-loongsuite/`](instrumentation-loongsuite).
 | [AgentScope](https://github.com/agentscope-ai/agentscope) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agentscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-agentscope/) |
 | [Agno](https://github.com/agno-agi/agno) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-agno/README.md) | in dev |
 | [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk-python) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-claude-agent-sdk/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-claude-agent-sdk/) |
+| [CoPaw](https://github.com/agentscope-ai/CoPaw) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-copaw/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-copaw/) |
 | [CrewAI](https://github.com/crewAIInc/crewAI) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-crewai/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-crewai/) |
 | [DashScope](https://github.com/dashscope/dashscope-sdk-python) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-dashscope/README.md) | [PyPI](https://pypi.org/project/loongsuite-instrumentation-dashscope/) |
 | [Dify](https://github.com/langgenius/dify) | [GUIDE](instrumentation-loongsuite/loongsuite-instrumentation-dify/README.md) | in dev |
@@ -534,6 +535,8 @@ our [DingTalk group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI
 | LoongCollector Go SIG | LoongSuite Java SIG |
 |----|----|
 | <img src="docs/_assets/img/loongsuite-go-sig-dingtalk.png" height="150"> | <img src="docs/_assets/img/loongsuite-java-sig-dingtalk.jpg" height="150"> |
+
+
 
 ## Resources
 * AgentScope: https://github.com/modelscope/agentscope
