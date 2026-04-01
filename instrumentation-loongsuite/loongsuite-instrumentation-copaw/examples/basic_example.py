@@ -24,7 +24,9 @@ from opentelemetry.instrumentation.copaw import CoPawInstrumentor
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     CoPawInstrumentor().instrument()
-    print("CoPaw instrumentation enabled (log-only phase). Run `copaw app` separately.")
+    print(
+        "CoPaw instrumentation enabled (log-only phase). Run `copaw app` separately."
+    )
     CoPawInstrumentor().uninstrument()
 
 

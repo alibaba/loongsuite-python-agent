@@ -44,7 +44,9 @@ def fixture_tracer_provider(span_exporter):
 @pytest.fixture
 def instrument(tracer_provider):
     """Enable CoPaw instrumentation for one test."""
-    os.environ.setdefault("OTEL_SEMCONV_STABILITY_OPT_IN", "gen_ai_latest_experimental")
+    os.environ.setdefault(
+        "OTEL_SEMCONV_STABILITY_OPT_IN", "gen_ai_latest_experimental"
+    )
     inst = CoPawInstrumentor()
     inst.instrument(skip_dep_check=True, tracer_provider=tracer_provider)
     yield inst

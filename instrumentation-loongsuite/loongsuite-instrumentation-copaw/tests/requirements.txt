@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This variant of the requirements aims to test the system using
-# the oldest supported version of external dependencies.
-
 copaw==1.0.0
 pytest
 pytest-asyncio

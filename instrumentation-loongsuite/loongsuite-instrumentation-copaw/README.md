@@ -22,7 +22,7 @@ LongSuite instrumentation for [CoPaw](https://github.com/agentscope-ai/CoPaw)
 
 ```bash
 pip install loongsuite-instrumentation-copaw
-pip install "copaw>=1.0.0"
+pip install "copaw>=0.1.0"
 ```
 
 ## Usage

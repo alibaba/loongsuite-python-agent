@@ -55,7 +55,9 @@ async def test_instrumented_query_handler_logs(
     runner = AgentRunner(agent_id="smoke-test")
     req = SimpleNamespace(session_id="s1", user_id="u1", channel="console")
 
-    with caplog.at_level(logging.INFO, logger="opentelemetry.instrumentation.copaw.patch"):
+    with caplog.at_level(
+        logging.INFO, logger="opentelemetry.instrumentation.copaw.patch"
+    ):
         chunks = []
         async for item in runner.query_handler([], req):
             chunks.append(item)

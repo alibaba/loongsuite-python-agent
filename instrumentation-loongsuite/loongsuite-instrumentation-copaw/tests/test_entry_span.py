@@ -61,7 +61,9 @@ async def test_query_handler_emits_enter_ai_application_system_span(
     monkeypatch.setattr(AgentRunner, "_resolve_pending_approval", fake_resolve)
 
     runner = AgentRunner(agent_id="entry-agent")
-    req = SimpleNamespace(session_id="sess-1", user_id="user-2", channel="console")
+    req = SimpleNamespace(
+        session_id="sess-1", user_id="user-2", channel="console"
+    )
 
     async for _ in runner.query_handler([], req):
         pass
