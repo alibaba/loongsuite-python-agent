@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrap ``AgentRunner.query_handler`` with LongSuite Entry telemetry."""
+"""Wrap ``AgentRunner.query_handler`` with LoongSuite Entry telemetry."""
 
 from __future__ import annotations
 

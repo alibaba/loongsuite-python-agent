@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-LongSuite CoPaw instrumentation (``copaw >= 0.1.0``).
+LoongSuite CoPaw instrumentation (``copaw >= 0.1.0``).
 
 Instruments ``AgentRunner.query_handler`` with ``ExtendedTelemetryHandler.entry``
 (``enter_ai_application_system``). Agent / tool / LLM spans come from AgentScope
@@ -52,7 +52,7 @@ __all__ = ["CoPawInstrumentor"]
 
 
 class CoPawInstrumentor(BaseInstrumentor):
-    """LongSuite instrumentor for CoPaw (Entry on ``AgentRunner.query_handler``)."""
+    """LoongSuite instrumentor for CoPaw (Entry on ``AgentRunner.query_handler``)."""
 
     def __init__(self) -> None:
         super().__init__()

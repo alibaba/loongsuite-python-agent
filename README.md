@@ -536,8 +536,6 @@ our [DingTalk group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,mexukXI
 |----|----|
 | <img src="docs/_assets/img/loongsuite-go-sig-dingtalk.png" height="150"> | <img src="docs/_assets/img/loongsuite-java-sig-dingtalk.jpg" height="150"> |
 
-
-
 ## Resources
 * AgentScope: https://github.com/modelscope/agentscope
 * Observability Community: https://observability.cn
