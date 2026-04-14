@@ -87,7 +87,9 @@ class SweagentInstrumentor(BaseInstrumentor):
                 )
                 logger.debug("Wrapped CombinedRunHooks.%s", name)
             except Exception as e:
-                logger.warning("Failed to wrap CombinedRunHooks.%s: %s", name, e)
+                logger.warning(
+                    "Failed to wrap CombinedRunHooks.%s: %s", name, e
+                )
 
         for name, fn in _COMBINED_AGENT_HOOK_PATCHES:
             try:
@@ -98,13 +100,17 @@ class SweagentInstrumentor(BaseInstrumentor):
                 )
                 logger.debug("Wrapped CombinedAgentHook.%s", name)
             except Exception as e:
-                logger.warning("Failed to wrap CombinedAgentHook.%s: %s", name, e)
+                logger.warning(
+                    "Failed to wrap CombinedAgentHook.%s: %s", name, e
+                )
 
         try:
             wrap_function_wrapper(
                 _AGENTS_MODULE,
                 "DefaultAgent.handle_action",
-                bind_extended_handler(handler, wrap_default_agent_handle_action),
+                bind_extended_handler(
+                    handler, wrap_default_agent_handle_action
+                ),
             )
             logger.debug("Wrapped DefaultAgent.handle_action")
         except Exception as e:
@@ -117,7 +123,9 @@ class SweagentInstrumentor(BaseInstrumentor):
 
             unwrap(agent_mod.DefaultAgent, "handle_action")
         except Exception as e:
-            logger.warning("Failed to unwrap DefaultAgent.handle_action: %s", e)
+            logger.warning(
+                "Failed to unwrap DefaultAgent.handle_action: %s", e
+            )
 
         try:
             import sweagent.agent.hooks.abstract as agent_hooks  # noqa: PLC0415
@@ -130,7 +138,9 @@ class SweagentInstrumentor(BaseInstrumentor):
                         "Failed to unwrap CombinedAgentHook.%s: %s", name, e
                     )
         except Exception as e:
-            logger.warning("Failed to import agent hooks for uninstrument: %s", e)
+            logger.warning(
+                "Failed to import agent hooks for uninstrument: %s", e
+            )
 
         try:
             import sweagent.run.hooks.abstract as run_hooks  # noqa: PLC0415
@@ -143,6 +153,8 @@ class SweagentInstrumentor(BaseInstrumentor):
                         "Failed to unwrap CombinedRunHooks.%s: %s", name, e
                     )
         except Exception as e:
-            logger.warning("Failed to import run hooks for uninstrument: %s", e)
+            logger.warning(
+                "Failed to import run hooks for uninstrument: %s", e
+            )
 
         self._handler = None

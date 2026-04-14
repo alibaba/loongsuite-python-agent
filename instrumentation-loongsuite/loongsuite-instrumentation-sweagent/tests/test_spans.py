@@ -31,19 +31,17 @@ from opentelemetry.instrumentation.sweagent.patch import (
 from opentelemetry.semconv._incubating.attributes import (
     gen_ai_attributes as GenAI,
 )
+from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.extended_semconv.gen_ai_extended_attributes import (
     GEN_AI_SESSION_ID,
     GEN_AI_SPAN_KIND,
     GenAiSpanKindValues,
 )
-from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 
 ENTRY_SPAN_NAME = "enter_ai_application_system"
 REACT_SPAN_NAME = "react step"
 TOOL_SPAN_PREFIX = "execute_tool "
-INVOKE_AGENT_SPAN_NAME = (
-    f"{GenAI.GenAiOperationNameValues.INVOKE_AGENT.value} {SWEAGENT_AGENT_NAME}"
-)
+INVOKE_AGENT_SPAN_NAME = f"{GenAI.GenAiOperationNameValues.INVOKE_AGENT.value} {SWEAGENT_AGENT_NAME}"
 
 
 def test_tool_name_from_step_llm_tool_calls():
@@ -91,7 +89,9 @@ def test_tool_call_arguments_from_step_llm_json():
             }
         ],
     )
-    assert tool_call_arguments_from_sweagent_step(step) == {"command": "ls -la"}
+    assert tool_call_arguments_from_sweagent_step(step) == {
+        "command": "ls -la"
+    }
 
     empty_args = StepOutput(
         action="touch x",
@@ -112,7 +112,10 @@ def test_tool_call_arguments_from_step_non_json_string_kept():
 
 def test_tool_call_arguments_fallback_without_tool_calls():
     assert tool_call_arguments_from_sweagent_step(None) is None
-    assert tool_call_arguments_from_sweagent_step(StepOutput(action="ls -la")) == "ls -la"
+    assert (
+        tool_call_arguments_from_sweagent_step(StepOutput(action="ls -la"))
+        == "ls -la"
+    )
 
 
 def _get_attrs(span):
@@ -125,10 +128,10 @@ def test_entry_run_hooks_span(instrumented_sweagent, span_exporter):
     prob.id = "issue-42"
     prob.get_problem_statement.return_value = "Fix the crash"
 
-    hooks.on_instance_start(
-        index=0, env=MagicMock(), problem_statement=prob
+    hooks.on_instance_start(index=0, env=MagicMock(), problem_statement=prob)
+    result = AgentRunResult(
+        info=AgentInfo(exit_status="Submitted"), trajectory=[]
     )
-    result = AgentRunResult(info=AgentInfo(exit_status="Submitted"), trajectory=[])
     hooks.on_instance_completed(result=result)
 
     spans = span_exporter.get_finished_spans()
@@ -260,6 +263,8 @@ def test_nested_hook_hierarchy(instrumented_sweagent, span_exporter):
     assert react_span.parent.span_id == invoke_span.context.span_id
     assert tool_span.parent.span_id == react_span.context.span_id
 
-    assert invoke_span.attributes.get(GenAI.GEN_AI_CONVERSATION_ID) == "nested-1"
+    assert (
+        invoke_span.attributes.get(GenAI.GEN_AI_CONVERSATION_ID) == "nested-1"
+    )
     in_msgs = json.loads(invoke_span.attributes[GenAI.GEN_AI_INPUT_MESSAGES])
     assert in_msgs[0]["parts"][0]["content"] == "task"

@@ -94,7 +94,9 @@ def tool_name_from_sweagent_step(step: Any) -> str:
     Without native ``tool_calls`` (e.g. thought/action parsing only), fall back
     to ``sweagent_bash`` because execution still uses bash ``communicate``.
     """
-    tool_calls = getattr(step, "tool_calls", None) if step is not None else None
+    tool_calls = (
+        getattr(step, "tool_calls", None) if step is not None else None
+    )
     if not tool_calls:
         return SWEAGENT_BASH_TOOL_NAME
     for call in tool_calls:
@@ -106,7 +108,9 @@ def tool_name_from_sweagent_step(step: Any) -> str:
 
 def _select_tool_call_for_step(step: Any) -> Any | None:
     """Same entry as :func:`tool_name_from_sweagent_step` when possible, else first call."""
-    tool_calls = getattr(step, "tool_calls", None) if step is not None else None
+    tool_calls = (
+        getattr(step, "tool_calls", None) if step is not None else None
+    )
     if not tool_calls:
         return None
     for call in tool_calls:
@@ -174,7 +178,9 @@ def _truncate(text: str, max_len: int = _PROBLEM_TEXT_MAX_LEN) -> str:
     return text[:max_len] + f"...<truncated len={len(text)}>"
 
 
-def _problem_statement_id_and_text(problem_statement: Any) -> tuple[str | None, str]:
+def _problem_statement_id_and_text(
+    problem_statement: Any,
+) -> tuple[str | None, str]:
     instance_id = getattr(problem_statement, "id", None)
     text = ""
     try:
@@ -210,7 +216,9 @@ def _build_entry_output_summary(result: Any) -> str:
     return _build_agent_run_summary(info, traj)
 
 
-def _apply_agent_info_to_invocation(inv: InvokeAgentInvocation, info: Any) -> None:
+def _apply_agent_info_to_invocation(
+    inv: InvokeAgentInvocation, info: Any
+) -> None:
     """Map SWE-agent ``AgentInfo`` to semconv-oriented invoke_agent fields when present."""
     if not isinstance(info, dict):
         return
@@ -307,9 +315,7 @@ def wrap_combined_agent_hook_on_run_start(
     try:
         return wrapped(*args, **kwargs)
     except Exception as exc:
-        handler.fail_invoke_agent(
-            inv, Error(message=str(exc), type=type(exc))
-        )
+        handler.fail_invoke_agent(inv, Error(message=str(exc), type=type(exc)))
         delattr(instance, "_loongsuite_invoke_invocation")
         raise
 
@@ -354,9 +360,7 @@ def wrap_combined_agent_hook_on_step_start(
     try:
         return wrapped(*args, **kwargs)
     except Exception as exc:
-        handler.fail_react_step(
-            inv, Error(message=str(exc), type=type(exc))
-        )
+        handler.fail_react_step(inv, Error(message=str(exc), type=type(exc)))
         delattr(instance, "_loongsuite_react_invocation")
         raise
 
@@ -397,9 +401,7 @@ def wrap_default_agent_handle_action(
     try:
         result = wrapped(*args, **kwargs)
     except Exception as exc:
-        handler.fail_execute_tool(
-            inv, Error(message=str(exc), type=type(exc))
-        )
+        handler.fail_execute_tool(inv, Error(message=str(exc), type=type(exc)))
         raise
     if step is not None:
         inv.tool_call_result = getattr(step, "observation", None)

@@ -72,5 +72,3 @@ def instrumented_sweagent(tracer_provider):
     inst.instrument(tracer_provider=tracer_provider)
     yield inst
     inst.uninstrument()
-
-
