@@ -21,6 +21,7 @@ import asyncio
 import pytest
 from langchain_core.embeddings import Embeddings
 
+from opentelemetry.instrumentation.langchain.internal import patch_embedding
 from opentelemetry.trace import StatusCode
 
 # ---------------------------------------------------------------------------
@@ -424,10 +425,6 @@ class TestEmbeddingUninstrumentation:
         regression test actually exercises the module-level idempotency
         flag added in :mod:`patch_embedding`.
         """
-        from opentelemetry.instrumentation.langchain.internal import (
-            patch_embedding,
-        )
-
         original_hook = patch_embedding._original_init_subclass
 
         # Second call would have clobbered ``_original_init_subclass``
