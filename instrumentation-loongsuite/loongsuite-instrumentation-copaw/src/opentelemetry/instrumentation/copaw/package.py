@@ -12,21 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This variant of the requirements aims to test the system using
-# the oldest supported version of external dependencies.
-
-agentscope>=1.0.0
-pytest
-pytest-asyncio
-pytest-cov
-pytest-vcr>=1.0.2
-vcrpy>=5.1.0
-pyyaml>=6.0
-opentelemetry-api==1.37
-opentelemetry-sdk==1.37
-opentelemetry-instrumentation==0.58b0
-opentelemetry-semantic-conventions==0.58b0
-wrapt
-
--e instrumentation-loongsuite/loongsuite-instrumentation-agentscope
--e util/opentelemetry-util-genai
+_instruments = ("copaw >= 0.1.0",)
