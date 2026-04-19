@@ -54,6 +54,7 @@ _EMBEDDING_CALL_DEPTH: contextvars.ContextVar[int] = contextvars.ContextVar(
 # Module-level state for uninstrumentation.
 _original_init_subclass: Any = None
 _patched_classes: set[type] = set()
+_already_instrumented: bool = False
 
 _WRAPPER_TAG = "_loongsuite_embedding_wrapped"
 
@@ -96,12 +97,18 @@ def _extract_embedding_provider(instance: Any) -> str:
 
 
 def _extract_embedding_model(instance: Any) -> str:
-    """Extract a model name from an Embeddings instance (if available)."""
+    """Extract a model name from an Embeddings instance.
+
+    Falls back to the class name when no explicit model attribute is
+    present, so spans never carry an empty model identifier.
+    """
     for attr in ("model", "model_name", "model_id", "deployment_name"):
         val = getattr(instance, attr, None)
         if val and isinstance(val, str):
             return val
-    return ""
+
+    cls = type(instance)
+    return cls.__name__ or repr(cls)
 
 
 def _extract_server_address_port(
@@ -180,10 +187,12 @@ def _build_invocation(instance: Any) -> EmbeddingInvocation:
     )
 
 
-def _make_embed_documents_wrapper(
-    handler: "ExtendedTelemetryHandler",
-) -> Any:
-    """Return a ``wrapt``-style wrapper for ``embed_documents``."""
+def _make_sync_wrapper(handler: "ExtendedTelemetryHandler") -> Any:
+    """Return a ``wrapt``-style wrapper for sync embedding methods.
+
+    Used for both ``embed_documents`` and ``embed_query`` since their
+    instrumentation logic is identical.
+    """
 
     def wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any) -> Any:
         parent_depth = _EMBEDDING_CALL_DEPTH.get()
@@ -215,85 +224,12 @@ def _make_embed_documents_wrapper(
     return wrapper
 
 
-def _make_embed_query_wrapper(
-    handler: "ExtendedTelemetryHandler",
-) -> Any:
-    """Return a ``wrapt``-style wrapper for ``embed_query``."""
+def _make_async_wrapper(handler: "ExtendedTelemetryHandler") -> Any:
+    """Return a ``wrapt``-style wrapper for async embedding methods.
 
-    def wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any) -> Any:
-        parent_depth = _EMBEDDING_CALL_DEPTH.get()
-        depth_token = _EMBEDDING_CALL_DEPTH.set(parent_depth + 1)
-        try:
-            if parent_depth > 0:
-                return wrapped(*args, **kwargs)
-
-            invocation = _build_invocation(instance)
-
-            try:
-                handler.start_embedding(invocation)
-            except Exception:
-                logger.debug("Failed to start embedding span", exc_info=True)
-                return wrapped(*args, **kwargs)
-
-            try:
-                result = wrapped(*args, **kwargs)
-                handler.stop_embedding(invocation)
-                return result
-            except Exception as exc:
-                handler.fail_embedding(
-                    invocation, Error(message=str(exc), type=type(exc))
-                )
-                raise
-        finally:
-            _EMBEDDING_CALL_DEPTH.reset(depth_token)
-
-    return wrapper
-
-
-def _make_aembed_documents_wrapper(
-    handler: "ExtendedTelemetryHandler",
-) -> Any:
-    """Return a ``wrapt``-style wrapper for ``aembed_documents``."""
-
-    def wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any) -> Any:
-        async def _instrumented() -> Any:
-            parent_depth = _EMBEDDING_CALL_DEPTH.get()
-            depth_token = _EMBEDDING_CALL_DEPTH.set(parent_depth + 1)
-            try:
-                if parent_depth > 0:
-                    return await wrapped(*args, **kwargs)
-
-                invocation = _build_invocation(instance)
-
-                try:
-                    handler.start_embedding(invocation)
-                except Exception:
-                    logger.debug(
-                        "Failed to start embedding span", exc_info=True
-                    )
-                    return await wrapped(*args, **kwargs)
-
-                try:
-                    result = await wrapped(*args, **kwargs)
-                    handler.stop_embedding(invocation)
-                    return result
-                except Exception as exc:
-                    handler.fail_embedding(
-                        invocation, Error(message=str(exc), type=type(exc))
-                    )
-                    raise
-            finally:
-                _EMBEDDING_CALL_DEPTH.reset(depth_token)
-
-        return _instrumented()
-
-    return wrapper
-
-
-def _make_aembed_query_wrapper(
-    handler: "ExtendedTelemetryHandler",
-) -> Any:
-    """Return a ``wrapt``-style wrapper for ``aembed_query``."""
+    Used for both ``aembed_documents`` and ``aembed_query`` since their
+    instrumentation logic is identical.
+    """
 
     def wrapper(wrapped: Any, instance: Any, args: Any, kwargs: Any) -> Any:
         async def _instrumented() -> Any:
@@ -354,10 +290,8 @@ def _all_subclasses(cls: type) -> set[type]:
 
 def _patch_class(
     cls: type,
-    sync_doc_wrapper: Any,
-    sync_query_wrapper: Any,
-    async_doc_wrapper: Any,
-    async_query_wrapper: Any,
+    sync_wrapper: Any,
+    async_wrapper: Any,
 ) -> None:
     """Wrap embedding methods on *cls*.
 
@@ -368,10 +302,10 @@ def _patch_class(
         return
 
     _method_wrappers = {
-        "embed_documents": sync_doc_wrapper,
-        "embed_query": sync_query_wrapper,
-        "aembed_documents": async_doc_wrapper,
-        "aembed_query": async_query_wrapper,
+        "embed_documents": sync_wrapper,
+        "embed_query": sync_wrapper,
+        "aembed_documents": async_wrapper,
+        "aembed_query": async_wrapper,
     }
 
     for method_name, wrapper_fn in _method_wrappers.items():
@@ -404,8 +338,17 @@ def _unpatch_class(cls: type) -> None:
 def instrument_embeddings(
     handler: "ExtendedTelemetryHandler",
 ) -> None:
-    """Wrap all current and future ``Embeddings`` subclasses."""
-    global _original_init_subclass  # noqa: PLW0603
+    """Wrap all current and future ``Embeddings`` subclasses.
+
+    This function is idempotent: calling it more than once without an
+    intervening :func:`uninstrument_embeddings` is a no-op.  This guards
+    against losing the true ``__init_subclass__`` original to the
+    already-patched hook on a re-instrument.
+    """
+    global _original_init_subclass, _already_instrumented  # noqa: PLW0603
+
+    if _already_instrumented:
+        return
 
     try:
         from langchain_core.embeddings import Embeddings  # noqa: PLC0415
@@ -416,20 +359,12 @@ def instrument_embeddings(
         )
         return
 
-    sync_doc_wrapper = _make_embed_documents_wrapper(handler)
-    sync_query_wrapper = _make_embed_query_wrapper(handler)
-    async_doc_wrapper = _make_aembed_documents_wrapper(handler)
-    async_query_wrapper = _make_aembed_query_wrapper(handler)
+    sync_wrapper = _make_sync_wrapper(handler)
+    async_wrapper = _make_async_wrapper(handler)
 
     # 1. Retroactively patch every existing subclass.
     for cls in _all_subclasses(Embeddings):
-        _patch_class(
-            cls,
-            sync_doc_wrapper,
-            sync_query_wrapper,
-            async_doc_wrapper,
-            async_query_wrapper,
-        )
+        _patch_class(cls, sync_wrapper, async_wrapper)
 
     # 2. Install an __init_subclass__ hook so future subclasses are
     #    patched automatically.
@@ -444,15 +379,10 @@ def instrument_embeddings(
                 _original_init_subclass(**kwargs)
         else:
             super(Embeddings, cls).__init_subclass__(**kwargs)
-        _patch_class(
-            cls,
-            sync_doc_wrapper,
-            sync_query_wrapper,
-            async_doc_wrapper,
-            async_query_wrapper,
-        )
+        _patch_class(cls, sync_wrapper, async_wrapper)
 
     Embeddings.__init_subclass__ = _patched_init_subclass  # type: ignore[assignment]
+    _already_instrumented = True
 
     logger.debug(
         "Patched Embeddings (%d existing subclass(es))",
@@ -462,7 +392,10 @@ def instrument_embeddings(
 
 def uninstrument_embeddings() -> None:
     """Restore original methods on all patched embeddings classes."""
-    global _original_init_subclass  # noqa: PLW0603
+    global _original_init_subclass, _already_instrumented  # noqa: PLW0603
+
+    if not _already_instrumented:
+        return
 
     try:
         from langchain_core.embeddings import Embeddings  # noqa: PLC0415
@@ -485,5 +418,6 @@ def uninstrument_embeddings() -> None:
             logger.debug("Failed to unpatch %s", cls, exc_info=True)
     _patched_classes.clear()
     _original_init_subclass = None
+    _already_instrumented = False
 
     logger.debug("Restored Embeddings subclasses")

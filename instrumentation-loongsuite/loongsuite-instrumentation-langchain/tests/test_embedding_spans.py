@@ -410,3 +410,77 @@ class TestEmbeddingUninstrumentation:
         emb.embed_documents(["test"])
         spans = _find_embedding_spans(span_exporter)
         assert len(spans) == 0
+
+    def test_double_instrument_then_uninstrument_restores_hook(
+        self, instrument, span_exporter
+    ):
+        """Re-instrumenting before uninstrument must not corrupt the
+        captured ``__init_subclass__`` original.  Otherwise uninstrument
+        would restore the *patched* hook instead of the true original,
+        and subclasses defined post-uninstrument would still be auto-patched.
+
+        Calls ``instrument_embeddings`` directly to bypass the
+        instrumentor's framework-level double-instrument guard, so this
+        regression test actually exercises the module-level idempotency
+        flag added in :mod:`patch_embedding`.
+        """
+        from opentelemetry.instrumentation.langchain.internal import (
+            patch_embedding,
+        )
+
+        original_hook = patch_embedding._original_init_subclass
+
+        # Second call would have clobbered ``_original_init_subclass``
+        # with the already-patched hook prior to the idempotency fix.
+        # ``handler`` argument is unused when the guard short-circuits.
+        patch_embedding.instrument_embeddings(handler=None)
+
+        assert patch_embedding._original_init_subclass is original_hook, (
+            "Re-instrument must not overwrite the captured original hook"
+        )
+
+        instrument.uninstrument()
+        span_exporter.clear()
+
+        class PostUninstrumentEmbeddings(Embeddings):
+            def embed_documents(self, texts: list[str]) -> list[list[float]]:
+                return [[9.0] for _ in texts]
+
+            def embed_query(self, text: str) -> list[float]:
+                return [9.0]
+
+        emb = PostUninstrumentEmbeddings()
+        emb.embed_documents(["test"])
+
+        spans = _find_embedding_spans(span_exporter)
+        assert len(spans) == 0, (
+            "Subclasses defined after uninstrument must not be auto-patched"
+        )
+
+
+class TestEmbeddingModelFallback:
+    def test_missing_model_attribute_falls_back_to_class_name(
+        self, instrument, span_exporter
+    ):
+        """When no model attribute is exposed, the span must still carry a
+        non-empty ``gen_ai.request.model`` (using the class name) so that
+        the GenAI semantic-convention required attribute is never dropped.
+        """
+
+        class NoModelAttrEmbeddings(Embeddings):
+            def embed_documents(self, texts: list[str]) -> list[list[float]]:
+                return [[0.0] for _ in texts]
+
+            def embed_query(self, text: str) -> list[float]:
+                return [0.0]
+
+        emb = NoModelAttrEmbeddings()
+        emb.embed_documents(["test"])
+
+        spans = _find_embedding_spans(span_exporter)
+        assert len(spans) >= 1
+        attrs = dict(spans[0].attributes)
+        assert attrs.get("gen_ai.request.model") == "NoModelAttrEmbeddings"
+        # Span name must not end with a trailing space from an empty model.
+        assert spans[0].name.strip() == spans[0].name
+        assert "NoModelAttrEmbeddings" in spans[0].name
