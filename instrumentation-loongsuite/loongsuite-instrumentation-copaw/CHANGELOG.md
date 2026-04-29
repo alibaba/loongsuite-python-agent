@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **Multi-agent**: propagate trace context to child CoPaw processes via
+  ``execute_shell_command``; suppress duplicate entry span in child
+  ([#164](https://github.com/alibaba/loongsuite-python-agent/pull/164))
+
 ## Version 0.4.0 (2026-04-03)
 
 ### Added

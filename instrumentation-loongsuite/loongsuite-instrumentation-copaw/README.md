@@ -128,3 +128,35 @@ LLM call inside the agent.
 Calls to models, tools, and other AgentScope primitives are **not** duplicated
 here: use AgentScope (and your existing model client) instrumentations alongside
 this package so they appear as child spans under this entry when configured.
+
+## Sub-agent CLI and trace continuity (`multi_agent_collaboration`)
+
+When a parent CoPaw agent runs a **child** CoPaw process via AgentScope’s
+`execute_shell_command` (for example `copaw agents chat`), the default
+subprocess inherits `os.environ` only and the trace would **break** across
+processes.
+
+This package also wraps `agentscope.tool._coding._shell.execute_shell_command`.
+For commands whose string contains **`copaw`**, **`agents`**, and **`chat`**, it:
+
+1. Merges the current trace context into the subprocess `env` (W3C
+   `TRACEPARENT` / `TRACESTATE` and any fields from your configured global
+   propagators, using the same uppercase-env convention as OpenTelemetry’s
+   [environment carrier](https://github.com/open-telemetry/opentelemetry-python/blob/main/opentelemetry-api/src/opentelemetry/propagators/_envcarrier.py)).
+2. Sets **`COPAW_OTEL_CHILD_AGENT=1`** so the child process can recognize the
+   call as a linked sub-agent.
+
+In the child process, `AgentRunner.query_handler` **does not** create
+`enter_ai_application_system`. It only `attach`es the extracted parent
+context so AgentScope (and other) spans continue **in the same trace** as the
+parent. Configure **`OTEL_PROPAGATORS`** to include `baggage` if you rely on
+`session_id` / `user_id` baggage from the parent entry across this boundary.
+
+Advanced: set **`COPAW_OTEL_INJECT_SHELL_TRACE=1`** to inject context for
+**every** `execute_shell_command` invocation (still sets
+`COPAW_OTEL_CHILD_AGENT=1`). Use only if **all** such children are CoPaw
+agents that should suppress entry; otherwise unrelated shell children could
+incorrectly skip their entry span.
+
+The child CoPaw process must load this instrumentation (and OTel export
+configuration) the same way as the parent for spans to export correctly.

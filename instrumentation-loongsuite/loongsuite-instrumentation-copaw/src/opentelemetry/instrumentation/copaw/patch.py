@@ -20,14 +20,18 @@ import logging
 import timeit
 from typing import Any, Callable
 
+from opentelemetry import context as otel_context
+from opentelemetry import propagate
 from opentelemetry.util.genai.extended_handler import ExtendedTelemetryHandler
 from opentelemetry.util.genai.types import Error
 
+from ._constants import is_copaw_child_agent_process
 from ._entry_utils import (
     build_entry_invocation,
     output_message_from_yield_item,
     parse_query_handler_call,
 )
+from ._env_carrier import EnvironmentGetter
 
 logger = logging.getLogger(__name__)
 
@@ -49,48 +53,62 @@ def make_query_handler_wrapper(
         async def _aiter():
             msgs, request = parse_query_handler_call(args, kwargs)
             invocation = build_entry_invocation(instance, msgs, request)
-            handler.start_entry(invocation)
-            monotonic_start = timeit.default_timer()
-            saw_first_token = False
-            last_assistant = None
+            child_mode = is_copaw_child_agent_process()
+            child_ctx_token = None
             try:
-                agen = wrapped(*args, **kwargs)
-                async for item in agen:
-                    if not saw_first_token:
-                        invocation.response_time_to_first_token = int(
-                            (timeit.default_timer() - monotonic_start)
-                            * 1_000_000_000
+                if child_mode:
+                    getter = EnvironmentGetter()
+                    parent_ctx = propagate.extract({}, getter=getter)
+                    child_ctx_token = otel_context.attach(parent_ctx)
+                else:
+                    handler.start_entry(invocation)
+                monotonic_start = timeit.default_timer()
+                saw_first_token = False
+                last_assistant = None
+                try:
+                    agen = wrapped(*args, **kwargs)
+                    async for item in agen:
+                        if not saw_first_token:
+                            invocation.response_time_to_first_token = int(
+                                (timeit.default_timer() - monotonic_start)
+                                * 1_000_000_000
+                            )
+                            saw_first_token = True
+                        out = output_message_from_yield_item(item)
+                        if out is not None:
+                            last_assistant = out
+                        yield item
+                except BaseException as exc:
+                    if isinstance(exc, GeneratorExit):
+                        if last_assistant is not None:
+                            invocation.output_messages = [last_assistant]
+                        if not child_mode:
+                            handler.stop_entry(invocation)
+                        raise
+                    logger.debug(
+                        "%s.%s raised %s",
+                        _MODULE_RUNNER,
+                        _PATCH_TARGET,
+                        type(exc).__name__,
+                        exc_info=True,
+                    )
+                    if not child_mode:
+                        handler.fail_entry(
+                            invocation,
+                            Error(
+                                message=str(exc) or type(exc).__name__,
+                                type=type(exc),
+                            ),
                         )
-                        saw_first_token = True
-                    out = output_message_from_yield_item(item)
-                    if out is not None:
-                        last_assistant = out
-                    yield item
-            except BaseException as exc:
-                if isinstance(exc, GeneratorExit):
+                    raise
+                else:
                     if last_assistant is not None:
                         invocation.output_messages = [last_assistant]
-                    handler.stop_entry(invocation)
-                    raise
-                logger.debug(
-                    "%s.%s raised %s",
-                    _MODULE_RUNNER,
-                    _PATCH_TARGET,
-                    type(exc).__name__,
-                    exc_info=True,
-                )
-                handler.fail_entry(
-                    invocation,
-                    Error(
-                        message=str(exc) or type(exc).__name__,
-                        type=type(exc),
-                    ),
-                )
-                raise
-            else:
-                if last_assistant is not None:
-                    invocation.output_messages = [last_assistant]
-                handler.stop_entry(invocation)
+                    if not child_mode:
+                        handler.stop_entry(invocation)
+            finally:
+                if child_ctx_token is not None:
+                    otel_context.detach(child_ctx_token)
 
         return _aiter()
 
