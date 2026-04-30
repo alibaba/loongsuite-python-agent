@@ -218,51 +218,63 @@ libraries = [
     },
     {
         "library": "agentscope >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-agentscope==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-agentscope==0.5.0.dev",
     },
     {
         "library": "agno",
-        "instrumentation": "loongsuite-instrumentation-agno==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-agno==0.5.0.dev",
     },
     {
         "library": "claude-agent-sdk >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-claude-agent-sdk==0.4.0.dev",
-    },
-    {
-        "library": "copaw >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-copaw==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-claude-agent-sdk==0.5.0.dev",
     },
     {
         "library": "crewai >= 0.80.0",
-        "instrumentation": "loongsuite-instrumentation-crewai==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-crewai==0.5.0.dev",
     },
     {
         "library": "dashscope >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-dashscope==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-dashscope==0.5.0.dev",
     },
     {
         "library": "google-adk >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-google-adk==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-google-adk==0.5.0.dev",
+    },
+    {
+        "library": "openai >= 1.0.0",
+        "instrumentation": "loongsuite-instrumentation-hermes-agent==0.5.0.dev",
     },
     {
         "library": "langchain_core >= 0.1.0",
-        "instrumentation": "loongsuite-instrumentation-langchain==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-langchain==0.5.0.dev",
     },
     {
         "library": "langgraph >= 0.2",
-        "instrumentation": "loongsuite-instrumentation-langgraph==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-langgraph==0.5.0.dev",
     },
     {
         "library": "litellm >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-litellm==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-litellm==0.5.0.dev",
     },
     {
         "library": "mcp >= 1.3.0, <= 1.25.0",
-        "instrumentation": "loongsuite-instrumentation-mcp==0.4.0.dev",
+        "instrumentation": "loongsuite-instrumentation-mcp==0.5.0.dev",
     },
     {
-        "library": "mem0ai >= 1.0.0",
-        "instrumentation": "loongsuite-instrumentation-mem0==0.4.0.dev",
+        "library": "mem0ai >= 1.0.0, < 2.0.0",
+        "instrumentation": "loongsuite-instrumentation-mem0==0.5.0.dev",
+    },
+    {
+        "library": "qwen-agent >= 0.0.20",
+        "instrumentation": "loongsuite-instrumentation-qwen-agent==0.5.0.dev",
+    },
+    {
+        "library": "qwenpaw >= 1.1.0",
+        "instrumentation": "loongsuite-instrumentation-qwenpaw==0.5.0.dev",
+    },
+    {
+        "library": "copaw >= 0.1.0, <= 1.0.2",
+        "instrumentation": "loongsuite-instrumentation-qwenpaw==0.5.0.dev",
     },
 ]
 
@@ -274,5 +286,5 @@ default_instrumentations = [
     "opentelemetry-instrumentation-threading==0.62b0.dev",
     "opentelemetry-instrumentation-urllib==0.62b0.dev",
     "opentelemetry-instrumentation-wsgi==0.62b0.dev",
-    "loongsuite-instrumentation-dify==0.4.0.dev",
+    "loongsuite-instrumentation-dify==0.5.0.dev",
 ]

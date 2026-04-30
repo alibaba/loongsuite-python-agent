@@ -12,4 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.5.0.dev"
+"""Compatibility re-export for legacy imports."""
+
+from opentelemetry.instrumentation.qwenpaw.version import __version__
+
+__all__ = ["__version__"]

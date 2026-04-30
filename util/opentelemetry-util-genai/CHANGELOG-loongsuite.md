@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `gen_ai.skill.version` semantic attributes for `execute_tool` spans, plus the
   corresponding optional fields on `ExecuteToolInvocation`.
 
+### Changed
+
+- Relax OpenTelemetry package dependency ranges so LoongSuite GenAI utilities
+  can be installed with recent AgentScope-based runtimes such as QwenPaw and
+  CoPaw.
+
 ## Version 0.4.0 (2026-04-03)
 
 There are no changelog entries for this release.

@@ -31,12 +31,12 @@ from ._entry_utils import (
 
 logger = logging.getLogger(__name__)
 
-_MODULE_RUNNER = "copaw.app.runner.runner"
 _PATCH_TARGET = "AgentRunner.query_handler"
 
 
 def make_query_handler_wrapper(
     handler: ExtendedTelemetryHandler,
+    module_name: str,
 ) -> Callable[..., Any]:
     """Factory for ``wrapt`` wrapper bound to *handler*."""
 
@@ -74,7 +74,7 @@ def make_query_handler_wrapper(
                     raise
                 logger.debug(
                     "%s.%s raised %s",
-                    _MODULE_RUNNER,
+                    module_name,
                     _PATCH_TARGET,
                     type(exc).__name__,
                     exc_info=True,

@@ -13,15 +13,16 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-"""CoPaw instrumentation test fixtures."""
+"""QwenPaw instrumentation test fixtures."""
 
 from __future__ import annotations
 
+import importlib
 import os
 
 import pytest
 
-from opentelemetry.instrumentation.copaw import CoPawInstrumentor
+from opentelemetry.instrumentation.qwenpaw import QwenPawInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
@@ -43,11 +44,28 @@ def fixture_tracer_provider(span_exporter):
 
 @pytest.fixture
 def instrument(tracer_provider):
-    """Enable CoPaw instrumentation for one test."""
+    """Enable QwenPaw instrumentation for one test."""
     os.environ.setdefault(
         "OTEL_SEMCONV_STABILITY_OPT_IN", "gen_ai_latest_experimental"
     )
-    inst = CoPawInstrumentor()
+    inst = QwenPawInstrumentor()
     inst.instrument(skip_dep_check=True, tracer_provider=tracer_provider)
     yield inst
     inst.uninstrument()
+
+
+def _import_runner_module():
+    for module_name in (
+        "qwenpaw.app.runner.runner",
+        "copaw.app.runner.runner",
+    ):
+        try:
+            return importlib.import_module(module_name)
+        except ImportError:
+            continue
+    pytest.skip("No supported QwenPaw runtime package is installed")
+
+
+@pytest.fixture(name="runner_module")
+def fixture_runner_module():
+    return _import_runner_module()

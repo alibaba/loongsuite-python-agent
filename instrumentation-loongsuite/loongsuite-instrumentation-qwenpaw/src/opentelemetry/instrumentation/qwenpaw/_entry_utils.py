@@ -107,8 +107,10 @@ def build_entry_invocation(
 
     extra_attrs: dict[str, Any] = {}
     if agent_id:
+        extra_attrs["qwenpaw.agent_id"] = agent_id
         extra_attrs["copaw.agent_id"] = agent_id
     if channel:
+        extra_attrs["qwenpaw.channel"] = channel
         extra_attrs["copaw.channel"] = channel
 
     return EntryInvocation(

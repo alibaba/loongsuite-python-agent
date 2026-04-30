@@ -12,4 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.5.0.dev"
+"""Compatibility re-export for legacy imports."""
+
+from opentelemetry.instrumentation.qwenpaw._entry_utils import (
+    build_entry_invocation,
+    input_messages_from_msgs,
+    output_message_from_yield_item,
+    parse_query_handler_call,
+)
+
+__all__ = [
+    "build_entry_invocation",
+    "input_messages_from_msgs",
+    "output_message_from_yield_item",
+    "parse_query_handler_call",
+]

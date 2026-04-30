@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for Entry argument parsing (no ``copaw`` required)."""
+"""Unit tests for Entry argument parsing (no runtime package required)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from opentelemetry.instrumentation.copaw._entry_utils import (
+from opentelemetry.instrumentation.qwenpaw._entry_utils import (
     build_entry_invocation,
     input_messages_from_msgs,
     parse_query_handler_call,
@@ -49,6 +49,8 @@ def test_build_entry_invocation_custom_attributes():
     inv = build_entry_invocation(inst, [], req)
     assert inv.session_id == "s"
     assert inv.user_id == "u"
+    assert inv.attributes["qwenpaw.agent_id"] == "aid"
+    assert inv.attributes["qwenpaw.channel"] == "feishu"
     assert inv.attributes["copaw.agent_id"] == "aid"
     assert inv.attributes["copaw.channel"] == "feishu"
 

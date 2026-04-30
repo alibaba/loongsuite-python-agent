@@ -1723,8 +1723,8 @@ jobs:
       - name: Run tests
         run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-crewai -- -ra
 
-  py310-test-loongsuite-instrumentation-copaw_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-copaw 3.10 Ubuntu
+  py310-test-loongsuite-instrumentation-qwenpaw-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-latest 3.10 Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1740,10 +1740,29 @@ jobs:
         run: pip install tox-uv
 
       - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py310-test-loongsuite-instrumentation-copaw -- -ra
+        run: tox -c tox-loongsuite.ini -e py310-test-loongsuite-instrumentation-qwenpaw-latest -- -ra
 
-  py311-test-loongsuite-instrumentation-copaw_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-copaw 3.11 Ubuntu
+  py310-test-loongsuite-instrumentation-qwenpaw-legacy_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-legacy 3.10 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py310-test-loongsuite-instrumentation-qwenpaw-legacy -- -ra
+
+  py311-test-loongsuite-instrumentation-qwenpaw-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-latest 3.11 Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1759,10 +1778,29 @@ jobs:
         run: pip install tox-uv
 
       - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py311-test-loongsuite-instrumentation-copaw -- -ra
+        run: tox -c tox-loongsuite.ini -e py311-test-loongsuite-instrumentation-qwenpaw-latest -- -ra
 
-  py312-test-loongsuite-instrumentation-copaw_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-copaw 3.12 Ubuntu
+  py311-test-loongsuite-instrumentation-qwenpaw-legacy_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-legacy 3.11 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py311-test-loongsuite-instrumentation-qwenpaw-legacy -- -ra
+
+  py312-test-loongsuite-instrumentation-qwenpaw-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-latest 3.12 Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1778,10 +1816,29 @@ jobs:
         run: pip install tox-uv
 
       - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-copaw -- -ra
+        run: tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-qwenpaw-latest -- -ra
 
-  py313-test-loongsuite-instrumentation-copaw_ubuntu-latest:
-    name: LoongSuite loongsuite-instrumentation-copaw 3.13 Ubuntu
+  py312-test-loongsuite-instrumentation-qwenpaw-legacy_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-legacy 3.12 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py312-test-loongsuite-instrumentation-qwenpaw-legacy -- -ra
+
+  py313-test-loongsuite-instrumentation-qwenpaw-latest_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-latest 3.13 Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -1797,4 +1854,23 @@ jobs:
         run: pip install tox-uv
 
       - name: Run tests
-        run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-copaw -- -ra
+        run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-qwenpaw-latest -- -ra
+
+  py313-test-loongsuite-instrumentation-qwenpaw-legacy_ubuntu-latest:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw-legacy 3.13 Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo @ SHA - ${{ github.sha }}
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install tox
+        run: pip install tox-uv
+
+      - name: Run tests
+        run: tox -c tox-loongsuite.ini -e py313-test-loongsuite-instrumentation-qwenpaw-legacy -- -ra

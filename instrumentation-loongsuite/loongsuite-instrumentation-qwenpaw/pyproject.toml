@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "loongsuite-instrumentation-copaw"
+name = "loongsuite-instrumentation-qwenpaw"
 dynamic = ["version"]
-description = "LoongSuite CoPaw Instrumentation"
+description = "LoongSuite QwenPaw Instrumentation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.14"
@@ -33,19 +33,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-instruments = [
-  "copaw >= 0.1.0",
+instruments = []
+instruments-any = [
+  "qwenpaw >= 1.1.0",
+  "copaw >= 0.1.0, <= 1.0.2",
 ]
 
 [project.entry-points.opentelemetry_instrumentor]
-copaw = "opentelemetry.instrumentation.copaw:CoPawInstrumentor"
+qwenpaw = "opentelemetry.instrumentation.qwenpaw:QwenPawInstrumentor"
 
 [project.urls]
-Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-copaw"
+Homepage = "https://github.com/alibaba/loongsuite-python-agent/tree/main/instrumentation-loongsuite/loongsuite-instrumentation-qwenpaw"
 Repository = "https://github.com/alibaba/loongsuite-python-agent"
 
 [tool.hatch.version]
-path = "src/opentelemetry/instrumentation/copaw/version.py"
+path = "src/opentelemetry/instrumentation/qwenpaw/version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -55,6 +57,12 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/opentelemetry"]
+
+[tool.loongsuite.readme]
+supported-packages = [
+  "qwenpaw >= 1.1.0",
+  "copaw >= 0.1.0, <= 1.0.2 (legacy)",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

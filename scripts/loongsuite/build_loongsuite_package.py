@@ -202,8 +202,29 @@ def _patch_version_py(version_py_path: Path, new_version: str):
 
 
 def find_version_py(package_dir: Path) -> Optional[Path]:
-    """Find version.py file in package directory"""
-    for version_py in package_dir.rglob("version.py"):
+    """Find the version file used by the package build backend."""
+    pyproject_path = package_dir / "pyproject.toml"
+    if pyproject_path.exists():
+        try:
+            doc = tomlkit.parse(pyproject_path.read_text(encoding="utf-8"))
+            version_config = (
+                doc.get("tool", {}).get("hatch", {}).get("version", {})
+            )
+            version_path = version_config.get("path")
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(
+                "Failed to read hatch version path from %s: %s",
+                pyproject_path,
+                exc,
+            )
+            version_path = None
+
+        if version_path:
+            candidate = package_dir / str(version_path)
+            if candidate.is_file():
+                return candidate
+
+    for version_py in sorted(package_dir.rglob("version.py")):
         if "site-packages" not in str(version_py):
             return version_py
     return None

@@ -12,4 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.5.0.dev"
+"""Compatibility re-export for legacy imports."""
+
+from opentelemetry.instrumentation.qwenpaw.patch import (
+    make_query_handler_wrapper,
+)
+
+__all__ = ["make_query_handler_wrapper"]

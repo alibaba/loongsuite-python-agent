@@ -12,4 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.5.0.dev"
+"""Compatibility import path for legacy instrumentation."""
+
+from opentelemetry.instrumentation.qwenpaw import (
+    CoPawInstrumentor,
+    QwenPawInstrumentor,
+)
+
+__all__ = ["CoPawInstrumentor", "QwenPawInstrumentor"]

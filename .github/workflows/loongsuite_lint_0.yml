@@ -241,8 +241,8 @@ jobs:
       - name: Run tests
         run: tox -c tox-loongsuite.ini -e lint-loongsuite-instrumentation-crewai
 
-  lint-loongsuite-instrumentation-copaw:
-    name: LoongSuite loongsuite-instrumentation-copaw
+  lint-loongsuite-instrumentation-qwenpaw:
+    name: LoongSuite loongsuite-instrumentation-qwenpaw
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -258,4 +258,4 @@ jobs:
         run: pip install tox-uv
 
       - name: Run tests
-        run: tox -c tox-loongsuite.ini -e lint-loongsuite-instrumentation-copaw
+        run: tox -c tox-loongsuite.ini -e lint-loongsuite-instrumentation-qwenpaw
