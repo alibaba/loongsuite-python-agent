@@ -15,6 +15,8 @@ There are no changelog entries for this release.
 
 ### Added
 
+- LangChain embedding span support
+  ([#157](https://github.com/alibaba/loongsuite-python-agent/pull/157))
 - Rerank / document-compressor span support
   ([#149](https://github.com/alibaba/loongsuite-python-agent/pull/149))
 
