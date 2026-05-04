@@ -92,15 +92,15 @@ class PydanticAIInstrumentor(BaseInstrumentor):
 
         genai_helper = GenAIHookHelper()
 
-        # --- 1. Wrap Agent._iter_context to enrich agent run spans ---
+        # --- 1. Wrap Agent.iter to enrich agent run spans ---
         try:
             wrap_function_wrapper(
                 module="pydantic_ai.agent",
-                name="Agent._iter_context",
+                name="Agent.iter",
                 wrapper=_AgentIterContextWrapper(tracer, genai_helper),
             )
         except Exception as e:
-            logger.warning(f"Could not wrap Agent._iter_context: {e}")
+            logger.warning(f"Could not wrap Agent.iter: {e}")
 
         # --- 2. Wrap ToolManager._execute_function_tool_call to enrich tool spans ---
         try:
@@ -134,7 +134,7 @@ class PydanticAIInstrumentor(BaseInstrumentor):
             )
             return
         try:
-            unwrap(pydantic_ai.agent.Agent, "_iter_context")
+            unwrap(pydantic_ai.agent.Agent, "iter")
         except Exception as e:
             logger.debug(f"Error during uninstrumenting Agent: {e}")
 
