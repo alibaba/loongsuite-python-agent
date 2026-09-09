@@ -60,6 +60,7 @@ from opentelemetry.util.genai.types import (
     ToolCallResponse,
 )
 
+from ._provider import get_model_provider as _get_provider_name
 from ._skill import _enrich_skill_metadata
 from ._usage import _extract_cache_tokens
 
@@ -1158,21 +1159,6 @@ def _tool_definitions(tools: list[dict[str, Any]] | None) -> list[Any]:
             )
         )
     return definitions
-
-
-def _get_provider_name(model: Any) -> str:
-    class_name = model.__class__.__name__.lower() if model is not None else ""
-    if "dashscope" in class_name:
-        return "dashscope"
-    if "openai" in class_name:
-        return "openai"
-    if "anthropic" in class_name:
-        return "anthropic"
-    if "gemini" in class_name:
-        return "gcp.gen_ai"
-    if "ollama" in class_name:
-        return "ollama"
-    return "agentscope"
 
 
 def _is_first_token_event(item: Any) -> bool:

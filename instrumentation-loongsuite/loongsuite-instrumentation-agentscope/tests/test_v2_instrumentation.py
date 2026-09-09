@@ -21,6 +21,7 @@ import importlib.metadata
 import json
 import os
 from dataclasses import asdict
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -32,7 +33,10 @@ if not importlib.metadata.version("agentscope").startswith("2."):
     )
 
 from agentscope.agent import Agent  # noqa: E402
-from agentscope.credential import DashScopeCredential  # noqa: E402
+from agentscope.credential import (  # noqa: E402
+    DashScopeCredential,
+    OpenAICredential,
+)
 from agentscope.message import (  # noqa: E402
     Msg,
     TextBlock,
@@ -46,6 +50,7 @@ from agentscope.model import (  # noqa: E402
     ChatResponse,
     ChatUsage,
     DashScopeChatModel,
+    OpenAIChatModel,
 )
 from agentscope.tool import ToolResponse  # noqa: E402
 
@@ -75,6 +80,71 @@ def test_v2_dependency_detection():
     assert get_installed_instrumentation_dependencies() == (
         "agentscope >= 2.0.0, < 3.0.0",
     )
+
+
+@pytest.mark.parametrize(
+    "endpoint,expected",
+    [
+        ("https://dashscope.aliyuncs.com/compatible-mode/v1", "dashscope"),
+        (
+            "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+            "dashscope",
+        ),
+        ("https://coding.dashscope.aliyuncs.com/v1", "dashscope"),
+        ("https://api.deepseek.com/v1", "deepseek"),
+        ("https://api.openai.com/v1", "openai"),
+        ("https://api.anthropic.com", "anthropic"),
+        ("https://proxy.example/v1", "unknown"),
+    ],
+)
+async def test_v2_openai_compatible_provider(endpoint, expected):
+    model = OpenAIChatModel(
+        credential=OpenAICredential(api_key="test_api_key", base_url=endpoint),
+        model="opaque-model",
+    )
+    try:
+        assert _create_llm_invocation(model, {}).provider == expected
+    finally:
+        if hasattr(model, "client"):
+            await model.client.close()
+
+
+def test_v2_provider_wrappers_and_safe_fallback():
+    leaf = SimpleNamespace(
+        credential=SimpleNamespace(base_url="https://api.deepseek.com/v1")
+    )
+    wrapper = SimpleNamespace(
+        _inner=SimpleNamespace(_model=leaf), _provider_id="dashscope"
+    )
+    assert _v2_middleware._get_provider_name(wrapper) == "deepseek"
+    leaf.credential.base_url = "https://gateway.example/v1"
+    assert _v2_middleware._get_provider_name(wrapper) == "dashscope"
+    wrapper._provider_id = "arbitrary-user-connection-id"
+    assert _v2_middleware._get_provider_name(wrapper) == "unknown"
+    leaf._model = wrapper
+    assert _v2_middleware._get_provider_name(wrapper) == "unknown"
+    assert _v2_middleware._get_provider_name(None) == "unknown"
+
+
+def test_v2_provider_getter_failure_is_fail_open():
+    class EndpointModel:
+        @property
+        def client(self):
+            raise RuntimeError("credential must not be logged")
+
+        credential = SimpleNamespace(base_url="https://api.deepseek.com/v1")
+
+    assert _v2_middleware._get_provider_name(EndpointModel()) == "deepseek"
+
+
+def test_v2_provider_client_override_precedes_credential():
+    model = SimpleNamespace(
+        credential=SimpleNamespace(base_url="https://api.openai.com/v1"),
+        client_kwargs={"base_url": "https://api.deepseek.com/v1"},
+    )
+    assert _v2_middleware._get_provider_name(model) == "deepseek"
+    model.client = SimpleNamespace(base_url="https://api.anthropic.com")
+    assert _v2_middleware._get_provider_name(model) == "anthropic"
 
 
 def test_v2_tool_result_message_content_is_jsonable():
@@ -1719,6 +1789,100 @@ async def test_v2_real_provider_replay_cancellation(
     assert "gen_ai.response.finish_reasons" not in llm.attributes
     assert "gen_ai.usage.input_tokens" not in llm.attributes
     assert not trace_api.get_current_span().get_span_context().is_valid
+
+
+@pytest.mark.parametrize(
+    "stream,content", [(False, False), (False, True), (True, True)]
+)
+async def test_v2_endpoint_provider_replay(
+    stream, content, request, span_exporter, vcr
+):
+    """Replay real DashScope traffic with an opaque model class name."""
+    request.getfixturevalue(
+        "instrument_with_content" if content else "instrument"
+    )
+
+    class EndpointModel(DashScopeChatModel):
+        pass
+
+    model = EndpointModel(
+        credential=DashScopeCredential(api_key="test_api_key"),
+        model="qwen-plus",
+        parameters=DashScopeChatModel.Parameters(
+            max_tokens=16, thinking_enable=False
+        ),
+        stream=stream,
+        max_retries=0,
+    )
+    agent = Agent(
+        name="endpoint_agent",
+        system_prompt=(
+            "Reply with a short sentence."
+            if stream
+            else "Reply with exactly: OK"
+        ),
+        model=model,
+    )
+    # Newer AgentScope injects wall-clock reminders; keep replay prompts stable.
+    if hasattr(agent, "injection_config"):
+        agent.injection_config.inject_runtime_state = False
+    cassette = (
+        Path(__file__).parent
+        / "cassettes"
+        / (
+            "test_v2_agent_streaming_e2e.yaml"
+            if stream
+            else "test_v2_agent_non_streaming_e2e.yaml"
+        )
+    )
+
+    def json_body(left, right):
+        assert json.loads(left.body) == json.loads(right.body)
+
+    vcr.register_matcher("json_body", json_body)
+    try:
+        with vcr.use_cassette(
+            str(cassette),
+            record_mode="none",
+            match_on=[
+                "method",
+                "scheme",
+                "host",
+                "port",
+                "path",
+                "query",
+                "json_body",
+            ],
+        ) as recording:
+            if stream:
+                events = [
+                    event
+                    async for event in agent.reply_stream(
+                        UserMsg(
+                            name="user", content="Say hello in one sentence."
+                        )
+                    )
+                ]
+                assert events
+            else:
+                assert (
+                    await agent.reply(UserMsg(name="user", content="Say OK."))
+                ).get_text_content()
+            assert recording.all_played
+    finally:
+        if hasattr(model, "client"):
+            await model.client.close()
+    spans = span_exporter.get_finished_spans()
+    _assert_agent_and_llm_spans(spans)
+    [llm] = _spans_by_operation(spans, "chat")
+    [agent_span] = _spans_by_operation(spans, "invoke_agent")
+    assert llm.attributes["gen_ai.provider.name"] == "dashscope"
+    assert agent_span.attributes["gen_ai.provider.name"] == "dashscope"
+    assert ("gen_ai.input.messages" in llm.attributes) is content
+    assert ("gen_ai.output.messages" in llm.attributes) is content
+    assert llm.attributes["gen_ai.usage.input_tokens"] > 0
+    if stream:
+        assert llm.attributes["gen_ai.response.time_to_first_token"] >= 0
 
 
 @pytest.mark.vcr(record_mode="none")

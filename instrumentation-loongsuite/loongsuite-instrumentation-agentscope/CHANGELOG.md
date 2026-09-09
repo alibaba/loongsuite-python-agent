@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resolve v2 Agent/LLM providers from actual endpoints through QwenPaw model
+  wrappers, with known vendor hints for proxy endpoints. Do not label opaque
+  wrappers as `agentscope` or OpenAI-compatible endpoints as OpenAI by default.
 - Treat AgentScope v2 cancellation as control flow, with an explicit
   `agentscope.cancelled` attribute, including interrupted reply events when
   the framework consumes the exception. Preserve business exceptions and do
