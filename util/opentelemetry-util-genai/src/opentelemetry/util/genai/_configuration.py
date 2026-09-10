@@ -27,5 +27,7 @@ def is_experimental_mode() -> bool:
     """
     return "gen_ai_latest_experimental" in {
         value.strip()
-        for value in os.environ.get(OTEL_SEMCONV_STABILITY_OPT_IN, "").split(",")
+        for value in os.environ.get(OTEL_SEMCONV_STABILITY_OPT_IN, "").split(
+            ","
+        )
     }
